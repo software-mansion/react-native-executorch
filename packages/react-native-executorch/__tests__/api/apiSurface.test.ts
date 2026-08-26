@@ -13,7 +13,7 @@
 import * as api from '../../src/index';
 
 /** The namespace re-exports (`export * as math from ...`) plus the registry. */
-const NAMESPACES = ['constants', 'cv', 'math', 'models', 'nlp', 'schema', 'speech'] as const;
+const NAMESPACES = ['cv', 'llm', 'math', 'models', 'nlp', 'schema', 'speech'] as const;
 
 describe('public API surface', () => {
   it('matches the recorded export list', () => {
@@ -44,10 +44,19 @@ describe('public API surface', () => {
     // `useModel` and `useResourceDownload` are generic helpers with no task of
     // their own; everything else pairs a hook with a factory.
     const generic = new Set(['useModel', 'useResourceDownload']);
+    // `useOpticalCharacterRecognizer` names the task while its factory names
+    // the model (`createPaddleOcr`), so the two cannot be matched by name.
+    const namedAfterTheModel: Record<string, string> = {
+      useOpticalCharacterRecognizer: 'createPaddleOcr',
+    };
     const factories = new Set(Object.keys(api).filter((key) => key.startsWith('create')));
+
+    // Every hand-listed pair still has to name a factory that exists.
+    for (const factory of Object.values(namedAfterTheModel)) expect(factories).toContain(factory);
 
     const unpaired = Object.keys(api)
       .filter((key) => key.startsWith('use') && !generic.has(key))
+      .filter((key) => !(key in namedAfterTheModel))
       .filter((hook) => {
         const task = hook.slice('use'.length);
         return ![...factories].some((factory) => factory.slice('create'.length).includes(task));

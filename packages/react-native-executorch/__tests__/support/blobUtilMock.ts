@@ -171,9 +171,14 @@ export const fakeFetch = async (
 // ============================================================================
 
 type ProgressCallback = (received: string, total: string) => void;
+type StateChangeCallback = (info: { status?: number }) => void;
 
 type FetchTask = Promise<{ info: () => { status: number } }> & {
   progress: (config: { count?: number }, cb: ProgressCallback) => FetchTask;
+  // Undocumented in blob-util's typings, but real: it reports the response
+  // state, so `src/` learns the status as soon as the headers land rather than
+  // only once the body is complete. See `downloadUrlViaIosStream`.
+  stateChange: (cb: StateChangeCallback) => FetchTask;
   cancel: () => void;
 };
 
@@ -196,6 +201,7 @@ function startFetch(config: Config, method: string, url: string, headers: Record
   requests.push({ method, url, headers });
 
   let onProgress: ProgressCallback | undefined;
+  let onStateChange: StateChangeCallback | undefined;
   let cancelled = false;
 
   const run = async () => {
@@ -220,6 +226,10 @@ function startFetch(config: Config, method: string, url: string, headers: Record
       // Otherwise the server ignores the range and re-sends everything (200).
     }
 
+    // The status is known once the headers are in, which is before any of the
+    // body arrives and before the gate a test may be holding the response on.
+    onStateChange?.({ status });
+
     // Halfway progress first, so a test can observe a partially finished
     // download while the gate is still closed.
     onProgress?.(String(Math.floor(payload.length / 2)), String(payload.length));
@@ -237,6 +247,10 @@ function startFetch(config: Config, method: string, url: string, headers: Record
   const task = run() as FetchTask;
   task.progress = (_config, cb) => {
     onProgress = cb;
+    return task;
+  };
+  task.stateChange = (cb) => {
+    onStateChange = cb;
     return task;
   };
   task.cancel = () => {

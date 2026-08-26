@@ -29,7 +29,7 @@ describe('useResourceDownload', () => {
     expect(result.current).toEqual({
       resource: undefined,
       downloadProgress: 0,
-      downloadError: null,
+      downloadError: undefined,
     });
   });
 

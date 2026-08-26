@@ -17,28 +17,28 @@ const factoryOf = (instances: Instance[]) =>
 
 describe('useModel', () => {
   it('starts with no model and no error', async () => {
-    const { result } = await renderHook(() => useModel(factoryOf([]), null));
-    expect(result.current).toEqual({ model: null, error: null });
+    const { result } = await renderHook(() => useModel(factoryOf([]), undefined));
+    expect(result.current).toEqual({ model: undefined, error: undefined });
   });
 
   it('exposes the instance once the factory resolves', async () => {
     const instances: Instance[] = [];
     const { result } = await renderHook(() => useModel(factoryOf(instances), { id: 'a' }));
 
-    await waitFor(() => expect(result.current.model).not.toBeNull());
+    await waitFor(() => expect(result.current.model).toBeDefined());
     expect(result.current.model).toBe(instances[0]);
   });
 
-  it('does not create anything for a null config', async () => {
+  it('does not create anything for an undefined config', async () => {
     const factory = factoryOf([]);
-    await renderHook(() => useModel(factory, null));
+    await renderHook(() => useModel(factory, undefined));
     expect(factory).not.toHaveBeenCalled();
   });
 
   it('disposes the instance on unmount', async () => {
     const instances: Instance[] = [];
     const { result, unmount } = await renderHook(() => useModel(factoryOf(instances), { id: 'a' }));
-    await waitFor(() => expect(result.current.model).not.toBeNull());
+    await waitFor(() => expect(result.current.model).toBeDefined());
 
     await unmount();
 
@@ -52,7 +52,7 @@ describe('useModel', () => {
       ({ config }: { config: { id: string } }) => useModel(factory, config),
       { initialProps: { config: { id: 'a' } } }
     );
-    await waitFor(() => expect(result.current.model).not.toBeNull());
+    await waitFor(() => expect(result.current.model).toBeDefined());
 
     await rerender({ config: { id: 'b' } });
     await waitFor(() => expect(result.current.model?.id).toBe('b'));
@@ -68,7 +68,7 @@ describe('useModel', () => {
       ({ config }: { config: { id: string } }) => useModel(factory, config),
       { initialProps: { config: { id: 'a' } } }
     );
-    await waitFor(() => expect(result.current.model).not.toBeNull());
+    await waitFor(() => expect(result.current.model).toBeDefined());
 
     // A new object with identical contents — the common case for an inline
     // config literal being re-created on every render.
@@ -104,9 +104,9 @@ describe('useModel', () => {
 
     const { result } = await renderHook(() => useModel(factory, { id: 'a' }));
 
-    await waitFor(() => expect(result.current.error).not.toBeNull());
+    await waitFor(() => expect(result.current.error).toBeDefined());
     expect(result.current.error?.message).toBe('spec mismatch');
-    expect(result.current.model).toBeNull();
+    expect(result.current.model).toBeUndefined();
   });
 
   it('wraps a non-Error rejection in an Error', async () => {
@@ -131,27 +131,27 @@ describe('useModel', () => {
       ({ config }: { config: { id: string } }) => useModel(factory, config),
       { initialProps: { config: { id: 'bad' } } }
     );
-    await waitFor(() => expect(result.current.error).not.toBeNull());
+    await waitFor(() => expect(result.current.error).toBeDefined());
 
     shouldFail = false;
     await rerender({ config: { id: 'good' } });
 
-    await waitFor(() => expect(result.current.model).not.toBeNull());
-    expect(result.current.error).toBeNull();
+    await waitFor(() => expect(result.current.model).toBeDefined());
+    expect(result.current.error).toBeUndefined();
   });
 
-  it('clears the model when the config becomes null', async () => {
+  it('clears the model when the config becomes undefined', async () => {
     const instances: Instance[] = [];
     const factory = factoryOf(instances);
     const { result, rerender } = await renderHook(
-      ({ config }: { config: { id: string } | null }) => useModel(factory, config),
-      { initialProps: { config: { id: 'a' } as { id: string } | null } }
+      ({ config }: { config: { id: string } | undefined }) => useModel(factory, config),
+      { initialProps: { config: { id: 'a' } as { id: string } | undefined } }
     );
-    await waitFor(() => expect(result.current.model).not.toBeNull());
+    await waitFor(() => expect(result.current.model).toBeDefined());
 
-    await rerender({ config: null });
+    await rerender({ config: undefined });
 
-    await waitFor(() => expect(result.current.model).toBeNull());
+    await waitFor(() => expect(result.current.model).toBeUndefined());
     expect(instances[0]!.dispose).toHaveBeenCalledTimes(1);
   });
 });

@@ -77,23 +77,46 @@ function configs(node: unknown, path: string[] = []): { label: string; config: N
 }
 
 /**
- * Every group that both spreads a default config and lists named variants —
- * the `{ ...X_FP32, XNNPACK_FP32: X_FP32, COREML_FP16: X_FP16 }` shape.
+ * Every group that names a default alongside the variants it can point at —
+ * the `{ DEFAULT: X_FP32, XNNPACK_FP32: X_FP32, COREML_FP16: X_FP16 }` shape.
+ *
+ * A group's `DEFAULT` does not have to be one of its immediate siblings: a
+ * family like `objectDetection.YOLO26` defaults to a config that lives two
+ * levels down, under a scale and then an input size.
  */
 function variantGroups(node: unknown, path: string[] = []): { label: string; group: Node }[] {
   if (!isObject(node)) return [];
-  const variants = Object.entries(node).filter(
-    ([key, value]) => isUpperKey(key) && isConfig(value)
-  );
-  const here =
-    variants.length > 0 && isConfig(node) ? [{ label: path.join('.'), group: node }] : [];
+  const here = isConfig(node.DEFAULT) ? [{ label: path.join('.'), group: node }] : [];
   const nested = Object.entries(node)
-    .filter(([, value]) => isObject(value))
+    .filter(([key, value]) => key !== 'DEFAULT' && isObject(value))
     .flatMap(([key, value]) => variantGroups(value, [...path, key]));
   return [...here, ...nested];
 }
 
+/**
+ * The named backend variants a group lists directly, excluding its `DEFAULT`
+ * alias and any nested scale/size families.
+ */
+const namedVariants = (group: Node): Node[] =>
+  Object.entries(group)
+    .filter(([key, value]) => key !== 'DEFAULT' && isUpperKey(key) && isConfig(value))
+    .map(([, value]) => value as Node);
+
+const BACKENDS = /^(xnnpack|coreml|mlx|qnn|vulkan)$/;
+// `spinquant` is a quantization recipe rather than a plain precision, but it is
+// what the published Llama builds are named after.
+const PRECISIONS = /^(fp32|fp16|bf16|int8|int4|8da4w|4w|dynamic|spinquant)$/;
+
+const basename = (url: string) => url.split('/').pop()!.replace('.pte', '');
+
+/** The backend a `.pte` filename declares, or `undefined` when it declares none. */
+const backendOf = (url: string): string | undefined => {
+  const backend = basename(url).split('_').at(-2) ?? '';
+  return BACKENDS.test(backend) ? backend : undefined;
+};
+
 const urls = urlLeaves(models);
+const pteUrls = urls.filter(([, url]) => url.endsWith('.pte'));
 const allConfigs = configs(models);
 const allGroups = variantGroups(models);
 
@@ -117,29 +140,38 @@ describe('models registry — URLs', () => {
     expect(url.replace('https://', '')).not.toMatch(/\/\//);
   });
 
-  it('names every .pte after the modelname_backend_precision contract', () => {
-    const offenders = urls
-      .filter(([, url]) => url.endsWith('.pte'))
-      .filter(([, url]) => {
-        const parts = url.split('/').pop()!.replace('.pte', '').split('_');
-        const backend = parts.at(-2) ?? '';
-        const precision = parts.at(-1) ?? '';
-        return (
-          !/^(xnnpack|coreml|mlx|qnn|vulkan)$/.test(backend) ||
-          !/^(fp32|fp16|bf16|int8|int4|8da4w|4w|dynamic)$/.test(precision)
-        );
-      })
-      .map(([path, url]) => `${path}: ${url.split('/').pop()}`);
+  it('names every backend-tagged .pte after the modelname_backend_precision contract', () => {
+    const offenders = pteUrls
+      .filter(([, url]) => backendOf(url) !== undefined)
+      .filter(([, url]) => !PRECISIONS.test(basename(url).split('_').at(-1)!))
+      .map(([path, url]) => `${path}: ${basename(url)}`);
 
     expect(offenders).toEqual([]);
   });
 
-  it('stores every .pte in a folder matching its backend suffix', () => {
-    const offenders = urls
-      .filter(([, url]) => url.endsWith('.pte'))
+  // The rule above only bites on files that carry a backend at all, so the
+  // exceptions are pinned here rather than left to silently opt out: a new
+  // untagged `.pte` has to be added deliberately.
+  it('leaves only the known exceptions untagged', () => {
+    // Kokoro's grapheme-to-phoneme models are published per language rather
+    // than per backend, under `phonemizer/<lang>/`.
+    const offenders = pteUrls
+      .filter(([, url]) => backendOf(url) === undefined)
+      .filter(([, url]) => !/\/phonemizer\/[a-z-]+\/phonemizer_[a-z_]+\.pte$/.test(url))
+      .map(([path, url]) => `${path}: ${url}`);
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('stores every backend-tagged .pte under a folder naming its backend', () => {
+    const offenders = pteUrls
+      .filter(([, url]) => backendOf(url) !== undefined)
       .filter(([, url]) => {
-        const segments = url.split('/');
-        return segments.at(-2) !== segments.at(-1)!.replace('.pte', '').split('_').at(-2);
+        // Kokoro nests a variant folder below the backend one
+        // (`xnnpack/polish/…`), so the backend is looked for anywhere in the
+        // path rather than only in the segment above the file.
+        const segments = url.split('/').slice(0, -1);
+        return !segments.includes(backendOf(url)!);
       })
       .map(([path, url]) => `${path}: ${url}`);
 
@@ -172,27 +204,22 @@ describe('models registry — structure', () => {
     expect(allGroups.length).toBeGreaterThan(10);
   });
 
-  it.each(allGroups)('$label defaults to one of its own variants', ({ group }) => {
-    // Compare config fields only: a variant may itself carry further nested
-    // groups (a size family, say), which the spread default never includes.
-    const variants = Object.entries(group)
-      .filter(([key, value]) => isUpperKey(key) && isConfig(value))
-      .map(([, value]) => JSON.stringify(configPart(value as Node)));
-    const defaults = JSON.stringify(configPart(group));
-
-    // The default is spread in alongside the variants, so it must be
-    // structurally identical to one of them — otherwise `models.x.Y` and
-    // `models.x.Y.XNNPACK_FP32` silently disagree.
-    expect(variants).toContain(defaults);
+  it.each(allGroups)('$label defaults to a config it actually offers', ({ group }) => {
+    // The default has to be reachable through the group's own tree, otherwise
+    // `models.x.Y` and every `models.x.Y.<variant>` silently disagree. Compare
+    // the config fields only: a variant may carry further nested groups (a size
+    // family, say) that the default alias never includes.
+    const offered = configs(group).map(({ config }) => JSON.stringify(configPart(config)));
+    expect(offered).toContain(JSON.stringify(configPart(group.DEFAULT as Node)));
   });
 
-  it.each(allGroups)('$label gives every variant distinct model files', ({ group }) => {
-    const paths = Object.entries(group)
-      .filter(([key, value]) => isUpperKey(key) && isConfig(value))
-      .map(([, value]) => modelPathsOf(value as Node));
-
-    expect(new Set(paths).size).toBe(paths.length);
-  });
+  it.each(allGroups.filter(({ group }) => namedVariants(group).length > 0))(
+    '$label gives every named variant distinct model files',
+    ({ group }) => {
+      const paths = namedVariants(group).map(modelPathsOf);
+      expect(new Set(paths).size).toBe(paths.length);
+    }
+  );
 
   it('uses distinct entry names within each category', () => {
     for (const group of Object.values(models)) {

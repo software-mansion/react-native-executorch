@@ -63,7 +63,7 @@ describe('useClassifier', () => {
 
     expect(result.current.isReady).toBe(false);
     expect(result.current.classify).toBeUndefined();
-    expect(result.current.error).toBeNull();
+    expect(result.current.error).toBeUndefined();
 
     gate.resolve();
     await waitFor(() => expect(result.current.isReady).toBe(true));
@@ -188,7 +188,7 @@ describe('use<Task> hooks — shared contract', () => {
 
     expect(result.current).toMatchObject({
       isReady: expect.any(Boolean),
-      error: null,
+      error: undefined,
       downloadProgress: expect.any(Number),
     });
     expect('resource' in result.current).toBe(true);

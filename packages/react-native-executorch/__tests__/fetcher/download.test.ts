@@ -1,4 +1,5 @@
-import { AbortError, download } from '../../src/fetcher/fetcher';
+import { isRnExecuTorchError } from '../../src/core/error';
+import { download } from '../../src/fetcher/fetcher';
 import { setTelemetryEnabled } from '../../src/fetcher/telemetry';
 import { until } from '../support/async';
 import { deferred, fakeFs, fakeNet } from '../support/blobUtilMock';
@@ -205,17 +206,16 @@ describe('download — failure handling', () => {
 });
 
 describe('download — cancellation', () => {
-  it('rejects with an AbortError when the signal is already aborted', async () => {
+  it('rejects with DOWNLOAD_ABORTED when the signal is already aborted', async () => {
     fakeNet.serve(URL_A);
     const controller = new AbortController();
     controller.abort();
 
     const rejection = await download(URL_A, { signal: controller.signal }).catch((e) => e);
-    expect(rejection).toBeInstanceOf(AbortError);
-    expect(rejection.name).toBe('AbortError');
+    expect(isRnExecuTorchError(rejection, 'DOWNLOAD_ABORTED')).toBe(true);
   });
 
-  it('rejects with an AbortError when aborted mid-flight', async () => {
+  it('rejects with DOWNLOAD_ABORTED when aborted mid-flight', async () => {
     const gate = deferred();
     fakeNet.serve(URL_A, { gate: gate.promise });
 
@@ -226,7 +226,7 @@ describe('download — cancellation', () => {
     controller.abort();
     gate.resolve();
 
-    expect(await rejection).toBeInstanceOf(AbortError);
+    expect(isRnExecuTorchError(await rejection, 'DOWNLOAD_ABORTED')).toBe(true);
     expect(cachedPath('model.pte')).toBeUndefined();
   });
 
@@ -237,7 +237,7 @@ describe('download — cancellation', () => {
     const rejection = download(URL_A, { signal: controller.signal }).catch((e) => e);
     controller.abort();
 
-    expect(await rejection).toBeInstanceOf(AbortError);
+    expect(isRnExecuTorchError(await rejection, 'DOWNLOAD_ABORTED')).toBe(true);
     expect(fakeNet.countRequests('GET', URL_A)).toBe(0);
   });
 });
@@ -282,7 +282,7 @@ describe('download — concurrent callers', () => {
     controller.abort();
     gate.resolve();
 
-    expect(await leavingRejection).toBeInstanceOf(AbortError);
+    expect(isRnExecuTorchError(await leavingRejection, 'DOWNLOAD_ABORTED')).toBe(true);
     expect(await staying).toBe(cachedPath('model.pte'));
     expect(fakeNet.countRequests('GET', URL_A)).toBe(1);
   });
@@ -296,7 +296,7 @@ describe('download — concurrent callers', () => {
     await untilFetching(URL_A);
     controller.abort();
     gate.resolve();
-    expect(await abandoned).toBeInstanceOf(AbortError);
+    expect(isRnExecuTorchError(await abandoned, 'DOWNLOAD_ABORTED')).toBe(true);
 
     fakeNet.serve(URL_A, { body: 'second attempt' });
     const path = await download(URL_A);

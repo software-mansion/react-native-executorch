@@ -1,4 +1,4 @@
-import { RangeDim, constr, f32, i64, method } from '../../src/core/schema';
+import { RangeDim, constraint, f32, i64, method } from '../../src/core/schema';
 import { createImageEmbedder } from '../../src/extensions/cv/tasks/imageEmbedding';
 import { createTextEmbedder } from '../../src/extensions/nlp/tasks/textEmbedding';
 import { fakeJsi } from '../support/fakeJsi';
@@ -63,7 +63,7 @@ describe('createTextEmbedder', () => {
   const VOCAB = ['<pad>', 'hello', 'world', 'query:', 'document:'];
   const SEQUENCE = RangeDim(1, 8);
   const EQUAL_LENGTHS = [
-    constr.eq(
+    constraint.equality(
       { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
       { paramSide: 'input', tensorIdx: 1, dimIdx: 1 }
     ),

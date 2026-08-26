@@ -15,6 +15,7 @@ const STORAGE: Record<DType, new (length: number) => Storage> = {
   uint8: Uint8Array,
   int32: Int32Array,
   int64: BigInt64Array,
+  bool: Uint8Array,
 };
 
 const BYTES_PER_ELEMENT: Record<DType, number> = {
@@ -22,6 +23,7 @@ const BYTES_PER_ELEMENT: Record<DType, number> = {
   uint8: 1,
   int32: 4,
   int64: 8,
+  bool: 1,
 };
 
 /** Live tensors, keyed by their id, so leaks can be reported with their shape. */

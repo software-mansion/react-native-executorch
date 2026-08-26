@@ -8,8 +8,8 @@
  * which looks plausible in a demo and wrong in production.
  */
 import { mulberry32, randomNormal } from '../../src/extensions/math';
-import { decodeBox, scaleBox } from '../../src/extensions/cv/ops/boxes';
-import { scalePoint } from '../../src/extensions/cv/ops/points';
+import { decodeBox, scaleBox } from '../../src/extensions/cv/ops/box';
+import { scalePoint } from '../../src/extensions/cv/ops/point';
 import { FORMAT_CHANNELS, FORMAT_CONVERSION } from '../../src/extensions/cv/ops/image';
 
 describe('decodeBox', () => {

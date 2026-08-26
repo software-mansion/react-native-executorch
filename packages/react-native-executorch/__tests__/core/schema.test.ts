@@ -4,7 +4,7 @@ import {
   EnumDim,
   RangeDim,
   StaticDim,
-  constr,
+  constraint,
   f32,
   i64,
   method,
@@ -294,7 +294,7 @@ describe('validateSpec — runtime constraints', () => {
       )
     );
 
-  const equality = [constr.eq(inputDim(0, 1), inputDim(1, 1))];
+  const equality = [constraint.equality(inputDim(0, 1), inputDim(1, 1))];
 
   const allowed = (constraints: Parameters<typeof method>[3]) => ({
     only: method(
@@ -322,12 +322,12 @@ describe('validateSpec — runtime constraints', () => {
   });
 
   it('matches equality constraints regardless of the order of their dimensions', () => {
-    const reversed = [constr.eq(inputDim(1, 1), inputDim(0, 1))];
+    const reversed = [constraint.equality(inputDim(1, 1), inputDim(0, 1))];
     expect(validateSpec(withConstraint(reversed), allowed(equality)).variant).toBe('only');
   });
 
   it('rejects an equality constraint over a different set of dimensions', () => {
-    const elsewhere = [constr.eq(inputDim(0, 1), outputDim(0, 1))];
+    const elsewhere = [constraint.equality(inputDim(0, 1), outputDim(0, 1))];
     expect(() => validateSpec(withConstraint(elsewhere), allowed(equality))).toThrow(
       /Not declared by the exported model spec/
     );
@@ -339,7 +339,7 @@ describe('validateSpec — runtime constraints', () => {
         'forward',
         [f32(RangeDim(1, 64))],
         [f32(RangeDim(1, 64))],
-        [constr.linear(outputDim(0, 0), inputDim(0, 0), 2, 1)]
+        [constraint.linear(outputDim(0, 0), inputDim(0, 0), 2, 1)]
       )
     );
 
@@ -348,7 +348,7 @@ describe('validateSpec — runtime constraints', () => {
         'forward',
         [f32(DynamicDim('L'))],
         [f32(DynamicDim('L'))],
-        [constr.linear(outputDim(0, 0), inputDim(0, 0), 2, 1)]
+        [constraint.linear(outputDim(0, 0), inputDim(0, 0), 2, 1)]
       ),
     };
     const different = {
@@ -356,7 +356,7 @@ describe('validateSpec — runtime constraints', () => {
         'forward',
         [f32(DynamicDim('L'))],
         [f32(DynamicDim('L'))],
-        [constr.linear(outputDim(0, 0), inputDim(0, 0), 2, 0)]
+        [constraint.linear(outputDim(0, 0), inputDim(0, 0), 2, 0)]
       ),
     };
 
@@ -365,7 +365,7 @@ describe('validateSpec — runtime constraints', () => {
   });
 
   it('defaults the linear intercept to zero', () => {
-    expect(constr.linear(outputDim(0, 0), inputDim(0, 0), 2).coefficients).toEqual([2, 0]);
+    expect(constraint.linear(outputDim(0, 0), inputDim(0, 0), 2).coefficients).toEqual([2, 0]);
   });
 });
 
@@ -375,7 +375,7 @@ describe('validateSpec — authoring errors', () => {
   it('rejects an equality constraint over fewer than two dimensions', () => {
     expect(() =>
       validateSpec(anySpec, {
-        only: method('forward', [f32(4)], [f32(4)], [constr.eq(inputDim(0, 0))]),
+        only: method('forward', [f32(4)], [f32(4)], [constraint.equality(inputDim(0, 0))]),
       })
     ).toThrow(/at least two dimensions/);
   });
@@ -387,7 +387,7 @@ describe('validateSpec — authoring errors', () => {
           'forward',
           [f32(4)],
           [f32(4)],
-          [constr.linear(outputDim(0, 0), inputDim(0, 0), 1.5)]
+          [constraint.linear(outputDim(0, 0), inputDim(0, 0), 1.5)]
         ),
       })
     ).toThrow(/Coefficients must be integers/);
@@ -396,7 +396,12 @@ describe('validateSpec — authoring errors', () => {
   it('rejects a constraint referencing a tensor that does not exist', () => {
     expect(() =>
       validateSpec(anySpec, {
-        only: method('forward', [f32(4)], [f32(4)], [constr.eq(inputDim(3, 0), outputDim(0, 0))]),
+        only: method(
+          'forward',
+          [f32(4)],
+          [f32(4)],
+          [constraint.equality(inputDim(3, 0), outputDim(0, 0))]
+        ),
       })
     ).toThrow(/tensor index out of range/);
   });
@@ -404,7 +409,12 @@ describe('validateSpec — authoring errors', () => {
   it('rejects a constraint referencing a dimension that does not exist', () => {
     expect(() =>
       validateSpec(anySpec, {
-        only: method('forward', [f32(4)], [f32(4)], [constr.eq(inputDim(0, 5), outputDim(0, 0))]),
+        only: method(
+          'forward',
+          [f32(4)],
+          [f32(4)],
+          [constraint.equality(inputDim(0, 5), outputDim(0, 0))]
+        ),
       })
     ).toThrow(/dimension index out of range/);
   });
@@ -414,7 +424,12 @@ describe('validateSpec — authoring errors', () => {
     // in a pipeline's own spec must not be masked by a later variant.
     expect(() =>
       validateSpec(anySpec, {
-        broken: method('forward', [f32(4)], [f32(4)], [constr.eq(inputDim(9, 0), outputDim(0, 0))]),
+        broken: method(
+          'forward',
+          [f32(4)],
+          [f32(4)],
+          [constraint.equality(inputDim(9, 0), outputDim(0, 0))]
+        ),
         fine: method('forward', [f32(4)], [f32(4)]),
       })
     ).toThrow(/tensor index out of range/);
