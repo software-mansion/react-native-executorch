@@ -13,7 +13,7 @@ import { loadTokenizer } from '../tokenizer';
  * @category NLP / Tasks
  * @param tokenizerPath Absolute local path to a `tokenizer.json` file.
  * @param runtime Optional worklet runtime thread to run the tokenizer on.
- * @returns A promise resolving to the instantiated {@link Tokenizer} operations
+ * @returns A promise resolving to the instantiated tokenizer operations
  * and disposal controls.
  */
 export async function createTokenizer(tokenizerPath: string, runtime?: WorkletRuntime) {

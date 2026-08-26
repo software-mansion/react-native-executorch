@@ -1,35 +1,7 @@
 const path = require('path');
+const typedocConfig = require('./docs/typedoc.json');
 
-const VALID_CATEGORIES = [
-  'CV / Constants',
-  'CV / Functions',
-  'CV / Tasks',
-  'CV / Types',
-  'Core / Constants',
-  'Core / Errors',
-  'Core / Functions',
-  'Core / Schema / Functions',
-  'Core / Schema / Types',
-  'Core / Types',
-  'Hooks',
-  'LLM / Functions',
-  'LLM / Tasks',
-  'LLM / Types',
-  'Math / Functions',
-  'Math / Types',
-  'Models',
-  'Modules',
-  'NLP / Constants',
-  'NLP / Functions',
-  'NLP / Tasks',
-  'NLP / Types',
-  'Speech / Constants',
-  'Speech / Functions',
-  'Speech / Tasks',
-  'Speech / Types',
-  'Utils / Functions',
-  'Utils / Types',
-];
+const VALID_CATEGORIES = typedocConfig.categoryOrder.filter((cat) => cat !== '*');
 
 const CATEGORY_TAG_MATCH = `^(${VALID_CATEGORIES.join('|')})$`;
 

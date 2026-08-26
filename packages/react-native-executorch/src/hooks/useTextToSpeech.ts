@@ -11,27 +11,6 @@ import {
   type SupertonicTextToSpeech,
 } from '../extensions/speech/tasks/supertonicTextToSpeech';
 
-type TtsHookResult<
-  C,
-  P extends {
-    synthesize: (...args: any[]) => any;
-    synthesizeStop: (...args: any[]) => any;
-  },
-> = {
-  /** Whether the pipeline is loaded and ready to synthesize. */
-  isReady: boolean;
-  /** The download or load error, if any. */
-  error: Error | undefined;
-  /** Download progress across every asset, in percent. */
-  downloadProgress: number;
-  /** The config with every remote URL resolved to a local path. */
-  resource: C | undefined;
-  /** Streams synthesized audio chunks. Undefined until the pipeline is ready. */
-  synthesize: P['synthesize'] | undefined;
-  /** Cancels an in-flight synthesis. Undefined until the pipeline is ready. */
-  synthesizeStop: P['synthesizeStop'] | undefined;
-};
-
 /**
  * React hook to load and run the Kokoro Text-to-Speech pipeline.
  *
@@ -52,7 +31,20 @@ type TtsHookResult<
 export function useTextToSpeech<K extends PropertyKey>(
   config: KokoroTtsModel<K>,
   options?: ResourceOptions
-): TtsHookResult<KokoroTtsModel<K>, KokoroTextToSpeech<K>>;
+): {
+  /** Whether the pipeline is loaded and ready to synthesize. */
+  isReady: boolean;
+  /** The download or load error, if any. */
+  error: Error | undefined;
+  /** Download progress across every asset, in percent. */
+  downloadProgress: number;
+  /** The config with every remote URL resolved to a local path. */
+  resource: KokoroTtsModel<K> | undefined;
+  /** Streams synthesized audio chunks. Undefined until the pipeline is ready. */
+  synthesize: KokoroTextToSpeech<K>['synthesize'] | undefined;
+  /** Cancels an in-flight synthesis. Undefined until the pipeline is ready. */
+  synthesizeStop: KokoroTextToSpeech<K>['synthesizeStop'] | undefined;
+};
 
 /**
  * React hook to load and run the Supertonic 3 Text-to-Speech pipeline.
@@ -75,7 +67,20 @@ export function useTextToSpeech<K extends PropertyKey>(
 export function useTextToSpeech<K extends PropertyKey>(
   config: SupertonicTtsModel<K>,
   options?: ResourceOptions
-): TtsHookResult<SupertonicTtsModel<K>, SupertonicTextToSpeech<K>>;
+): {
+  /** Whether the pipeline is loaded and ready to synthesize. */
+  isReady: boolean;
+  /** The download or load error, if any. */
+  error: Error | undefined;
+  /** Download progress across every asset, in percent. */
+  downloadProgress: number;
+  /** The config with every remote URL resolved to a local path. */
+  resource: SupertonicTtsModel<K> | undefined;
+  /** Streams synthesized audio chunks. Undefined until the pipeline is ready. */
+  synthesize: SupertonicTextToSpeech<K>['synthesize'] | undefined;
+  /** Cancels an in-flight synthesis. Undefined until the pipeline is ready. */
+  synthesizeStop: SupertonicTextToSpeech<K>['synthesizeStop'] | undefined;
+};
 
 export function useTextToSpeech<K extends PropertyKey>(
   config: KokoroTtsModel<K> | SupertonicTtsModel<K>,
