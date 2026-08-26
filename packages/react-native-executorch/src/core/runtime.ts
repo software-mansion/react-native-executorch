@@ -18,7 +18,7 @@ import { isRnExecuTorchError, RnExecuTorchError } from './error';
  *
  * This runtime runs on a dedicated thread separate from the React Native JS
  * thread, preventing model loading and inference from blocking the UI. Pass it
- * explicitly (or a custom {@link WorkletRuntime}) to {@link wrapAsync} when you
+ * explicitly (or a custom `WorkletRuntime`) to {@link wrapAsync} when you
  * need fine-grained control over which thread work executes on.
  * @category Core / Constants
  */
@@ -28,7 +28,7 @@ export const defaultWorkletRuntime = createWorkletRuntime({
 
 /**
  * Wraps a synchronous worklet function so that it runs asynchronously on a
- * background {@link WorkletRuntime} thread and returns a `Promise`.
+ * background `WorkletRuntime` thread and returns a `Promise`.
  *
  * The wrapper serializes arguments, dispatches the worklet to the target
  * runtime, awaits the result, and re-throws any error thrown inside the worklet
