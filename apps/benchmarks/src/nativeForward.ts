@@ -21,16 +21,21 @@ import {
   loadModel,
   tensor,
   defaultWorkletRuntime,
-  type ConcreteDim,
-  type DimRef,
   type DType,
-  type MethodSpec,
   type Model,
   type ModelInput,
-  type ParamSpec,
   type Tensor,
-  type TensorSpec,
+  type schema,
 } from 'react-native-executorch';
+
+// The schema contract moved behind a `schema` namespace and its specs gained a
+// dimension type parameter (#1327). The harness only ever inspects fully
+// resolved specs, so it pins that parameter to ConcreteDim.
+type ConcreteDim = schema.ConcreteDim;
+type DimRef = schema.DimRef;
+type MethodSpec<D extends schema.SymbolicDim> = schema.MethodSpec<D>;
+type ParamSpec<D extends schema.SymbolicDim> = schema.ParamSpec<D>;
+type TensorSpec<D extends schema.SymbolicDim> = schema.TensorSpec<D>;
 
 import { summarize, type Stats } from './stats';
 import { timeInWorklet } from './time';
