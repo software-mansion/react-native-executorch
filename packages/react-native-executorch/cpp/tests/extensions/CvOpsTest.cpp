@@ -310,5 +310,110 @@ TEST_F(CvOpsTest, NmsRequiresScoresToMatchBoxCount) {
                 HasSubstr("nms: scores"));
 }
 
+// --- rectifyQuad ------------------------------------------------------------
+// Warps a detected text quad onto a fixed-height canvas, the step between OCR
+// detection and recognition. Content is rendered at `contentWidth` and the rest
+// of the canvas is flat padding, so the padding and the alignment are as much
+// part of the contract as the warp itself.
+
+TEST_F(CvOpsTest, RectifyQuadWarpsAnAxisAlignedQuadUnchanged) {
+    // A quad that already matches the destination rectangle is an identity warp,
+    // so the pixels come through as they went in.
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fillU8(createTensor([2, 2, 1], 'uint8'), [10, 20, 30, 40]);
+        const dst = createTensor([2, 2, 1], 'uint8');
+        cv.rectifyQuad(src, dst, [0, 0, 2, 0, 2, 2, 0, 2],
+                       {{ contentWidth: 2, padValue: 0, align: 'left' }});
+        return readU8(dst);
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {10, 20, 30, 40}));
+}
+
+TEST_F(CvOpsTest, RectifyQuadPadsTheRestOfTheCanvas) {
+    // contentWidth 2 on a 4-wide canvas leaves two columns of padding, which
+    // must be the requested pad value rather than whatever the warp produced.
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fillU8(createTensor([1, 2, 1], 'uint8'), [10, 20]);
+        const dst = createTensor([1, 4, 1], 'uint8');
+        cv.rectifyQuad(src, dst, [0, 0, 2, 0, 2, 1, 0, 1],
+                       {{ contentWidth: 2, padValue: 7, align: 'left' }});
+        return readU8(dst);
+    )",
+                                              kNs));
+    EXPECT_EQ(result.size(), 4u);
+    EXPECT_EQ(result[2], 7);
+    EXPECT_EQ(result[3], 7);
+}
+
+TEST_F(CvOpsTest, RectifyQuadCentresContentWhenAsked) {
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fillU8(createTensor([1, 2, 1], 'uint8'), [10, 20]);
+        const dst = createTensor([1, 4, 1], 'uint8');
+        cv.rectifyQuad(src, dst, [0, 0, 2, 0, 2, 1, 0, 1],
+                       {{ contentWidth: 2, padValue: 7, align: 'center' }});
+        return readU8(dst);
+    )",
+                                              kNs));
+    // offsetX = (4 - 2) / 2 = 1, so the padding sits on both sides.
+    ASSERT_EQ(result.size(), 4u);
+    EXPECT_EQ(result[0], 7);
+    EXPECT_EQ(result[3], 7);
+}
+
+TEST_F(CvOpsTest, RectifyQuadClampsContentWidthToTheCanvas) {
+    // A contentWidth wider than the canvas would run the blit off the end; it is
+    // clamped rather than rejected, because the caller derives it from the quad's
+    // aspect ratio.
+    EXPECT_TRUE(evalBool(std::format(R"(
+        {}
+        const src = fillU8(createTensor([1, 2, 1], 'uint8'), [10, 20]);
+        const dst = createTensor([1, 2, 1], 'uint8');
+        cv.rectifyQuad(src, dst, [0, 0, 2, 0, 2, 1, 0, 1],
+                       {{ contentWidth: 99, padValue: 0, align: 'left' }});
+        return true;
+    )",
+                                     kNs)));
+}
+
+TEST_F(CvOpsTest, RectifyQuadReturnsTheDestinationTensor) {
+    EXPECT_TRUE(evalBool(std::format(R"(
+        {}
+        const src = fillU8(createTensor([2, 2, 1], 'uint8'), [1, 2, 3, 4]);
+        const dst = createTensor([2, 2, 1], 'uint8');
+        return cv.rectifyQuad(src, dst, [0, 0, 2, 0, 2, 2, 0, 2],
+                              {{ contentWidth: 2, padValue: 0, align: 'left' }}) === dst;
+    )",
+                                     kNs)));
+}
+
+TEST_F(CvOpsTest, RectifyQuadRejectsAQuadOfTheWrongLength) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format(R"(
+        {}
+        cv.rectifyQuad(createTensor([2, 2, 1], 'uint8'), createTensor([2, 2, 1], 'uint8'),
+                       [0, 0, 2, 0, 2, 2], {{ contentWidth: 2, padValue: 0, align: 'left' }});
+    )",
+                                                      kNs)),
+                             "INVALID_ARGUMENT", "quad must have exactly 8 numbers"));
+}
+
+TEST_F(CvOpsTest, RectifyQuadRejectsAChannelMismatch) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format(R"(
+        {}
+        cv.rectifyQuad(createTensor([2, 2, 3], 'uint8'), createTensor([2, 2, 1], 'uint8'),
+                       [0, 0, 2, 0, 2, 2, 0, 2], {{ contentWidth: 2, padValue: 0, align: 'left' }});
+    )",
+                                                      kNs)),
+                             "INVALID_ARGUMENT", "rectifyQuad: dst"));
+}
+
+TEST_F(CvOpsTest, RectifyQuadRejectsWrongArgumentCounts) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format("{} cv.rectifyQuad();", kNs)),
+                             "INVALID_ARGUMENT", "Usage: rectifyQuad(src, dst, quad, options)"));
+}
+
 } // namespace
 } // namespace rnexecutorch::tests

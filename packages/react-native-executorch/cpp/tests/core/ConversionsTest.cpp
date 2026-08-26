@@ -6,13 +6,19 @@
 #include "support/JsiTestEnv.h"
 
 #include "core/conversions.h"
+#include "core/error.h"
 
 namespace rnexecutorch::tests {
 namespace {
 
 namespace conversions = rnexecutorch::core::conversions;
+namespace error = rnexecutorch::core::error;
 namespace jsi = facebook::jsi;
 using ::testing::HasSubstr;
+
+// Everything conversions:: rejects is an InvalidArgument; the guard at the host
+// function boundary is what later turns it into a coded JavaScript Error.
+constexpr auto kInvalidArgument = error::RnExecuTorchErrorCode::InvalidArgument;
 
 using ConversionsTest = JsiTestEnv;
 
@@ -36,41 +42,36 @@ TEST_F(ConversionsTest, AcceptsWellTypedScalars) {
 TEST_F(ConversionsTest, RejectsWrongJsType) {
     // The message must name the parameter so a JS-side error points at the
     // offending argument rather than "something went wrong".
-    try {
-        conversions::asType<double>(rt(), "sigmoid: src", jsi::Value(true));
-        FAIL() << "expected a JSError";
-    } catch (const jsi::JSError &e) {
-        EXPECT_THAT(e.getMessage(), HasSubstr("sigmoid: src"));
-        EXPECT_THAT(e.getMessage(), HasSubstr("must be a number"));
-    }
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<double>(rt(), "sigmoid: src", jsi::Value(true)); },
+                            kInvalidArgument, "sigmoid: src must be a number"));
 
-    EXPECT_THROW(conversions::asType<bool>(rt(), "ctx", number(rt(), 1)), jsi::JSError);
-    EXPECT_THROW(conversions::asType<std::string>(rt(), "ctx", number(rt(), 1)), jsi::JSError);
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<bool>(rt(), "ctx", number(rt(), 1)); }, kInvalidArgument));
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<std::string>(rt(), "ctx", number(rt(), 1)); }, kInvalidArgument));
 }
 
 TEST_F(ConversionsTest, RejectsNonIntegralValuesForIntegerTypes) {
-    EXPECT_THROW(conversions::asType<int32_t>(rt(), "ctx", number(rt(), 1.5)), jsi::JSError);
-    EXPECT_THROW(conversions::asType<uint64_t>(rt(), "ctx", number(rt(), 1.5)), jsi::JSError);
-    EXPECT_THROW(conversions::asType<uint8_t>(rt(), "ctx", number(rt(), 0.5)), jsi::JSError);
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<int32_t>(rt(), "ctx", number(rt(), 1.5)); }, kInvalidArgument));
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<uint64_t>(rt(), "ctx", number(rt(), 1.5)); }, kInvalidArgument));
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<uint8_t>(rt(), "ctx", number(rt(), 0.5)); }, kInvalidArgument));
 }
 
 TEST_F(ConversionsTest, RejectsNaNAndInfinity) {
     const double nan = std::numeric_limits<double>::quiet_NaN();
     const double inf = std::numeric_limits<double>::infinity();
 
-    EXPECT_THROW(conversions::asType<int32_t>(rt(), "ctx", number(rt(), nan)), jsi::JSError);
-    EXPECT_THROW(conversions::asType<int32_t>(rt(), "ctx", number(rt(), inf)), jsi::JSError);
-    EXPECT_THROW(conversions::asType<uint64_t>(rt(), "ctx", number(rt(), -inf)), jsi::JSError);
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<int32_t>(rt(), "ctx", number(rt(), nan)); }, kInvalidArgument));
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<int32_t>(rt(), "ctx", number(rt(), inf)); }, kInvalidArgument));
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<uint64_t>(rt(), "ctx", number(rt(), -inf)); }, kInvalidArgument));
 }
 
 TEST_F(ConversionsTest, RejectsOutOfRangeIntegers) {
     // JS numbers are doubles, so a caller can easily hand over a value that does
     // not fit the native type — that must be rejected, not truncated.
-    EXPECT_THROW(conversions::asType<int32_t>(rt(), "ctx", number(rt(), 2147483648.0)), jsi::JSError);
-    EXPECT_THROW(conversions::asType<int32_t>(rt(), "ctx", number(rt(), -2147483649.0)), jsi::JSError);
-    EXPECT_THROW(conversions::asType<uint8_t>(rt(), "ctx", number(rt(), 256)), jsi::JSError);
-    EXPECT_THROW(conversions::asType<uint8_t>(rt(), "ctx", number(rt(), -1)), jsi::JSError);
-    EXPECT_THROW(conversions::asType<uint64_t>(rt(), "ctx", number(rt(), -1)), jsi::JSError);
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<int32_t>(rt(), "ctx", number(rt(), 2147483648.0)); }, kInvalidArgument));
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<int32_t>(rt(), "ctx", number(rt(), -2147483649.0)); }, kInvalidArgument));
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<uint8_t>(rt(), "ctx", number(rt(), 256)); }, kInvalidArgument));
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<uint8_t>(rt(), "ctx", number(rt(), -1)); }, kInvalidArgument));
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<uint64_t>(rt(), "ctx", number(rt(), -1)); }, kInvalidArgument));
 
     // Boundaries themselves stay valid.
     EXPECT_EQ(conversions::asType<int32_t>(rt(), "ctx", number(rt(), 2147483647.0)), 2147483647);
@@ -84,30 +85,22 @@ TEST_F(ConversionsTest, AsVectorConvertsElementwiseAndNamesTheBadIndex) {
     EXPECT_EQ(conversions::asVector<int32_t>(rt(), "shape", array), (std::vector<int32_t>{1, 2, 3}));
 
     auto mixed = eval("return [1, 'two', 3];");
-    try {
-        conversions::asVector<int32_t>(rt(), "shape", mixed);
-        FAIL() << "expected a JSError";
-    } catch (const jsi::JSError &e) {
-        EXPECT_THAT(e.getMessage(), HasSubstr("shape[1]"));
-    }
+    EXPECT_TRUE(throwsCoded([&] { conversions::asVector<int32_t>(rt(), "shape", mixed); },
+                            kInvalidArgument, "shape[1]"));
 }
 
 TEST_F(ConversionsTest, AsVectorRejectsNonArrays) {
-    EXPECT_THROW(conversions::asVector<int32_t>(rt(), "shape", eval("return {};")), jsi::JSError);
+    EXPECT_TRUE(throwsCoded([&] { conversions::asVector<int32_t>(rt(), "shape", eval("return {};")); }, kInvalidArgument));
     // A TypedArray is not a JS Array — asVector is the boxed path and must say so.
-    EXPECT_THROW(conversions::asVector<int32_t>(rt(), "shape", eval("return new Int32Array(3);")), jsi::JSError);
+    EXPECT_TRUE(throwsCoded([&] { conversions::asVector<int32_t>(rt(), "shape", eval("return new Int32Array(3);")); }, kInvalidArgument));
 }
 
 TEST_F(ConversionsTest, RequiredPropertyIsEnforced) {
     auto object = eval("return { a: 1 };").getObject(rt());
     EXPECT_EQ(conversions::getRequiredProperty<int32_t>(rt(), "opts", object, "a"), 1);
 
-    try {
-        conversions::getRequiredProperty<int32_t>(rt(), "opts", object, "b");
-        FAIL() << "expected a JSError";
-    } catch (const jsi::JSError &e) {
-        EXPECT_THAT(e.getMessage(), HasSubstr("option 'b' is required"));
-    }
+    EXPECT_TRUE(throwsCoded([&] { conversions::getRequiredProperty<int32_t>(rt(), "opts", object, "b"); },
+                            kInvalidArgument, "option 'b' is required"));
 }
 
 TEST_F(ConversionsTest, OptionalPropertyTreatsNullAndUndefinedAsAbsent) {
@@ -121,7 +114,7 @@ TEST_F(ConversionsTest, OptionalPropertyTreatsNullAndUndefinedAsAbsent) {
 
 TEST_F(ConversionsTest, OptionalPropertyStillTypeChecksWhenPresent) {
     auto object = eval("return { a: 'not a number' };").getObject(rt());
-    EXPECT_THROW(conversions::getOptionalProperty<int32_t>(rt(), "opts", object, "a"), jsi::JSError);
+    EXPECT_TRUE(throwsCoded([&] { conversions::getOptionalProperty<int32_t>(rt(), "opts", object, "a"); }, kInvalidArgument));
 }
 
 TEST_F(ConversionsTest, TypedArrayRoundTrips) {
@@ -149,7 +142,7 @@ TEST_F(ConversionsTest, TypedArrayReadHonoursViewWindow) {
 TEST_F(ConversionsTest, TypedArrayReadRejectsMisalignedLength) {
     // 3 bytes cannot be read as int32_t elements.
     auto view = eval("return new Uint8Array([1, 2, 3]);");
-    EXPECT_THROW(conversions::fromJsiTypedArray<int32_t>(rt(), "ctx", view), jsi::JSError);
+    EXPECT_TRUE(throwsCoded([&] { conversions::fromJsiTypedArray<int32_t>(rt(), "ctx", view); }, kInvalidArgument));
 }
 
 TEST_F(ConversionsTest, EmptyTypedArrayRoundTrips) {

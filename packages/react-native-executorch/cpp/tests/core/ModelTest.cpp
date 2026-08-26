@@ -37,7 +37,7 @@ std::string loadFixtureJs() {
 // --- Metadata reflection, exercised directly ---------------------------------
 
 class MethodMetaTest : public JsiTestEnv {
-  protected:
+protected:
     void SetUp() override {
         JsiTestEnv::SetUp();
         module_ = std::make_unique<executorch::extension::Module>(kFixture);
@@ -177,11 +177,14 @@ TEST_F(ModelTest, ExposesBackendsToJs) {
               "XnnpackBackend");
 }
 
-TEST_F(ModelTest, ReportsAMissingFileAsAJsError) {
-    auto message = evalThrowingMessage(
-        "__rnexecutorch_jsi__.loadModel('/definitely/not/a/model.pte');");
-    EXPECT_THAT(message, HasSubstr("loadModel"));
-    EXPECT_THAT(message, HasSubstr("/definitely/not/a/model.pte"));
+TEST_F(ModelTest, ReportsAMissingFileAsLoadFailed) {
+    auto thrown = evalThrowing("__rnexecutorch_jsi__.loadModel('/definitely/not/a/model.pte');");
+
+    EXPECT_TRUE(isCodedError(thrown, "LOAD_FAILED", "Failed to load model from"));
+    EXPECT_THAT(thrown.message, HasSubstr("/definitely/not/a/model.pte"));
+    // The ExecuTorch error is carried through so a crash report can tell a
+    // missing file from a corrupt program.
+    EXPECT_TRUE(thrown.etRuntimeErrorCode.has_value());
 }
 
 TEST_F(ModelTest, RejectsWrongArgumentCount) {

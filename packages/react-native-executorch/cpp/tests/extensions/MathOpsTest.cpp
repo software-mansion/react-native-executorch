@@ -18,7 +18,8 @@ constexpr const char *kNs = "const m = __rnexecutorch_jsi__.math;"
                             "const createTensor = __rnexecutorch_jsi__.createTensor;"
                             "const fill = (t, values) => { t.setData(new Float32Array(values)); return t; };"
                             "const read = (t) => { const o = new Float32Array(t.numel); t.getData(o); return Array.from(o); };"
-                            "const readInt = (t) => { const o = new Int32Array(t.numel); t.getData(o); return Array.from(o); };";
+                            "const readInt = (t) => { const o = new Int32Array(t.numel); t.getData(o); return Array.from(o); };"
+                            "const fillInt = (t, values) => { t.setData(new Int32Array(values)); return t; };";
 
 double sigmoidOf(double x) { return 1.0 / (1.0 + std::exp(-x)); }
 
@@ -174,6 +175,115 @@ TEST_F(MathOpsTest, ArgmaxRequiresInt32Destination) {
                 HasSubstr("argmax: dst"));
 }
 
+// gather reads one value per lane at the index argmax produced, which is how a
+// classifier turns its logits into a confidence alongside a label. Its shape
+// contract is argmax's: indices and dst carry src's shape with the gathered axis
+// collapsed to 1.
+TEST_F(MathOpsTest, GatherPicksTheIndexedValuePerLane) {
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fill(createTensor([2, 3], 'float32'), [10, 11, 12, 20, 21, 22]);
+        const indices = fillInt(createTensor([2, 1], 'int32'), [2, 0]);
+        const dst = createTensor([2, 1], 'float32');
+        m.gather(src, indices, dst, -1);
+        return read(dst);
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {12, 20}));
+}
+
+TEST_F(MathOpsTest, GatherPairsWithArgmax) {
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fill(createTensor([2, 4], 'float32'), [1, 9, 3, 2, 8, 0, 4, 7]);
+        const indices = createTensor([2, 1], 'int32');
+        const dst = createTensor([2, 1], 'float32');
+        m.argmax(src, indices, -1);
+        m.gather(src, indices, dst, -1);
+        return read(dst);
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {9, 8}));
+}
+
+TEST_F(MathOpsTest, GatherHandlesANonTrailingAxis) {
+    // A [2,2,2] tensor gathered along axis 1: inner is 2, so consecutive lanes
+    // are strided rather than adjacent.
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fill(createTensor([2, 2, 2], 'float32'), [1, 2, 3, 4, 5, 6, 7, 8]);
+        const indices = fillInt(createTensor([2, 1, 2], 'int32'), [1, 0, 0, 1]);
+        const dst = createTensor([2, 1, 2], 'float32');
+        m.gather(src, indices, dst, 1);
+        return read(dst);
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {3, 2, 5, 8}));
+}
+
+TEST_F(MathOpsTest, GatherAcceptsANegativeAxis) {
+    auto explicitAxis = evalNumberArray(std::format(R"(
+        {}
+        const src = fill(createTensor([1, 3], 'float32'), [4, 5, 6]);
+        const indices = fillInt(createTensor([1, 1], 'int32'), [1]);
+        const dst = createTensor([1, 1], 'float32');
+        m.gather(src, indices, dst, 1);
+        return read(dst);
+    )",
+                                                    kNs));
+    EXPECT_TRUE(almostEqual(explicitAxis, {5}));
+}
+
+TEST_F(MathOpsTest, GatherRejectsMismatchedShapes) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format(R"(
+        {}
+        m.gather(createTensor([2, 3], 'float32'), createTensor([2, 3], 'int32'),
+                 createTensor([2, 1], 'float32'), -1);
+    )",
+                                                      kNs)),
+                             "INVALID_ARGUMENT",
+                             "gather: indices shape must match src shape but with axis dimension 1"));
+
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format(R"(
+        {}
+        m.gather(createTensor([2, 3], 'float32'), createTensor([2, 1], 'int32'),
+                 createTensor([2, 3], 'float32'), -1);
+    )",
+                                                      kNs)),
+                             "INVALID_ARGUMENT",
+                             "gather: dst shape must match src shape but with axis dimension 1"));
+}
+
+TEST_F(MathOpsTest, GatherRejectsAnOutOfRangeAxis) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format(R"(
+        {}
+        m.gather(createTensor([2, 3], 'float32'), createTensor([2, 1], 'int32'),
+                 createTensor([2, 1], 'float32'), 5);
+    )",
+                                                      kNs)),
+                             "INVALID_ARGUMENT", "axis 5 out of range"));
+}
+
+TEST_F(MathOpsTest, GatherRejectsAliasedSourceAndDestination) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format(R"(
+        {}
+        const t = createTensor([1, 1], 'float32');
+        m.gather(t, createTensor([1, 1], 'int32'), t, -1);
+    )",
+                                                      kNs)),
+                             "INVALID_ARGUMENT", "gather: src"));
+}
+
+TEST_F(MathOpsTest, GatherRequiresInt32Indices) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format(R"(
+        {}
+        m.gather(createTensor([2, 3], 'float32'), createTensor([2, 1], 'float32'),
+                 createTensor([2, 1], 'float32'), -1);
+    )",
+                                                      kNs)),
+                             "INVALID_ARGUMENT", "gather: indices"));
+}
+
 TEST_F(MathOpsTest, ThresholdBinarises) {
     auto result = evalNumberArray(std::format(R"(
         {}
@@ -196,6 +306,8 @@ TEST_F(MathOpsTest, OpsRejectWrongArgumentCounts) {
                 HasSubstr("Usage: argmax(src, dst, axis)"));
     EXPECT_THAT(evalThrowingMessage(std::format("{} m.threshold(createTensor([1], 'float32'));", kNs)),
                 HasSubstr("Usage: threshold(src, dst, threshold)"));
+    EXPECT_THAT(evalThrowingMessage(std::format("{} m.gather(createTensor([1], 'float32'));", kNs)),
+                HasSubstr("Usage: gather(src, indices, dst, axis)"));
 }
 
 } // namespace

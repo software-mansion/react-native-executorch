@@ -40,8 +40,17 @@ TEST_F(TensorTest, RejectsNonPositiveDimensions) {
 }
 
 TEST_F(TensorTest, RejectsUnknownDtype) {
-    EXPECT_THAT(evalThrowingMessage(std::format("{} rne.createTensor([2], 'float64');", kNs)),
-                HasSubstr("createTensor"));
+    // dtypeFromString names the dtypes it does accept, which is what a caller
+    // needs; the context prefix is not added on this path.
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format("{} rne.createTensor([2], 'float64');", kNs)),
+                             "INVALID_ARGUMENT", "Unsupported dtype: 'float64'"));
+}
+
+TEST_F(TensorTest, AcceptsTheBoolDtype) {
+    // bool tensors back the mask outputs of the segmentation models; one byte
+    // per element, like uint8.
+    EXPECT_EQ(evalNumber(std::format("{} return rne.createTensor([2, 3], 'bool').numel;", kNs)), 6);
+    EXPECT_EQ(evalString(std::format("{} return rne.createTensor([2, 3], 'bool').dtype;", kNs)), "bool");
 }
 
 TEST_F(TensorTest, RejectsWrongArgumentCount) {

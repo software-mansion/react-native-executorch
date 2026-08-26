@@ -1,17 +1,21 @@
-#include <stdexcept>
 #include <string>
 #include <vector>
 
 #include "support/JsiTestEnv.h"
 
+#include "core/error.h"
 #include "core/schema.h"
 
 namespace rnexecutorch::tests {
 namespace {
 
+namespace error = rnexecutorch::core::error;
 namespace schema = rnexecutorch::core::schema;
 using rnexecutorch::core::types::DType;
 using ::testing::HasSubstr;
+
+constexpr auto kInvalidArgument = error::RnExecuTorchErrorCode::InvalidArgument;
+constexpr auto kSchemaMismatch = error::RnExecuTorchErrorCode::SchemaMismatch;
 
 // Schema is the contract between an exported .pte and the JS caller. The parse
 // and runtime-constraint halves need no ExecuTorch program, so they are covered
@@ -91,26 +95,27 @@ TEST(SchemaParse, ParsesRuntimeConstraints) {
 }
 
 TEST(SchemaParse, RejectsMalformedJson) {
-    EXPECT_THROW(schema::parseModelSpecJson("ctx", "{not json"), std::runtime_error);
+    // A spec that does not parse is a mismatch between the .pte and what the
+    // runtime expects, not a bad argument from JavaScript.
+    EXPECT_TRUE(throwsCoded([] { schema::parseModelSpecJson("ctx", "{not json"); }, kSchemaMismatch));
 }
 
 TEST(SchemaParse, RejectsUnknownKinds) {
-    EXPECT_THROW(schema::parseModelSpecJson(
-                     "ctx", minimalSpecJson(R"([{"kind": "wobbly"}])")),
-                 std::runtime_error);
-    EXPECT_THROW(schema::parseModelSpecJson(
-                     "ctx",
-                     R"({"forward": {"inputs": [{"kind": "Quaternion"}], "outputs": [], "runtimeConstraints": []}})"),
-                 std::runtime_error);
+    EXPECT_TRUE(throwsCoded(
+        [] { schema::parseModelSpecJson("ctx", minimalSpecJson(R"([{"kind": "wobbly"}])")); },
+        kSchemaMismatch));
+    EXPECT_TRUE(throwsCoded(
+        [] {
+            schema::parseModelSpecJson(
+                "ctx",
+                R"({"forward": {"inputs": [{"kind": "Quaternion"}], "outputs": [], "runtimeConstraints": []}})");
+        },
+        kSchemaMismatch));
 }
 
 TEST(SchemaParse, ErrorMessageCarriesContext) {
-    try {
-        schema::parseModelSpecJson("my-model.pte", "{not json");
-        FAIL() << "expected parseModelSpecJson to throw";
-    } catch (const std::runtime_error &e) {
-        EXPECT_THAT(std::string(e.what()), HasSubstr("my-model.pte"));
-    }
+    EXPECT_TRUE(throwsCoded([] { schema::parseModelSpecJson("my-model.pte", "{not json"); },
+                            kSchemaMismatch, "my-model.pte"));
 }
 
 // --- Runtime constraints ----------------------------------------------------
@@ -136,13 +141,11 @@ TEST_F(SchemaConstraintTest, EqualityThrowsWhenDimensionsDiffer) {
     std::vector<schema::RuntimeConstraint> constraints{
         schema::EqualityConstraint{.dims = {inputDim(0, 1), inputDim(1, 0)}}};
 
-    try {
-        schema::validateRuntimeConstraints(rt(), constraints, {{4, 16}, {8, 2}}, "forward");
-        FAIL() << "expected a constraint violation";
-    } catch (const facebook::jsi::JSError &e) {
-        EXPECT_THAT(e.getMessage(), HasSubstr("equality constraint violated"));
-        EXPECT_THAT(e.getMessage(), HasSubstr("forward constraint[0]"));
-    }
+    // A violated constraint is caused by the shapes the caller passed in, so it
+    // is classified as an invalid argument rather than a schema mismatch.
+    EXPECT_TRUE(throwsCoded(
+        [&] { schema::validateRuntimeConstraints(rt(), constraints, {{4, 16}, {8, 2}}, "forward"); },
+        kInvalidArgument, "forward constraint[0]: equality constraint violated"));
 }
 
 TEST_F(SchemaConstraintTest, EqualityIgnoresOutputSideDimensions) {
@@ -166,12 +169,9 @@ TEST_F(SchemaConstraintTest, LinearThrowsWhenViolated) {
     std::vector<schema::RuntimeConstraint> constraints{
         schema::LinearConstraint{.dimLhs = inputDim(0, 0), .dimRhs = inputDim(1, 0), .coefficients = {2, 1}}};
 
-    try {
-        schema::validateRuntimeConstraints(rt(), constraints, {{10}, {4}}, "forward");
-        FAIL() << "expected a constraint violation";
-    } catch (const facebook::jsi::JSError &e) {
-        EXPECT_THAT(e.getMessage(), HasSubstr("linear constraint violated"));
-    }
+    EXPECT_TRUE(throwsCoded(
+        [&] { schema::validateRuntimeConstraints(rt(), constraints, {{10}, {4}}, "forward"); },
+        kInvalidArgument, "linear constraint violated"));
 }
 
 TEST_F(SchemaConstraintTest, LinearSkippedWhenEitherSideIsAnOutput) {
@@ -186,12 +186,9 @@ TEST_F(SchemaConstraintTest, ReportsTheOffendingConstraintIndex) {
         schema::EqualityConstraint{.dims = {inputDim(0, 0), inputDim(1, 0)}},
         schema::LinearConstraint{.dimLhs = inputDim(0, 0), .dimRhs = inputDim(1, 0), .coefficients = {5, 0}}};
 
-    try {
-        schema::validateRuntimeConstraints(rt(), constraints, {{4}, {4}}, "forward");
-        FAIL() << "expected the second constraint to fail";
-    } catch (const facebook::jsi::JSError &e) {
-        EXPECT_THAT(e.getMessage(), HasSubstr("constraint[1]"));
-    }
+    EXPECT_TRUE(throwsCoded(
+        [&] { schema::validateRuntimeConstraints(rt(), constraints, {{4}, {4}}, "forward"); },
+        kInvalidArgument, "constraint[1]"));
 }
 
 } // namespace

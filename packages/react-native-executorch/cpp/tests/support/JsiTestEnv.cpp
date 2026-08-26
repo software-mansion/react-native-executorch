@@ -54,15 +54,25 @@ std::string JsiTestEnv::evalString(const std::string &js) {
     return value.isString() ? value.getString(*runtime_).utf8(*runtime_) : "";
 }
 
-std::string JsiTestEnv::evalThrowingMessage(const std::string &js) {
+JsiTestEnv::ThrownError JsiTestEnv::evalThrowing(const std::string &js) {
     // Catching in JS rather than around evaluateJavaScript keeps the assertion
-    // on the JS-visible error, which is exactly what the TS layer sees.
+    // on the JS-visible error, which is exactly what the TS layer sees: the
+    // guard in core/error.h throws a constructed Error object, so `name`,
+    // `code` and `etRuntimeErrorCode` are readable only from JavaScript.
     auto source = std::format(R"(
         (function() {{
             try {{
                 (function() {{ {} }})();
             }} catch (e) {{
-                return String(e && e.message !== undefined ? e.message : e);
+                if (e === null || typeof e !== 'object') {{
+                    return {{ name: '', message: String(e), code: '' }};
+                }}
+                return {{
+                    name: e.name === undefined ? '' : String(e.name),
+                    message: e.message === undefined ? String(e) : String(e.message),
+                    code: e.code === undefined ? '' : String(e.code),
+                    etRuntimeErrorCode: e.etRuntimeErrorCode,
+                }};
             }}
             return null;
         }})()
@@ -72,11 +82,35 @@ std::string JsiTestEnv::evalThrowingMessage(const std::string &js) {
     auto value = runtime_->evaluateJavaScript(
         std::make_unique<jsi::StringBuffer>(source), kSourceUrl);
 
-    if (value.isNull()) {
+    if (!value.isObject()) {
         ADD_FAILURE() << "expected the snippet to throw, but it returned normally: " << js;
-        return "";
+        return {};
     }
-    return value.getString(*runtime_).utf8(*runtime_);
+
+    auto object = value.getObject(*runtime_);
+    auto readString = [&](const char *prop) {
+        auto property = object.getProperty(*runtime_, prop);
+        return property.isString() ? property.getString(*runtime_).utf8(*runtime_) : std::string();
+    };
+
+    ThrownError error;
+    error.name = readString("name");
+    error.message = readString("message");
+    error.code = readString("code");
+
+    auto etCode = object.getProperty(*runtime_, "etRuntimeErrorCode");
+    if (etCode.isNumber()) {
+        error.etRuntimeErrorCode = static_cast<int32_t>(etCode.getNumber());
+    }
+    return error;
+}
+
+std::string JsiTestEnv::evalThrowingMessage(const std::string &js) {
+    return evalThrowing(js).message;
+}
+
+std::string JsiTestEnv::evalThrowingCode(const std::string &js) {
+    return evalThrowing(js).code;
 }
 
 std::vector<double> JsiTestEnv::evalNumberArray(const std::string &js) {
@@ -124,6 +158,52 @@ std::vector<double> JsiTestEnv::evalNumberArray(const std::string &js) {
         }
     }
     return ::testing::AssertionSuccess();
+}
+
+::testing::AssertionResult isCodedError(const JsiTestEnv::ThrownError &error,
+                                        std::string_view expectedCode,
+                                        std::string_view messageSubstring) {
+    if (error.name != "RnExecuTorchError") {
+        return ::testing::AssertionFailure()
+               << "expected an RnExecuTorchError, got name \"" << error.name
+               << "\" with message \"" << error.message << "\"";
+    }
+    if (error.code != expectedCode) {
+        return ::testing::AssertionFailure()
+               << "expected code \"" << expectedCode << "\", got \"" << error.code
+               << "\" with message \"" << error.message << "\"";
+    }
+    if (error.message.find(messageSubstring) == std::string::npos) {
+        return ::testing::AssertionFailure()
+               << "expected the message to contain \"" << messageSubstring
+               << "\", got \"" << error.message << "\"";
+    }
+    return ::testing::AssertionSuccess();
+}
+
+::testing::AssertionResult throwsCoded(const std::function<void()> &fn,
+                                       core::error::RnExecuTorchErrorCode expectedCode,
+                                       std::string_view messageSubstring) {
+    try {
+        fn();
+    } catch (const core::error::RnExecuTorchException &e) {
+        if (e.code_ != expectedCode) {
+            return ::testing::AssertionFailure()
+                   << "expected code " << core::error::errorCodeToString(expectedCode)
+                   << ", got " << core::error::errorCodeToString(e.code_)
+                   << " (" << e.what() << ")";
+        }
+        if (std::string_view(e.what()).find(messageSubstring) == std::string_view::npos) {
+            return ::testing::AssertionFailure()
+                   << "expected the message to contain \"" << messageSubstring
+                   << "\", got \"" << e.what() << "\"";
+        }
+        return ::testing::AssertionSuccess();
+    } catch (const std::exception &e) {
+        return ::testing::AssertionFailure()
+               << "expected an RnExecuTorchException, got: " << e.what();
+    }
+    return ::testing::AssertionFailure() << "expected a throw, but none happened";
 }
 
 } // namespace rnexecutorch::tests
