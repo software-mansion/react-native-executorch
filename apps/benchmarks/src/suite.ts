@@ -24,7 +24,7 @@ import {
   createSupertonicTextToSpeech,
   createTextEmbedder,
   createWhisperSpeechToText,
-  constants,
+  SUPERTONIC_DEFAULT_VOICE_NAMES,
   models,
   FSMN_VAD_SAMPLE_RATE_HZ,
   WHISPER_SAMPLE_RATE_HZ,
@@ -115,7 +115,7 @@ const IMAGE_512 = syntheticImage(512, 512);
 const IMAGE_640 = syntheticImage(640, 640);
 const VAD_WAVEFORM = syntheticWaveform(10, FSMN_VAD_SAMPLE_RATE_HZ);
 const WHISPER_WAVEFORM = syntheticWaveform(10, WHISPER_SAMPLE_RATE_HZ);
-const SUPERTONIC_VOICE = constants.SUPERTONIC_DEFAULT_VOICE_NAMES[0]!;
+const SUPERTONIC_VOICE = SUPERTONIC_DEFAULT_VOICE_NAMES[0]!;
 
 export const CASES: readonly BenchCase[] = [
   defineCase(createClassifier, {
