@@ -76,6 +76,12 @@ export interface RunReport {
   readonly device: BenchDeviceInfo;
   /** Thermal state at the start and end of the whole run. */
   readonly thermal?: { readonly start: BenchThermalState; readonly end: BenchThermalState };
+  /**
+   * Whether the driver pinned the CPU to a fixed clock for this run (Android
+   * fixed-performance mode). A pinned run and an unpinned one execute at
+   * different frequencies, so their timings are not comparable.
+   */
+  readonly clocksPinned?: boolean;
   readonly settings: {
     readonly suite: string;
     readonly iterations: number;

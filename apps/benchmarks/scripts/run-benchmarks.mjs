@@ -19,7 +19,7 @@
  */
 
 import { createServer } from 'node:http';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { networkInterfaces } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -39,6 +39,7 @@ const DEFAULTS = {
   host: '',
   out: '',
   cooldown: '0',
+  pinClocks: 'auto',
 };
 
 function parseArgs(argv) {
@@ -50,14 +51,15 @@ function parseArgs(argv) {
     else if (arg === '--no-memory') options.memory = false;
     else if (arg === '--no-native') options.native = false;
     else if (arg.startsWith('--')) {
-      const key = arg
-        .slice(2)
-        .replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+      const key = arg.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
       if (!(key in DEFAULTS)) throw new Error(`Unknown option ${arg}`);
       options[key] = argv[++i];
     } else throw new Error(`Unexpected argument ${arg}`);
   }
 
+  if (!['auto', 'on', 'off'].includes(options.pinClocks)) {
+    throw new Error(`--pin-clocks must be auto, on or off, got ${options.pinClocks}`);
+  }
   if (options.platform !== 'ios' && options.platform !== 'android') {
     throw new Error(`--platform must be ios or android, got ${options.platform}`);
   }
@@ -119,7 +121,9 @@ function startCollector(port, onCase, onEnd) {
     server.on('error', (error) => {
       rejectServer(
         error.code === 'EADDRINUSE'
-          ? new Error(`port ${port} is in use — another run is still open. Pass --port to change it.`)
+          ? new Error(
+              `port ${port} is in use — another run is still open. Pass --port to change it.`
+            )
           : error
       );
     });
@@ -131,6 +135,58 @@ function startCollector(port, onCase, onEnd) {
 
 function run(command, args, env) {
   return spawn(command, args, { cwd: APP_ROOT, env, stdio: 'inherit', shell: false });
+}
+
+/**
+ * Pins the CPU to a fixed, sustainable clock for the duration of a run.
+ *
+ * Android exposes `PowerManager`'s FIXED_PERFORMANCE mode over `cmd power`,
+ * which vendors implement as a frequency cap rather than a hint. On a Galaxy
+ * S26 Ultra it takes every cluster from 3.19/3.40 GHz down to ~1.98 GHz, so a
+ * long suite cannot boost early and sag later as the device heats. That trades
+ * absolute speed for the thing a benchmark actually needs: the same clock in
+ * every run.
+ *
+ * Not every device implements the HAL, so `verifyClockPin` reads the frequency
+ * back rather than trusting the call. There is no iOS equivalent: nothing in
+ * the public API pins or caps the clock, so runs there rely on the thermal
+ * gate alone.
+ */
+function setClockPin(enabled) {
+  return new Promise((done) => {
+    const child = spawn(
+      'adb',
+      ['shell', 'cmd', 'power', 'set-fixed-performance-mode-enabled', String(enabled)],
+      {
+        stdio: 'ignore',
+      }
+    );
+    child.on('exit', () => done());
+    child.on('error', () => done());
+  });
+}
+
+/** Reads back the per-cluster max frequency, so a no-op HAL is visible. */
+function readMaxFrequencies() {
+  return new Promise((done) => {
+    const child = spawn(
+      'adb',
+      ['shell', 'cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_max_freq'],
+      { stdio: ['ignore', 'pipe', 'ignore'] }
+    );
+    let out = '';
+    child.stdout.on('data', (chunk) => (out += chunk));
+    child.on('exit', () =>
+      done(
+        out
+          .split(/\s+/)
+          .filter(Boolean)
+          .map(Number)
+          .filter((n) => Number.isFinite(n))
+      )
+    );
+    child.on('error', () => done([]));
+  });
 }
 
 function adbReverse(port, quiet = false) {
@@ -178,8 +234,7 @@ async function main() {
   // Android reaches the host through the adb reverse tunnel on localhost. An iOS
   // device needs a routable address; the Simulator shares the host's loopback.
   const host =
-    options.host ||
-    (options.platform === 'android' ? 'localhost' : (lanAddress() ?? 'localhost'));
+    options.host || (options.platform === 'android' ? 'localhost' : (lanAddress() ?? 'localhost'));
   const sink = `http://${host}:${port}`;
 
   let settle;
@@ -203,6 +258,47 @@ async function main() {
   // Back-to-back suites are not comparable: a second run started fifteen seconds
   // after the first finished came out 9% to 51% slower on every raw-execute
   // metric (median 22%), purely from the device having no chance to cool.
+  // Pin the clock BEFORE the cooldown so the device settles at the frequency it
+  // will actually run at, rather than cooling at 3.4 GHz and being capped after.
+  let clocksPinned = false;
+  if (options.platform === 'android' && options.pinClocks !== 'off') {
+    const before = await readMaxFrequencies();
+    await setClockPin(true);
+    await new Promise((settled) => setTimeout(settled, 1500));
+    const after = await readMaxFrequencies();
+    const capped =
+      before.length > 0 && after.length === before.length && after.some((f, i) => f < before[i]);
+    if (capped) {
+      clocksPinned = true;
+      const mhz = [...new Set(after)].map((f) => Math.round(f / 1000)).join('/');
+      console.log(`[bench] CPU clocks pinned to ${mhz} MHz for this run`);
+    } else {
+      await setClockPin(false);
+      const message =
+        'this device does not implement fixed-performance mode; clocks are not pinned';
+      if (options.pinClocks === 'on') throw new Error(message);
+      console.log(`[bench] ${message}`);
+    }
+  }
+
+  // Always hand the phone back at its normal clocks, including on Ctrl-C or a
+  // crash. Leaving a device capped at 2 GHz would silently poison every later
+  // measurement taken on it, benchmark or not.
+  const unpin = () => {
+    if (!clocksPinned) return;
+    clocksPinned = false;
+    spawnSync('adb', ['shell', 'cmd', 'power', 'set-fixed-performance-mode-enabled', 'false'], {
+      stdio: 'ignore',
+    });
+  };
+  process.on('exit', unpin);
+  for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
+    process.on(signal, () => {
+      unpin();
+      process.exit(130);
+    });
+  }
+
   const cooldown = Number(options.cooldown);
   if (cooldown > 0) {
     console.log(`[bench] cooling down for ${cooldown}s before starting`);
@@ -253,6 +349,7 @@ async function main() {
   }
 
   const report = await finished;
+  report.clocksPinned = clocksPinned;
   const destination = reportPath(options, report);
   writeJson(destination, report);
   rmSync(partial, { force: true });
