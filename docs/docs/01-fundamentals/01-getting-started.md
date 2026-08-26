@@ -107,7 +107,7 @@ The available options are:
 - **`backends`** — hardware backends directly, e.g. `xnnpack`, `coreml`, `vulkan`.
 - **`libs`** — extra native libraries.
 
-The three lists are merged, so you can pair a `features` set with extra `backends` / `libs` entries. Re-run your package manager's install after editing. See [Native Libraries](../03-core-and-advanced/07-native-libraries.md) for details.
+The three lists are merged, so you can pair a `features` set with extra `backends` / `libs` entries. Re-run your package manager's install after editing. See [Native Libraries](../03-core-and-advanced/08-native-libraries.md) for details.
 
 ## Choose Your Path
 
@@ -149,7 +149,7 @@ APIs give you manual control. Both work with pre-exported models from our
 [HuggingFace collection](https://huggingface.co/software-mansion/collections)
 or your own `.pte` files — as long as they match the pipeline's schema.
 
-[Explore High-Level Pipelines →](../02-extensions/computer-vision/01-overview.md)
+[Explore High-Level Pipelines →](../category/extensions)
 
 ### Lower-Level Runtime & Custom Pipelines
 
@@ -160,4 +160,4 @@ operators for vision, math, NLP, and audio, plus worklet-based multi-threading.
 This is exactly how every built-in pipeline in the library is implemented —
 you're working with the same primitives the core team uses.
 
-[Explore Lower-Level API →](../03-core-and-advanced/01-models-and-tensors.md)
+[Explore Lower-Level API →](../category/core--advanced)

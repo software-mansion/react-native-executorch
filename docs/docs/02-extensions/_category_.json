@@ -2,6 +2,7 @@
   "label": "Extensions",
   "position": 2,
   "link": {
-    "type": "generated-index"
+    "type": "generated-index",
+    "description": "Ready-to-use pipelines for common on-device AI tasks. Each extension handles downloading, caching, and memory management — you just call a hook."
   }
 }

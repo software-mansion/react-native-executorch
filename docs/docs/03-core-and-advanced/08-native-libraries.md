@@ -99,7 +99,7 @@ ExecuTorch registers kernels via `__attribute__((constructor))` functions — th
 
 ## Building from source
 
-The binaries come from [`software-mansion-labs/executorchrne-split-build`](https://github.com/software-mansion-labs/executorch/tree/rne-split-build).
+The binaries come from [`software-mansion-labs/executorch` (branch `rne-split-build`)](https://github.com/software-mansion-labs/executorch/tree/rne-split-build).
 
 **Android:**
 
