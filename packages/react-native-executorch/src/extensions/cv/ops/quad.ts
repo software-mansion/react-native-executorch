@@ -1,8 +1,13 @@
+/**
+ * Quadrilateral geometry, bounding box extraction, and image rectification
+ * utilities.
+ */
+
 import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
 import { RnExecuTorchError } from '../../../core/error';
-import { distance, scalePoint, type Point } from './points';
-import type { BoundingBox, BoxFormat } from './boxes';
+import { distance, scalePoint, type Point } from './point';
+import type { BoundingBox, BoxFormat } from './box';
 import type { ResizeMode } from './image';
 
 /**
@@ -10,18 +15,20 @@ import type { ResizeMode } from './image';
  * Helpers that need them as top-left, top-right, bottom-right, bottom-left say
  * so on their `ordered` parameter; pass the quad through {@link orderQuad}
  * first. Never assume a `Quad` you were handed is already ordered.
- * @category Types
+ * @category CV / Types
  */
 export type Quad = readonly [Point, Point, Point, Point];
 
 /**
  * Computes the axis-aligned bounding box enclosing a set of points, in the
  * requested box format. Returns a zero box for empty input.
- * @category Typescript API
+ * @category CV / Functions
  * @typeParam F Bounding box coordinate format.
  * @param points The points to enclose.
  * @param format The coordinate format of the returned box.
  * @returns The enclosing {@link BoundingBox} in `format`.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the bounding box
+ * format is unsupported.
  */
 export function boundingBoxOfPoints<F extends BoxFormat>(
   points: readonly Point[],
@@ -66,7 +73,7 @@ export function boundingBoxOfPoints<F extends BoxFormat>(
  * Reorders a quad's corners into the top-left, top-right, bottom-right,
  * bottom-left order the rest of this module assumes, using their
  * coordinate-sum and coordinate-difference extremes.
- * @category Typescript API
+ * @category CV / Functions
  * @param quad The quad whose corners may be in any order.
  * @returns The same corners, ordered TL, TR, BR, BL.
  */
@@ -91,7 +98,7 @@ export function orderQuad(quad: Quad): Quad {
 /**
  * Computes the width and height (in pixels) of an ordered TL,TR,BR,BL quad, taking
  * the longer of each pair of opposite sides.
- * @category Typescript API
+ * @category CV / Functions
  * @param ordered The quad corners ordered TL, TR, BR, BL.
  * @returns The quad's width and height in pixels.
  */
@@ -104,23 +111,28 @@ export function quadSize(ordered: Quad): { width: number; height: number } {
 }
 
 /**
+ * Configuration options for scaling quad coordinates.
+ * @category CV / Types
+ */
+export type ScaleQuadOptions = {
+  /** The source bounds (e.g. model input dimensions). */
+  readonly from: { readonly width: number; readonly height: number };
+  /** The destination bounds (e.g. original image dimensions). */
+  readonly to: { readonly width: number; readonly height: number };
+  /** The mode used to resize the image (excluding `'crop'`). */
+  readonly resizeMode?: Exclude<ResizeMode, 'crop'>;
+};
+
+/**
  * Rescales a quad from one frame to another, clamping the result to the target
  * bounds. The counterpart of {@link scaleBox} for quads.
- * @category Typescript API
+ * @category CV / Functions
  * @param quad The quad, expressed in the `from` frame.
- * @param options `from` is the frame the quad is expressed in, `to` the frame to
- * express it in, and `resizeMode` how the two were fitted (default
- * `'letterbox'`).
+ * @param options Options detailing the scaling factors and resize mode.
+ * See {@link ScaleQuadOptions}.
  * @returns The four corners in `to` pixels.
  */
-export function scaleQuad(
-  quad: Quad,
-  options: {
-    readonly from: { readonly width: number; readonly height: number };
-    readonly to: { readonly width: number; readonly height: number };
-    readonly resizeMode?: Exclude<ResizeMode, 'crop'>;
-  }
-): Quad {
+export function scaleQuad(quad: Quad, options: ScaleQuadOptions): Quad {
   'worklet';
   const { from, to, resizeMode } = options;
   const map = (p: Point): Point => {
@@ -132,7 +144,7 @@ export function scaleQuad(
 
 /**
  * Options for {@link rectifyQuad}.
- * @category Types
+ * @category CV / Types
  */
 export type RectifyQuadOptions = {
   /** Width in px the rectified content occupies inside the destination canvas. */
@@ -148,13 +160,16 @@ export type RectifyQuadOptions = {
  * `dst`: perspective crop, resize to the canvas height, and pad, in one native
  * pass. An axis-aligned bbox is a 4-corner quad, so pass its corners to
  * rectify a box.
- * @category Typescript API
+ * @category CV / Functions
  * @param src The source image, `uint8` `[H, W, C]`.
  * @param dst The pre-allocated destination canvas, `uint8` `[H', W', C]`, with
  * the same channel count as `src`. Must not alias `src`.
  * @param quad The region corners (TL, TR, BR, BL) in `src` pixels.
- * @param options Content width, alignment, and padding.
+ * @param options Content width, alignment, and padding. See {@link RectifyQuadOptions}.
  * @returns The destination tensor `dst`.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes,
+ * data types, or quadrilateral coordinates are invalid, `RESOURCE_BUSY` if a
+ * tensor is in use, or `RESOURCE_DISPOSED` if either tensor was disposed.
  */
 export function rectifyQuad(
   src: Tensor,

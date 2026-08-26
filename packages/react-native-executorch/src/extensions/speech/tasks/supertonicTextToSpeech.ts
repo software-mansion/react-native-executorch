@@ -1,10 +1,22 @@
+/**
+ * Supertonic Text-to-Speech (TTS) synthesis task pipeline.
+ * @module Speech/Tasks/SupertonicTextToSpeech
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import RNBlobUtil from 'react-native-blob-util';
 
 import { tensor, type Tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateSpec, method, i64, f32, DynamicDim as Dyn, constr } from '../../../core/schema';
+import {
+  validateSpec,
+  method,
+  i64,
+  f32,
+  DynamicDim as Dyn,
+  constraint,
+} from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { randomNormal } from '../../math';
 import {
@@ -12,18 +24,15 @@ import {
   formatChunk,
   encodeText,
   parseVoiceStyle,
-  SUPERTONIC_SUPPORTED_LANGUAGES,
   type SupertonicVoiceStyle,
   type SupertonicLanguage,
 } from '../utils/supertonicUtils';
 import { partition } from '../utils/textPartitioner';
 import { RnExecuTorchError } from '../../../core/error';
 
-export { SUPERTONIC_SUPPORTED_LANGUAGES, type SupertonicVoiceStyle, type SupertonicLanguage };
-
 /**
  * Supertonic audio sampling rate in Hz (44100).
- * @category Constants
+ * @category Speech / Constants
  */
 export const SUPERTONIC_SAMPLE_RATE = 44100;
 
@@ -56,9 +65,11 @@ function getDefaultMaxChunkLength(lang?: SupertonicLanguage): number {
 }
 
 /**
- * Model configuration required to instantiate the Supertonic Text-to-Speech pipeline.
- * @category Types
- * @typeParam K Voice style keys record constraint (strictly inferred from voiceStyles keys).
+ * Model configuration required to instantiate the Supertonic Text-to-Speech
+ * pipeline.
+ * @category Speech / Types
+ * @typeParam K Voice style keys record constraint (strictly inferred from
+ * voiceStyles keys).
  */
 export type SupertonicTtsModel<K extends PropertyKey> = {
   /** Discriminates this config from the other Text-to-Speech pipelines. */
@@ -82,7 +93,7 @@ export type SupertonicTtsModel<K extends PropertyKey> = {
 
 /**
  * Per-call execution options for Supertonic Text-to-Speech synthesis.
- * @category Types
+ * @category Speech / Types
  * @typeParam K Voice style keys record constraint.
  */
 export type SupertonicTtsOptions<K extends PropertyKey> = {
@@ -103,7 +114,7 @@ export type SupertonicTtsOptions<K extends PropertyKey> = {
 
 /**
  * Audio output chunk yielded by the {@link createSupertonicTextToSpeech} generator.
- * @category Types
+ * @category Speech / Types
  */
 export type SupertonicTtsChunk = {
   /** Float32 PCM audio samples for this chunk, normalized in `[-1, 1]`. */
@@ -119,43 +130,56 @@ export type SupertonicTtsChunk = {
 };
 
 /**
- * Creates a Supertonic Text-to-Speech pipeline.
- *
- * It validates all 4 sub-model method schemas, pre-allocates static execution
- * tensors, pre-parses voice styles into memory, and registers disposal hooks to
- * release all native resources.
- * @category Typescript API
+ * Supertonic text-to-speech task runner.
+ * @category Speech / Types
  * @typeParam K Voice style keys record constraint.
- * @param config Supertonic TTS pipeline configuration containing model and asset paths.
- * @param runtime Optional worklet runtime thread on which to run inference.
- * @returns A promise resolving to an object with audio synthesis and disposal controls.
  */
-export async function createSupertonicTextToSpeech<K extends PropertyKey>(
-  config: SupertonicTtsModel<K>,
-  runtime?: WorkletRuntime
-): Promise<{
+export type SupertonicTextToSpeech<K extends PropertyKey = string> = {
   /** Releases all allocated native models and static execution tensors. */
-  dispose: () => void;
+  readonly dispose: () => void;
 
   /**
-   * Streams synthesized audio chunks as an async generator as each text chunk finishes.
+   * Streams synthesized audio chunks as an async generator as each text chunk
+   * finishes.
    * @param text Input text string to synthesize into speech.
    * @param options Per-call execution options.
-   * @param options.voiceStyle Voice style key or {@link SupertonicVoiceStyle} object.
-   * @param options.speed Speech speed factor (range: 0.7 to 2.0). Defaults to 1.05.
-   * @param options.totalSteps Number of flow-matching denoising steps. Defaults to 8.
-   * @param options.lang Language ISO code. Defaults to 'na'.
-   * @param options.maxChunkLength Maximum character limit per text chunk. Defaults to 300 (120 for 'ko').
-   * @returns An AsyncGenerator yielding {@link SupertonicTtsChunk} audio buffers.
+   * See {@link SupertonicTtsOptions}.
+   * @returns An AsyncGenerator yielding {@link SupertonicTtsChunk} audio
+   * buffers.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if voice style is
+   * invalid or language is unsupported, `RESOURCE_BUSY` if the model is in use,
+   * or `RESOURCE_DISPOSED` if disposed.
    */
-  synthesize: (
+  readonly synthesize: (
     text: string,
     options: SupertonicTtsOptions<K>
   ) => AsyncGenerator<SupertonicTtsChunk>;
 
   /** Cancels any in-flight synthesis started by {@link synthesize}. */
-  synthesizeStop: () => void;
-}> {
+  readonly synthesizeStop: () => void;
+};
+
+/**
+ * Creates a Supertonic Text-to-Speech pipeline.
+ *
+ * It validates all 4 sub-model method schemas, pre-allocates static execution
+ * tensors, pre-parses voice styles into memory, and registers disposal hooks to
+ * release all native resources.
+ * @category Speech / Tasks
+ * @typeParam K Voice style keys record constraint.
+ * @param config Supertonic TTS pipeline configuration containing model and asset paths.
+ * See {@link SupertonicTtsModel}.
+ * @param runtime Optional worklet runtime thread on which to run inference.
+ * @returns A promise resolving to the instantiated {@link SupertonicTextToSpeech}
+ * runner.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if models, indexer, or
+ * voice styles fail to load, or `SCHEMA_MISMATCH` if model schemas do not match
+ * the Supertonic specification.
+ */
+export async function createSupertonicTextToSpeech<K extends PropertyKey>(
+  config: SupertonicTtsModel<K>,
+  runtime?: WorkletRuntime
+): Promise<SupertonicTextToSpeech<K>> {
   const load = wrapAsync(loadModel, runtime);
   const [durationPredictor, vectorEstimator, textEncoder, vocoder] = await Promise.all([
     load(config.modelPaths.durationPredictor),
@@ -175,7 +199,7 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
       ],
       [f32(1)], // duration
       [
-        constr.eq(
+        constraint.equality(
           { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
           { paramSide: 'input', tensorIdx: 2, dimIdx: 2 }
         ),
@@ -193,7 +217,7 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
       ],
       [f32(1, TEXT_EMB_DIM, Dyn('T'))], // textEmb
       [
-        constr.eq(
+        constraint.equality(
           { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
           { paramSide: 'input', tensorIdx: 2, dimIdx: 2 },
           { paramSide: 'output', tensorIdx: 0, dimIdx: 2 }
@@ -216,12 +240,12 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
       ],
       [f32(1, LATENT_DIM, Dyn('L'))], // denoisedLatent
       [
-        constr.eq(
+        constraint.equality(
           { paramSide: 'input', tensorIdx: 0, dimIdx: 2 },
           { paramSide: 'input', tensorIdx: 4, dimIdx: 2 },
           { paramSide: 'output', tensorIdx: 0, dimIdx: 2 }
         ),
-        constr.eq(
+        constraint.equality(
           { paramSide: 'input', tensorIdx: 1, dimIdx: 2 },
           { paramSide: 'input', tensorIdx: 3, dimIdx: 2 }
         ),
@@ -235,7 +259,7 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
       [f32(1, LATENT_DIM, Dyn('L'))], // latent
       [f32(1, Dyn('AUDIO_LEN'))], // wav
       [
-        constr.linear(
+        constraint.linear(
           { paramSide: 'output', tensorIdx: 0, dimIdx: 1 },
           { paramSide: 'input', tensorIdx: 0, dimIdx: 2 },
           CHUNK_SIZE

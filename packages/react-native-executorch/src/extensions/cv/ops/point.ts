@@ -1,8 +1,12 @@
+/**
+ * 2D point representation and spatial scaling utilities.
+ */
+
 import type { ResizeMode } from './image';
 
 /**
  * Represents a 2D coordinate point with x and y values.
- * @category Types
+ * @category CV / Types
  */
 export type Point = {
   readonly x: number;
@@ -11,7 +15,7 @@ export type Point = {
 
 /**
  * Euclidean distance between two points.
- * @category Utils
+ * @category CV / Functions
  * @param a The first point.
  * @param b The second point.
  * @returns The distance between `a` and `b`.
@@ -24,7 +28,7 @@ export function distance(a: Point, b: Point): number {
 /**
  * Linearly interpolates between two points: `t = 0` returns `a`, `t = 1`
  * returns `b`, values in between interpolate along the segment.
- * @category Utils
+ * @category CV / Functions
  * @param a The start point.
  * @param b The end point.
  * @param t The interpolation factor.
@@ -36,25 +40,28 @@ export function interpolatePoint(a: Point, b: Point, t: number): Point {
 }
 
 /**
+ * Configuration options for scaling 2D point coordinates.
+ * @category CV / Types
+ */
+export type ScalePointOptions = {
+  /** The source bounds (e.g. model input dimensions). */
+  readonly from: { readonly width: number; readonly height: number };
+  /** The destination bounds (e.g. original image dimensions). */
+  readonly to: { readonly width: number; readonly height: number };
+  /** The mode used to resize the image (excluding `'crop'`). */
+  readonly resizeMode: Exclude<ResizeMode, 'crop'>;
+};
+
+/**
  * Helper function to scale a 2D point based on resize mode and resolution
  * changes.
- * @category Utils
+ * @category CV / Functions
  * @param point The original coordinate point to scale.
  * @param options Options detailing the scaling factors and resize mode.
- * @param options.from The source bounds (e.g. model input dimensions).
- * @param options.to The destination bounds (e.g. original image dimensions).
- * @param options.resizeMode The mode used to resize the image {@link ResizeMode}
- * (excluding `'crop'`).
+ * See {@link ScalePointOptions}.
  * @returns The scaled coordinate point.
  */
-export function scalePoint(
-  point: Point,
-  options: {
-    readonly from: { readonly width: number; readonly height: number };
-    readonly to: { readonly width: number; readonly height: number };
-    readonly resizeMode: Exclude<ResizeMode, 'crop'>;
-  }
-): Point {
+export function scalePoint(point: Point, options: ScalePointOptions): Point {
   'worklet';
   const { from, to, resizeMode } = options;
   switch (resizeMode) {

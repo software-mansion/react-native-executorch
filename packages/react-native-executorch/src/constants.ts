@@ -1,6 +1,13 @@
 /**
+ * Shared constants, label maps, and default configurations for task pipelines.
+ *
+ * This module exports constant arrays, dataset labels, and normalization
+ * parameters used across task pipelines and model configurations.
+ */
+
+/**
  * ImageNet 1K dataset label array containing the 1000 categories.
- * @category Constants
+ * @category CV / Constants
  */
 export const IMAGENET1K_LABELS = [
   'tench, Tinca tinca',
@@ -1007,7 +1014,7 @@ export const IMAGENET1K_LABELS = [
 
 /**
  * Pascal VOC dataset label array containing the 21 categories.
- * @category Constants
+ * @category CV / Constants
  */
 export const PASCAL_VOC_LABELS = [
   'background',
@@ -1035,7 +1042,7 @@ export const PASCAL_VOC_LABELS = [
 
 /**
  * COCO classes list.
- * @category Constants
+ * @category CV / Constants
  */
 export const COCO_CLASSES = [
   'background',
@@ -1133,25 +1140,25 @@ export const COCO_CLASSES = [
 
 /**
  * Type representing a valid ImageNet 1K label string.
- * @category Types
+ * @category CV / Types
  */
 export type ImageNet1KLabel = (typeof IMAGENET1K_LABELS)[number];
 
 /**
  * Type representing a valid Pascal VOC label string.
- * @category Types
+ * @category CV / Types
  */
 export type PascalVocLabel = (typeof PASCAL_VOC_LABELS)[number];
 
 /**
  * Type representing a valid COCO class string.
- * @category Types
+ * @category CV / Types
  */
 export type CocoClass = (typeof COCO_CLASSES)[number];
 
 /**
  * COCO classes list specifically for YOLO models (80 classes, 0-indexed).
- * @category Constants
+ * @category CV / Constants
  */
 export const COCO_CLASSES_YOLO = [
   'person',
@@ -1238,7 +1245,7 @@ export const COCO_CLASSES_YOLO = [
 
 /**
  * Type representing a valid YOLO COCO class label string.
- * @category Types
+ * @category CV / Types
  */
 export type CocoClassYolo = (typeof COCO_CLASSES_YOLO)[number];
 
@@ -1246,7 +1253,7 @@ export type CocoClassYolo = (typeof COCO_CLASSES_YOLO)[number];
  * ImageNet standard normalization options containing alpha and beta
  * coefficients. Based on the standard ImageNet mean [0.485, 0.456, 0.406] and
  * std [0.229, 0.224, 0.225].
- * @category Constants
+ * @category CV / Constants
  */
 export const IMAGENET_NORM = {
   alpha: [1 / (255.0 * 0.229), 1 / (255.0 * 0.224), 1 / (255.0 * 0.225)],
@@ -1255,7 +1262,7 @@ export const IMAGENET_NORM = {
 
 /**
  * BlazeFace landmarks list.
- * @category Constants
+ * @category CV / Constants
  */
 export const BLAZEFACE_LANDMARKS = [
   'leftEye',
@@ -1268,7 +1275,7 @@ export const BLAZEFACE_LANDMARKS = [
 
 /**
  * COCO human pose landmarks list.
- * @category Constants
+ * @category CV / Constants
  */
 export const COCO_LANDMARKS = [
   'nose',
@@ -1292,19 +1299,19 @@ export const COCO_LANDMARKS = [
 
 /**
  * Type representing a valid BlazeFace landmark string.
- * @category Types
+ * @category CV / Types
  */
 export type BlazeFaceLandmark = (typeof BLAZEFACE_LANDMARKS)[number];
 
 /**
  * Type representing a valid COCO human pose landmark string.
- * @category Types
+ * @category CV / Types
  */
 export type CocoLandmark = (typeof COCO_LANDMARKS)[number];
 
 /**
  * Default Supertonic voice names array.
- * @category Constants
+ * @category Speech / Constants
  */
 // prettier-ignore
 export const SUPERTONIC_DEFAULT_VOICE_NAMES = [
@@ -1314,7 +1321,7 @@ export const SUPERTONIC_DEFAULT_VOICE_NAMES = [
 
 /**
  * Type representing a valid Supertonic default voice name.
- * @category Types
+ * @category Speech / Types
  */
 export type SupertonicDefaultVoiceName = (typeof SUPERTONIC_DEFAULT_VOICE_NAMES)[number];
 
@@ -1328,7 +1335,7 @@ const bioesLabels = <Entity extends string>(entities: readonly Entity[]) =>
 /**
  * Label space for the openai/privacy-filter base model (8 entity types, 33
  * labels).
- * @category Constants
+ * @category NLP / Constants
  */
 export const PRIVACY_FILTER_OPENAI_LABELS = bioesLabels([
   'account_number',
@@ -1344,7 +1351,7 @@ export const PRIVACY_FILTER_OPENAI_LABELS = bioesLabels([
 /**
  * A single BIOES label from the openai/privacy-filter label space (`'O'` or a
  * `B-`/`I-`/`E-`/`S-` prefixed entity).
- * @category Constants
+ * @category NLP / Types
  */
 export type PrivacyFilterOpenaiLabel = (typeof PRIVACY_FILTER_OPENAI_LABELS)[number];
 
@@ -1352,7 +1359,7 @@ export type PrivacyFilterOpenaiLabel = (typeof PRIVACY_FILTER_OPENAI_LABELS)[num
  * Label space for the OpenMed/privacy-filter-nemotron model (55 entity types,
  * 221 labels). Source:
  * https://huggingface.co/OpenMed/privacy-filter-nemotron/blob/main/config.json
- * @category Constants
+ * @category NLP / Constants
  */
 export const PRIVACY_FILTER_NEMOTRON_LABELS = bioesLabels([
   'account_number',
@@ -1415,6 +1422,6 @@ export const PRIVACY_FILTER_NEMOTRON_LABELS = bioesLabels([
 /**
  * A single BIOES label from the OpenMed/privacy-filter-nemotron label space
  * (`'O'` or a `B-`/`I-`/`E-`/`S-` prefixed entity).
- * @category Constants
+ * @category NLP / Types
  */
 export type PrivacyFilterNemotronLabel = (typeof PRIVACY_FILTER_NEMOTRON_LABELS)[number];

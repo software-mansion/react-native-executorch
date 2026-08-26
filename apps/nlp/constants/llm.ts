@@ -1,14 +1,6 @@
-import {
-  models,
-  type LLMModel,
-  type LLMToolOpts,
-  type LLMGenerationConfig,
-  type ToolDefinition,
-  type ToolParserResult,
-  type ToolCall,
-} from 'react-native-executorch';
+import { models, type llm, type LLMModel, type LLMToolOpts } from 'react-native-executorch';
 
-export const TOOLS: ToolDefinition[] = [
+export const TOOLS: llm.ToolDefinition[] = [
   {
     type: 'function',
     function: {
@@ -139,10 +131,10 @@ export const TOOLS: ToolDefinition[] = [
 
 export const GEMMA_TOOL_STOP_REGEX = /(?:<tool_call\|>|<turn\|>)/;
 
-export function parseGemmaToolCalls(text: string): ToolParserResult | undefined {
+export function parseGemmaToolCalls(text: string): llm.ToolParserResult | undefined {
   const callRegex = /<\|tool_call>call:([a-zA-Z0-9_-]+)\{([\s\S]*?)\}(?:<tool_call\|>)?/g;
 
-  const toolCalls: ToolCall[] = [];
+  const toolCalls: llm.ToolCall[] = [];
   for (const match of text.matchAll(callRegex)) {
     const name = match[1]!;
     const rawArgs = match[2]?.trim() ?? '';
@@ -173,7 +165,7 @@ export function parseGemmaToolCalls(text: string): ToolParserResult | undefined 
 
 export const HAMMER_TOOL_STOP_REGEX = /(?:<\|im_end\|>)/;
 
-export function parseHammerToolCalls(text: string): ToolParserResult | undefined {
+export function parseHammerToolCalls(text: string): llm.ToolParserResult | undefined {
   const jsonMatch =
     text.match(/```(?:json)?\s*([\s\S]*?)\s*```/) ?? text.match(/\[\s*\{[\s\S]*\}\s*\]/);
   const jsonStr = jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : text.trim();
@@ -182,7 +174,7 @@ export function parseHammerToolCalls(text: string): ToolParserResult | undefined
     const parsed = JSON.parse(jsonStr);
     if (!Array.isArray(parsed) || parsed.length === 0) return undefined;
 
-    const toolCalls: ToolCall[] = [];
+    const toolCalls: llm.ToolCall[] = [];
     for (const item of parsed) {
       if (item && typeof item === 'object' && typeof item.name === 'string') {
         toolCalls.push({
@@ -205,9 +197,9 @@ export function parseHammerToolCalls(text: string): ToolParserResult | undefined
 
 export const QWEN_TOOL_STOP_REGEX = /(?:<\/tool_call>|<\|im_end\|>)/;
 
-export function parseQwenToolCalls(text: string): ToolParserResult | undefined {
+export function parseQwenToolCalls(text: string): llm.ToolParserResult | undefined {
   const callRegex = /<tool_call>\s*(\{[\s\S]*?\})\s*<\/tool_call>/g;
-  const toolCalls: ToolCall[] = [];
+  const toolCalls: llm.ToolCall[] = [];
   let match;
 
   while ((match = callRegex.exec(text)) !== null) {
@@ -245,7 +237,7 @@ export function parseQwenToolCalls(text: string): ToolParserResult | undefined {
 
 export const LLAMA_TOOL_STOP_REGEX = /(?:<\|eot_id\|>|<\|eom_id\|>)/;
 
-export function parseLlamaToolCalls(text: string): ToolParserResult | undefined {
+export function parseLlamaToolCalls(text: string): llm.ToolParserResult | undefined {
   const cleanText = text
     .replace(/<\|(?:eot_id|eom_id|start_header_id|end_header_id)\|>[\s\S]*?$/g, '')
     .trim();
@@ -270,7 +262,7 @@ export function parseLlamaToolCalls(text: string): ToolParserResult | undefined 
           args = {};
         }
       }
-      const toolCalls: ToolCall[] = [
+      const toolCalls: llm.ToolCall[] = [
         {
           type: 'function',
           function: {
@@ -293,7 +285,7 @@ export function parseLlamaToolCalls(text: string): ToolParserResult | undefined 
 
 // --- Common Configurations ---
 
-export const DEFAULT_GENERATION_CONFIG: LLMGenerationConfig = {
+export const DEFAULT_GENERATION_CONFIG: llm.LLMGenerationConfig = {
   temperature: 0.7,
   maxNewTokens: 512,
   echo: false,
@@ -327,7 +319,7 @@ export interface LLMModelConfig {
   id: string;
   name: string;
   model: LLMModel;
-  generationConfig: LLMGenerationConfig;
+  generationConfig: llm.LLMGenerationConfig;
   systemPrompt?: string;
   stopRegex?: RegExp;
   toolOpts: LLMToolOpts | undefined;

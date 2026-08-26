@@ -1,15 +1,40 @@
+/**
+ * Native C++ and JavaScript tensor math and random number generation utilities.
+ */
+
 import { rnexecutorchJsi } from '../native/bridge';
 import type { Tensor } from '../core/tensor';
 import { RnExecuTorchError } from '../core/error';
 
 /**
+ * Configuration options for normal distribution random number generation.
+ * @category Math / Types
+ */
+export type RandomNormalOptions = {
+  /** The mean of the distribution. */
+  readonly mean?: number;
+  /** The standard deviation of the distribution. */
+  readonly std?: number;
+  /**
+   * The seed for the underlying generator. When omitted, a random seed is
+   * generated so different values are produced each call.
+   */
+  readonly seed?: number;
+};
+
+/**
  * Computes the element-wise sigmoid activation on a float32 source tensor and
  * writes the result to a destination tensor.
- * @category Typescript API
- * @param src The input float32 source tensor. Shape [d1,...,dn].
- * @param dst The pre-allocated float32 destination tensor to write the result
- * to. `dst` tensor must have the same shape as `src`. Shape [d1,...,dn].
- * @returns The destination tensor containing the sigmoid output.
+ * @category Math / Functions
+ * @param src The input source tensor. Expected shape `[d1, ..., dn]` with data
+ * type `float32`.
+ * @param dst The pre-allocated destination tensor to write the result to.
+ * Expected shape `[d1, ..., dn]` matching `src` with data type `float32`.
+ * @returns The destination tensor `dst` containing the sigmoid output of shape
+ * `[d1, ..., dn]` and data type `float32`.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes or
+ * data types are invalid, `RESOURCE_BUSY` if a tensor is in use, or
+ * `RESOURCE_DISPOSED` if either tensor was disposed.
  */
 export function sigmoid(src: Tensor, dst: Tensor): Tensor {
   'worklet';
@@ -19,13 +44,18 @@ export function sigmoid(src: Tensor, dst: Tensor): Tensor {
 /**
  * Computes the softmax activation along a specified axis on a float32 source
  * tensor and writes the result to a destination tensor.
- * @category Typescript API
- * @param src The input float32 source tensor. Shape [d1,...,dn].
- * @param dst The pre-allocated float32 destination tensor to write the result
- * to. `dst` tensor must have the same shape as `src`. Shape [d1,...,dn].
- * @param axis The dimension along which softmax is computed. Defaults to -1
- * (last dimension).
- * @returns The destination tensor containing the softmax output.
+ * @category Math / Functions
+ * @param src The input source tensor. Expected shape `[d1, ..., dn]` with data
+ * type `float32`.
+ * @param dst The pre-allocated destination tensor to write the result to.
+ * Expected shape `[d1, ..., dn]` matching `src` with data type `float32`.
+ * @param axis The dimension along which softmax is computed. Negative indexing
+ * is supported (e.g. `-1` for the last dimension). Defaults to `-1`.
+ * @returns The destination tensor `dst` containing the softmax output of shape
+ * `[d1, ..., dn]` and data type `float32`.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes,
+ * data types, or `axis` are invalid, `RESOURCE_BUSY` if a tensor is in use, or
+ * `RESOURCE_DISPOSED` if either tensor was disposed.
  */
 export function softmax(src: Tensor, dst: Tensor, axis: number = -1): Tensor {
   'worklet';
@@ -35,13 +65,19 @@ export function softmax(src: Tensor, dst: Tensor, axis: number = -1): Tensor {
 /**
  * Computes the indices of the maximum values along a specified axis on a
  * float32 source tensor and writes the result to an int32 destination tensor.
- * @category Typescript API
- * @param src The input float32 source tensor. Shape [d1,...,dk,...,dn].
- * @param dst The pre-allocated int32 destination tensor to write the indices
- * to. Shape [d1,...,1,...,dn].
- * @param axis The dimension along which argmax is computed. Defaults to -1
- * (last dimension).
- * @returns The destination tensor containing the argmax output.
+ * @category Math / Functions
+ * @param src The input source tensor. Expected shape `[d1, ..., dk, ..., dn]`
+ * with data type `float32`.
+ * @param dst The pre-allocated destination tensor to write the indices to.
+ * Expected shape `[d1, ..., 1, ..., dn]` (same rank as `src` with dimension 1
+ * along `axis`) and data type `int32`.
+ * @param axis The dimension along which argmax is computed. Negative indexing
+ * is supported (e.g. `-1` for the last dimension). Defaults to `-1`.
+ * @returns The destination tensor `dst` containing the argmax indices of shape
+ * `[d1, ..., 1, ..., dn]` and data type `int32`.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes,
+ * data types, or `axis` are invalid, `RESOURCE_BUSY` if a tensor is in use, or
+ * `RESOURCE_DISPOSED` if either tensor was disposed.
  */
 export function argmax(src: Tensor, dst: Tensor, axis: number = -1): Tensor {
   'worklet';
@@ -53,7 +89,7 @@ export function argmax(src: Tensor, dst: Tensor, axis: number = -1): Tensor {
  * given by an int32 index tensor. Pairs with {@link argmax}, whose output has
  * exactly the shape this expects, so `argmax` then `gather` yields the maximum
  * values alongside their indices.
- * @category Typescript API
+ * @category Math / Functions
  * @param src The input float32 source tensor. Shape [d1,...,dk,...,dn].
  * @param indices The int32 index tensor, one index per lane. Shape
  * [d1,...,1,...,dn].
@@ -73,12 +109,18 @@ export function gather(src: Tensor, indices: Tensor, dst: Tensor, axis: number =
 /**
  * Applies the element-wise threshold step function on a float32 source tensor and
  * writes the result to a destination tensor.
- * @category Typescript API
- * @param src The input float32 source tensor. Shape [d1,...,dn].
+ * @category Math / Functions
+ * @param src The input source tensor. Expected shape `[d1, ..., dn]` with data
+ * type `float32`.
  * @param dst The pre-allocated destination tensor to write the result to.
- * `dst` tensor must have the same shape as `src` and have dtype float32.
- * @param thresholdVal The threshold value above or equal to which elements are mapped to 1.0.
- * @returns The destination tensor containing the threshold step output.
+ * Expected shape `[d1, ..., dn]` matching `src` with data type `float32`.
+ * @param thresholdVal The threshold value above or equal to which elements are
+ * mapped to 1.0.
+ * @returns The destination tensor `dst` containing the threshold step output of
+ * shape `[d1, ..., dn]` and data type `float32`.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes or
+ * data types are invalid, `RESOURCE_BUSY` if a tensor is in use, or
+ * `RESOURCE_DISPOSED` if either tensor was disposed.
  */
 export function threshold(src: Tensor, dst: Tensor, thresholdVal: number): Tensor {
   'worklet';
@@ -89,9 +131,9 @@ export function threshold(src: Tensor, dst: Tensor, thresholdVal: number): Tenso
  * Creates a mulberry32 pseudo-random generator producing uniform values in
  * `[0, 1)`. Unlike `Math.random` it accepts a seed, so a fixed seed yields a
  * reproducible sequence.
- * @category Typescript API
- * @param seed The 32-bit seed for the generator.
- * @returns A function returning the next uniform value in `[0, 1)`.
+ * @category Math / Functions
+ * @param seed The 32-bit integer seed for the generator.
+ * @returns A function returning the next uniform pseudo-random number in `[0, 1)`.
  */
 export function mulberry32(seed: number): () => number {
   'worklet';
@@ -112,23 +154,19 @@ export function mulberry32(seed: number): () => number {
 /**
  * Draws normally distributed values using the Box–Muller transform, seeded via
  * {@link mulberry32} so a fixed `seed` reproduces the same sequence.
- * @category Typescript API
+ * @category Math / Functions
  * @param size The number of values to draw.
- * @param options Distribution parameters.
- * @param options.mean The mean of the distribution. Defaults to 0.
- * @param options.std The standard deviation of the distribution. Defaults to 1.
- * @param options.seed The seed for the underlying generator. Defaults to a
- * time-based value, so omitting it produces different values each call.
+ * @param options Distribution parameters. When options or any individual
+ * properties are omitted, defaults to `mean: 0`, `std: 1`, and a random seed.
+ * See {@link RandomNormalOptions}.
  * @returns A `Float32Array` of `size` normally distributed values.
  */
-export function randomNormal(
-  size: number,
-  options?: { mean?: number; std?: number; seed?: number }
-): Float32Array {
+export function randomNormal(size: number, options?: RandomNormalOptions): Float32Array {
   'worklet';
   const mean = options?.mean ?? 0;
   const std = options?.std ?? 1;
-  const uniform = mulberry32(options?.seed ?? Date.now());
+  const seed = options?.seed ?? Math.floor(Math.random() * 0x100000000);
+  const uniform = mulberry32(seed);
   const out = new Float32Array(size);
   for (let i = 0; i < size; i += 2) {
     // Guard against log(0) when the generator returns exactly 0.
@@ -147,7 +185,7 @@ export function randomNormal(
  * kind — the equivalent of PyTorch's `repeat_interleave` over a 1-D input.
  *
  * Non-positive repeat counts drop their element.
- * @category Typescript API
+ * @category Math / Functions
  * @typeParam T The array kind of `values` (any typed array or a plain array),
  * preserved in the result.
  * @param values The values to repeat.

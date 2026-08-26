@@ -1,12 +1,16 @@
 /**
+ * Utility functions, vocoder constants, and voice decoders for Kokoro TTS.
+ */
+
+/**
  * Number of audio samples generated per single predicted duration tick.
- * @category Constants
+ * @category Speech / Constants
  */
 export const KOKORO_TICKS_PER_DURATION = 600;
 
 /**
  * Length of a single Kokoro voice reference vector (one row of a voice file).
- * @category Constants
+ * @category Speech / Constants
  */
 export const KOKORO_VOICE_REF_SIZE = 256;
 
@@ -34,7 +38,7 @@ const VOCAB: Record<string, number> = {
  * Silence (in milliseconds) appended after a chunk ending with a given phoneme,
  * so pauses between subsentences sound natural. Phonemes absent from the map
  * get no pause.
- * @category Constants
+ * @category Speech / Constants
  */
 // prettier-ignore
 export const KOKORO_PAUSE_MS: Record<string, number> = {
@@ -55,7 +59,7 @@ const BASE64_LOOKUP = /* @__PURE__ */ (() => {
  * Parses a base64-encoded Kokoro voice file into its raw float rows. Each row
  * holds a {@link KOKORO_VOICE_REF_SIZE}-long reference vector for one input
  * token count.
- * @category Utils
+ * @category Speech / Functions
  * @param base64 The base64 contents of the voice `.bin` file.
  * @returns The flattened voice matrix, row-major.
  */
@@ -86,7 +90,7 @@ export function parseVoice(base64: string): Float32Array {
 
 /**
  * Maps phonemes to vocabulary tokens, padded with the pad token on both ends.
- * @category Utils
+ * @category Speech / Functions
  * @param phonemes The phoneme sequence, split into code points.
  * @param totalLength The exact token count to produce, including padding.
  * @returns Token ids ready to be written into an `int64` tensor.
@@ -108,7 +112,7 @@ export function tokenize(phonemes: string[], totalLength: number): BigInt64Array
 /**
  * Scales per-token durations in place so that they sum up exactly to
  * `targetDuration`, distributing the rounding error by largest remainder.
- * @category Utils
+ * @category Speech / Functions
  * @param durations The per-token durations to scale in place.
  * @param targetDuration The exact sum the scaled durations must add up to.
  */
@@ -167,7 +171,7 @@ function findAudioBound(
 
 /**
  * Strips leading and trailing silence using a sliding-window moving average.
- * @category Utils
+ * @category Speech / Functions
  * @param audio The audio samples to strip.
  * @param margin The number of silence samples to preserve at each edge.
  * @param steps The moving average window length.

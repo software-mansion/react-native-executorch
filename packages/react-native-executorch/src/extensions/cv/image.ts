@@ -1,12 +1,16 @@
 /**
+ * Core image buffer types and pixel formats for Computer Vision.
+ */
+
+/**
  * Supported pixel format layouts for image buffers.
- * @category Types
+ * @category CV / Types
  */
 export type ImageFormat = 'rgb' | 'rgba' | 'bgr' | 'bgra' | 'gray';
 
 /**
  * Represents a raw CPU image buffer in HWC (Height, Width, Channel) layout.
- * @category Types
+ * @category CV / Types
  */
 export type ImageBuffer = {
   readonly data: Uint8Array;

@@ -71,7 +71,7 @@ function ImageEmbeddingsContent() {
   // Zero-shot classification pairs a CLIP image encoder with the CLIP text
   // encoder and scores the image against each text label by embedding similarity.
   const imageModel = useImageEmbedder(selectedImageModel);
-  const textModel = useTextEmbedder(models.textEmbeddings.CLIP_VIT_BASE_PATCH32_TEXT);
+  const textModel = useTextEmbedder(models.textEmbeddings.CLIP_VIT_BASE_PATCH32_TEXT.DEFAULT);
 
   const ready = imageModel.isReady && textModel.isReady;
 

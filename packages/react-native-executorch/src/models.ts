@@ -1,3 +1,13 @@
+/**
+ * Pre-configured registry of hosted on-device AI models.
+ *
+ * Provides ready-to-use configurations for popular models across computer
+ * vision, speech synthesis/recognition, natural language processing, and large
+ * language models (LLMs). Each entry includes verified remote `.pte` download
+ * URLs, tokenizer/phonemizer files, preprocessing parameters, and label maps.
+ * @module Models
+ */
+
 import type { ClassifierModel } from './extensions/cv/tasks/classification';
 import type { ObjectDetectorModel } from './extensions/cv/tasks/objectDetection';
 import type { StyleTransferModel } from './extensions/cv/tasks/styleTransfer';
@@ -1323,7 +1333,7 @@ const QWEN3_4B_XNNPACK_BF16: LLMModel = {
  * This provides Hugging Face repository URLs and baseline configurations for
  * tasks, allowing quick model loading and execution without manual option
  * setup.
- * @category Utils
+ * @category Models
  */
 export const models = {
   /**
@@ -1333,12 +1343,12 @@ export const models = {
   classification: {
     /**
      * EfficientNetV2-S image classification model pre-trained on ImageNet-1k
-     * (1000 categories, see {@link IMAGENET1K_LABELS}).
-     * Compact and efficient architecture providing high accuracy for
-     * general-purpose image classification.
+     * (1000 categories, see {@link IMAGENET1K_LABELS}). Compact and efficient
+     * architecture providing high accuracy for general-purpose image
+     * classification.
      */
     EFFICIENTNET_V2_S: {
-      ...EFFICIENTNET_V2_S_XNNPACK_INT8,
+      DEFAULT: EFFICIENTNET_V2_S_XNNPACK_INT8,
       XNNPACK_INT8: EFFICIENTNET_V2_S_XNNPACK_INT8,
       XNNPACK_FP32: EFFICIENTNET_V2_S_XNNPACK_FP32,
       COREML_FP16: EFFICIENTNET_V2_S_COREML_FP16,
@@ -1355,27 +1365,27 @@ export const models = {
      * style effect.
      */
     CANDY: {
-      ...STYLE_TRANSFER_CANDY_XNNPACK_INT8,
+      DEFAULT: STYLE_TRANSFER_CANDY_XNNPACK_INT8,
       XNNPACK_FP32: STYLE_TRANSFER_CANDY_XNNPACK_FP32,
       XNNPACK_INT8: STYLE_TRANSFER_CANDY_XNNPACK_INT8,
       COREML_FP16: STYLE_TRANSFER_CANDY_COREML_FP16,
     },
     /**
-     * Fast neural style transfer model applying a classic tile mosaic
-     * artistic pattern.
+     * Fast neural style transfer model applying a classic tile mosaic artistic
+     * pattern.
      */
     MOSAIC: {
-      ...STYLE_TRANSFER_MOSAIC_XNNPACK_INT8,
+      DEFAULT: STYLE_TRANSFER_MOSAIC_XNNPACK_INT8,
       XNNPACK_FP32: STYLE_TRANSFER_MOSAIC_XNNPACK_FP32,
       XNNPACK_INT8: STYLE_TRANSFER_MOSAIC_XNNPACK_INT8,
       COREML_FP16: STYLE_TRANSFER_MOSAIC_COREML_FP16,
     },
     /**
-     * Fast neural style transfer model applying a painterly "Rain Princess"
-     * oil painting aesthetic.
+     * Fast neural style transfer model applying a painterly "Rain Princess" oil
+     * painting aesthetic.
      */
     RAIN_PRINCESS: {
-      ...STYLE_TRANSFER_RAIN_PRINCESS_XNNPACK_INT8,
+      DEFAULT: STYLE_TRANSFER_RAIN_PRINCESS_XNNPACK_INT8,
       XNNPACK_FP32: STYLE_TRANSFER_RAIN_PRINCESS_XNNPACK_FP32,
       XNNPACK_INT8: STYLE_TRANSFER_RAIN_PRINCESS_XNNPACK_INT8,
       COREML_FP16: STYLE_TRANSFER_RAIN_PRINCESS_COREML_FP16,
@@ -1385,7 +1395,7 @@ export const models = {
      * abstract art style.
      */
     UDNIE: {
-      ...STYLE_TRANSFER_UDNIE_XNNPACK_INT8,
+      DEFAULT: STYLE_TRANSFER_UDNIE_XNNPACK_INT8,
       XNNPACK_FP32: STYLE_TRANSFER_UDNIE_XNNPACK_FP32,
       XNNPACK_INT8: STYLE_TRANSFER_UDNIE_XNNPACK_INT8,
       COREML_FP16: STYLE_TRANSFER_UDNIE_COREML_FP16,
@@ -1393,17 +1403,17 @@ export const models = {
   },
 
   /**
-   * Semantic segmentation models that classify each pixel into target object
-   * or background classes.
+   * Semantic segmentation models that classify each pixel into target object or
+   * background classes.
    */
   semanticSegmentation: {
     /**
      * Lightweight portrait selfie segmentation model for real-time person vs
-     * background separation. Categorizes pixels into `background` and
-     * `person`. Ideal for background blur and replacement effects.
+     * background separation. Categorizes pixels into `background` and `person`.
+     * Ideal for background blur and replacement effects.
      */
     SELFIE_SEGMENTATION: {
-      ...SELFIE_SEGMENTATION_XNNPACK_FP32,
+      DEFAULT: SELFIE_SEGMENTATION_XNNPACK_FP32,
       XNNPACK_FP32: SELFIE_SEGMENTATION_XNNPACK_FP32,
       COREML_FP16: SELFIE_SEGMENTATION_COREML_FP16,
     },
@@ -1412,7 +1422,7 @@ export const models = {
      * 256x144 checkpoint rather than a resize of the portrait model.
      */
     SELFIE_SEGMENTATION_LANDSCAPE: {
-      ...SELFIE_SEGMENTATION_LANDSCAPE_XNNPACK_FP32,
+      DEFAULT: SELFIE_SEGMENTATION_LANDSCAPE_XNNPACK_FP32,
       XNNPACK_FP32: SELFIE_SEGMENTATION_LANDSCAPE_XNNPACK_FP32,
       COREML_FP16: SELFIE_SEGMENTATION_LANDSCAPE_COREML_FP16,
     },
@@ -1422,40 +1432,40 @@ export const models = {
      * real-time pixel-level segmentation on mobile devices.
      */
     LRASPP_MOBILENET_V3_LARGE: {
-      ...LRASPP_MOBILENET_V3_LARGE_XNNPACK_INT8,
+      DEFAULT: LRASPP_MOBILENET_V3_LARGE_XNNPACK_INT8,
       XNNPACK_FP32: LRASPP_MOBILENET_V3_LARGE_XNNPACK_FP32,
       XNNPACK_INT8: LRASPP_MOBILENET_V3_LARGE_XNNPACK_INT8,
       COREML_FP16: LRASPP_MOBILENET_V3_LARGE_COREML_FP16,
     },
     /**
-     * DeepLabV3 semantic segmentation model with ResNet-50 backbone
-     * (21 classes, see {@link PASCAL_VOC_LABELS}). High-accuracy segmentation
+     * DeepLabV3 semantic segmentation model with ResNet-50 backbone (21
+     * classes, see {@link PASCAL_VOC_LABELS}). High-accuracy segmentation
      * utilizing atrous spatial pyramid pooling.
      */
     DEEPLAB_V3_RESNET50: {
-      ...DEEPLAB_V3_RESNET50_XNNPACK_INT8,
+      DEFAULT: DEEPLAB_V3_RESNET50_XNNPACK_INT8,
       XNNPACK_FP32: DEEPLAB_V3_RESNET50_XNNPACK_FP32,
       XNNPACK_INT8: DEEPLAB_V3_RESNET50_XNNPACK_INT8,
       COREML_FP16: DEEPLAB_V3_RESNET50_COREML_FP16,
     },
     /**
-     * DeepLabV3 semantic segmentation model with ResNet-101 backbone
-     * (21 classes, see {@link PASCAL_VOC_LABELS}). High-capacity backbone for
+     * DeepLabV3 semantic segmentation model with ResNet-101 backbone (21
+     * classes, see {@link PASCAL_VOC_LABELS}). High-capacity backbone for
      * maximum segmentation detail and boundary accuracy.
      */
     DEEPLAB_V3_RESNET101: {
-      ...DEEPLAB_V3_RESNET101_XNNPACK_INT8,
+      DEFAULT: DEEPLAB_V3_RESNET101_XNNPACK_INT8,
       XNNPACK_FP32: DEEPLAB_V3_RESNET101_XNNPACK_FP32,
       XNNPACK_INT8: DEEPLAB_V3_RESNET101_XNNPACK_INT8,
       COREML_FP16: DEEPLAB_V3_RESNET101_COREML_FP16,
     },
     /**
-     * DeepLabV3 semantic segmentation model with MobileNetV3-Large backbone
-     * (21 classes, see {@link PASCAL_VOC_LABELS}). Combines DeepLabV3 feature
+     * DeepLabV3 semantic segmentation model with MobileNetV3-Large backbone (21
+     * classes, see {@link PASCAL_VOC_LABELS}). Combines DeepLabV3 feature
      * extraction quality with a lightweight mobile backbone.
      */
     DEEPLAB_V3_MOBILENET_V3_LARGE: {
-      ...DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_INT8,
+      DEFAULT: DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_INT8,
       XNNPACK_FP32: DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_FP32,
       XNNPACK_INT8: DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_INT8,
       COREML_FP16: DEEPLAB_V3_MOBILENET_V3_LARGE_COREML_FP16,
@@ -1465,7 +1475,7 @@ export const models = {
      * ResNet-50 backbone (21 classes, see {@link PASCAL_VOC_LABELS}).
      */
     FCN_RESNET50: {
-      ...FCN_RESNET50_XNNPACK_INT8,
+      DEFAULT: FCN_RESNET50_XNNPACK_INT8,
       XNNPACK_FP32: FCN_RESNET50_XNNPACK_FP32,
       XNNPACK_INT8: FCN_RESNET50_XNNPACK_INT8,
       COREML_FP16: FCN_RESNET50_COREML_FP16,
@@ -1475,7 +1485,7 @@ export const models = {
      * ResNet-101 backbone (21 classes, see {@link PASCAL_VOC_LABELS}).
      */
     FCN_RESNET101: {
-      ...FCN_RESNET101_XNNPACK_INT8,
+      DEFAULT: FCN_RESNET101_XNNPACK_INT8,
       XNNPACK_FP32: FCN_RESNET101_XNNPACK_FP32,
       XNNPACK_INT8: FCN_RESNET101_XNNPACK_INT8,
       COREML_FP16: FCN_RESNET101_COREML_FP16,
@@ -1492,7 +1502,7 @@ export const models = {
      * detector suited for real-time mobile applications.
      */
     SSDLITE320_MOBILENET_V3_LARGE: {
-      ...SSDLITE320_MOBILENET_V3_LARGE_XNNPACK_FP32,
+      DEFAULT: SSDLITE320_MOBILENET_V3_LARGE_XNNPACK_FP32,
       XNNPACK_FP32: SSDLITE320_MOBILENET_V3_LARGE_XNNPACK_FP32,
       COREML_FP16: SSDLITE320_MOBILENET_V3_LARGE_COREML_FP16,
     },
@@ -1502,109 +1512,123 @@ export const models = {
      * object detector.
      */
     RFDETR_NANO: {
-      ...RFDETR_NANO_DETECTOR_XNNPACK_FP32,
+      DEFAULT: RFDETR_NANO_DETECTOR_XNNPACK_FP32,
       XNNPACK_FP32: RFDETR_NANO_DETECTOR_XNNPACK_FP32,
       COREML_FP16: RFDETR_NANO_DETECTOR_COREML_FP16,
     },
     /**
-     * Ultralytics YOLO26 real-time object detection models trained on COCO
-     * (80 classes, see {@link COCO_CLASSES_YOLO}). Available across multiple
-     * scale sizes (NANO, SMALL, MEDIUM, LARGE, XLARGE) and resolutions
-     * (384x384, 512x512, 640x640).
+     * Ultralytics YOLO26 real-time object detection models trained on COCO (80
+     * classes, see {@link COCO_CLASSES_YOLO}). Available across multiple scale
+     * sizes (NANO, SMALL, MEDIUM, LARGE, XLARGE) and resolutions (384x384,
+     * 512x512, 640x640).
      */
     YOLO26: {
-      ...YOLO26_NANO_384_XNNPACK_FP32,
+      DEFAULT: YOLO26_NANO_384_XNNPACK_FP32,
       /**
-       * Nano scale YOLO26 object detection model. High speed,
-       * ultra low latency.
+       * Nano scale YOLO26 object detection model. High speed, ultra low
+       * latency.
        */
       NANO: {
-        ...YOLO26_NANO_384_XNNPACK_FP32,
+        DEFAULT: YOLO26_NANO_384_XNNPACK_FP32,
         SIZE_384: {
+          DEFAULT: YOLO26_NANO_384_XNNPACK_FP32,
           XNNPACK_FP32: YOLO26_NANO_384_XNNPACK_FP32,
           COREML_FP16: YOLO26_NANO_384_COREML_FP16,
         },
         SIZE_512: {
+          DEFAULT: YOLO26_NANO_512_XNNPACK_FP32,
           XNNPACK_FP32: YOLO26_NANO_512_XNNPACK_FP32,
           COREML_FP16: YOLO26_NANO_512_COREML_FP16,
         },
         SIZE_640: {
+          DEFAULT: YOLO26_NANO_640_XNNPACK_FP32,
           XNNPACK_FP32: YOLO26_NANO_640_XNNPACK_FP32,
           COREML_FP16: YOLO26_NANO_640_COREML_FP16,
         },
       },
       /**
-       * Small scale YOLO26 object detection model. Balanced
-       * latency and accuracy.
+       * Small scale YOLO26 object detection model. Balanced latency and
+       * accuracy.
        */
       SMALL: {
-        ...YOLO26_SMALL_384_XNNPACK_FP32,
+        DEFAULT: YOLO26_SMALL_384_XNNPACK_FP32,
         SIZE_384: {
+          DEFAULT: YOLO26_SMALL_384_XNNPACK_FP32,
           XNNPACK_FP32: YOLO26_SMALL_384_XNNPACK_FP32,
           COREML_FP16: YOLO26_SMALL_384_COREML_FP16,
         },
         SIZE_512: {
+          DEFAULT: YOLO26_SMALL_512_XNNPACK_FP32,
           XNNPACK_FP32: YOLO26_SMALL_512_XNNPACK_FP32,
           COREML_FP16: YOLO26_SMALL_512_COREML_FP16,
         },
         SIZE_640: {
+          DEFAULT: YOLO26_SMALL_640_XNNPACK_FP32,
           XNNPACK_FP32: YOLO26_SMALL_640_XNNPACK_FP32,
           COREML_FP16: YOLO26_SMALL_640_COREML_FP16,
         },
       },
       /**
-       * Medium scale YOLO26 object detection model. Higher
-       * precision for complex scenes.
+       * Medium scale YOLO26 object detection model. Higher precision for
+       * complex scenes.
        */
       MEDIUM: {
-        ...YOLO26_MEDIUM_384_XNNPACK_FP32,
+        DEFAULT: YOLO26_MEDIUM_384_XNNPACK_FP32,
         SIZE_384: {
+          DEFAULT: YOLO26_MEDIUM_384_XNNPACK_FP32,
           XNNPACK_FP32: YOLO26_MEDIUM_384_XNNPACK_FP32,
           COREML_FP16: YOLO26_MEDIUM_384_COREML_FP16,
         },
         SIZE_512: {
+          DEFAULT: YOLO26_MEDIUM_512_XNNPACK_FP32,
           XNNPACK_FP32: YOLO26_MEDIUM_512_XNNPACK_FP32,
           COREML_FP16: YOLO26_MEDIUM_512_COREML_FP16,
         },
         SIZE_640: {
+          DEFAULT: YOLO26_MEDIUM_640_XNNPACK_FP32,
           XNNPACK_FP32: YOLO26_MEDIUM_640_XNNPACK_FP32,
           COREML_FP16: YOLO26_MEDIUM_640_COREML_FP16,
         },
       },
       /**
-       * Large scale YOLO26 object detection model. High accuracy
-       * model variant.
+       * Large scale YOLO26 object detection model. High accuracy model variant.
        */
       LARGE: {
-        ...YOLO26_LARGE_384_XNNPACK_FP32,
+        DEFAULT: YOLO26_LARGE_384_XNNPACK_FP32,
         SIZE_384: {
+          DEFAULT: YOLO26_LARGE_384_XNNPACK_FP32,
           XNNPACK_FP32: YOLO26_LARGE_384_XNNPACK_FP32,
           COREML_FP16: YOLO26_LARGE_384_COREML_FP16,
         },
         SIZE_512: {
+          DEFAULT: YOLO26_LARGE_512_XNNPACK_FP32,
           XNNPACK_FP32: YOLO26_LARGE_512_XNNPACK_FP32,
           COREML_FP16: YOLO26_LARGE_512_COREML_FP16,
         },
         SIZE_640: {
+          DEFAULT: YOLO26_LARGE_640_XNNPACK_FP32,
           XNNPACK_FP32: YOLO26_LARGE_640_XNNPACK_FP32,
           COREML_FP16: YOLO26_LARGE_640_COREML_FP16,
         },
       },
       /**
-       * Extra Large scale YOLO26 object detection model.
-       * Maximum detection performance.
+       * Extra Large scale YOLO26 object detection model. Maximum detection
+       * performance.
        */
       XLARGE: {
-        ...YOLO26_XLARGE_384_XNNPACK_FP32,
+        DEFAULT: YOLO26_XLARGE_384_XNNPACK_FP32,
         SIZE_384: {
+          DEFAULT: YOLO26_XLARGE_384_XNNPACK_FP32,
           XNNPACK_FP32: YOLO26_XLARGE_384_XNNPACK_FP32,
           COREML_FP16: YOLO26_XLARGE_384_COREML_FP16,
         },
         SIZE_512: {
+          DEFAULT: YOLO26_XLARGE_512_XNNPACK_FP32,
           XNNPACK_FP32: YOLO26_XLARGE_512_XNNPACK_FP32,
           COREML_FP16: YOLO26_XLARGE_512_COREML_FP16,
         },
         SIZE_640: {
+          DEFAULT: YOLO26_XLARGE_640_XNNPACK_FP32,
           XNNPACK_FP32: YOLO26_XLARGE_640_XNNPACK_FP32,
           COREML_FP16: YOLO26_XLARGE_640_COREML_FP16,
         },
@@ -1618,30 +1642,40 @@ export const models = {
    */
   keypointDetection: {
     /**
-     * MediaPipe BlazeFace lightweight face detection and 6-point facial landmark
-     * locator (eyes, nose, mouth, ears, see {@link BLAZEFACE_LANDMARKS}).
+     * MediaPipe BlazeFace lightweight face detection and 6-point facial
+     * landmark locator (eyes, nose, mouth, ears, see
+     * {@link BLAZEFACE_LANDMARKS}).
      */
     BLAZEFACE: {
-      ...BLAZEFACE_XNNPACK_FP32,
+      DEFAULT: BLAZEFACE_XNNPACK_FP32,
       XNNPACK_FP32: BLAZEFACE_XNNPACK_FP32,
     },
     /**
-     * YOLO26 human pose estimation model predicting 17 COCO body keypoints
-     * (see {@link COCO_LANDMARKS}). Available across 384x384, 512x512, and
-     * 640x640 resolutions.
+     * YOLO26 human pose estimation model predicting 17 COCO body keypoints (see
+     * {@link COCO_LANDMARKS}). Available across 384x384, 512x512, and 640x640
+     * resolutions.
      */
     YOLO26_POSE: {
-      ...YOLO26_POSE_384_XNNPACK_FP32,
-      SIZE_384: { XNNPACK_FP32: YOLO26_POSE_384_XNNPACK_FP32 },
-      SIZE_512: { XNNPACK_FP32: YOLO26_POSE_512_XNNPACK_FP32 },
-      SIZE_640: { XNNPACK_FP32: YOLO26_POSE_640_XNNPACK_FP32 },
+      DEFAULT: YOLO26_POSE_384_XNNPACK_FP32,
+      SIZE_384: {
+        DEFAULT: YOLO26_POSE_384_XNNPACK_FP32,
+        XNNPACK_FP32: YOLO26_POSE_384_XNNPACK_FP32,
+      },
+      SIZE_512: {
+        DEFAULT: YOLO26_POSE_512_XNNPACK_FP32,
+        XNNPACK_FP32: YOLO26_POSE_512_XNNPACK_FP32,
+      },
+      SIZE_640: {
+        DEFAULT: YOLO26_POSE_640_XNNPACK_FP32,
+        XNNPACK_FP32: YOLO26_POSE_640_XNNPACK_FP32,
+      },
     },
     /**
      * RF-DETR (Roboflow Detection Transformer) pose keypoint detector
      * predicting 17 COCO body keypoints (see {@link COCO_LANDMARKS}).
      */
     RFDETR_KEYPOINT: {
-      ...RFDETR_KEYPOINT_XNNPACK_FP32,
+      DEFAULT: RFDETR_KEYPOINT_XNNPACK_FP32,
       XNNPACK_FP32: RFDETR_KEYPOINT_XNNPACK_FP32,
       COREML_FP32: RFDETR_KEYPOINT_COREML_FP32,
       MLX_FP32: RFDETR_KEYPOINT_MLX_FP32,
@@ -1649,8 +1683,8 @@ export const models = {
   },
 
   /**
-   * Instance segmentation models predicting both bounding boxes and fine-grained
-   * pixel masks per object instance.
+   * Instance segmentation models predicting both bounding boxes and
+   * fine-grained pixel masks per object instance.
    */
   instanceSegmentation: {
     /**
@@ -1660,11 +1694,10 @@ export const models = {
      */
     FASTSAM: {
       /**
-       * FastSAM Small - lightweight instance segmenter for
-       * mobile.
+       * FastSAM Small - lightweight instance segmenter for mobile.
        */
       S: {
-        ...FASTSAM_S_XNNPACK_FP32,
+        DEFAULT: FASTSAM_S_XNNPACK_FP32,
         XNNPACK_FP32: FASTSAM_S_XNNPACK_FP32,
         COREML_FP16: FASTSAM_S_COREML_FP16,
       },
@@ -1672,18 +1705,18 @@ export const models = {
        * FastSAM Extra Large - high-accuracy instance segmenter.
        */
       X: {
-        ...FASTSAM_X_XNNPACK_FP32,
+        DEFAULT: FASTSAM_X_XNNPACK_FP32,
         XNNPACK_FP32: FASTSAM_X_XNNPACK_FP32,
         COREML_FP16: FASTSAM_X_COREML_FP16,
       },
     },
     /**
-     * RF-DETR (Roboflow Detection Transformer) Nano instance segmentation
-     * model predicting COCO class masks and bounding boxes
-     * (see {@link COCO_CLASSES}).
+     * RF-DETR (Roboflow Detection Transformer) Nano instance segmentation model
+     * predicting COCO class masks and bounding boxes (see
+     * {@link COCO_CLASSES}).
      */
     RFDETR_NANO: {
-      ...RFDETR_NANO_SEG_COREML_FP16,
+      DEFAULT: RFDETR_NANO_SEG_COREML_FP16,
       COREML_FP16: RFDETR_NANO_SEG_COREML_FP16,
       XNNPACK_FP32: RFDETR_NANO_SEG_XNNPACK_FP32,
     },
@@ -1694,44 +1727,101 @@ export const models = {
      * (384x384, 512x512, 640x640).
      */
     YOLO26: {
-      ...YOLO26_NANO_SEG_384_XNNPACK_FP32,
+      DEFAULT: YOLO26_NANO_SEG_384_XNNPACK_FP32,
       /**
-       * Nano scale YOLO26 instance segmentation model. High
-       * speed.
+       * Nano scale YOLO26 instance segmentation model. High speed, ultra low
+       * latency mask generation.
        */
       NANO: {
-        ...YOLO26_NANO_SEG_384_XNNPACK_FP32,
-        SIZE_384: { XNNPACK_FP32: YOLO26_NANO_SEG_384_XNNPACK_FP32 },
-        SIZE_512: { XNNPACK_FP32: YOLO26_NANO_SEG_512_XNNPACK_FP32 },
-        SIZE_640: { XNNPACK_FP32: YOLO26_NANO_SEG_640_XNNPACK_FP32 },
+        DEFAULT: YOLO26_NANO_SEG_384_XNNPACK_FP32,
+        SIZE_384: {
+          DEFAULT: YOLO26_NANO_SEG_384_XNNPACK_FP32,
+          XNNPACK_FP32: YOLO26_NANO_SEG_384_XNNPACK_FP32,
+        },
+        SIZE_512: {
+          DEFAULT: YOLO26_NANO_SEG_512_XNNPACK_FP32,
+          XNNPACK_FP32: YOLO26_NANO_SEG_512_XNNPACK_FP32,
+        },
+        SIZE_640: {
+          DEFAULT: YOLO26_NANO_SEG_640_XNNPACK_FP32,
+          XNNPACK_FP32: YOLO26_NANO_SEG_640_XNNPACK_FP32,
+        },
       },
-      /** Small scale YOLO26 instance segmentation model. */
+      /**
+       * Small scale YOLO26 instance segmentation model. Balanced latency and
+       * mask accuracy.
+       */
       SMALL: {
-        ...YOLO26_SMALL_SEG_384_XNNPACK_FP32,
-        SIZE_384: { XNNPACK_FP32: YOLO26_SMALL_SEG_384_XNNPACK_FP32 },
-        SIZE_512: { XNNPACK_FP32: YOLO26_SMALL_SEG_512_XNNPACK_FP32 },
-        SIZE_640: { XNNPACK_FP32: YOLO26_SMALL_SEG_640_XNNPACK_FP32 },
+        DEFAULT: YOLO26_SMALL_SEG_384_XNNPACK_FP32,
+        SIZE_384: {
+          DEFAULT: YOLO26_SMALL_SEG_384_XNNPACK_FP32,
+          XNNPACK_FP32: YOLO26_SMALL_SEG_384_XNNPACK_FP32,
+        },
+        SIZE_512: {
+          DEFAULT: YOLO26_SMALL_SEG_512_XNNPACK_FP32,
+          XNNPACK_FP32: YOLO26_SMALL_SEG_512_XNNPACK_FP32,
+        },
+        SIZE_640: {
+          DEFAULT: YOLO26_SMALL_SEG_640_XNNPACK_FP32,
+          XNNPACK_FP32: YOLO26_SMALL_SEG_640_XNNPACK_FP32,
+        },
       },
-      /** Medium scale YOLO26 instance segmentation model. */
+      /**
+       * Medium scale YOLO26 instance segmentation model. Higher mask boundary
+       * precision for complex multi-object scenes.
+       */
       MEDIUM: {
-        ...YOLO26_MEDIUM_SEG_384_XNNPACK_FP32,
-        SIZE_384: { XNNPACK_FP32: YOLO26_MEDIUM_SEG_384_XNNPACK_FP32 },
-        SIZE_512: { XNNPACK_FP32: YOLO26_MEDIUM_SEG_512_XNNPACK_FP32 },
-        SIZE_640: { XNNPACK_FP32: YOLO26_MEDIUM_SEG_640_XNNPACK_FP32 },
+        DEFAULT: YOLO26_MEDIUM_SEG_384_XNNPACK_FP32,
+        SIZE_384: {
+          DEFAULT: YOLO26_MEDIUM_SEG_384_XNNPACK_FP32,
+          XNNPACK_FP32: YOLO26_MEDIUM_SEG_384_XNNPACK_FP32,
+        },
+        SIZE_512: {
+          DEFAULT: YOLO26_MEDIUM_SEG_512_XNNPACK_FP32,
+          XNNPACK_FP32: YOLO26_MEDIUM_SEG_512_XNNPACK_FP32,
+        },
+        SIZE_640: {
+          DEFAULT: YOLO26_MEDIUM_SEG_640_XNNPACK_FP32,
+          XNNPACK_FP32: YOLO26_MEDIUM_SEG_640_XNNPACK_FP32,
+        },
       },
-      /** Large scale YOLO26 instance segmentation model. */
+      /**
+       * Large scale YOLO26 instance segmentation model. High accuracy instance
+       * segmentation variant for demanding visual pipelines.
+       */
       LARGE: {
-        ...YOLO26_LARGE_SEG_384_XNNPACK_FP32,
-        SIZE_384: { XNNPACK_FP32: YOLO26_LARGE_SEG_384_XNNPACK_FP32 },
-        SIZE_512: { XNNPACK_FP32: YOLO26_LARGE_SEG_512_XNNPACK_FP32 },
-        SIZE_640: { XNNPACK_FP32: YOLO26_LARGE_SEG_640_XNNPACK_FP32 },
+        DEFAULT: YOLO26_LARGE_SEG_384_XNNPACK_FP32,
+        SIZE_384: {
+          DEFAULT: YOLO26_LARGE_SEG_384_XNNPACK_FP32,
+          XNNPACK_FP32: YOLO26_LARGE_SEG_384_XNNPACK_FP32,
+        },
+        SIZE_512: {
+          DEFAULT: YOLO26_LARGE_SEG_512_XNNPACK_FP32,
+          XNNPACK_FP32: YOLO26_LARGE_SEG_512_XNNPACK_FP32,
+        },
+        SIZE_640: {
+          DEFAULT: YOLO26_LARGE_SEG_640_XNNPACK_FP32,
+          XNNPACK_FP32: YOLO26_LARGE_SEG_640_XNNPACK_FP32,
+        },
       },
-      /** Extra Large scale YOLO26 instance segmentation model. */
+      /**
+       * Extra Large scale YOLO26 instance segmentation model. Maximum instance
+       * segmentation and mask delineation performance.
+       */
       XLARGE: {
-        ...YOLO26_XLARGE_SEG_384_XNNPACK_FP32,
-        SIZE_384: { XNNPACK_FP32: YOLO26_XLARGE_SEG_384_XNNPACK_FP32 },
-        SIZE_512: { XNNPACK_FP32: YOLO26_XLARGE_SEG_512_XNNPACK_FP32 },
-        SIZE_640: { XNNPACK_FP32: YOLO26_XLARGE_SEG_640_XNNPACK_FP32 },
+        DEFAULT: YOLO26_XLARGE_SEG_384_XNNPACK_FP32,
+        SIZE_384: {
+          DEFAULT: YOLO26_XLARGE_SEG_384_XNNPACK_FP32,
+          XNNPACK_FP32: YOLO26_XLARGE_SEG_384_XNNPACK_FP32,
+        },
+        SIZE_512: {
+          DEFAULT: YOLO26_XLARGE_SEG_512_XNNPACK_FP32,
+          XNNPACK_FP32: YOLO26_XLARGE_SEG_512_XNNPACK_FP32,
+        },
+        SIZE_640: {
+          DEFAULT: YOLO26_XLARGE_SEG_640_XNNPACK_FP32,
+          XNNPACK_FP32: YOLO26_XLARGE_SEG_640_XNNPACK_FP32,
+        },
       },
     },
   },
@@ -1747,7 +1837,7 @@ export const models = {
      * probability chunks for live mic streaming and STT preprocessing.
      */
     FSMN_VAD: {
-      ...FSMN_VAD_XNNPACK_FP32,
+      DEFAULT: FSMN_VAD_XNNPACK_FP32,
       XNNPACK_FP32: FSMN_VAD_XNNPACK_FP32,
     },
   },
@@ -1763,33 +1853,33 @@ export const models = {
      */
     WHISPER: {
       /**
-       * Multilingual Whisper Tiny model. Supporting 99+
-       * languages. High speed speech recognition.
+       * Multilingual Whisper Tiny model. Supporting 99+ languages. High speed
+       * speech recognition.
        */
       TINY: {
-        ...WHISPER_TINY_XNNPACK_FP32,
+        DEFAULT: WHISPER_TINY_XNNPACK_FP32,
         XNNPACK_FP32: WHISPER_TINY_XNNPACK_FP32,
         COREML_FP16: WHISPER_TINY_COREML_FP16,
         MLX_BF16: WHISPER_TINY_MLX_BF16,
         MLX_INT8: WHISPER_TINY_MLX_INT8,
       },
       /**
-       * Multilingual Whisper Base model. Higher accuracy across
-       * supported languages.
+       * Multilingual Whisper Base model. Higher accuracy across supported
+       * languages.
        */
       BASE: {
-        ...WHISPER_BASE_XNNPACK_FP32,
+        DEFAULT: WHISPER_BASE_XNNPACK_FP32,
         XNNPACK_FP32: WHISPER_BASE_XNNPACK_FP32,
         COREML_FP16: WHISPER_BASE_COREML_FP16,
         MLX_BF16: WHISPER_BASE_MLX_BF16,
         MLX_INT8: WHISPER_BASE_MLX_INT8,
       },
       /**
-       * Multilingual Whisper Small model. Best accuracy for
-       * complex multi-language audio.
+       * Multilingual Whisper Small model. Best accuracy for complex
+       * multi-language audio.
        */
       SMALL: {
-        ...WHISPER_SMALL_XNNPACK_FP32,
+        DEFAULT: WHISPER_SMALL_XNNPACK_FP32,
         XNNPACK_FP32: WHISPER_SMALL_XNNPACK_FP32,
         COREML_FP16: WHISPER_SMALL_COREML_FP16,
         MLX_INT8: WHISPER_SMALL_MLX_INT8,
@@ -1797,33 +1887,32 @@ export const models = {
       /** English-only optimized Whisper models (`TINY`, `BASE`, `SMALL`). */
       EN: {
         /**
-         * English-only Whisper Tiny model. Fast and compact for
-         * English STT.
+         * English-only Whisper Tiny model. Fast and compact for English STT.
          */
         TINY: {
-          ...WHISPER_TINY_EN_XNNPACK_FP32,
+          DEFAULT: WHISPER_TINY_EN_XNNPACK_FP32,
           XNNPACK_FP32: WHISPER_TINY_EN_XNNPACK_FP32,
           COREML_FP16: WHISPER_TINY_EN_COREML_FP16,
           MLX_BF16: WHISPER_TINY_EN_MLX_BF16,
           MLX_INT8: WHISPER_TINY_EN_MLX_INT8,
         },
         /**
-         * English-only Whisper Base model. High accuracy
-         * English speech recognition.
+         * English-only Whisper Base model. High accuracy English speech
+         * recognition.
          */
         BASE: {
-          ...WHISPER_BASE_EN_XNNPACK_FP32,
+          DEFAULT: WHISPER_BASE_EN_XNNPACK_FP32,
           XNNPACK_FP32: WHISPER_BASE_EN_XNNPACK_FP32,
           COREML_FP16: WHISPER_BASE_EN_COREML_FP16,
           MLX_BF16: WHISPER_BASE_EN_MLX_BF16,
           MLX_INT8: WHISPER_BASE_EN_MLX_INT8,
         },
         /**
-         * English-only Whisper Small model. Superior accuracy
-         * for English transcription.
+         * English-only Whisper Small model. Superior accuracy for English
+         * transcription.
          */
         SMALL: {
-          ...WHISPER_SMALL_EN_XNNPACK_FP32,
+          DEFAULT: WHISPER_SMALL_EN_XNNPACK_FP32,
           XNNPACK_FP32: WHISPER_SMALL_EN_XNNPACK_FP32,
           COREML_FP16: WHISPER_SMALL_EN_COREML_FP16,
           MLX_INT8: WHISPER_SMALL_EN_MLX_INT8,
@@ -1841,199 +1930,239 @@ export const models = {
   },
 
   /**
-   * Generative Large Language Models (LLMs) for instruction following,
-   * chat, text generation, and reasoning.
+   * Generative Large Language Models (LLMs) for instruction following, chat,
+   * text generation, and reasoning.
    */
   llm: {
     /**
-     * Liquid AI LFM 2.5 1.2B general-purpose text model. Excellent for complex
-     * on-device reasoning, instruction following, and fast multi-turn chat.
+     * Liquid AI LFM 2.5 1.2B general-purpose hybrid language model. Built on
+     * the Liquid Foundation Model architecture for low memory bandwidth usage,
+     * and high-throughput token generation. Delivers strong general-purpose
+     * reasoning, instruction following, and fast multi-turn conversational chat
+     * on mobile devices.
      */
     LFM2_5_1_2B: {
-      ...LFM2_5_1_2B_XNNPACK_8DA4W,
+      DEFAULT: LFM2_5_1_2B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: LFM2_5_1_2B_XNNPACK_8DA4W,
       XNNPACK_FP16: LFM2_5_1_2B_XNNPACK_FP16,
       MLX_INT4: LFM2_5_1_2B_MLX_INT4,
     },
     /**
-     * Liquid AI LFM 2.5 350M ultra-compact text model. Best for low-latency text
-     * completion, quick responses, and resource-constrained devices.
+     * Liquid AI LFM 2.5 350M ultra-compact hybrid language model. Optimized for
+     * minimal memory footprint and sub-second first-token response times. Ideal
+     * for lightweight text completion, fast intent classification, query
+     * routing, and low-latency chat on resource-constrained edge hardware.
      */
     LFM2_5_350M: {
-      ...LFM2_5_350M_XNNPACK_8DA4W,
+      DEFAULT: LFM2_5_350M_XNNPACK_8DA4W,
       XNNPACK_8DA4W: LFM2_5_350M_XNNPACK_8DA4W,
       XNNPACK_FP16: LFM2_5_350M_XNNPACK_FP16,
       MLX_INT4: LFM2_5_350M_MLX_INT4,
     },
     /**
-     * Liquid AI LFM 2.5 450M vision-language model. Optimized for real-time
-     * visual QA, image description, and low-latency multimodal chat.
+     * Liquid AI LFM 2.5 VL 450M lightweight multimodal vision-language model.
+     * Combines Liquid hybrid language modeling with visual token embeddings for
+     * real-time on-device visual question answering (VQA), image description,
+     * UI element inspection, and low-latency multimodal conversational agents.
      */
     LFM2_5_VL_450M: {
-      ...LFM2_5_VL_450M_XNNPACK_8DA4W,
+      DEFAULT: LFM2_5_VL_450M_XNNPACK_8DA4W,
       XNNPACK_8DA4W: LFM2_5_VL_450M_XNNPACK_8DA4W,
       MLX_INT4: LFM2_5_VL_450M_MLX_INT4,
       VULKAN_8DA4W: LFM2_5_VL_450M_VULKAN_8DA4W,
     },
     /**
-     * Liquid AI LFM 2.5 1.6B vision-language model. Higher quality visual
-     * understanding, detailed image analysis, and complex multimodal tasks.
+     * Liquid AI LFM 2.5 VL 1.6B high-capacity vision-language model. Provides
+     * fine-grained visual scene understanding, document/chart interpretation,
+     * detailed image captioning, and multi-turn visual dialogue with higher
+     * precision and reasoning fidelity than the 450M variant.
      */
     LFM2_5_VL_1_6B: {
-      ...LFM2_5_VL_1_6B_XNNPACK_8DA4W,
+      DEFAULT: LFM2_5_VL_1_6B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: LFM2_5_VL_1_6B_XNNPACK_8DA4W,
       VULKAN_8DA4W: LFM2_5_VL_1_6B_VULKAN_8DA4W,
     },
     /**
-     * Bielik v3 1.5B Polish & English language model. Fine-tuned specifically for
-     * native Polish fluency, grammar, and bilingual translation.
+     * Bielik v3 1.5B bilingual Polish & English language model, developed by
+     * SpeakLeash. Fine-tuned on curated Polish corpora and instruction datasets
+     * for native Polish cultural nuance, grammar accuracy, idioms, and
+     * high-fidelity bidirectional Polish-English translation.
      */
     BIELIK_V3_1_5B: {
-      ...BIELIK_V3_1_5B_XNNPACK_8DA4W,
+      DEFAULT: BIELIK_V3_1_5B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: BIELIK_V3_1_5B_XNNPACK_8DA4W,
       XNNPACK_FP16: BIELIK_V3_1_5B_XNNPACK_FP16,
     },
     /**
-     * Meta Llama 3.2 1B multilingual text model. Ideal for lightweight mobile
-     * chat, summary generation, and multilingual prompt processing.
+     * Meta Llama 3.2 1B lightweight instruction-tuned multilingual model.
+     * Features Grouped-Query Attention (GQA) and SpinQuant quantization for
+     * compact memory utilization and high throughput. Well suited for on-device
+     * text summarization, prompt rewriting, and lightweight conversational
+     * assistance.
      */
     LLAMA3_2_1B: {
-      ...LLAMA3_2_1B_SPINQUANT,
+      DEFAULT: LLAMA3_2_1B_SPINQUANT,
       XNNPACK_SPINQUANT: LLAMA3_2_1B_SPINQUANT,
       XNNPACK_BF16: LLAMA3_2_1B_BF16,
     },
     /**
-     * Meta Llama 3.2 3B multilingual text model. Strong instruction following,
-     * detailed content creation, and high-precision text reasoning.
+     * Meta Llama 3.2 3B instruction-tuned multilingual language model. Delivers
+     * strong instruction adherence, multi-turn reasoning, and high-quality
+     * content creation across 8+ core languages while maintaining a compact
+     * on-device memory profile.
      */
     LLAMA3_2_3B: {
-      ...LLAMA3_2_3B_SPINQUANT,
+      DEFAULT: LLAMA3_2_3B_SPINQUANT,
       XNNPACK_SPINQUANT: LLAMA3_2_3B_SPINQUANT,
       XNNPACK_BF16: LLAMA3_2_3B_BF16,
     },
     /**
-     * Hugging Face SmolLM2 135M sub-parameter model. Best for micro-footprint
-     * background tasks, simple text tagging, and instant autocomplete.
+     * Hugging Face SmolLM2 135M ultra-compact language model. Engineered for
+     * micro-memory footprints, instant token generation, text classification,
+     * and background processing on low-power devices.
      */
     SMOLLM2_135M: {
-      ...SMOLLM2_135M_8DA4W,
+      DEFAULT: SMOLLM2_135M_8DA4W,
       XNNPACK_8DA4W: SMOLLM2_135M_8DA4W,
       XNNPACK_BF16: SMOLLM2_135M_BF16,
     },
     /**
-     * Hugging Face SmolLM2 360M compact model. Balanced speed and intelligence
-     * for lightweight conversational assistants.
+     * Hugging Face SmolLM2 360M compact instruction-tuned model. Provides a
+     * practical balance between fast mobile generation speed and conversational
+     * coherence, ideal for lightweight on-device assistants, text
+     * simplification, and structured data extraction.
      */
     SMOLLM2_360M: {
-      ...SMOLLM2_360M_8DA4W,
+      DEFAULT: SMOLLM2_360M_8DA4W,
       XNNPACK_8DA4W: SMOLLM2_360M_8DA4W,
       XNNPACK_BF16: SMOLLM2_360M_BF16,
     },
     /**
-     * Hugging Face SmolLM2 1.7B language model. Powerful general-purpose text
-     * generation, creative writing, and general knowledge Q&A.
+     * Hugging Face SmolLM2 1.7B language model trained on curated educational,
+     * synthetic, and web data. Delivers competitive reasoning, creative text
+     * generation, and general knowledge Q&A performance approaching larger
+     * 2B-3B models while maintaining fast on-device inference.
      */
     SMOLLM2_1_7B: {
-      ...SMOLLM2_1_7B_8DA4W,
+      DEFAULT: SMOLLM2_1_7B_8DA4W,
       XNNPACK_8DA4W: SMOLLM2_1_7B_8DA4W,
       XNNPACK_BF16: SMOLLM2_1_7B_BF16,
     },
     /**
-     * Hammer 2.1 0.5B function-calling model. Specialized for lightweight agentic
-     * tool calling, JSON extraction, and structured output parsing.
+     * Hammer 2.1 0.5B specialized function-calling model. Fine-tuned
+     * specifically for agentic tool use, structured JSON extraction, and
+     * single/multi-tool invocation with ultra-low latency for real-time mobile
+     * tool calling flows.
      */
     HAMMER2_1_0_5B: {
-      ...HAMMER2_1_0_5B_XNNPACK_8DA4W,
+      DEFAULT: HAMMER2_1_0_5B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: HAMMER2_1_0_5B_XNNPACK_8DA4W,
       XNNPACK_BF16: HAMMER2_1_0_5B_XNNPACK_BF16,
     },
     /**
-     * Hammer 2.1 1.5B function-calling model. Optimized for multi-tool agentic
-     * workflows, API function calling, and structured JSON schemas.
+     * Hammer 2.1 1.5B function-calling language model. Optimized for multi-tool
+     * agentic workflows, API parameter schema validation, and structured JSON
+     * output generation on edge devices.
      */
     HAMMER2_1_1_5B: {
-      ...HAMMER2_1_1_5B_XNNPACK_8DA4W,
+      DEFAULT: HAMMER2_1_1_5B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: HAMMER2_1_1_5B_XNNPACK_8DA4W,
       XNNPACK_BF16: HAMMER2_1_1_5B_XNNPACK_BF16,
     },
     /**
-     * Hammer 2.1 3B function-calling model. High-capacity agentic reasoning,
-     * complex multi-step tool execution, and robust schema compliance.
+     * Hammer 2.1 3B high-capacity function-calling model. Provides top-tier
+     * tool selection precision, multi-turn tool calling, error recovery, and
+     * strict compliance with complex TypeScript/JSON schema specifications in
+     * autonomous mobile agent pipelines.
      */
     HAMMER2_1_3B: {
-      ...HAMMER2_1_3B_XNNPACK_8DA4W,
+      DEFAULT: HAMMER2_1_3B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: HAMMER2_1_3B_XNNPACK_8DA4W,
       XNNPACK_BF16: HAMMER2_1_3B_XNNPACK_BF16,
     },
     /**
-     * Microsoft Phi-4 Mini 3.8B reasoning model. Exceptional for math problem
-     * solving, logical reasoning, code synthesis, and analytical tasks.
+     * Microsoft Phi-4 Mini 3.8B high-density reasoning model. Trained on
+     * synthetic textbook-grade datasets for state-of-the-art on-device STEM
+     * problem solving, complex mathematical reasoning, multi-step code
+     * synthesis, and structured analytical tasks.
      */
     PHI4_MINI: {
-      ...PHI4_MINI_XNNPACK_8DA4W,
+      DEFAULT: PHI4_MINI_XNNPACK_8DA4W,
       XNNPACK_8DA4W: PHI4_MINI_XNNPACK_8DA4W,
       XNNPACK_BF16: PHI4_MINI_XNNPACK_BF16,
     },
     /**
-     * Alibaba Qwen 2.5 0.5B multilingual model. Extremely efficient for fast
-     * multi-language translation and basic conversational chat.
+     * Alibaba Qwen 2.5 0.5B ultra-lightweight multilingual model. Trained on
+     * 18T tokens supporting 29+ languages; optimized for near-instant response
+     * times, basic instruction following, multilingual translation, and
+     * lightweight conversational assistants on mobile devices.
      */
     QWEN2_5_0_5B: {
-      ...QWEN2_5_0_5B_XNNPACK_8DA4W,
+      DEFAULT: QWEN2_5_0_5B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: QWEN2_5_0_5B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN2_5_0_5B_XNNPACK_BF16,
     },
     /**
-     * Alibaba Qwen 2.5 1.5B multilingual model. Great for balanced multilingual
-     * chat, text summarization, and cross-lingual understanding.
+     * Alibaba Qwen 2.5 1.5B multilingual instruction model. Combines broad
+     * multilingual comprehension across 29+ languages with strong coding and
+     * math capabilities, well suited for interactive chat, summarization, and
+     * cross-lingual translation.
      */
     QWEN2_5_1_5B: {
-      ...QWEN2_5_1_5B_XNNPACK_8DA4W,
+      DEFAULT: QWEN2_5_1_5B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: QWEN2_5_1_5B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN2_5_1_5B_XNNPACK_BF16,
     },
     /**
-     * Alibaba Qwen 2.5 3B multilingual model. High capability across 29+
-     * languages for complex translation, long-form writing, and Q&A.
+     * Alibaba Qwen 2.5 3B high-capability multilingual model. Delivers strong
+     * reasoning, coding, mathematics, and multilingual fluency across 29+
+     * languages for in-depth text generation and complex multi-turn dialogue.
      */
     QWEN2_5_3B: {
-      ...QWEN2_5_3B_XNNPACK_8DA4W,
+      DEFAULT: QWEN2_5_3B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: QWEN2_5_3B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN2_5_3B_XNNPACK_BF16,
     },
     /**
-     * Alibaba Qwen 3 0.6B next-gen text model. Low-latency multilingual model
-     * for fast turn-taking and concise response generation.
+     * Alibaba Qwen 3 0.6B next-generation compact language model. Features
+     * updated architectural optimizations for reduced latency, enhanced
+     * multilingual token representation, and efficient conversational
+     * turn-taking on mobile devices.
      */
     QWEN3_0_6B: {
-      ...QWEN3_0_6B_XNNPACK_8DA4W,
+      DEFAULT: QWEN3_0_6B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: QWEN3_0_6B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN3_0_6B_XNNPACK_BF16,
     },
     /**
-     * Alibaba Qwen 3 1.7B next-gen text model. Versatile multilingual assistant
-     * for high-quality instruction following and knowledge retrieval.
+     * Alibaba Qwen 3 1.7B next-generation multilingual language model. Balances
+     * high reasoning capability, general knowledge retrieval, coding
+     * proficiency, and conversational fluidity across multiple languages.
      */
     QWEN3_1_7B: {
-      ...QWEN3_1_7B_XNNPACK_8DA4W,
+      DEFAULT: QWEN3_1_7B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: QWEN3_1_7B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN3_1_7B_XNNPACK_BF16,
     },
     /**
-     * Alibaba Qwen 3 4B high-capacity text model. Top-tier multilingual
-     * reasoning, technical content generation, and multi-turn dialogue.
+     * Alibaba Qwen 3 4B high-capacity generative model. Delivers advanced
+     * multi-step reasoning, comprehensive world knowledge, complex coding
+     * capabilities, and top-tier multilingual performance for demanding
+     * on-device AI applications.
      */
     QWEN3_4B: {
-      ...QWEN3_4B_XNNPACK_8DA4W,
+      DEFAULT: QWEN3_4B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: QWEN3_4B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN3_4B_XNNPACK_BF16,
     },
     /**
-     * Google Gemma 4 E2B generative text model. Built on Google's Gemini tech
-     * for high-fidelity instruction following and mobile assistance.
+     * Google Gemma 4 E2B generative language model. Built on Google's Gemini
+     * research and architecture innovations, offering high-fidelity instruction
+     * following, creative text generation, and reasoning efficiency optimized
+     * for mobile deployment.
      */
     GEMMA4_E2B: {
-      ...GEMMA4_E2B_XNNPACK_8DA4W,
+      DEFAULT: GEMMA4_E2B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: GEMMA4_E2B_XNNPACK_8DA4W,
       MLX_INT4: GEMMA4_E2B_MLX_INT4,
     },
@@ -2050,7 +2179,7 @@ export const models = {
      * sentence similarity, and clustering.
      */
     ALL_MINILM_L6_V2: {
-      ...ALL_MINILM_L6_V2_EMBEDDINGS,
+      DEFAULT: ALL_MINILM_L6_V2_EMBEDDINGS,
       XNNPACK_FP32: ALL_MINILM_L6_V2_EMBEDDINGS,
     },
     /**
@@ -2058,15 +2187,15 @@ export const models = {
      * Provides higher quality semantic embeddings compared to MiniLM.
      */
     ALL_MPNET_BASE_V2: {
-      ...ALL_MPNET_BASE_V2_EMBEDDINGS,
+      DEFAULT: ALL_MPNET_BASE_V2_EMBEDDINGS,
       XNNPACK_FP32: ALL_MPNET_BASE_V2_EMBEDDINGS,
     },
     /**
-     * 384-dimensional sentence transformer fine-tuned specifically for
-     * semantic QA matching using cosine similarity.
+     * 384-dimensional sentence transformer fine-tuned specifically for semantic
+     * QA matching using cosine similarity.
      */
     MULTI_QA_MINILM_L6_COS_V1: {
-      ...MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS,
+      DEFAULT: MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS,
       XNNPACK_FP32: MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS,
     },
     /**
@@ -2074,7 +2203,7 @@ export const models = {
      * question-answering matching using dot product distance.
      */
     MULTI_QA_MPNET_BASE_DOT_V1: {
-      ...MULTI_QA_MPNET_BASE_DOT_V1_EMBEDDINGS,
+      DEFAULT: MULTI_QA_MPNET_BASE_DOT_V1_EMBEDDINGS,
       XNNPACK_FP32: MULTI_QA_MPNET_BASE_DOT_V1_EMBEDDINGS,
     },
     /**
@@ -2082,7 +2211,7 @@ export const models = {
      * cross-lingual semantic similarity.
      */
     PARAPHRASE_MULTILINGUAL_MINILM_L12_V2: {
-      ...PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_EMBEDDINGS,
+      DEFAULT: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_EMBEDDINGS,
       XNNPACK_8DA4W: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_EMBEDDINGS,
     },
     /**
@@ -2090,27 +2219,27 @@ export const models = {
      * distilled Universal Sentence Encoder (512-dim output).
      */
     DISTILUSE_BASE_MULTILINGUAL_CASED_V2: {
-      ...DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS,
+      DEFAULT: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS,
       XNNPACK_8DA4W: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS,
       MLX_INT8: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8,
     },
     /**
-     * CLIP text encoder (ViT-B/32) mapping text queries into a
-     * 512-dimensional joint text-image embedding space. Used in combination
-     * with `imageEmbeddings.CLIP_VIT_BASE_PATCH32` for zero-shot text-to-image
+     * CLIP text encoder (ViT-B/32) mapping text queries into a 512-dimensional
+     * joint text-image embedding space. Used in combination with
+     * `imageEmbeddings.CLIP_VIT_BASE_PATCH32` for zero-shot text-to-image
      * search.
      */
     CLIP_VIT_BASE_PATCH32_TEXT: {
-      ...CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS,
+      DEFAULT: CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS,
       XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS,
     },
     /**
      * Liquid AI LFM 2.5 350M parameter embedding model for asymmetric search
      * and retrieval tasks. Prompts queries with `query: ` (the default) and
-     * passages with `document: ` via `embed(text, 'document: ')`.
+     * passages with `document: ` via {@link TextEmbedder.embed}.
      */
     LFM2_5_EMBEDDING_350M: {
-      ...LFM2_5_EMBEDDING_350M_EMBEDDINGS,
+      DEFAULT: LFM2_5_EMBEDDING_350M_EMBEDDINGS,
       XNNPACK_8DA4W: LFM2_5_EMBEDDING_350M_EMBEDDINGS,
       MLX_INT4: LFM2_5_EMBEDDING_350M_MLX_INT4,
     },
@@ -2127,7 +2256,7 @@ export const models = {
      * address, and similar). Compact label space, best for general redaction.
      */
     OPENAI: {
-      ...PRIVACY_FILTER_OPENAI_XNNPACK_8DA4W,
+      DEFAULT: PRIVACY_FILTER_OPENAI_XNNPACK_8DA4W,
       XNNPACK_8DA4W: PRIVACY_FILTER_OPENAI_XNNPACK_8DA4W,
       MLX_INT4: PRIVACY_FILTER_OPENAI_MLX_INT4,
     },
@@ -2136,7 +2265,7 @@ export const models = {
      * space for stricter compliance-oriented redaction.
      */
     NEMOTRON: {
-      ...PRIVACY_FILTER_NEMOTRON_XNNPACK_8DA4W,
+      DEFAULT: PRIVACY_FILTER_NEMOTRON_XNNPACK_8DA4W,
       XNNPACK_8DA4W: PRIVACY_FILTER_NEMOTRON_XNNPACK_8DA4W,
       MLX_INT8: PRIVACY_FILTER_NEMOTRON_MLX_INT8,
     },
@@ -2152,7 +2281,7 @@ export const models = {
      * cross-modal image search.
      */
     CLIP_VIT_BASE_PATCH32: {
-      ...CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32,
+      DEFAULT: CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32,
       XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32,
       COREML_FP16: CLIP_VIT_BASE_PATCH32_IMAGE_COREML_FP16,
       MLX_INT8: CLIP_VIT_BASE_PATCH32_IMAGE_MLX_INT8,
@@ -2165,25 +2294,28 @@ export const models = {
   textToImage: {
     /**
      * Ultra-fast SDXS (Stable Diffusion eXtreme Speed) 512x512 text-to-image
-     * generation model based on DreamShaper. Generates high-quality images
-     * from text prompts in real time.
+     * generation model based on DreamShaper. Generates high-quality images from
+     * text prompts in real time.
      */
     SDXS_512_DREAMSHAPER: {
-      ...SDXS_512_DREAMSHAPER_XNNPACK_FP32,
+      DEFAULT: SDXS_512_DREAMSHAPER_XNNPACK_FP32,
       XNNPACK_FP32: SDXS_512_DREAMSHAPER_XNNPACK_FP32,
       COREML_FP16: SDXS_512_DREAMSHAPER_COREML_FP16,
     },
   },
 
   /**
-   * Text-to-Speech (TTS) models that synthesize audio waveforms from input text.
+   * Text-to-Speech (TTS) models that synthesize audio waveforms from input
+   * text.
    */
   textToSpeech: {
     /**
-     * Supertonic 3 multilingual flow-matching Text-to-Speech model.
+     * Supertonic 3 multilingual flow-matching Text-to-Speech model. Delivers
+     * natural, highly expressive speech synthesis with configurable speaker
+     * voice presets (see {@link SUPERTONIC_DEFAULT_VOICE_NAMES}).
      */
     SUPERTONIC: {
-      ...SUPERTONIC_3_XNNPACK_FP32,
+      DEFAULT: SUPERTONIC_3_XNNPACK_FP32,
       XNNPACK_FP32: SUPERTONIC_3_XNNPACK_FP32,
       MLX_FP32: SUPERTONIC_3_MLX_FP32,
     },
@@ -2195,39 +2327,39 @@ export const models = {
      */
     KOKORO: {
       EN_US: {
-        ...KOKORO_EN_US_XNNPACK_FP32,
+        DEFAULT: KOKORO_EN_US_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_EN_US_XNNPACK_FP32,
       },
       EN_GB: {
-        ...KOKORO_EN_GB_XNNPACK_FP32,
+        DEFAULT: KOKORO_EN_GB_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_EN_GB_XNNPACK_FP32,
       },
       ES: {
-        ...KOKORO_ES_XNNPACK_FP32,
+        DEFAULT: KOKORO_ES_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_ES_XNNPACK_FP32,
       },
       FR: {
-        ...KOKORO_FR_XNNPACK_FP32,
+        DEFAULT: KOKORO_FR_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_FR_XNNPACK_FP32,
       },
       IT: {
-        ...KOKORO_IT_XNNPACK_FP32,
+        DEFAULT: KOKORO_IT_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_IT_XNNPACK_FP32,
       },
       PT: {
-        ...KOKORO_PT_XNNPACK_FP32,
+        DEFAULT: KOKORO_PT_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_PT_XNNPACK_FP32,
       },
       HI: {
-        ...KOKORO_HI_XNNPACK_FP32,
+        DEFAULT: KOKORO_HI_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_HI_XNNPACK_FP32,
       },
       PL: {
-        ...KOKORO_PL_XNNPACK_FP32,
+        DEFAULT: KOKORO_PL_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_PL_XNNPACK_FP32,
       },
       DE: {
-        ...KOKORO_DE_XNNPACK_FP32,
+        DEFAULT: KOKORO_DE_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_DE_XNNPACK_FP32,
       },
     },
@@ -2245,8 +2377,11 @@ export const models = {
      * On Android, `VULKAN` is the faster choice.
      */
     PADDLE: {
+      /**
+       * PP-OCRv6 Small multilingual OCR model.
+       */
       PPOCRV6_SMALL: {
-        ...PPOCRV6_SMALL_XNNPACK_INT8,
+        DEFAULT: PPOCRV6_SMALL_XNNPACK_INT8,
         XNNPACK: PPOCRV6_SMALL_XNNPACK_INT8,
         COREML: PPOCRV6_SMALL_COREML_INT8,
         VULKAN: PPOCRV6_SMALL_VULKAN_FP16,

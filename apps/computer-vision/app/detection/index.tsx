@@ -16,11 +16,11 @@ import { BoundingBox } from '../../components/BoundingBox';
 const MODEL_OPTIONS: ModelOption[] = [
   {
     label: 'SSDLite 320 MobileNet V3 Large (XNNPACK FP32)',
-    value: models.objectDetection.SSDLITE320_MOBILENET_V3_LARGE,
+    value: models.objectDetection.SSDLITE320_MOBILENET_V3_LARGE.DEFAULT,
   },
   {
     label: 'RF-DETR Nano (XNNPACK FP32)',
-    value: models.objectDetection.RFDETR_NANO,
+    value: models.objectDetection.RFDETR_NANO.DEFAULT,
   },
   {
     label: 'RF-DETR Nano (CoreML FP16)',

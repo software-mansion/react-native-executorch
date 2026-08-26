@@ -2,75 +2,70 @@
  * Model specs and spec validation.
  *
  * A model spec is a structural contract describing a model's methods: the
- * parameter specs of every input and output (primitive tags, tensor data
- * types, and per-dimension domains) and the runtime constraints the method
- * declares over its tensor dimensions. A spec is either:
+ * parameter specs of every input and output (primitive tags, tensor data types,
+ * and per-dimension domains) and the runtime constraints the method declares
+ * over its tensor dimensions. A spec is either:
  * - **allowed** (`SymbolicDim`) — written by a pipeline to state which models
- *   it can work with. Dimensions may be named symbols: `static` symbols bind
- *   to constant dimensions, `dynamic` symbols to ranges or enums, and reusing
- *   a symbol requires every occurrence to bind to the same domain. Several
+ *   it can work with. Dimensions may be named symbols: `static` symbols bind to
+ *   constant dimensions, `dynamic` symbols to ranges or enums, and reusing a
+ *   symbol requires every occurrence to bind to the same domain. Several
  *   allowed specs can be passed as variants; matching any one of them is
  *   enough.
  * - **exported** (`ConcreteDim`) — derived from an exported model's metadata,
  *   stating what the model actually provides.
  *
  * **Dimension domains vs runtime values.** The central distinction of this
- * module is between a dimension's *domain* and its *runtime value*. The
- * domain is the set of values the dimension may take: `constant` is a
- * singleton (the value is fully known statically), while `range` and `enum`
- * are proper sets that only narrow the possibilities. The runtime value is
- * the actual size of the dimension for a concrete tensor in one given
- * execution — a single element drawn from the domain.
+ * module is between a dimension's *domain* and its *runtime value*. The domain
+ * is the set of values the dimension may take: `constant` is a singleton (the
+ * value is fully known statically), while `range` and `enum` are proper sets
+ * that only narrow the possibilities. The runtime value is the actual size of
+ * the dimension for a concrete tensor in one given execution — a single element
+ * drawn from the domain.
  *
  * Accordingly, two different validations must not be confused:
  * - **Spec validation** (this module, {@link validateSpec}) — a static,
  *   load-time check that an exported spec satisfies an allowed spec. It only
  *   ever compares domains: symbols bind to domains (repeated symbols to the
  *   same one), and constraints are matched as declarations. Domain equality
- *   says nothing about runtime values — two dimensions with the same domain
- *   may still take different values in an execution.
- * - **Runtime validation** (the native runtime, not this module) — at
- *   execution time the runtime checks that every concrete tensor shape lies
- *   within the declared domains and enforces the declared runtime
- *   constraints.
+ *   says nothing about runtime values — two dimensions with the same domain may
+ *   still take different values in an execution.
+ * - **Runtime validation** (the native runtime, not this module) — at execution
+ *   time the runtime checks that every concrete tensor shape lies within the
+ *   declared domains and enforces the declared runtime constraints.
  *
  * Runtime constraints are statements about runtime values, not domains: an
- * equality constraint requires its dimensions' values to coincide in any
- * given execution, and a linear constraint requires them to satisfy
- * `lhs = a * rhs + b`. Since spec validation only sees domains, it cannot
- * decide whether such a relation holds — the exported spec must simply
- * declare exactly the allowed spec's constraints (1-to-1, no missing, no
- * extras). The only exception is degenerate: a constant domain has exactly
- * one possible value, so an equality constraint between constants is fully
- * decided statically — equal constants are equal at runtime. Linear
- * constraints, in contrast, are never evaluated against domains here, even
- * between constants.
+ * equality constraint requires its dimensions' values to coincide in any given
+ * execution, and a linear constraint requires them to satisfy `lhs = a * rhs +
+ * b`. Since spec validation only sees domains, it cannot decide whether such a
+ * relation holds — the exported spec must simply declare exactly the allowed
+ * spec's constraints (1-to-1, no missing, no extras). The only exception is
+ * degenerate: a constant domain has exactly one possible value, so an equality
+ * constraint between constants is fully decided statically — equal constants
+ * are equal at runtime. Linear constraints, in contrast, are never evaluated
+ * against domains here, even between constants.
  *
- * **Exported spec source.** An exported model's `ModelSpec<ConcreteDim>`
- * is populated at load time from one of two sources:
+ * **Exported spec source.** An exported model's `ModelSpec<ConcreteDim>` is
+ * populated at load time from one of two sources:
  *
  * 1. **ExecuTorch `MethodMeta`** (default) — when the `.pte` only carries
- *    static metadata, every dimension domain is `constant`. This is
- *    sufficient for models whose input/output shapes are fully fixed at
- *    export time.
+ *    static metadata, every dimension domain is `constant`. This is sufficient
+ *    for models whose input/output shapes are fully fixed at export time.
  *
- * 2. **Companion `get_model_schema` method** — for models whose tensors
- *    have dynamic or enumerated dimensions (e.g. variable-length sequences)
- *    or that declare runtime constraints, the `.pte` exports a method named
+ * 2. **Companion `get_model_schema` method** — for models whose tensors have
+ *    dynamic or enumerated dimensions (e.g. variable-length sequences) or that
+ *    declare runtime constraints, the `.pte` exports a method named
  *    `get_model_schema` that returns a JSON-encoded `ModelSpec<ConcreteDim>`
  *    string. The native loader calls this method after loading the model and
- *    merges the result into `model.schema`, overlaying precise `range`,
- *    `enum`, and `RuntimeConstraint` entries onto the base `MethodMeta`.
- *    Only methods that actually need overrides need to appear in the JSON;
- *    methods absent from the companion spec are kept as-is from
- *    `MethodMeta`.
+ *    merges the result into `model.schema`, overlaying precise `range`, `enum`,
+ *    and `RuntimeConstraint` entries onto the base `MethodMeta`. Only methods
+ *    that actually need overrides need to appear in the JSON; methods absent
+ *    from the companion spec are kept as-is from `MethodMeta`.
  *
  *    **Tip for model export:**
  *    Embed the companion schema method during ExecuTorch compilation in Python
  *    by passing `constant_methods={"get_model_schema": schema_json}` when
  *    lowering with `to_edge_transform_and_lower(...)` where `schema_json` is
  *    the JSON string encoding the model's `ModelSpec<ConcreteDim>`.
- * @packageDocumentation
  */
 import type { DType } from './tensor';
 import { RnExecuTorchError } from './error';
@@ -82,7 +77,7 @@ import { RnExecuTorchError } from './error';
 /**
  * Inclusive integer domain of a single dynamic dimension — values from `min`
  * to `max` in increments of `step`.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type Range = { readonly min: number; readonly max: number; readonly step: number };
 
@@ -91,7 +86,7 @@ export type Range = { readonly min: number; readonly max: number; readonly step:
  * - `constant` — exactly `value`.
  * - `range` — any value of a {@link Range}.
  * - `enum` — one of the listed `choices`.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type ConcreteDim =
   | { readonly kind: 'constant'; readonly value: number }
@@ -104,7 +99,7 @@ export type ConcreteDim =
  * validation: `static` symbols bind to constants, `dynamic` symbols to ranges
  * or enums. Reusing a symbol requires every occurrence to bind to the same
  * domain — it does NOT imply any runtime relation between the dimensions.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type SymbolicDim =
   | ConcreteDim
@@ -114,7 +109,7 @@ export type SymbolicDim =
 /**
  * Spec of a tensor parameter: the expected element `dtype` and one
  * dimension spec per axis.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type TensorSpec<Dim extends SymbolicDim> = {
   readonly kind: 'Tensor';
@@ -125,7 +120,7 @@ export type TensorSpec<Dim extends SymbolicDim> = {
 /**
  * The ExecuTorch value-tag that classifies the runtime type of a model input or
  * output slot.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type ExecuTorchTag =
   | 'None'
@@ -142,7 +137,7 @@ export type ExecuTorchTag =
 /**
  * Spec of a single input or output parameter of a method — either a
  * {@link TensorSpec} or a primitive ExecuTorch value tag (`Int`, `Bool`, ...).
- * @category Types
+ * @category Core / Schema / Types
  */
 export type ParamSpec<Dim extends SymbolicDim> =
   | TensorSpec<Dim>
@@ -156,7 +151,7 @@ export type ParamSpec<Dim extends SymbolicDim> =
  * Reference to a single tensor dimension of a method's input or output.
  * `tensorIdx` counts only tensor parameters (skipping primitives), consistent
  * with ExecuTorch's `inputTensorMeta` / `outputTensorMeta` ordering.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type DimRef = {
   readonly paramSide: 'input' | 'output';
@@ -167,7 +162,7 @@ export type DimRef = {
 /**
  * Runtime constraint declaring that all referenced dimensions must be equal
  * to each other in any given execution of the method.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type EqualityConstraint = {
   readonly kind: 'equality';
@@ -178,7 +173,7 @@ export type EqualityConstraint = {
  * Runtime constraint declaring that two dimensions must satisfy
  * `dimLhs = coefficients[0] * dimRhs + coefficients[1]` (integer
  * coefficients) in any given execution of the method.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type LinearConstraint = {
   readonly kind: 'linear';
@@ -191,7 +186,7 @@ export type LinearConstraint = {
  * A requirement on the runtime values of a method's tensor dimensions: the
  * concrete tensors passed to and produced by the method must satisfy it in
  * any given execution. Matched as a declaration during spec validation.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type RuntimeConstraint = LinearConstraint | EqualityConstraint;
 
@@ -202,7 +197,7 @@ export type RuntimeConstraint = LinearConstraint | EqualityConstraint;
 /**
  * Spec of a single model method: the ordered input and output parameter specs
  * and the runtime constraints the method declares over its tensor dimensions.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type MethodSpec<Dim extends SymbolicDim> = {
   inputs: readonly ParamSpec<Dim>[];
@@ -214,7 +209,7 @@ export type MethodSpec<Dim extends SymbolicDim> = {
  * Spec of a whole model, mapping method names to their {@link MethodSpec}.
  * A `SymbolicDim` spec describes allowed models; a `ConcreteDim` spec
  * describes an exported model.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type ModelSpec<Dim extends SymbolicDim> = Record<string, MethodSpec<Dim>>;
 
@@ -226,14 +221,14 @@ export type ModelSpec<Dim extends SymbolicDim> = Record<string, MethodSpec<Dim>>
  * Shape notation accepted by {@link SymbolicTensor}: numbers become
  * {@link ConstantDim}, strings become {@link StaticDim}, and
  * {@link SymbolicDim} values are used as-is.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type SymbolicShape = readonly (number | string | SymbolicDim)[];
 
 /**
  * Creates a static symbolic dimension. Static symbols bind to constant
  * dimensions of the exported spec; repeated uses must bind to the same value.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param symbol The symbol name.
  * @returns The symbolic dimension.
  */
@@ -244,7 +239,7 @@ export const StaticDim = (symbol: string): SymbolicDim => {
 /**
  * Creates a dynamic symbolic dimension. Dynamic symbols bind to range or enum
  * dimensions of the exported spec; repeated uses must bind to the same domain.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param symbol The symbol name.
  * @returns The symbolic dimension.
  */
@@ -254,7 +249,7 @@ export const DynamicDim = (symbol: string): SymbolicDim => {
 
 /**
  * Creates a constant dimension matching exactly `value`.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param value The required dimension size.
  * @returns The concrete dimension.
  * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `value`
@@ -272,7 +267,7 @@ export const ConstantDim = (value: number): ConcreteDim => {
 
 /**
  * Creates an enumerated dimension matching one of `choices`.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param choices The allowed dimension sizes.
  * @returns The concrete dimension.
  * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if any
@@ -288,7 +283,7 @@ export const EnumDim = (choices: readonly number[]): ConcreteDim => {
 /**
  * Creates a range dimension matching values from `min` to `max` in increments
  * of `step`.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param min The smallest allowed dimension size.
  * @param max The largest allowed dimension size.
  * @param step The increment between allowed sizes. Defaults to 1.
@@ -327,7 +322,7 @@ export const RangeDim = (min: number, max: number, step?: number): ConcreteDim =
 /**
  * Creates a {@link TensorSpec} from a dtype and a {@link SymbolicShape}:
  * numbers become {@link ConstantDim}, strings become {@link StaticDim}.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param dtype The expected element data type.
  * @param shape The per-dimension specs.
  * @returns The tensor spec.
@@ -341,17 +336,64 @@ export const SymbolicTensor = (dtype: DType, shape: SymbolicShape) => {
   return { kind: 'Tensor', dtype, shape: typedShape } as TensorSpec<SymbolicDim>;
 };
 
+/**
+ * Shorthand for `SymbolicTensor('float32', shape)`.
+ * @category Core / Schema / Functions
+ * @param shape Dimension sizes of the tensor.
+ * @returns A {@link SymbolicTensor} with `float32` data type.
+ */
 export const f32 = (...shape: SymbolicShape) => SymbolicTensor('float32', shape);
+/**
+ * Shorthand for `SymbolicTensor('int64', shape)`.
+ * @category Core / Schema / Functions
+ * @param shape Dimension sizes of the tensor.
+ * @returns A {@link SymbolicTensor} with `int64` data type.
+ */
 export const i64 = (...shape: SymbolicShape) => SymbolicTensor('int64', shape);
+/**
+ * Shorthand for `SymbolicTensor('int32', shape)`.
+ * @category Core / Schema / Functions
+ * @param shape Dimension sizes of the tensor.
+ * @returns A {@link SymbolicTensor} with `int32` data type.
+ */
 export const i32 = (...shape: SymbolicShape) => SymbolicTensor('int32', shape);
+/**
+ * Shorthand for `SymbolicTensor('uint8', shape)`.
+ * @category Core / Schema / Functions
+ * @param shape Dimension sizes of the tensor.
+ * @returns A {@link SymbolicTensor} with `uint8` data type.
+ */
 export const ui8 = (...shape: SymbolicShape) => SymbolicTensor('uint8', shape);
+/**
+ * Shorthand for `SymbolicTensor('bool', shape)`.
+ * @category Core / Schema / Functions
+ * @param shape Dimension sizes of the tensor.
+ * @returns A {@link SymbolicTensor} with `bool` data type.
+ */
 export const bool = (...shape: SymbolicShape) => SymbolicTensor('bool', shape);
 
-/** Helper namespace for declaring runtime constraints. */
-export const constr = {
-  eq: (...dims: DimRef[]): EqualityConstraint => {
+/**
+ * Helper namespace for declaring runtime constraints.
+ * @category Core / Schema / Functions
+ */
+export const constraint = {
+  /**
+   * Declares that all given dimensions must be equal at runtime.
+   * @param dims Dimensions that must share the same concrete value.
+   * @returns An {@link EqualityConstraint} across the given dimensions.
+   */
+  equality: (...dims: DimRef[]): EqualityConstraint => {
     return { kind: 'equality', dims };
   },
+  /**
+   * Declares a linear relation between two dimensions: `dimLhs = a * dimRhs +
+   * b`.
+   * @param dimLhs The left-hand-side dimension.
+   * @param dimRhs The right-hand-side dimension.
+   * @param a Slope coefficient.
+   * @param b Intercept coefficient (defaults to `0`).
+   * @returns A {@link LinearConstraint} relating the two dimensions.
+   */
   linear: (dimLhs: DimRef, dimRhs: DimRef, a: number, b: number = 0): LinearConstraint => {
     return { kind: 'linear', dimLhs, dimRhs, coefficients: [a, b] };
   },
@@ -360,6 +402,7 @@ export const constr = {
 /**
  * Constructs a method specification mapping a method name to its parameter
  * specs and runtime constraints.
+ * @category Core / Schema / Functions
  * @param name The execution method name (e.g., `'forward'`).
  * @param inputs Ordered list of parameter specifications for method inputs.
  * @param outputs Ordered list of parameter specifications for method outputs.
@@ -604,8 +647,8 @@ function matchRuntimeConstraints(
 
     const unclaimed = [...exportedMethodSpec.runtimeConstraints];
 
-    for (const [idx, constraint] of allowedMethodSpec.runtimeConstraints.entries()) {
-      const find = unclaimed.findIndex((c) => constraintsEqual(c, constraint));
+    for (const [idx, rc] of allowedMethodSpec.runtimeConstraints.entries()) {
+      const find = unclaimed.findIndex((c) => constraintsEqual(c, rc));
       if (find === -1) {
         throw RnExecuTorchError(
           'SCHEMA_MISMATCH',
@@ -653,26 +696,26 @@ function validateSymbolKindConsistency(modelSpec: ModelSpec<SymbolicDim>): void 
 
 function validateConstraintCorrectness(modelSpec: ModelSpec<SymbolicDim>): void {
   for (const [methodName, methodSpec] of Object.entries(modelSpec)) {
-    for (const [idx, constraint] of methodSpec.runtimeConstraints.entries()) {
+    for (const [idx, rc] of methodSpec.runtimeConstraints.entries()) {
       const ctx = `Method '${methodName}' constraint ${idx}`;
 
-      if (constraint.kind === 'linear') {
-        const [A, B] = constraint.coefficients;
+      if (rc.kind === 'linear') {
+        const [A, B] = rc.coefficients;
         if (!Number.isInteger(A) || !Number.isInteger(B)) {
           throw RnExecuTorchError('SCHEMA_MISMATCH', `${ctx}: Coefficients must be integers.`);
         }
-        resolveDim(methodSpec, constraint.dimLhs);
-        resolveDim(methodSpec, constraint.dimRhs);
+        resolveDim(methodSpec, rc.dimLhs);
+        resolveDim(methodSpec, rc.dimRhs);
       }
 
-      if (constraint.kind === 'equality') {
-        if (constraint.dims.length < 2) {
+      if (rc.kind === 'equality') {
+        if (rc.dims.length < 2) {
           throw RnExecuTorchError(
             'SCHEMA_MISMATCH',
             `${ctx}: Equality requires at least two dimensions.`
           );
         }
-        constraint.dims.forEach((ref) => resolveDim(methodSpec, ref));
+        rc.dims.forEach((ref) => resolveDim(methodSpec, ref));
       }
     }
   }
@@ -737,6 +780,7 @@ function validateDimDomains(modelSpec: ModelSpec<SymbolicDim>): void {
 
 /**
  * Result of validating an exported model spec against allowed variants.
+ * @category Core / Schema / Types
  * @typeParam K The variant key type.
  */
 export type SpecMatch<K extends PropertyKey = PropertyKey> = {
@@ -810,6 +854,72 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
   };
 };
 
+function resolveSymbolDim(bindings: SymbolBindings, name: string, kind?: string): any {
+  const dim = bindings.get(name);
+  if (!dim) {
+    throw RnExecuTorchError('INVALID_ARGUMENT', `Symbol '${name}' not found in bindings.`);
+  }
+  if (kind === 'constant') {
+    if (dim.kind !== 'constant') {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `Symbol '${name}' is '${dim.kind}', expected 'constant'.`
+      );
+    }
+    return dim.value;
+  }
+  if (kind === 'range') {
+    if (dim.kind !== 'range') {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `Symbol '${name}' is '${dim.kind}', expected 'range'.`
+      );
+    }
+    return dim.range;
+  }
+  if (kind === 'enum') {
+    if (dim.kind !== 'enum') {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `Symbol '${name}' is '${dim.kind}', expected 'enum'.`
+      );
+    }
+    return dim.choices;
+  }
+  if (kind === 'dynamic') {
+    if (dim.kind === 'constant') {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `Symbol '${name}' is 'constant', expected 'dynamic'.`
+      );
+    }
+    return dim;
+  }
+  return dim;
+}
+
+function createSpecMatch<K extends PropertyKey>(
+  variant: K,
+  bindings: SymbolBindings
+): SpecMatch<K> {
+  const dim: any = (name: string, kind?: string) => resolveSymbolDim(bindings, name, kind);
+  const createAccessor = (kind?: string) => {
+    return (...names: string[]): any => names.map((name) => resolveSymbolDim(bindings, name, kind));
+  };
+
+  return {
+    variant,
+    dim,
+    dims: {
+      any: createAccessor(),
+      enum: createAccessor('enum'),
+      range: createAccessor('range'),
+      dynamic: createAccessor('dynamic'),
+      constant: createAccessor('constant'),
+    },
+  };
+}
+
 /**
  * Validates that an exported (concrete) model spec satisfies at least one of
  * the allowed (symbolic) model specs — variants are tried in order and the
@@ -829,6 +939,7 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
  * accessors.
  * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH`, describing
  * why every variant failed.
+ * @category Core / Schema / Functions
  */
 export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDim>>>(
   exportedModelSpec: ModelSpec<ConcreteDim>,
@@ -852,49 +963,7 @@ export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDi
       matchModelSpecsSymbols(allowedModelSpec, exportedModelSpec, bindings);
       matchRuntimeConstraints(allowedModelSpec, exportedModelSpec);
 
-      const dimFn = (name: string, kind?: string): any => {
-        const dim = bindings.get(name);
-        if (!dim) {
-          throw RnExecuTorchError('INVALID_ARGUMENT', `Symbol '${name}' not found in bindings.`);
-        }
-        if (kind) {
-          if (kind === 'dynamic') {
-            if (dim.kind === 'constant') {
-              throw RnExecuTorchError(
-                'INVALID_ARGUMENT',
-                `Symbol '${name}' is 'constant', expected 'dynamic'.`
-              );
-            }
-            return dim;
-          }
-          if (dim.kind !== kind) {
-            throw RnExecuTorchError(
-              'INVALID_ARGUMENT',
-              `Symbol '${name}' is '${dim.kind}', expected '${kind}'.`
-            );
-          }
-        }
-        if (dim.kind === 'constant') return dim.value;
-        if (dim.kind === 'range') return dim.range;
-        if (dim.kind === 'enum') return dim.choices;
-        return dim;
-      };
-
-      const createAccessor = (kind?: string) => {
-        return (...names: string[]): any => names.map((name) => dimFn(name, kind));
-      };
-
-      return {
-        variant: key,
-        dim: dimFn,
-        dims: {
-          any: createAccessor(),
-          enum: createAccessor('enum'),
-          range: createAccessor('range'),
-          dynamic: createAccessor('dynamic'),
-          constant: createAccessor('constant'),
-        },
-      };
+      return createSpecMatch(key, bindings);
     } catch (e: any) {
       errors.push(`Variant '${key}': ${e.message}`);
       continue;

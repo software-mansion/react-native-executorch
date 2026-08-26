@@ -30,7 +30,7 @@ import {
   i64,
   i32,
   DynamicDim as Dyn,
-  constr,
+  constraint,
 } from '../../../core/schema';
 
 const { variant, dims } = validateSpec(model.schema, {
@@ -39,7 +39,7 @@ const { variant, dims } = validateSpec(model.schema, {
     [i64(1, Dyn('L')), i64(1, Dyn('L'))],
     [f32(1, 'D')],
     [
-      constr.eq(
+      constraint.equality(
         { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
         { paramSide: 'input', tensorIdx: 1, dimIdx: 1 }
       ),
@@ -50,7 +50,7 @@ const { variant, dims } = validateSpec(model.schema, {
     [i64(Dyn('L')), i64(Dyn('L'))],
     [f32('D')],
     [
-      constr.eq(
+      constraint.equality(
         { paramSide: 'input', tensorIdx: 0, dimIdx: 0 },
         { paramSide: 'input', tensorIdx: 1, dimIdx: 0 }
       ),
@@ -68,10 +68,10 @@ const L = dims.range('L');
 - **`f32(...)` / `i64(...)` / `i32(...)` / `ui8(...)`**: Shorthand helpers for tensor parameter specs.
 - **`StaticDim('symbol')` / String Literals**: Strings passed to shape helpers (e.g. `'H'`, `'W'`) automatically map to `StaticDim`, acting as **static dimension wildcards**. They bind strictly to `constant` positive integer dimensions in the exported spec.
 - **`DynamicDim('symbol')` (or `Dyn('symbol')`)**: Creates a dynamic dimension symbol. Must be used when a dimension genuinely varies at runtime and binds to a `range` or `enum` domain in the exported spec.
-- **Constraint Helpers (`constr`)**:
+- **Constraint Helpers (`constraint`)**:
   - **`DimRef` Object Literal (`{ paramSide: 'input' | 'output', tensorIdx, dimIdx }`)**: Explicit reference to a tensor's dimension.
-  - **`constr.eq(...dims)`**: Creates an equality constraint requiring the referenced dimensions to take the exact same value at runtime.
-  - **`constr.linear(lhs, rhs, a, b)`**: Creates a linear constraint `lhs = a * rhs + b`.
+  - **`constraint.equality(...dims)`**: Creates an equality constraint requiring the referenced dimensions to take the exact same value at runtime.
+  - **`constraint.linear(lhs, rhs, a, b?)`**: Creates a linear constraint `lhs = a * rhs + b`.
 - **`validateSpec(exportedSchema, allowedVariants)`**: Compares the model's exported schema against named variants and returns `{ variant, dim, dims }`.
 - **Symbol Accessors (`dims` & `dim`)**:
   - `dims.constant('N', 'H')`: Extracts constant values for symbols as numbers.
@@ -118,24 +118,24 @@ Understanding the distinction between a dimension's **domain** and its **runtime
   - Dynamic symbols (`DynamicDim('S')`) bind to exported dimension domains. Reusing a symbol (`'S'`) across tensor inputs or outputs requires every occurrence to bind to the **exact same domain**.
   - ⚠️ **Key Rule**: Binding to the same domain does **NOT** mean runtime values coincide! Two dimensions bound to the same domain (e.g., both having range `1..512`) may take _different_ runtime values in a single execution (e.g. length 10 and length 25).
 
-### 2. Runtime Constraints (`constr.eq` & `constr.linear`)
+### 2. Runtime Constraints (`constraint.equality` & `constraint.linear`)
 
 - **Runtime Constraints**: Declarations about the **runtime values** of tensor dimensions during execution:
-  - **Equality Constraint (`constr.eq(...)`)**: Requires all referenced dimensions to take the exact same runtime value in any execution call.
+  - **Equality Constraint (`constraint.equality(...)`)**: Requires all referenced dimensions to take the exact same runtime value in any execution call.
     ```typescript
     method(
       'forward',
       [f32('B', Dyn('S1')), f32('B', Dyn('S2'))],
       [f32('B', Dyn('S1'))],
       [
-        constr.eq(
+        constraint.equality(
           { paramSide: 'input', tensorIdx: 0, dimIdx: 0 },
           { paramSide: 'input', tensorIdx: 1, dimIdx: 0 }
         ),
       ]
     );
     ```
-  - **Linear Constraint (`constr.linear(...)`)**: Requires two dimensions to satisfy `dimLhs = a * dimRhs + b` at runtime.
+  - **Linear Constraint (`constraint.linear(...)`)**: Requires two dimensions to satisfy `dimLhs = a * dimRhs + b` at runtime.
 - **Validation & Enforcement**:
   - `validateSpec` verifies that the exported model spec declares the exact same runtime constraints (1-to-1 declaration match).
   - Native C++ validates input runtime constraints before invoking `model.execute()`.

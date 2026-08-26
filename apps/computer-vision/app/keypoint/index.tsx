@@ -16,7 +16,7 @@ import { BoundingBox } from '../../components/BoundingBox';
 const MODEL_OPTIONS: ModelOption[] = [
   {
     label: 'BlazeFace (XNNPACK FP32)',
-    value: models.keypointDetection.BLAZEFACE,
+    value: models.keypointDetection.BLAZEFACE.DEFAULT,
   },
   {
     label: 'YOLO26 Pose (XNNPACK FP32)',

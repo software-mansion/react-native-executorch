@@ -1,15 +1,18 @@
+/**
+ * Voice Activity Detection (VAD) task pipeline using the FSMN-VAD model.
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { validateSpec, DynamicDim as Dyn, method, f32 } from '../../../core/schema';
-
 import { wrapAsync } from '../../../core/runtime';
 import { extractFrames } from '../utils/vadUtils';
 
 /**
  * Sample rate (Hz) the FSMN-VAD model expects its input waveform to be at.
- * @category Constants
+ * @category Speech / Constants
  */
 export const FSMN_VAD_SAMPLE_RATE_HZ = 16000;
 
@@ -32,8 +35,8 @@ const DEFAULT_DETECTION_MARGIN_MS = 100;
 
 /**
  * Tunable thresholds controlling how per-frame speech probabilities are turned
- * into speech {@link Segment}s.
- * @category Types
+ * into speech {@link VadSegment}s.
+ * @category Speech / Types
  */
 export type VadOptions = {
   /** Minimum speech probability (0-1) for a frame to count as speech. */
@@ -53,7 +56,7 @@ export type VadOptions = {
 
 /**
  * Model configuration required to instantiate an FSMN-VAD task runner.
- * @category Types
+ * @category Speech / Types
  */
 export type FsmnVadModel = {
   /** Local path or remote URL of the `.pte` model. */
@@ -68,9 +71,9 @@ export type FsmnVadModel = {
 
 /**
  * A detected speech region, with start and end expressed in seconds.
- * @category Types
+ * @category Speech / Types
  */
-export type Segment = {
+export type VadSegment = {
   /** Start time of the speech segment in seconds. */
   readonly start: number;
   /** End time of the speech segment in seconds. */
@@ -80,7 +83,7 @@ export type Segment = {
 /**
  * Options controlling live detection via `detectVoiceOnStream`. Extends the
  * per-call detection thresholds ({@link VadOptions}).
- * @category Types
+ * @category Speech / Types
  */
 export type VadStreamOptions = VadOptions & {
   /**
@@ -92,7 +95,7 @@ export type VadStreamOptions = VadOptions & {
 
 /**
  * A speech-activity transition reported by `detectVoiceOnStream`.
- * @category Types
+ * @category Speech / Types
  */
 export type VadEvent = 'speechStart' | 'speechEnd';
 
@@ -111,7 +114,7 @@ function hannWindow(size: number): Float32Array {
 // threshold with hysteresis, pad both ends, then merge near-adjacent regions.
 // `scores[i]` holds the non-speech probability of frame `i`, so the speech
 // probability is `1 - scores[i]`.
-function postprocess(scores: Float32Array, options: Required<VadOptions>): Segment[] {
+function postprocess(scores: Float32Array, options: Required<VadOptions>): VadSegment[] {
   'worklet';
   const threshold = options.speechThreshold;
   const minSpeechHops = Math.floor(options.minSpeechDurationMs / HOP_LENGTH_MS);
@@ -122,7 +125,7 @@ function postprocess(scores: Float32Array, options: Required<VadOptions>): Segme
   // Threshold with hysteresis: a region must stay above the threshold for
   // `minSpeechHops` to open a segment, and below it for `minSilenceHops` to
   // close one. Bounds are in hop (frame) units.
-  const hops: Segment[] = [];
+  const hops: VadSegment[] = [];
   let triggered = false;
   let startHop = -1;
   let potentialStart = -1;
@@ -153,7 +156,7 @@ function postprocess(scores: Float32Array, options: Required<VadOptions>): Segme
   if (triggered) hops.push({ start: startHop, end: scores.length });
 
   // Pad both ends, then merge regions separated by at most `mergeGapMs`.
-  const merged: Segment[] = [];
+  const merged: VadSegment[] = [];
   for (const hop of hops) {
     const start = hop.start > speechPadHops ? hop.start - speechPadHops : 0;
     const end = Math.min(hop.end + speechPadHops, scores.length);
@@ -170,58 +173,78 @@ function postprocess(scores: Float32Array, options: Required<VadOptions>): Segme
 }
 
 /**
- * Creates a Voice Activity Detection runner for the FSMN-VAD model.
- *
- * It loads the model, validates its input/output signature and registers a
- * disposal hook. The whole pipeline — feature extraction, chunked inference and
- * segment postprocessing — runs in TypeScript on top of the core `model.execute`
- * primitive.
- * @category Typescript API
- * @param config VAD task configuration containing the model path.
- * @param runtime Optional worklet runtime thread on which to run the model
- * execution.
- * @returns A promise resolving to an object containing detection and disposal
- * controls.
+ * Voice activity detection task runner using the FSMN-VAD model.
+ * @category Speech / Types
  */
-export async function createFsmnVoiceActivityDetector(
-  config: FsmnVadModel,
-  runtime?: WorkletRuntime
-): Promise<{
+export type FsmnVoiceActivityDetector = {
   /**
    * Releases all allocated native resources.
    */
-  dispose: () => void;
+  readonly dispose: () => void;
 
   /**
    * Asynchronously detects speech segments within a mono waveform sampled at
    * {@link FSMN_VAD_SAMPLE_RATE_HZ}.
-   * @param waveform The input audio samples.
+   * @param waveform The input audio samples (16 kHz mono Float32 PCM).
    * @param options Optional per-call overrides of the detection thresholds.
+   * See {@link VadOptions}.
    * @returns A promise resolving to the detected speech segments, in seconds.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
    */
-  detectVoice: (waveform: Float32Array, options?: VadOptions) => Promise<Segment[]>;
+  readonly detectVoice: (waveform: Float32Array, options?: VadOptions) => Promise<VadSegment[]>;
 
   /**
    * Synchronous version of {@link detectVoice} to be executed directly on the caller
    * or worklet thread.
    */
-  detectVoiceWorklet: (waveform: Float32Array, options?: VadOptions) => Segment[];
+  readonly detectVoiceWorklet: (waveform: Float32Array, options?: VadOptions) => VadSegment[];
 
   /**
    * Appends a live audio chunk to a bounded rolling window, runs detection over
    * that window and reports a {@link VadEvent} when speech starts or stops,
    * otherwise `undefined`. Designed to be driven straight from a recorder
    * callback. Detection runs synchronously on the calling thread (a few ms).
-   * @param chunk The newly captured audio samples.
+   * @param chunk The newly captured audio samples (16 kHz mono Float32 PCM).
    * @param options Optional overrides of the detection thresholds and margin.
+   * See {@link VadStreamOptions}.
+   * @returns `'speechStart'` or `'speechEnd'` if state transitioned, otherwise
+   * `undefined`.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
    */
-  detectVoiceOnStream: (chunk: Float32Array, options?: VadStreamOptions) => VadEvent | undefined;
+  readonly detectVoiceOnStream: (
+    chunk: Float32Array,
+    options?: VadStreamOptions
+  ) => VadEvent | undefined;
 
   /**
    * Clears the rolling window and speaking state used by {@link detectVoiceOnStream}.
    */
-  resetStream: () => void;
-}> {
+  readonly resetStream: () => void;
+};
+
+/**
+ * Creates a Voice Activity Detection runner for the FSMN-VAD model.
+ *
+ * It loads the model, validates its input/output signature and registers a
+ * disposal hook. The whole pipeline — feature extraction, chunked inference and
+ * segment postprocessing — runs in TypeScript on top of the core `model.execute`
+ * primitive.
+ * @category Speech / Tasks
+ * @param config VAD task configuration containing the model path and default
+ * options. See {@link FsmnVadModel}.
+ * @param runtime Optional worklet runtime thread on which to run the model
+ * execution.
+ * @returns A promise resolving to the instantiated {@link FsmnVoiceActivityDetector} runner.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the model fails to
+ * load, or `SCHEMA_MISMATCH` if the model schema does not match the VAD
+ * specification.
+ */
+export async function createFsmnVoiceActivityDetector(
+  config: FsmnVadModel,
+  runtime?: WorkletRuntime
+): Promise<FsmnVoiceActivityDetector> {
   const { modelPath, defaultOptions } = config;
 
   const model = await wrapAsync(loadModel, runtime)(modelPath);
@@ -250,7 +273,7 @@ export async function createFsmnVoiceActivityDetector(
     model.dispose();
   };
 
-  const detectVoiceWorklet = (waveform: Float32Array, options?: VadOptions): Segment[] => {
+  const detectVoiceWorklet = (waveform: Float32Array, options?: VadOptions): VadSegment[] => {
     'worklet';
     const mergedOpts: Required<VadOptions> = { ...defaultOptions, ...options };
     const numFrames = Math.floor((waveform.length - FRAME_LENGTH) / HOP_LENGTH);

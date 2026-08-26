@@ -1,4 +1,7 @@
-export * as image from './image';
-export * as boxes from './boxes';
-export * as points from './points';
-export * as quad from './quad';
+/**
+ * Aggregated image, box, point, and quad operations.
+ */
+export * from './image';
+export * from './box';
+export * from './point';
+export * from './quad';

@@ -1,11 +1,18 @@
+/**
+ * Parser for HuggingFace `tokenizer_config.json` chat templates and special
+ * tokens.
+ */
+
 import { RnExecuTorchError } from '../../../core/error';
 
 /**
  * Model chat template configuration resolved from tokenizer config file.
- * @category Types
+ * @category LLM / Types
  */
 export type TokenizerChatConfig = {
+  /** Jinja chat template string for prompt rendering. */
   readonly chatTemplate: string;
+  /** End-of-sequence token string. */
   readonly eosToken: string;
 };
 
@@ -19,9 +26,11 @@ function resolveToken(token: unknown): string | undefined {
 
 /**
  * Parses raw JSON configuration from `tokenizer_config.json` into a normalized format.
- * @category Utils
+ * @category LLM / Functions
  * @param config Raw JSON object from tokenizer_config.json.
  * @returns A parsed TokenizerChatConfig object.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if `chat_template` is not
+ * a string or `eos_token` is missing.
  */
 export function parseTokenizerConfig(config: any): TokenizerChatConfig {
   let chatTemplate = config.chat_template;

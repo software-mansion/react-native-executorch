@@ -1,3 +1,7 @@
+/**
+ * BIOES grammar construction, Viterbi decoding, and PII entity span extraction.
+ */
+
 // Privacy-filter-specific helpers: BIOES grammar construction and constrained
 // Viterbi decoding over per-token logits, plus span extraction. The decoder is
 // our own implementation of the standard Viterbi algorithm, constrained to
@@ -17,7 +21,7 @@ const NEG_INF = Number.NEGATIVE_INFINITY;
  * transition is taken. Positive values encourage the transition; negative
  * values discourage it. Every field defaults to `0` (a neutral, validity-only
  * Viterbi).
- * @category Types
+ * @category NLP / Types
  */
 export interface ViterbiBiases {
   /** `O -> O` (background persistence). Higher = stay in background more, fewer false positives. */
@@ -39,14 +43,14 @@ export interface ViterbiBiases {
  * `B-`/`I-`/`E-`/`S-` prefix (`'O'` and any unprefixed label contribute
  * nothing). Lets a model's concrete label list narrow {@link PiiEntity.label}
  * to just that model's entity types instead of an arbitrary string.
- * @category Types
+ * @category NLP / Types
  */
 export type PiiEntityType<Label extends string> =
   Label extends `${'B' | 'I' | 'E' | 'S'}-${infer Entity}` ? Entity : never;
 
 /**
  * A single detected PII entity span.
- * @category Types
+ * @category NLP / Types
  * @typeParam Label The entity type, narrowed to a specific model's entity types
  * when known (see {@link PiiEntityType}), or `string` for an arbitrary model.
  */
@@ -85,7 +89,7 @@ const CLASS_S = 4;
  * background state, the best span-closing (`E-`/`S-`) state, or, per entity,
  * the best of that entity's `B-`/`I-` states — which is what lets the decode
  * step run in `O(numLabels + numEntities)` instead of `O(numLabels^2)`.
- * @category Types
+ * @category NLP / Types
  */
 export interface Grammar {
   /** Total number of labels, i.e. `1 + 4 * numEntities`. */
@@ -134,6 +138,7 @@ function classOf(name: string): number {
  * The encoded grammar is:
  * - `O` / `E-x` / `S-x` -> `O` | `B-y` | `S-y`
  * - `B-x` / `I-x` -> `I-x` | `E-x` (same entity)
+ * @category NLP / Functions
  * @param labelNames BIOES label list; index 0 must be `'O'`.
  * @param biases Optional transition biases; missing fields default to `0`.
  * @returns The pre-computed grammar.
@@ -204,6 +209,7 @@ export function buildGrammar(labelNames: readonly string[], biases?: ViterbiBias
  * Runs constrained Viterbi over a `[validLen, numLabels]` slice of per-token
  * logits and returns the best BIOES-grammar-valid label-id sequence (length
  * `validLen`).
+ * @category NLP / Functions
  * @param logits Flat row-major logits; row `t` starts at `t * numLabels`.
  * @param validLen Number of leading token rows to decode.
  * @param grammar Pre-computed grammar tables from {@link buildGrammar}.
@@ -361,6 +367,7 @@ export function viterbiDecode(
 /**
  * Maps a BIOES label id to its bare entity type (the part after the `-`), or
  * an empty string for `O` / unprefixed / out-of-range ids.
+ * @category NLP / Functions
  * @param labelId Predicted label id.
  * @param labelNames The BIOES label list.
  * @returns The entity type, or `''` for background.
@@ -386,7 +393,7 @@ function isSpanOpener(labelId: number, labelNames: readonly string[]): boolean {
 
 /**
  * A contiguous run of same-entity tokens, before text decoding.
- * @category Types
+ * @category NLP / Types
  */
 export interface TokenSpan {
   readonly start: number;
@@ -400,6 +407,7 @@ export interface TokenSpan {
  * following same-entity tokens, but stops before the next opener (`B-x`/`S-x`)
  * so two adjacent same-type entities (e.g. `S-x` then `B-x E-x`) stay separate
  * rather than merging into one run.
+ * @category NLP / Functions
  * @param predictedLabels Per-token predicted label ids.
  * @param labelNames The BIOES label list.
  * @returns The detected token spans in order.
@@ -440,11 +448,13 @@ export function extractSpans(
  * Assumes a byte-level BPE tokenizer with no lossy normalization (the openai
  * and nemotron privacy filter presets satisfy this): decoding the full token
  * sequence must reproduce the input string exactly. Under that guarantee, the
- * length of `decode(ids[0..k])` is the character offset just past token `k-1`.
+ * length of `decode(ids[0..k])` (see: {@link Tokenizer.decode}) is the
+ * character offset just past token `k-1`.
  *
  * Runs `ids.length` `decode` calls, each on a growing prefix. Cheap for the
  * ~256-token windows the privacy filter operates on; keep in mind for larger
  * sequences.
+ * @category NLP / Functions
  * @param tokenizer Same tokenizer instance used to produce `ids`.
  * @param ids Token ids for the whole input.
  * @returns A flat `[start0, end0, start1, end1, ...]` `Uint32Array` of length
@@ -468,7 +478,7 @@ export function computeCharOffsets(tokenizer: Tokenizer, ids: Int32Array): Uint3
  * One run in a segmentation of source text: either a plain (uncovered) run or
  * a labeled entity slice. Adjacent segments cover the input without gaps or
  * overlaps; concatenating every `text` reproduces the input.
- * @category Types
+ * @category NLP / Types
  * @typeParam Label The entity label type; narrows to a specific model's
  * entity types when known, or `string` for an arbitrary model.
  */
@@ -485,6 +495,7 @@ export type PiiSegment<Label extends string = string> =
  * index into it) and must not overlap; the pipeline never emits overlapping
  * spans, so the typical case is passing `detectPii`'s result straight through.
  * Overlapping inputs are resolved first-wins by start position.
+ * @category NLP / Functions
  * @param text The original input the entities were detected in.
  * @param entities Detected entity spans, in any order.
  * @returns A flat list of plain and entity segments covering `text`.

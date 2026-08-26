@@ -5,20 +5,24 @@ import { createClassifier, type ClassifierModel } from '../extensions/cv/tasks/c
 /**
  * React hook to load and run an image classification model.
  *
- * This hook manages downloading (if it's a remote URL) and loading the model
- * file, compiling it, tracking download progress and compilation errors, and
- * cleaning up native model memory when the component unmounts or configuration
+ * This hook manages downloading (if remote URLs are provided) and loading the
+ * model assets, compiling them, tracking download progress and load errors, and
+ * releasing native memory when the component unmounts or the configuration
  * changes.
+ *
+ * For imperative usage, see {@link createClassifier}.
  * @category Hooks
  * @typeParam L The type representing the classification labels.
  * @param config The image classification model configuration.
+ * See {@link ClassifierModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download
- * progress, and classification functions.
+ * @returns The same object as {@link createClassifier} (without `dispose`),
+ * combined with loading state, download progress, and labels.
+ * @see {@link createClassifier}
  */
 export function useClassifier<L>(config: ClassifierModel<L>, options?: ResourceOptions) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
-  const { model, error } = useModel(createClassifier<L>, resource ?? null);
+  const { model, error } = useModel(createClassifier<L>, resource);
 
   return {
     isReady: !!model,

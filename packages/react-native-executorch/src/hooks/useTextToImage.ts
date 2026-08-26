@@ -6,21 +6,24 @@ import {
 } from '../extensions/cv/tasks/sdxsTextToImage';
 
 /**
- * React hook to load and run the SDXS text-to-image pipeline.
+ * React hook to load and run an SDXS text-to-image synthesis model.
  *
- * It manages downloading (if the sources are remote URLs) and loading the
- * combined `.pte` program and the CLIP tokenizer, tracks download progress and
- * errors, and cleans up native memory when the component unmounts or the
- * configuration changes.
+ * This hook manages downloading (if remote URLs are provided) and loading the
+ * model assets and tokenizer files, tracking download progress and load errors,
+ * and releasing native memory when the component unmounts or the configuration
+ * changes.
+ *
+ * For imperative usage, see {@link createSdxsTextToImage}.
  * @category Hooks
- * @param config The SDXS model configuration.
+ * @param config The SDXS model configuration. See {@link SdxsTextToImageModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download
- * progress, and generation functions.
+ * @returns The same object as {@link createSdxsTextToImage} (without `dispose`),
+ * combined with loading state and download progress.
+ * @see {@link createSdxsTextToImage}
  */
 export function useTextToImage(config: SdxsTextToImageModel, options?: ResourceOptions) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
-  const { model, error } = useModel(createSdxsTextToImage, resource ?? null);
+  const { model, error } = useModel(createSdxsTextToImage, resource);
 
   return {
     isReady: !!model,
