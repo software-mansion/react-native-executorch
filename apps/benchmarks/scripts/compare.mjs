@@ -235,6 +235,20 @@ function main() {
     process.exit(2);
   }
 
+  // A pinned run executes at roughly 2 GHz and an unpinned one boosts past 3.4,
+  // so diffing across the two measures the clock rather than the change. This is
+  // a hard stop for the same reason throttling is.
+  if (Boolean(baseline.clocksPinned) !== Boolean(current.clocksPinned)) {
+    const which = (report) => (report.clocksPinned ? 'pinned' : 'unpinned');
+    console.error(
+      `\nERROR: CPU clock pinning differs between runs (baseline ${which(baseline)}, ` +
+        `current ${which(current)}).\n` +
+        'Those run at different frequencies and are not comparable. Re-run both the same way;\n' +
+        '`yarn bench --pin-clocks on` pins, `--pin-clocks off` disables it.'
+    );
+    process.exit(2);
+  }
+
   if (baselineHeat !== currentHeat) {
     console.warn(
       `\nWARNING: thermal states differ between runs (${baselineHeat} vs ${currentHeat}).`
@@ -268,7 +282,10 @@ function main() {
     const rows = compareCase(baselineCase, currentCase, tolerance);
     console.log(baselineCase.id);
     for (const row of rows) {
-      const delta = row.verdict === 'INCOMPARABLE' ? '' : `${row.delta >= 0 ? '+' : ''}${row.delta.toFixed(1)}%`;
+      const delta =
+        row.verdict === 'INCOMPARABLE'
+          ? ''
+          : `${row.delta >= 0 ? '+' : ''}${row.delta.toFixed(1)}%`;
       console.log(
         `  ${pad(row.metric, 24)} ${padStart(row.before, 10)} -> ${padStart(row.after, 10)}` +
           `  ${padStart(delta, 8)}  ${row.verdict}`
@@ -292,7 +309,7 @@ function main() {
   if (noisy.length > 0) {
     console.log(
       `${noisy.length} metric(s) too noisy to resolve a regression at the given tolerance.\n` +
-        'Their own spread is wider than the threshold, so read the case\'s execute.* rows instead:'
+        "Their own spread is wider than the threshold, so read the case's execute.* rows instead:"
     );
     for (const entry of noisy) console.log(`  ${entry}`);
     console.log('');
