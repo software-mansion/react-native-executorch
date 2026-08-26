@@ -40,7 +40,8 @@ To drive the app yourself, pass `--no-launch` and the script prints the
 environment to start it with.
 
 Options: `--suite quick|full`, `--only <ids>`, `--iterations N`, `--warmup N`,
-`--no-memory`, `--no-native`, `--port N`, `--out <path>`.
+`--no-memory`, `--no-native`, `--port N`, `--out <path>`, `--cooldown N`,
+`--pin-clocks auto|on|off`.
 
 ## Comparing two runs
 
@@ -80,15 +81,15 @@ Copy a run you want to keep into `baselines/`; `results/` is gitignored.
 
 Per case:
 
-| Metric | What it covers |
-| --- | --- |
-| `load.native` | `loadModel` on the `.pte` alone |
-| `load.task` | The pipeline's `create` — load, schema validation, tensor pre-allocation |
-| `execute.<method>` | Raw `model.execute`, per exported method, no pipeline around it |
-| `pipeline.median` | The task's synchronous entry point end to end: preprocessing, execute, post-processing |
-| `memory.loaded` | Process footprint once the pipeline is ready |
-| `memory.peak` | Peak footprint during inference |
-| `memory.disposed` | Footprint after `dispose` — a leak shows up as a case that never returns to baseline |
+| Metric             | What it covers                                                                         |
+| ------------------ | -------------------------------------------------------------------------------------- |
+| `load.native`      | `loadModel` on the `.pte` alone                                                        |
+| `load.task`        | The pipeline's `create` — load, schema validation, tensor pre-allocation               |
+| `execute.<method>` | Raw `model.execute`, per exported method, no pipeline around it                        |
+| `pipeline.median`  | The task's synchronous entry point end to end: preprocessing, execute, post-processing |
+| `memory.loaded`    | Process footprint once the pipeline is ready                                           |
+| `memory.peak`      | Peak footprint during inference                                                        |
+| `memory.disposed`  | Footprint after `dispose` — a leak shows up as a case that never returns to baseline   |
 
 The raw-execute pass is the one to watch for an ExecuTorch bump. A pipeline
 timing folds `model.execute` together with preprocessing and post-processing,
@@ -123,6 +124,29 @@ The exception is speech-to-text. The synthetic waveform is voice-shaped but is
 not speech, so Whisper's decoder emits far fewer tokens than a real clip would
 and the pipeline figure is dominated by the encoder. Compare its
 `execute.<method>` numbers rather than its pipeline number.
+
+## Holding the clock still
+
+The largest source of noise on a phone is not the code, it is the clock. A
+device boosts early in a run and sags as it heats, which is how two runs of
+_identical_ code came out 9% to 51% apart.
+
+On Android the driver pins the CPU to a fixed clock for the duration of a run
+via `PowerManager`'s fixed-performance mode. Vendors implement it as a hard
+frequency cap: on a Galaxy S26 Ultra it takes every cluster from 3.19/3.40 GHz
+to about 1.98 GHz. Absolute numbers come out lower than a boosted run, which is
+the point — the same clock in every run is worth more than a fast one.
+
+`--pin-clocks` defaults to `auto`: pin if the device supports it, carry on
+without it if not. `on` fails the run rather than measuring unpinned, `off`
+disables it. The driver reads the frequency back after enabling rather than
+trusting the call, because not every vendor implements the HAL, and it restores
+normal clocks on exit, Ctrl-C and crash alike. A pinned run and an unpinned one
+are not comparable, and `bench:compare` refuses to diff across them.
+
+There is no iOS equivalent. Nothing in the public API pins or caps the clock,
+so runs there depend on the thermal gate and on cooling the device between
+suites.
 
 ## Tiers
 
