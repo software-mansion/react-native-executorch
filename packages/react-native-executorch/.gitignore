@@ -12,5 +12,5 @@ dist-artifacts/
 # C++ test build output (scripts/run-native-tests.sh)
 cpp/tests/build/
 
-# .pte fixtures downloaded by scripts/fetch-test-fixtures.sh
+# Model and tokenizer fixtures downloaded by scripts/fetch-test-fixtures.sh
 cpp/tests/fixtures/

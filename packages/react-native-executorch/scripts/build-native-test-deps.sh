@@ -6,8 +6,8 @@
 #                  JSI-facing, so a real runtime is what makes it callable at
 #                  all. Hermes vendors JSI, so this covers both.
 #   * ExecuTorch -- a minimal host build (no backends, no kernels beyond
-#                  portable) providing tensor creation, module loading and the
-#                  LLM tokenizers.
+#                  portable) providing tensor creation, module loading, the LLM
+#                  tokenizers and the LLM runner the llm extension wraps.
 #
 # Both land in .native-test-deps/ next to the package, which is gitignored and
 # safe for CI to cache wholesale — the pinned versions below are the cache key.
@@ -27,10 +27,27 @@ HERMES_VERSION="hermes-v0.14.1"
 HERMES_REPO="https://github.com/facebook/hermes.git"
 
 # Keep EXECUTORCH_VERSION in sync with the ExecuTorch release that
-# third-party/include is vendored from (headers.tar.gz). A mismatch shows up as
-# link errors or, worse, ABI drift at runtime.
+# third-party/include is vendored from — that is the release tagged
+# `v${nativeLibsVersion}-libs` in package.json. A mismatch shows up as link
+# errors or, worse, ABI drift at runtime. cpp/extensions/llm additionally reads
+# private members of TextLLMRunner/MultimodalRunner, so a version skew there
+# fails to compile rather than silently misbehaving.
 EXECUTORCH_VERSION="v1.3.1"
 EXECUTORCH_REPO="https://github.com/pytorch/executorch.git"
+
+# The shipped native libraries are built from software-mansion-labs/executorch
+# @rne-split-build, which is ExecuTorch 1.3.1 with the tokenizers submodule
+# swapped for the fork below (it adds the WordPiece/Unigram models and the NFC
+# normalizer that upstream has not taken). third-party/include carries that
+# fork's headers, so linking upstream's libtokenizers.a here would compile
+# against one class layout and link another — HFTokenizer::load then crashes
+# inside setup_pretokenizer rather than failing to link. Swapping the submodule
+# reproduces the shipped configuration with a single tokenizers in the build.
+#
+# Keep this commit in sync with the tokenizers submodule of the fork commit that
+# produced the current headers.tar.gz.
+TOKENIZERS_REPO="https://github.com/software-mansion-labs/pytorch-tokenizers.git"
+TOKENIZERS_COMMIT="56a30afbe2e6b4ca881d0fb7b961b9f9da156be4"
 
 cd "$(dirname "$0")/.."
 PACKAGE_DIR="$(pwd)"
@@ -87,6 +104,25 @@ echo "==> ExecuTorch (${EXECUTORCH_VERSION})"
 # exactly `executorch` (pytorch/executorch#6475), hence the flat layout here
 # rather than the src/build pair used for Hermes.
 clone_pinned "$EXECUTORCH_REPO" "$EXECUTORCH_VERSION" "${DEPS_DIR}/executorch" recurse
+
+# Swap in the fork's tokenizers, pinned by commit. A shallow fetch of one object
+# rather than a clone: the fork's history is as large as upstream's.
+TOKENIZERS_DIR="${DEPS_DIR}/executorch/extension/llm/tokenizers"
+TOKENIZERS_STAMP="${TOKENIZERS_DIR}/.rne-pinned-version"
+if [ ! -f "$TOKENIZERS_STAMP" ] || [ "$(cat "$TOKENIZERS_STAMP")" != "$TOKENIZERS_COMMIT" ]; then
+  echo "  ↓ ${TOKENIZERS_REPO} @ ${TOKENIZERS_COMMIT}"
+  rm -rf "$TOKENIZERS_DIR"
+  mkdir -p "$TOKENIZERS_DIR"
+  git -C "$TOKENIZERS_DIR" init -q
+  git -C "$TOKENIZERS_DIR" remote add origin "$TOKENIZERS_REPO"
+  git -C "$TOKENIZERS_DIR" fetch -q --depth 1 origin "$TOKENIZERS_COMMIT"
+  git -C "$TOKENIZERS_DIR" checkout -q FETCH_HEAD
+  git -C "$TOKENIZERS_DIR" submodule update --init --depth 1 --recursive
+  echo "$TOKENIZERS_COMMIT" > "$TOKENIZERS_STAMP"
+else
+  echo "  ✓ tokenizers already at ${TOKENIZERS_COMMIT}"
+fi
+
 cmake -S "${DEPS_DIR}/executorch" -B "${DEPS_DIR}/executorch-build" -GNinja \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
@@ -96,11 +132,13 @@ cmake -S "${DEPS_DIR}/executorch" -B "${DEPS_DIR}/executorch-build" -GNinja \
   -DEXECUTORCH_BUILD_EXTENSION_NAMED_DATA_MAP=ON \
   -DEXECUTORCH_BUILD_EXTENSION_FLAT_TENSOR=ON \
   -DEXECUTORCH_BUILD_EXTENSION_LLM=ON \
+  -DEXECUTORCH_BUILD_EXTENSION_LLM_RUNNER=ON \
   -DEXECUTORCH_BUILD_PYBINDINGS=OFF \
   -DEXECUTORCH_BUILD_XNNPACK=OFF \
   -DEXECUTORCH_BUILD_TESTS=OFF
 cmake --build "${DEPS_DIR}/executorch-build" \
-  --target executorch extension_tensor extension_module_static tokenizers -j "${JOBS}"
+  --target executorch extension_tensor extension_module_static tokenizers \
+           extension_llm_runner -j "${JOBS}"
 
 echo
 echo "Test dependencies ready in ${DEPS_DIR}"

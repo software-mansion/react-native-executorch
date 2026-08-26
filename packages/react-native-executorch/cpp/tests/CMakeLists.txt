@@ -25,6 +25,7 @@ set(RNE_TEST_DEPS_DIR "${PACKAGE_DIR}/.native-test-deps"
     CACHE PATH "Directory holding the prebuilt Hermes and ExecuTorch host dependencies")
 
 option(RNE_TESTS_ENABLE_OPENCV "Build the OpenCV-dependent extension tests" ON)
+option(RNE_TESTS_ENABLE_PHONEMIS "Build the phonemis-dependent speech tests" ON)
 
 if(NOT EXISTS "${INCLUDE_DIR}")
   message(FATAL_ERROR
@@ -79,7 +80,8 @@ set_target_properties(hermes_jsi_host PROPERTIES IMPORTED_LOCATION "${HERMES_JSI
 
 # --- ExecuTorch -------------------------------------------------------------
 # Only the handful of libraries the package actually pulls in: tensor creation,
-# module loading, and the LLM tokenizers used by the nlp extension.
+# module loading, the LLM tokenizers used by the nlp extension, and the LLM
+# runner the llm extension wraps.
 function(rne_import_et_lib target relative_path)
   find_library(${target}_LIB
     NAMES ${ARGN}
@@ -98,15 +100,32 @@ rne_import_et_lib(et_flat_tensor "extension/flat_tensor" extension_flat_tensor)
 rne_import_et_lib(et_named_data_map "extension/named_data_map" extension_named_data_map)
 rne_import_et_lib(et_tokenizers "extension/llm/tokenizers" tokenizers)
 
+# The llm extension wraps ExecuTorch's LLM runner, which pulls in the sampler,
+# the memory allocator and the portable-kernel utilities it shares with them.
+rne_import_et_lib(et_llm_runner "extension/llm/runner" extension_llm_runner)
+rne_import_et_lib(et_llm_sampler "extension/llm/sampler" extension_llm_sampler)
+rne_import_et_lib(et_memory_allocator "extension/memory_allocator" extension_memory_allocator)
+rne_import_et_lib(et_kernels_util "kernels/portable/cpu/util" kernels_util_all_deps)
+
+# Listed consumer-first: GNU ld resolves static archives left to right, so the
+# runner has to precede the sampler/allocator/kernel archives it pulls from, and
+# the ExecuTorch core has to follow all of them.
 set(ET_LIBS
+  et_llm_runner et_llm_sampler et_memory_allocator et_kernels_util
   et_module et_tensor et_flat_tensor et_named_data_map et_data_loader
   et_full et_core et_tokenizers)
 
-# The tokenizers library links re2 + abseil, built as part of the ExecuTorch
-# tree. Glob them rather than naming ~20 abseil targets individually.
-file(GLOB ET_RE2_LIBS "${ET_BUILD_DIR}/extension/llm/tokenizers/third-party/re2/libre2.a")
+# The tokenizers library links re2, pcre2, abseil and sentencepiece, all built
+# as part of the ExecuTorch tree. Glob them rather than naming ~20 abseil
+# targets individually. The two patterns must not overlap, or every archive they
+# both match lands on the link line twice.
+file(GLOB ET_TOKENIZER_LIBS "${ET_BUILD_DIR}/extension/llm/tokenizers/third-party/*/lib*.a")
 file(GLOB ET_ABSEIL_LIBS "${ET_BUILD_DIR}/extension/llm/tokenizers/third-party/abseil-cpp/absl/*/*.a")
-file(GLOB ET_JSON_LIBS "${ET_BUILD_DIR}/extension/llm/tokenizers/third-party/*/lib*.a")
+
+# sentencepiece is built out of tree (ExternalProject), so it is not under
+# third-party/ with the rest. tokenizers references it from SPTokenizer, which
+# the LLM runner's load_tokenizer pulls in even for a HuggingFace tokenizer.
+file(GLOB ET_SENTENCEPIECE_LIBS "${ET_BUILD_DIR}/extension/llm/tokenizers/sp-build/src/lib*.a")
 
 # Attach them to et_tokenizers rather than to each test executable, so CMake
 # emits them *after* libtokenizers.a. GNU ld resolves archives left to right and
@@ -118,7 +137,7 @@ file(GLOB ET_JSON_LIBS "${ET_BUILD_DIR}/extension/llm/tokenizers/third-party/*/l
 # reference cycles between the abseil archives (the glob above cannot order them
 # topologically). It is a GNU ld feature; Apple's linker neither needs nor
 # accepts it.
-set(TOKENIZER_DEP_LIBS ${ET_RE2_LIBS} ${ET_ABSEIL_LIBS} ${ET_JSON_LIBS})
+set(TOKENIZER_DEP_LIBS ${ET_TOKENIZER_LIBS} ${ET_ABSEIL_LIBS} ${ET_SENTENCEPIECE_LIBS})
 if(NOT APPLE AND TOKENIZER_DEP_LIBS)
   set(TOKENIZER_DEP_LIBS "-Wl,--start-group" ${TOKENIZER_DEP_LIBS} "-Wl,--end-group")
 endif()
@@ -126,17 +145,24 @@ set_property(TARGET et_tokenizers APPEND PROPERTY
   INTERFACE_LINK_LIBRARIES ${TOKENIZER_DEP_LIBS})
 
 # --- Sources under test -----------------------------------------------------
-# Mirrors android/CMakeLists.txt: core/math/nlp/speech always, cv behind the
-# OpenCV flag. Built as one static library so every test binary shares it.
+# Mirrors android/CMakeLists.txt: core/math/nlp/speech/llm always, cv behind the
+# OpenCV flag and phonemizer.cpp behind the phonemis flag. Built as one static
+# library so every test binary shares it.
 file(GLOB CORE_SOURCES   "${CPP_DIR}/core/*.cpp")
 file(GLOB MATH_SOURCES   "${CPP_DIR}/extensions/math/*.cpp")
 file(GLOB NLP_SOURCES    "${CPP_DIR}/extensions/nlp/*.cpp")
 file(GLOB SPEECH_SOURCES "${CPP_DIR}/extensions/speech/*.cpp")
+file(GLOB LLM_SOURCES    "${CPP_DIR}/extensions/llm/*.cpp")
 file(GLOB OPENCV_SOURCES "${CPP_DIR}/extensions/cv/*.cpp")
+
+# phonemizer.cpp is the one speech source gated on phonemis, exactly as in
+# android/CMakeLists.txt.
+set(PHONEMIS_SOURCES "${CPP_DIR}/extensions/speech/phonemizer.cpp")
+list(FILTER SPEECH_SOURCES EXCLUDE REGEX "/phonemizer\\.cpp$")
 
 set(RNE_SOURCES
   "${CPP_DIR}/RnExecutorch.cpp"
-  ${CORE_SOURCES} ${MATH_SOURCES} ${NLP_SOURCES} ${SPEECH_SOURCES})
+  ${CORE_SOURCES} ${MATH_SOURCES} ${NLP_SOURCES} ${SPEECH_SOURCES} ${LLM_SOURCES})
 
 # The cv extension uses only core and imgproc. Prefer OpenCV's CMake package
 # when it is installed (Homebrew, or a full distro OpenCV), but fall back to
@@ -190,7 +216,34 @@ if(RNE_TESTS_ENABLE_OPENCV)
   list(APPEND RNE_SOURCES ${OPENCV_SOURCES})
 endif()
 
+# --- phonemis ---------------------------------------------------------------
+# Built from the in-tree submodule, as on Android/iOS. Only `data/` is stored in
+# Git LFS and nothing here reads it, so a GIT_LFS_SKIP_SMUDGE=1 checkout is
+# enough — see the note in the CI job.
+set(PHONEMIS_DIR "${PACKAGE_DIR}/third-party/common/phonemis")
+if(RNE_TESTS_ENABLE_PHONEMIS AND NOT EXISTS "${PHONEMIS_DIR}/CMakeLists.txt")
+  message(WARNING
+    "phonemis submodule is empty, skipping the phonemizer suite. Initialise it with:\n"
+    "  GIT_LFS_SKIP_SMUDGE=1 git submodule update --init --depth 1 \\\n"
+    "    packages/react-native-executorch/third-party/common/phonemis")
+  set(RNE_TESTS_ENABLE_PHONEMIS OFF)
+endif()
+
+if(RNE_TESTS_ENABLE_PHONEMIS)
+  add_subdirectory("${PHONEMIS_DIR}" "${CMAKE_BINARY_DIR}/phonemis" EXCLUDE_FROM_ALL)
+  list(APPEND RNE_SOURCES ${PHONEMIS_SOURCES})
+endif()
+
 add_library(rne_under_test STATIC ${RNE_SOURCES})
+
+if(RNE_TESTS_ENABLE_PHONEMIS)
+  # ET_ON would switch phonemis to its ExecuTorch-backed NeuralPhonemizer. The
+  # host suite drives the rule-based path only (the neural weights live in the
+  # LFS data the checkout skips), so it is deliberately left off.
+  target_compile_definitions(rne_under_test PUBLIC RNE_ENABLE_PHONEMIS)
+  target_include_directories(rne_under_test PUBLIC "${PHONEMIS_DIR}/src")
+  target_link_libraries(rne_under_test PUBLIC phonemis)
+endif()
 
 target_include_directories(rne_under_test PUBLIC "${CPP_DIR}")
 
@@ -240,6 +293,12 @@ add_library(rne_test_support STATIC support/JsiTestEnv.cpp)
 target_link_libraries(rne_test_support PUBLIC rne_under_test gtest gmock)
 target_include_directories(rne_test_support PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
+# core/error.h mirrors the code list in src/core/error.ts by hand. ErrorTest
+# reads the TypeScript source to prove the two have not drifted, so it needs the
+# path; it is in the tree, no provisioning involved.
+target_compile_definitions(rne_test_support PUBLIC
+  RNE_ERROR_TS_SOURCE="${PACKAGE_DIR}/src/core/error.ts")
+
 # --- Model fixture ----------------------------------------------------------
 # Suites that read ExecuTorch MethodMeta need a real .pte. It is downloaded
 # rather than committed (scripts/fetch-test-fixtures.sh), so the suites that
@@ -257,6 +316,20 @@ else()
     "  scripts/fetch-test-fixtures.sh")
 endif()
 
+# The nlp extension loads a HuggingFace tokenizer.json, so its suite needs a
+# real one. Same story as the .pte: downloaded, not committed.
+set(TOKENIZER_FIXTURE "${CMAKE_CURRENT_SOURCE_DIR}/fixtures/tokenizer.json")
+if(EXISTS "${TOKENIZER_FIXTURE}")
+  set(RNE_HAVE_TOKENIZER_FIXTURE ON)
+  target_compile_definitions(rne_test_support PUBLIC
+    RNE_TOKENIZER_FIXTURE="${TOKENIZER_FIXTURE}")
+else()
+  set(RNE_HAVE_TOKENIZER_FIXTURE OFF)
+  message(WARNING
+    "Tokenizer fixture missing, skipping the TokenizerTest suite. Fetch it with:\n"
+    "  scripts/fetch-test-fixtures.sh")
+endif()
+
 # --- Test binaries ----------------------------------------------------------
 enable_testing()
 include(GoogleTest)
@@ -265,18 +338,29 @@ include(GoogleTest)
 # down, and lets `ctest -R` target a suite directly.
 set(TEST_SUITES
   core/DTypeTest.cpp
+  core/ErrorTest.cpp
   core/ConversionsTest.cpp
   core/TensorTest.cpp
   core/SchemaTest.cpp
+  core/UtilsTest.cpp
   extensions/MathOpsTest.cpp
-  extensions/SpeechOpsTest.cpp)
+  extensions/SpeechOpsTest.cpp
+  extensions/LlmRunnerTest.cpp)
 
 if(RNE_TESTS_ENABLE_OPENCV)
-  list(APPEND TEST_SUITES extensions/CvOpsTest.cpp)
+  list(APPEND TEST_SUITES extensions/CvOpsTest.cpp extensions/OcrOpsTest.cpp)
+endif()
+
+if(RNE_TESTS_ENABLE_PHONEMIS)
+  list(APPEND TEST_SUITES extensions/PhonemizerTest.cpp)
 endif()
 
 if(RNE_HAVE_MODEL_FIXTURE)
   list(APPEND TEST_SUITES core/ModelTest.cpp)
+endif()
+
+if(RNE_HAVE_TOKENIZER_FIXTURE)
+  list(APPEND TEST_SUITES extensions/TokenizerTest.cpp)
 endif()
 
 foreach(suite_path IN LISTS TEST_SUITES)
