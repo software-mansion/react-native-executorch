@@ -40,8 +40,8 @@ To drive the app yourself, pass `--no-launch` and the script prints the
 environment to start it with.
 
 Options: `--suite quick|full`, `--only <ids>`, `--iterations N`, `--warmup N`,
-`--no-memory`, `--no-native`, `--port N`, `--out <path>`, `--cooldown N`,
-`--pin-clocks auto|on|off`.
+`--no-memory`, `--no-native`, `--port N`, `--out <path>`, `--cooldown N|auto`,
+`--cooldown-max N`, `--pin-clocks auto|on|off`.
 
 ## Comparing two runs
 
@@ -124,6 +124,24 @@ The exception is speech-to-text. The synthetic waveform is voice-shaped but is
 not speech, so Whisper's decoder emits far fewer tokens than a real clip would
 and the pipeline figure is dominated by the encoder. Compare its
 `execute.<method>` numbers rather than its pipeline number.
+
+## Cooling between runs
+
+`--cooldown auto` waits for the device to actually be cool rather than sleeping
+a fixed guess, which is both too long when the phone is already cold and too
+short when it is not. It polls `dumpsys` until the framework reports no
+throttling and the battery temperature has stopped falling. A plateau is used
+rather than an absolute threshold because what counts as cool differs per
+device, while "no longer dropping" does not.
+
+The wait has a 30s floor, so the heat of building and installing dissipates
+before the first case, and a `--cooldown-max` ceiling (900s by default) so a
+warm room or a charging phone cannot stall a run indefinitely. Charging keeps a
+device warm and is called out when detected. `--cooldown N` still sleeps a fixed
+N seconds.
+
+Android only: iOS exposes no thermal readout over the wire, so there is nothing
+for the host to poll and `auto` falls back to a fixed sleep.
 
 ## Holding the clock still
 
