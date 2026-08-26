@@ -53,6 +53,9 @@ Key helpers:
 | :--- | :--- |
 | `fakeJsi.registerModel(path, program)` | Make `loadModel(path)` succeed with a given schema and `execute` |
 | `fakeJsi.registerTokenizer(path, vocabulary)` | Same for `loadTokenizer` |
+| `fakeJsi.registerLLMRunner(path, program)` | Same for `createLLMRunner`: a context window and the responses to generate, one per `generate` call |
+| `fakePhonemizer.serve(text, phonemes)` | Script the native grapheme-to-phoneme converter |
+| `fakeFs.write(path, contents)` | Put a file where a pipeline will read it (a charset, a `tokenizer_config.json`, a voice matrix) |
 | `exported(spec)` | Reinterpret a spec built with `method`/`f32`/`i64` as an *exported* one (it verifies no symbolic dims are left) |
 | `writesOutputs(...)`, `copiesInputToOutput()` | Ready-made `execute` implementations |
 | `tracked(pipeline)` | Auto-dispose at the end of the test |
@@ -79,6 +82,12 @@ Key helpers:
    `fakeJsi.liveModels()` empty, and repeated calls do not accumulate scratch
    tensors.
 7. **Sync/async parity** — `runTaskWorklet(x)` equals `await runTask(x)`.
+
+Only the *weights* are out of scope, not the pipeline that runs on them. Before
+settling for schema-acceptance-and-disposal, check what is actually TypeScript:
+a decode loop, a sliding window, a chunker, an argument check, a streaming
+generator and a disposal path all run fine over a scripted `execute`. Reach for
+the minimal treatment only when the assertion would be measuring the fixture.
 
 For a new hook, add a case to `__tests__/hooks/`: not-ready before the download
 lands, methods exposed after, errors surfaced through the shared `error` field,
@@ -126,8 +135,11 @@ When adding or changing code under `src/`, verify that:
 - [ ] A new hook has a lifecycle case in `__tests__/hooks/`.
 - [ ] A new registry entry passes `__tests__/api/modelRegistry.test.ts` without
       the rules being loosened (https URL, pinned revision,
-      `modelname_backend_precision.pte`, backend-matching folder, default
-      aliasing one of its own variants).
+      `modelname_backend_precision.pte`, a folder naming that backend, and a
+      `DEFAULT` that is one of the configs the group offers).
+- [ ] A new error code is in `VALID_ERROR_CODES`, so `isRnExecuTorchError` does
+      not reject the library's own error — `__tests__/core/error.test.ts` reads
+      every code `src/` raises out of the source and checks it is listed.
 - [ ] A new export is reflected in the `api/apiSurface` snapshot, and the change
       is intentional (a removal or rename is a breaking change).
 - [ ] Any new fake behaviour in `__tests__/support/` is faithful where fidelity

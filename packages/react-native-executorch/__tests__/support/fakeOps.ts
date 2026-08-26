@@ -107,6 +107,31 @@ export const math = {
     return dst;
   },
 
+  /**
+   * Reads one value per lane out of `src` at the position `indices` names,
+   * mirroring `argmax`'s output shape so the two compose.
+   */
+  gather(src: FakeTensor, indices: FakeTensor, dst: FakeTensor, axis = -1): FakeTensor {
+    const resolved = resolveAxis(axis, src.shape.length);
+    const expected = src.shape.map((d, i) => (i === resolved ? 1 : d));
+    expectShape(indices, expected, 'gather: indices');
+    expectShape(dst, expected, 'gather: dst');
+    const { outer, length, inner } = axisLayout(src.shape, resolved);
+
+    for (let o = 0; o < outer; o++) {
+      for (let i = 0; i < inner; i++) {
+        const index = indices.getElement(o * inner + i);
+        if (index < 0 || index >= length) {
+          throw new Error(
+            `gather: index ${index} is outside the gathered axis of length ${length}`
+          );
+        }
+        dst.setElement(o * inner + i, src.getElement((o * length + index) * inner + i));
+      }
+    }
+    return dst;
+  },
+
   threshold(src: FakeTensor, dst: FakeTensor, thresholdVal: number): FakeTensor {
     expectShape(dst, src.shape, 'threshold: dst');
     for (let i = 0; i < src.numel; i++) {
@@ -371,6 +396,139 @@ export const cv = {
     return opts.nmsType === 'weighted' ? groups : kept;
   },
 
+  /**
+   * Decodes a DBNet probability map the way the native op documents it:
+   * binarize at `binThreshold`, trace each connected region, score it by the
+   * mean probability inside its bounds, and unclip the survivors back out to
+   * their unshrunk size.
+   *
+   * The real op traces contours and unclips a polygon; this takes the
+   * axis-aligned bounds of each 4-connected component and grows them by the
+   * same ratio, which produces the same quads for the rectangular regions a
+   * pipeline test draws and keeps every documented threshold load-bearing.
+   */
+  extractDbnetTextQuads(
+    probabilityMap: FakeTensor,
+    options: {
+      binThreshold: number;
+      boxThreshold: number;
+      unclipRatio: number;
+      minBoxSide: number;
+      maxCandidates: number;
+    }
+  ): Float32Array {
+    const [, , height, width] = probabilityMap.shape as [number, number, number, number];
+    const at = (y: number, x: number) => probabilityMap.getElement(y * width + x);
+
+    const seen = new Uint8Array(height * width);
+    const quads: number[] = [];
+
+    for (let y0 = 0; y0 < height; y0++) {
+      for (let x0 = 0; x0 < width; x0++) {
+        if (seen[y0 * width + x0] || at(y0, x0) < options.binThreshold) continue;
+        if (quads.length / 8 >= options.maxCandidates) break;
+
+        // Flood the component, tracking its bounds and its probability mass.
+        let minX = x0;
+        let maxX = x0;
+        let minY = y0;
+        let maxY = y0;
+        let sum = 0;
+        let count = 0;
+        const stack = [[y0, x0] as const];
+        seen[y0 * width + x0] = 1;
+        while (stack.length > 0) {
+          const [y, x] = stack.pop()!;
+          minX = Math.min(minX, x);
+          maxX = Math.max(maxX, x);
+          minY = Math.min(minY, y);
+          maxY = Math.max(maxY, y);
+          sum += at(y, x);
+          count++;
+          for (const [dy, dx] of [
+            [-1, 0],
+            [1, 0],
+            [0, -1],
+            [0, 1],
+          ] as const) {
+            const [ny, nx] = [y + dy, x + dx];
+            if (ny < 0 || nx < 0 || ny >= height || nx >= width) continue;
+            if (seen[ny * width + nx] || at(ny, nx) < options.binThreshold) continue;
+            seen[ny * width + nx] = 1;
+            stack.push([ny, nx]);
+          }
+        }
+
+        if (sum / count < options.boxThreshold) continue;
+        if (maxX - minX + 1 < options.minBoxSide || maxY - minY + 1 < options.minBoxSide) continue;
+
+        // Unclip: grow the shrunk box back out, clamped to the map.
+        const growX = ((maxX - minX + 1) * (options.unclipRatio - 1)) / 2;
+        const growY = ((maxY - minY + 1) * (options.unclipRatio - 1)) / 2;
+        const left = Math.max(0, minX - growX);
+        const right = Math.min(width - 1, maxX + growX);
+        const top = Math.max(0, minY - growY);
+        const bottom = Math.min(height - 1, maxY + growY);
+
+        quads.push(left, top, right, top, right, bottom, left, bottom);
+      }
+    }
+
+    return Float32Array.from(quads);
+  },
+
+  /**
+   * Rectifies a quad region of `src` into the pre-allocated canvas `dst`.
+   *
+   * The native op does a perspective warp; this samples the quad's axis-aligned
+   * bounds with nearest-neighbor into the canvas's content area and pads the
+   * rest, which is the same result for the axis-aligned regions a pipeline test
+   * draws — and it keeps `contentWidth`, `align` and `padValue` real, since
+   * those are what the caller has to get right.
+   */
+  rectifyQuad(
+    src: FakeTensor,
+    dst: FakeTensor,
+    quad: ArrayLike<number>,
+    options: { contentWidth: number; align: 'left' | 'center'; padValue: number }
+  ): FakeTensor {
+    const [srcH, srcW, channels] = src.shape as [number, number, number];
+    const [dstH, dstW, dstChannels] = dst.shape as [number, number, number];
+    if (channels !== dstChannels) {
+      throw new Error(`rectifyQuad: channel mismatch, src ${channels} vs dst ${dstChannels}`);
+    }
+
+    const xs = [quad[0]!, quad[2]!, quad[4]!, quad[6]!];
+    const ys = [quad[1]!, quad[3]!, quad[5]!, quad[7]!];
+    const [left, right] = [Math.min(...xs), Math.max(...xs)];
+    const [top, bottom] = [Math.min(...ys), Math.max(...ys)];
+
+    for (let i = 0; i < dst.numel; i++) dst.setElement(i, options.padValue);
+
+    const content = Math.max(0, Math.min(options.contentWidth, dstW));
+    const offset = options.align === 'center' ? Math.floor((dstW - content) / 2) : 0;
+
+    for (let y = 0; y < dstH; y++) {
+      for (let x = 0; x < content; x++) {
+        const sx = Math.min(
+          srcW - 1,
+          Math.round(left + ((right - left) * x) / Math.max(1, content - 1))
+        );
+        const sy = Math.min(
+          srcH - 1,
+          Math.round(top + ((bottom - top) * y) / Math.max(1, dstH - 1))
+        );
+        for (let c = 0; c < channels; c++) {
+          dst.setElement(
+            (y * dstW + offset + x) * channels + c,
+            src.getElement((sy * srcW + sx) * channels + c)
+          );
+        }
+      }
+    }
+    return dst;
+  },
+
   restrictToBox(
     src: FakeTensor,
     dst: FakeTensor,
@@ -404,7 +562,54 @@ export const cv = {
 // speech
 // ============================================================================
 
+/** What a fake phonemizer returns for a given input. */
+const phonemizations = new Map<string, string>();
+const livePhonemizers = new Set<string>();
+
+export const fakePhonemizer = {
+  /**
+   * Makes the fake phonemizer answer `text` with `phonemes`. Anything not
+   * registered is phonemized by lowercasing, which is enough for a pipeline
+   * test: what matters downstream is the phoneme count, not the alphabet.
+   * @param text The input to script.
+   * @param phonemes What to return for it.
+   */
+  serve(text: string, phonemes: string): void {
+    phonemizations.set(text, phonemes);
+  },
+  /** @returns Languages of phonemizers that were created and not disposed. */
+  live(): string[] {
+    return [...livePhonemizers].sort();
+  },
+  /** Clears every scripted phonemization. Runs automatically between tests. */
+  reset(): void {
+    phonemizations.clear();
+    livePhonemizers.clear();
+  },
+};
+
 export const speech = {
+  /**
+   * Builds a grapheme-to-phoneme converter. It is a native host object rather
+   * than a model, so it is registered and disposed independently of the two
+   * `.pte` files the Kokoro pipeline loads.
+   */
+  createPhonemizer(config: { lang: string }) {
+    let disposed = false;
+    livePhonemizers.add(config.lang);
+    return {
+      phonemize: (text: string): string => {
+        if (disposed) throw new Error(`phonemize: phonemizer '${config.lang}' has been disposed`);
+        return phonemizations.get(text) ?? text.toLowerCase();
+      },
+      dispose: (): void => {
+        if (disposed) return;
+        disposed = true;
+        livePhonemizers.delete(config.lang);
+      },
+    };
+  },
+
   /**
    * Frames a waveform exactly as documented on `extractFrames`: per-frame mean
    * removal, pre-emphasis, Hann windowing, into zero-padded rows of `dst`.

@@ -15,7 +15,7 @@
 import type { ConcreteDim, ModelSpec } from '../../src/core/schema';
 import type { DType } from '../../src/core/tensor';
 import { FakeTensor, tensorTracker } from './fakeTensor';
-import { cv, math, speech } from './fakeOps';
+import { cv, fakePhonemizer, math, speech } from './fakeOps';
 
 // ============================================================================
 // Models
@@ -167,6 +167,150 @@ function createFakeTokenizer(path: string, vocabulary: FakeVocabulary) {
 }
 
 // ============================================================================
+// LLM runners
+// ============================================================================
+
+/** How a fake runner answers one `generate` call. */
+export type FakeGeneration = {
+  /** The text the runner produces, streamed token by token (words). */
+  response: string;
+};
+
+/** A runner `createLLMRunner` can return. */
+export type FakeRunnerProgram = {
+  /** Context window the runner reports. Defaults to `128`. */
+  maxSeqLen?: number;
+  /**
+   * Responses handed out in order, one per `generate` call. A runner that runs
+   * past the end of the list repeats the last entry, so a test only has to
+   * script the turns it cares about.
+   */
+  generations?: readonly FakeGeneration[];
+};
+
+/** One call made on a fake runner, in order, for a test to assert against. */
+export type RunnerCall =
+  | { kind: 'prefill'; text: string; pos: number }
+  | { kind: 'generate'; text: string; pos: number }
+  | { kind: 'reset'; targetPos: number }
+  | { kind: 'stop' };
+
+const runnerPrograms = new Map<string, FakeRunnerProgram>();
+const liveRunners = new Set<string>();
+const runnerCalls: RunnerCall[] = [];
+
+/** The text of a prompt, ignoring any media inputs a multimodal prompt carries. */
+const promptText = (prompt: unknown): string =>
+  typeof prompt === 'string'
+    ? prompt
+    : Array.isArray(prompt)
+      ? prompt.filter((part) => typeof part === 'string').join('')
+      : '';
+
+/**
+ * Builds a fake LLM runner.
+ *
+ * Its KV cache is modelled as a token count that prefill and generate both
+ * advance and `reset` rewinds, which is the only part of the native runner's
+ * state the chat session actually reasons about: it diffs the position across a
+ * turn to decide what still has to be prefilled, and rewinds to a recorded
+ * position between tool turns.
+ * @param modelPath The model path.
+ * @param tokenizerPath The tokenizer path.
+ * @param modalities The non-text modalities the runner accepts.
+ * @param program What the runner generates.
+ * @returns The fake runner.
+ */
+function createFakeRunner(
+  modelPath: string,
+  tokenizerPath: string,
+  modalities: readonly string[],
+  program: FakeRunnerProgram
+) {
+  const maxSeqLen = program.maxSeqLen ?? 128;
+  let disposed = false;
+  let pos = 0;
+  let generationIndex = 0;
+  let stopped = false;
+  liveRunners.add(modelPath);
+
+  const assertLive = (op: string): void => {
+    if (disposed) throw new Error(`${op}: runner '${modelPath}' has been disposed`);
+  };
+
+  // One token per whitespace-separated word, matching the fake tokenizer.
+  const countTokens = (text: string): number => text.split(/\s+/).filter(Boolean).length;
+
+  return {
+    modelPath,
+    tokenizerPath,
+    modalities,
+
+    prefill: (prompt: unknown): void => {
+      assertLive('prefill');
+      const text = promptText(prompt);
+      pos = Math.min(maxSeqLen, pos + countTokens(text));
+      runnerCalls.push({ kind: 'prefill', text, pos });
+    },
+
+    generate: (prompt: unknown, _config?: unknown, onToken?: (token: string) => void) => {
+      assertLive('generate');
+      stopped = false;
+      const text = promptText(prompt);
+      pos = Math.min(maxSeqLen, pos + countTokens(text));
+
+      const scripted = program.generations ?? [];
+      const generation = scripted[Math.min(generationIndex, scripted.length - 1)];
+      generationIndex++;
+      const response = generation?.response ?? '';
+
+      let emitted = 0;
+      for (const token of response.split(/(?<=\s)/)) {
+        if (stopped) break;
+        onToken?.(token);
+        emitted++;
+        pos = Math.min(maxSeqLen, pos + 1);
+      }
+      runnerCalls.push({ kind: 'generate', text, pos });
+
+      return {
+        numPromptTokens: countTokens(text),
+        numGeneratedTokens: emitted,
+        firstTokenMs: 0,
+        inferenceStartMs: 0,
+        inferenceEndMs: 0,
+        modelLoadStartMs: 0,
+        modelLoadEndMs: 0,
+      };
+    },
+
+    reset: (targetPos?: number): void => {
+      assertLive('reset');
+      pos = targetPos ?? 0;
+      runnerCalls.push({ kind: 'reset', targetPos: pos });
+    },
+
+    stop: (): void => {
+      stopped = true;
+      runnerCalls.push({ kind: 'stop' });
+    },
+
+    getKVCacheState: () => ({
+      pos,
+      maxSeqLen,
+      remainingTokens: maxSeqLen - pos,
+      usageRatio: pos / maxSeqLen,
+    }),
+
+    dispose: (): void => {
+      if (disposed) return;
+      disposed = true;
+      liveRunners.delete(modelPath);
+    },
+  };
+}
+
+// ============================================================================
 // The global
 // ============================================================================
 
@@ -190,6 +334,15 @@ const jsi = {
   math,
   cv,
   speech,
+  llm: {
+    createLLMRunner: (modelPath: string, tokenizerPath: string, modalities: string[]) => {
+      const program = runnerPrograms.get(modelPath);
+      if (!program) {
+        throw new Error(`createLLMRunner: no runner registered at '${modelPath}'`);
+      }
+      return createFakeRunner(modelPath, tokenizerPath, modalities, program);
+    },
+  },
   nlp: {
     loadTokenizer: (path: string) => {
       const vocabulary = vocabularies.get(path);
@@ -230,6 +383,30 @@ export const fakeJsi = {
    */
   registerTokenizer(path: string, vocabulary: FakeVocabulary): void {
     vocabularies.set(path, vocabulary);
+  },
+
+  /**
+   * Makes `createLLMRunner(path, ...)` succeed and return a scripted runner.
+   * @param path The model path a chat session will be pointed at.
+   * @param program The context window and the responses to generate.
+   */
+  registerLLMRunner(path: string, program: FakeRunnerProgram = {}): void {
+    runnerPrograms.set(path, program);
+  },
+
+  /** @returns Every call made on a fake LLM runner so far, in order. */
+  runnerCalls(): readonly RunnerCall[] {
+    return runnerCalls;
+  },
+
+  /** @returns Model paths of LLM runners that were created and not disposed. */
+  liveRunners(): string[] {
+    return [...liveRunners].sort();
+  },
+
+  /** @returns Languages of phonemizers that were created and not disposed. */
+  livePhonemizers(): string[] {
+    return fakePhonemizer.live();
   },
 
   /**
@@ -277,11 +454,15 @@ export const fakeJsi = {
   reset(): void {
     programs.clear();
     vocabularies.clear();
+    runnerPrograms.clear();
     liveModels.clear();
     liveTokenizers.clear();
+    liveRunners.clear();
     executions.length = 0;
+    runnerCalls.length = 0;
     registeredBackends = ['XnnpackBackend', 'CoreMLBackend'];
     jsi.isEmulator = false;
+    fakePhonemizer.reset();
     tensorTracker.reset();
   },
 };

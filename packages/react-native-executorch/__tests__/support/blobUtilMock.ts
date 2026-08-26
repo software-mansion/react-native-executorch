@@ -25,6 +25,23 @@ const encode = (value: string | Uint8Array): Uint8Array =>
 
 const decode = (data: Uint8Array): string => String.fromCharCode(...data);
 
+const BASE64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+/** Hand-rolled because neither `btoa` nor `Buffer` is in the package's `lib`. */
+/* eslint-disable no-bitwise */
+const base64Encode = (data: Uint8Array): string => {
+  let out = '';
+  for (let i = 0; i < data.length; i += 3) {
+    const chunk = (data[i]! << 16) | ((data[i + 1] ?? 0) << 8) | (data[i + 2] ?? 0);
+    const padding = data.length - i;
+    out += BASE64_ALPHABET[(chunk >> 18) & 63]! + BASE64_ALPHABET[(chunk >> 12) & 63]!;
+    out += padding > 1 ? BASE64_ALPHABET[(chunk >> 6) & 63]! : '=';
+    out += padding > 2 ? BASE64_ALPHABET[chunk & 63]! : '=';
+  }
+  return out;
+};
+/* eslint-enable no-bitwise */
+
 export const fakeFs = {
   /** Wipes all file and directory state. */
   reset(): void {
@@ -281,6 +298,14 @@ const fs = {
 
   unlink: async (path: string): Promise<void> => {
     if (!files.delete(path) && !directories.delete(path)) throw new Error(`ENOENT: ${path}`);
+  },
+
+  readFile: async (path: string, encoding: string): Promise<string> => {
+    const data = files.get(path);
+    if (!data) throw new Error(`ENOENT: ${path}`);
+    if (encoding === 'utf8') return decode(data);
+    if (encoding === 'base64') return base64Encode(data);
+    throw new Error(`blobUtilMock: unsupported readFile encoding '${encoding}'`);
   },
 
   mv: async (from: string, to: string): Promise<void> => {

@@ -29,9 +29,9 @@ So `support/fakeJsi.ts` implements the native contract in JavaScript instead:
 | Piece | What it does |
 | --- | --- |
 | `support/fakeTensor.ts` | Typed-array-backed tensors with the real `setData`/`getData` byte semantics, `copyTo` windows, and use-after-dispose errors |
-| `support/fakeOps.ts` | JS implementations of the `math`, `cv` and `speech` operators |
-| `support/fakeJsi.ts` | `createTensor`, `loadModel`, `loadTokenizer`, and the resource trackers |
-| `support/blobUtilMock.ts` | In-memory filesystem plus a programmable server (status, body, `Range` support, and a gate to hold a download open) |
+| `support/fakeOps.ts` | JS implementations of the `math`, `cv` and `speech` operators, plus the phonemizer host object |
+| `support/fakeJsi.ts` | `createTensor`, `loadModel`, `loadTokenizer`, `createLLMRunner`, and the resource trackers |
+| `support/blobUtilMock.ts` | In-memory filesystem plus a programmable server (status, body, `Range` support, `stateChange`, and a gate to hold a download open) |
 | `support/workletsMock.ts` | Runs worklets inline — a worklet is an ordinary function marked for a second runtime |
 
 A test describes the model it wants and drives the real pipeline over it:
@@ -71,9 +71,9 @@ misleading leak error. A test that means to leak calls `allowNativeLeaks()`.
 
 | Path | Contents |
 | --- | --- |
-| `core/` | `tensor`, `model`, `runtime`, and the `schema` spec matcher |
+| `core/` | `tensor`, `model`, `runtime`, the coded `error` type, and the `schema` spec matcher |
 | `fetcher/` | `download` (caching, resume, cancellation, shared requests), telemetry, the Android backend |
-| `tasks/` | One suite per task pipeline, plus the shared construction-failure behavior |
+| `tasks/` | One suite per task pipeline, plus the shared construction-failure behavior. `remainingTasks.ts` holds the pipelines that only get schema acceptance and disposal |
 | `hooks/` | `useModel`, `useResourceDownload`, and the task hooks end to end |
 | `extensions/` | The pure-TypeScript helpers: box/point scaling, seeded generators |
 | `api/` | Export snapshot, model registry rules, label constants, source-level conventions |
@@ -85,11 +85,21 @@ misleading leak error. A test that means to leak calls `allowNativeLeaks()`.
 `cvtColor` conversions and the exact `nms` arithmetic are the C++ suites' job;
 duplicating them here would only test the fake.
 
-**The long stateful worklets.** Whisper's decode loop, the VAD rolling window
-and the SDXS diffusion step depend on real model weights, so faking them would
-mostly assert against the fixture. What they do get is schema acceptance,
-rejection of a mismatched model, and full disposal — including Whisper's nested
-tokenizer and VAD pipeline.
+**The weights.** Whisper's decode loop, the VAD rolling window and the SDXS
+diffusion step depend on real model weights, so faking them would mostly assert
+against the fixture. What they do get is schema acceptance, rejection of a
+mismatched model, and full disposal — including Whisper's nested tokenizer and
+VAD pipeline.
+
+The line is drawn per pipeline rather than per suite, because it falls in a
+different place for each. Kokoro's waveform is weights, but its chunking,
+argument validation and streaming are not; the privacy filter's logits are
+weights, but the BIOES decode and the sliding window over them are pure
+TypeScript and are driven end to end; the LLM's generation belongs to the
+native runner, but the chat session's history, KV cache bookkeeping and
+tool-calling loop are covered against a scripted one; PaddleOCR's probability
+map is weights, but the quad decode, CTC collapse and reading order run over a
+map the test paints.
 
 **The thread hop.** Worklets run inline here, so serialization onto a real
 worklet runtime is not exercised. The `'worklet'` directive convention that

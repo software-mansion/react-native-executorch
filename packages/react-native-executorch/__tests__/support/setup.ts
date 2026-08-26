@@ -47,7 +47,17 @@ afterEach(async () => {
   const tensors = fakeJsi.liveTensorDescriptions();
   const models = fakeJsi.liveModels();
   const tokenizers = fakeJsi.liveTokenizers();
-  if (tensors.length === 0 && models.length === 0 && tokenizers.length === 0) return;
+  const runners = fakeJsi.liveRunners();
+  const phonemizers = fakeJsi.livePhonemizers();
+  if (
+    tensors.length === 0 &&
+    models.length === 0 &&
+    tokenizers.length === 0 &&
+    runners.length === 0 &&
+    phonemizers.length === 0
+  ) {
+    return;
+  }
 
   throw new Error(
     [
@@ -55,6 +65,8 @@ afterEach(async () => {
       tensors.length > 0 ? `  tensors: ${tensors.join(', ')}` : '',
       models.length > 0 ? `  models: ${models.join(', ')}` : '',
       tokenizers.length > 0 ? `  tokenizers: ${tokenizers.join(', ')}` : '',
+      runners.length > 0 ? `  LLM runners: ${runners.join(', ')}` : '',
+      phonemizers.length > 0 ? `  phonemizers: ${phonemizers.join(', ')}` : '',
       'Dispose the pipeline, or call allowNativeLeaks() if the leak is the point of the test.',
     ]
       .filter(Boolean)

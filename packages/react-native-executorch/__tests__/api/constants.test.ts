@@ -116,6 +116,80 @@ describe('IMAGENET_NORM', () => {
   });
 });
 
+describe('BIOES privacy-filter label spaces', () => {
+  const SPACES = {
+    PRIVACY_FILTER_OPENAI_LABELS: 8,
+    PRIVACY_FILTER_NEMOTRON_LABELS: 55,
+  } as const;
+
+  const space = (name: keyof typeof SPACES): readonly string[] => constants[name];
+
+  it.each(Object.entries(SPACES))(
+    '%s holds one outside tag plus four per entity',
+    (name, entities) => {
+      // The arrays are consumed positionally: the pipeline uses the index as
+      // the label id and derives the entity type from the tag's suffix, so a
+      // single missing prefix shifts every id after it.
+      expect(space(name as keyof typeof SPACES)).toHaveLength(1 + entities * 4);
+    }
+  );
+
+  it.each(Object.keys(SPACES))("%s starts with the outside tag 'O'", (name) => {
+    expect(space(name as keyof typeof SPACES)[0]).toBe('O');
+  });
+
+  it.each(Object.keys(SPACES))('%s gives every entity all four BIOES prefixes', (name) => {
+    const labels = space(name as keyof typeof SPACES).slice(1);
+    const byEntity = new Map<string, string[]>();
+    for (const label of labels) {
+      const [prefix, entity] = [label.slice(0, 1), label.slice(2)];
+      byEntity.set(entity, [...(byEntity.get(entity) ?? []), prefix]);
+    }
+
+    const incomplete = [...byEntity.entries()]
+      .filter(([, prefixes]) => prefixes.join('') !== 'BIES')
+      .map(([entity, prefixes]) => `${entity}: ${prefixes.join('')}`);
+
+    expect(incomplete).toEqual([]);
+  });
+
+  it.each(Object.keys(SPACES))('%s names every label exactly once', (name) => {
+    const labels = space(name as keyof typeof SPACES);
+    expect(new Set(labels).size).toBe(labels.length);
+  });
+
+  it.each(Object.keys(SPACES))('%s names every entity in snake_case', (name) => {
+    for (const label of space(name as keyof typeof SPACES).slice(1)) {
+      expect(label).toMatch(/^[BIES]-[a-z][a-z0-9_]*$/);
+    }
+  });
+
+  it('keeps the two label spaces independent', () => {
+    // Each array mirrors its own model's `id2label`, so they do NOT share an
+    // entity vocabulary: the base model prefixes its types with `private_`
+    // where the larger one does not. Stated here so a future edit does not
+    // "fix" one array into the other's naming and silently shift its ids.
+    const nemotron = new Set<string>(constants.PRIVACY_FILTER_NEMOTRON_LABELS);
+    expect(
+      constants.PRIVACY_FILTER_OPENAI_LABELS.filter((label) => !nemotron.has(label))
+    ).not.toEqual([]);
+  });
+});
+
+describe('SUPERTONIC_DEFAULT_VOICE_NAMES', () => {
+  it('lists five female and five male voices', () => {
+    const names = constants.SUPERTONIC_DEFAULT_VOICE_NAMES;
+    expect(names.filter((name) => name.startsWith('F'))).toHaveLength(5);
+    expect(names.filter((name) => name.startsWith('M'))).toHaveLength(5);
+  });
+
+  it('names every voice uniquely, as a gender letter and an index', () => {
+    const names = constants.SUPERTONIC_DEFAULT_VOICE_NAMES;
+    expect(new Set(names).size).toBe(names.length);
+    for (const name of names) expect(name).toMatch(/^[FM][1-5]$/);
+  });
+});
+
 describe('registry ↔ constants alignment', () => {
   /** Every label array actually referenced by a registry entry. */
   const referenced = (function collect(node: unknown): unknown[][] {
