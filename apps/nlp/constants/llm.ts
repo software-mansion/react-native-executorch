@@ -488,8 +488,8 @@ export const LLM_MODELS: LLMModelConfig[] = [
   // SmolLM2 family
   {
     id: 'smollm2-135m-xnnpack',
-    name: 'SmolLM2 135M (8da4w)',
-    model: models.llm.SMOLLM2_135M.XNNPACK_8DA4W,
+    name: 'SmolLM2 135M (8da8w)',
+    model: models.llm.SMOLLM2_135M.XNNPACK_8DA8W,
     generationConfig: DEFAULT_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
@@ -497,8 +497,8 @@ export const LLM_MODELS: LLMModelConfig[] = [
   },
   {
     id: 'smollm2-360m-xnnpack',
-    name: 'SmolLM2 360M (8da4w)',
-    model: models.llm.SMOLLM2_360M.XNNPACK_8DA4W,
+    name: 'SmolLM2 360M (8da8w)',
+    model: models.llm.SMOLLM2_360M.XNNPACK_8DA8W,
     generationConfig: DEFAULT_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
@@ -506,8 +506,8 @@ export const LLM_MODELS: LLMModelConfig[] = [
   },
   {
     id: 'smollm2-1.7b-xnnpack',
-    name: 'SmolLM2 1.7B (8da4w)',
-    model: models.llm.SMOLLM2_1_7B.XNNPACK_8DA4W,
+    name: 'SmolLM2 1.7B (8da8w)',
+    model: models.llm.SMOLLM2_1_7B.XNNPACK_8DA8W,
     generationConfig: DEFAULT_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
