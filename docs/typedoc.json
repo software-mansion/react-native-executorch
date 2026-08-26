@@ -1,9 +1,7 @@
 {
   "gitRevision": "main",
   "skipErrorChecking": true,
-  "compilerOptions": {
-    "skipLibCheck": true
-  },
+  "compilerOptions": { "skipLibCheck": true },
   "excludeExternals": true,
   "categoryOrder": [
     "Hooks",
