@@ -16,8 +16,11 @@ import {
   createClassifier,
   createFsmnVoiceActivityDetector,
   createImageEmbedder,
+  createInstanceSegmenter,
+  createKokoroTextToSpeech,
   createKeypointDetector,
   createObjectDetector,
+  createPaddleOcr,
   createPrivacyFilter,
   createSemanticSegmenter,
   createStyleTransfer,
@@ -116,6 +119,9 @@ const IMAGE_640 = syntheticImage(640, 640);
 const VAD_WAVEFORM = syntheticWaveform(10, FSMN_VAD_SAMPLE_RATE_HZ);
 const WHISPER_WAVEFORM = syntheticWaveform(10, WHISPER_SAMPLE_RATE_HZ);
 const SUPERTONIC_VOICE = SUPERTONIC_DEFAULT_VOICE_NAMES[0]!;
+const KOKORO_VOICE = Object.keys(
+  models.textToSpeech.KOKORO.EN_US.XNNPACK_FP32.voices
+)[0]! as keyof typeof models.textToSpeech.KOKORO.EN_US.XNNPACK_FP32.voices;
 
 export const CASES: readonly BenchCase[] = [
   defineCase(createClassifier, {
@@ -293,6 +299,52 @@ export const CASES: readonly BenchCase[] = [
     // between chunks, so there is no synchronous entry point to time, and no
     // single `.pte` for the raw-execute pass. These numbers include one thread
     // hop per chunk.
+    note: 'timed on the RN thread; includes per-chunk thread hops',
+  }),
+  defineCase(createInstanceSegmenter, {
+    id: 'instance-segmentation/fastsam-s-xnnpack-fp32',
+    task: 'instanceSegmentation',
+    model: 'FASTSAM.S.XNNPACK_FP32',
+    tier: 'full',
+    config: models.instanceSegmentation.FASTSAM.S.XNNPACK_FP32,
+    modelPathKey: 'modelPath',
+    run: (instance) => () => {
+      'worklet';
+      return instance.segmentInstancesWorklet(IMAGE_640).length;
+    },
+  }),
+  defineCase(createPaddleOcr, {
+    id: 'ocr/ppocrv6-small-xnnpack-int8',
+    task: 'ocr',
+    model: 'PADDLE.PPOCRV6_SMALL.XNNPACK',
+    tier: 'full',
+    config: models.ocr.PADDLE.PPOCRV6_SMALL.XNNPACK,
+    run: (instance) => () => {
+      'worklet';
+      return instance.recognizeCharactersWorklet(IMAGE_640).length;
+    },
+    // Detector plus recognizer: the recognizer runs once per detected box, so
+    // the timing depends on how many regions the synthetic scene produces.
+    note: 'two models; recognizer cost scales with detected regions',
+  }),
+  defineCase(createKokoroTextToSpeech, {
+    id: 'text-to-speech/kokoro-en-us-xnnpack-fp32',
+    task: 'textToSpeech',
+    model: 'KOKORO.EN_US.XNNPACK_FP32',
+    tier: 'full',
+    config: models.textToSpeech.KOKORO.EN_US.XNNPACK_FP32,
+    mode: 'async',
+    runAsync: (instance) => async () => {
+      let samples = 0;
+      for await (const chunk of instance.synthesize(SAMPLE_TEXT, {
+        voice: KOKORO_VOICE,
+      })) {
+        samples += chunk.audio.length;
+      }
+      return samples;
+    },
+    // Same shape as Supertonic: a chunked generator driven from the RN thread,
+    // so there is no single synchronous call to time.
     note: 'timed on the RN thread; includes per-chunk thread hops',
   }),
 ];
