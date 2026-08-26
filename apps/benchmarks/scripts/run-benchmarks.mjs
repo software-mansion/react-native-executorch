@@ -39,6 +39,7 @@ const DEFAULTS = {
   host: '',
   out: '',
   cooldown: '0',
+  cooldownMax: '900',
   pinClocks: 'auto',
 };
 
@@ -57,6 +58,9 @@ function parseArgs(argv) {
     } else throw new Error(`Unexpected argument ${arg}`);
   }
 
+  if (options.cooldown !== 'auto' && !Number.isFinite(Number(options.cooldown))) {
+    throw new Error(`--cooldown must be a number of seconds or "auto", got ${options.cooldown}`);
+  }
   if (!['auto', 'on', 'off'].includes(options.pinClocks)) {
     throw new Error(`--pin-clocks must be auto, on or off, got ${options.pinClocks}`);
   }
@@ -189,6 +193,103 @@ function readMaxFrequencies() {
   });
 }
 
+/** Reads one line of `adb shell`, trimmed. Empty string if adb cannot answer. */
+function adbCapture(command) {
+  return new Promise((done) => {
+    const child = spawn('adb', ['shell', command], { stdio: ['ignore', 'pipe', 'ignore'] });
+    let out = '';
+    child.stdout.on('data', (chunk) => (out += chunk));
+    child.on('exit', () => done(out.trim()));
+    child.on('error', () => done(''));
+  });
+}
+
+/** Thermal status (0 = none) and battery temperature in Celsius; nulls if unknown. */
+async function readDeviceHeat() {
+  const [thermal, battery] = await Promise.all([
+    adbCapture('dumpsys thermalservice | grep "Thermal Status"'),
+    adbCapture('dumpsys battery'),
+  ]);
+  const status = /Thermal Status:\s*(-?\d+)/.exec(thermal);
+  const temp = /temperature:\s*(-?\d+)/.exec(battery);
+  const charging = /(AC|USB|Wireless|Dock) powered: true/.test(battery);
+  return {
+    status: status ? Number(status[1]) : null,
+    temperatureC: temp ? Number(temp[1]) / 10 : null,
+    charging,
+  };
+}
+
+/**
+ * Waits for the device to actually be cool, instead of sleeping a fixed guess.
+ *
+ * A blind `--cooldown 420` is both too long when the phone is already cold and
+ * too short when it is not. This polls until the framework reports no throttling
+ * AND the battery temperature has stopped falling, which is device-agnostic in a
+ * way that an absolute threshold is not: what counts as cool differs per phone,
+ * but "no longer dropping" does not.
+ *
+ * Bounded at both ends. The floor lets the heat of building and installing
+ * dissipate before the first case; the ceiling stops a warm room or a charging
+ * phone from stalling the run forever.
+ */
+async function waitUntilCool(maxSeconds) {
+  const FLOOR_MS = 30_000;
+  const INTERVAL_MS = 15_000;
+  const PLATEAU_C = 0.2;
+
+  const started = Date.now();
+  const deadline = started + maxSeconds * 1000;
+  const first = await readDeviceHeat();
+
+  if (first.status === null && first.temperatureC === null) {
+    console.log('[bench] cannot read device heat over adb; skipping the adaptive wait');
+    return null;
+  }
+  if (first.charging) {
+    console.log('[bench] device is charging, which keeps it warm; unplug for a colder floor');
+  }
+
+  let previous = first.temperatureC;
+  let plateauHits = 0;
+
+  for (;;) {
+    const elapsed = Date.now() - started;
+    const heat = await readDeviceHeat();
+    const cool = heat.status === 0 || heat.status === null;
+    const settled =
+      previous === null || heat.temperatureC === null
+        ? true
+        : Math.abs(previous - heat.temperatureC) < PLATEAU_C;
+
+    plateauHits = settled ? plateauHits + 1 : 0;
+    previous = heat.temperatureC;
+
+    // Two consecutive settled samples, so a single flat reading mid-fall does
+    // not end the wait early.
+    if (elapsed >= FLOOR_MS && cool && plateauHits >= 2) {
+      console.log(
+        `[bench] device cool after ${Math.round(elapsed / 1000)}s ` +
+          `(thermal ${heat.status ?? '?'}, ${heat.temperatureC ?? '?'}C)`
+      );
+      return heat;
+    }
+    if (Date.now() >= deadline) {
+      console.warn(
+        `[bench] WARNING: still not settled after ${maxSeconds}s ` +
+          `(thermal ${heat.status ?? '?'}, ${heat.temperatureC ?? '?'}C); starting anyway`
+      );
+      return heat;
+    }
+
+    console.log(
+      `[bench] waiting to cool: thermal ${heat.status ?? '?'}, ` +
+        `${heat.temperatureC ?? '?'}C, ${Math.round(elapsed / 1000)}s elapsed`
+    );
+    await new Promise((tick) => setTimeout(tick, INTERVAL_MS));
+  }
+}
+
 function adbReverse(port, quiet = false) {
   const result = spawn('adb', ['reverse', `tcp:${port}`, `tcp:${port}`], {
     stdio: quiet ? 'ignore' : 'inherit',
@@ -299,10 +400,24 @@ async function main() {
     });
   }
 
-  const cooldown = Number(options.cooldown);
-  if (cooldown > 0) {
-    console.log(`[bench] cooling down for ${cooldown}s before starting`);
-    await new Promise((wake) => setTimeout(wake, cooldown * 1000));
+  let coolAt = null;
+  if (options.cooldown === 'auto') {
+    if (options.platform === 'android') {
+      console.log('[bench] waiting for the device to cool before starting');
+      coolAt = await waitUntilCool(Number(options.cooldownMax));
+    } else {
+      // iOS exposes no thermal readout over the wire, so there is nothing to
+      // poll from the host: fall back to a fixed wait rather than pretend.
+      const fallback = Math.min(300, Number(options.cooldownMax));
+      console.log(`[bench] no host-side thermal readout on iOS; sleeping ${fallback}s instead`);
+      await new Promise((wake) => setTimeout(wake, fallback * 1000));
+    }
+  } else {
+    const cooldown = Number(options.cooldown);
+    if (cooldown > 0) {
+      console.log(`[bench] cooling down for ${cooldown}s before starting`);
+      await new Promise((wake) => setTimeout(wake, cooldown * 1000));
+    }
   }
   console.log(`[bench] partial results: ${partial}`);
 
@@ -350,6 +465,7 @@ async function main() {
 
   const report = await finished;
   report.clocksPinned = clocksPinned;
+  if (coolAt) report.cooldown = coolAt;
   const destination = reportPath(options, report);
   writeJson(destination, report);
   rmSync(partial, { force: true });
