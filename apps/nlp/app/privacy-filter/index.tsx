@@ -9,14 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import {
-  usePrivacyFilter,
-  models,
-  piiSegments,
-  type PiiEntity,
-  type PiiSegment,
-  type PrivacyFilterModel,
-} from 'react-native-executorch';
+import { usePrivacyFilter, models, nlp, type PrivacyFilterModel } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
@@ -33,14 +26,18 @@ Reach her at maria.lopez@example.com or +1 (415) 555-0142. Address: 84 Cedar Hil
 /* cspell:enable */
 
 const MODELS: { label: string; value: PrivacyFilterModel; sample: string; iosOnly?: boolean }[] = [
-  { label: 'OpenAI (8 types)', value: models.privacyFilter.OPENAI, sample: OPENAI_SAMPLE },
+  { label: 'OpenAI (8 types)', value: models.privacyFilter.OPENAI.DEFAULT, sample: OPENAI_SAMPLE },
   {
     label: 'OpenAI MLX',
     value: models.privacyFilter.OPENAI.MLX_INT4,
     sample: OPENAI_SAMPLE,
     iosOnly: true,
   },
-  { label: 'Nemotron (55 types)', value: models.privacyFilter.NEMOTRON, sample: NEMOTRON_SAMPLE },
+  {
+    label: 'Nemotron (55 types)',
+    value: models.privacyFilter.NEMOTRON.DEFAULT,
+    sample: NEMOTRON_SAMPLE,
+  },
   {
     label: 'Nemotron MLX',
     value: models.privacyFilter.NEMOTRON.MLX_INT8,
@@ -64,14 +61,14 @@ function PrivacyFilterContent() {
   const { isReady, downloadProgress, error, detectPii } = usePrivacyFilter(active.value);
 
   const [text, setText] = useState(active.sample);
-  const [entities, setEntities] = useState<PiiEntity[] | null>(null);
+  const [entities, setEntities] = useState<nlp.PiiEntity[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
   const [inferenceMs, setInferenceMs] = useState<number | null>(null);
 
   const ready = isReady && !!detectPii;
-  const segments: PiiSegment[] | null = useMemo(
-    () => (entities ? piiSegments(text, entities) : null),
+  const segments: nlp.PiiSegment[] | null = useMemo(
+    () => (entities ? nlp.piiSegments(text, entities) : null),
     [text, entities]
   );
 

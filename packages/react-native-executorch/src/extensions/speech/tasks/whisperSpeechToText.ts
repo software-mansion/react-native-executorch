@@ -1,3 +1,8 @@
+/**
+ * Whisper Speech-to-Text (STT) transcription and live-streaming task pipeline.
+ * @module Speech/Tasks/WhisperSpeechToText
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 import { scheduleOnRN, createSynchronizable } from 'react-native-worklets';
 
@@ -17,7 +22,7 @@ import { RnExecuTorchError } from '../../../core/error';
 
 /**
  * Sample rate (Hz) Whisper models expect their input waveform to be at.
- * @category Constants
+ * @category Speech / Constants
  */
 export const WHISPER_SAMPLE_RATE_HZ = 16000;
 
@@ -30,7 +35,7 @@ const BUFFER_SIZE = CHUNK_LENGTH_SECONDS * WHISPER_SAMPLE_RATE_HZ; // samples pe
 /**
  * Language codes supported by Whisper multilingual models. English-only
  * model variants only accept `'en'`.
- * @category Constants
+ * @category Speech / Constants
  */
 // prettier-ignore
 export const WHISPER_LANGUAGES = [
@@ -49,13 +54,13 @@ export const WHISPER_LANGUAGES = [
 /**
  * Union type of all language codes supported by Whisper. Derived from
  * {@link WHISPER_LANGUAGES}.
- * @category Types
+ * @category Speech / Types
  */
 export type WhisperLanguage = (typeof WHISPER_LANGUAGES)[number];
 
 /**
  * Options passed to a single transcription call.
- * @category Types
+ * @category Speech / Types
  */
 export type WhisperSttOptions<L extends WhisperLanguage = WhisperLanguage> = {
   /**
@@ -69,7 +74,7 @@ export type WhisperSttOptions<L extends WhisperLanguage = WhisperLanguage> = {
 /**
  * Options for the live-streaming transcription API.
  * Extends {@link WhisperSttOptions} with optional VAD tuning.
- * @category Types
+ * @category Speech / Types
  */
 export type WhisperStreamOptions<L extends WhisperLanguage = WhisperLanguage> =
   WhisperSttOptions<L> & {
@@ -82,7 +87,7 @@ export type WhisperStreamOptions<L extends WhisperLanguage = WhisperLanguage> =
 
 /**
  * Paths and metadata required to instantiate a Whisper speech-to-text model.
- * @category Types
+ * @category Speech / Types
  */
 export type WhisperSttModel<L extends WhisperLanguage = WhisperLanguage> = {
   /** Local path or remote URL of the `.pte` model. */
@@ -96,34 +101,29 @@ export type WhisperSttModel<L extends WhisperLanguage = WhisperLanguage> = {
 };
 
 /**
- * Loads a Whisper model and returns a set of transcription helpers.
- * @category Typescript API
- * @param config Model paths and supported-language metadata. See {@link
- * WhisperSttModel}.
- * @param runtime Optional worklet runtime thread on which to run the model
- * execution.
- * @returns A promise resolving to an object containing transcription and
- * disposal controls.
+ * Whisper speech-to-text task runner.
+ * @category Speech / Types
+ * @typeParam L The language type accepted by the model.
  */
-export async function createWhisperSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
-  config: WhisperSttModel<L>,
-  runtime?: WorkletRuntime
-): Promise<{
+export type WhisperSpeechToText<L extends WhisperLanguage = WhisperLanguage> = {
   /**
    * Releases all allocated native resources.
    */
-  dispose: () => void;
+  readonly dispose: () => void;
 
   /**
    * Asynchronously transcribes a pre-recorded mono waveform sampled at
    * {@link WHISPER_SAMPLE_RATE_HZ}.
-   * @param audio Raw 16 kHz mono PCM samples.
-   * @param options Transcription options.
+   * @param audio Raw 16 kHz mono PCM audio samples (Float32Array).
+   * @param options Transcription options. See {@link WhisperSttOptions}.
    * @param onToken Optional callback fired on the RN thread for each decoded
    * token.
    * @returns A promise resolving to the full transcript string.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the language is
+   * unsupported, `RESOURCE_BUSY` if the model is in use, or `RESOURCE_DISPOSED`
+   * if disposed.
    */
-  transcribe: (
+  readonly transcribe: (
     audio: Float32Array,
     options: WhisperSttOptions<L>,
     onToken?: (token: string) => void
@@ -133,7 +133,7 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
    * Synchronous version of {@link transcribe} to be executed directly on the
    * caller or worklet thread.
    */
-  transcribeWorklet: (
+  readonly transcribeWorklet: (
     audio: Float32Array,
     options: WhisperSttOptions<L>,
     onToken?: (token: string) => void
@@ -142,7 +142,7 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
   /**
    * Interrupts and stops any active transcription call.
    */
-  transcribeStop: () => void;
+  readonly transcribeStop: () => void;
 
   /**
    * Async generator for real-time microphone transcription. Feed audio with
@@ -151,8 +151,13 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
    * finalized transcript so far; `nonCommitted` is the in-progress text that
    * may still change.
    * @param options Stream options (language and optional VAD tuning).
+   * See {@link WhisperStreamOptions}.
+   * @returns An AsyncGenerator yielding transcript updates.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the language is
+   * unsupported, `RESOURCE_BUSY` if the model is in use, or `RESOURCE_DISPOSED`
+   * if disposed.
    */
-  stream: (
+  readonly stream: (
     options: WhisperStreamOptions<L>
   ) => AsyncGenerator<{ committed: string; nonCommitted: string }>;
 
@@ -160,15 +165,36 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
    * Signals the {@link stream} generator to finalize the current segment and
    * return. Safe to call even when streaming is not active.
    */
-  streamStop: () => void;
+  readonly streamStop: () => void;
 
   /**
    * Appends a new PCM chunk to the live streaming buffer consumed by
    * {@link stream}. Ignored when streaming is not active.
-   * @param audioChunk The newly captured audio samples.
+   * @param audioChunk The newly captured audio samples (16 kHz mono Float32
+   * PCM).
    */
-  streamInsert: (audioChunk: Float32Array) => void;
-}> {
+  readonly streamInsert: (audioChunk: Float32Array) => void;
+};
+
+/**
+ * Loads a Whisper model and returns a set of transcription helpers.
+ * @category Speech / Tasks
+ * @typeParam L Supported language codes constraint.
+ * @param config Model paths, supported-language metadata, and VAD
+ * configuration.
+ * See {@link WhisperSttModel}.
+ * @param runtime Optional worklet runtime thread on which to run the model
+ * execution.
+ * @returns A promise resolving to the instantiated {@link WhisperSpeechToText}
+ * runner.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the model, tokenizer,
+ * or VAD fails to load, or `SCHEMA_MISMATCH` if model schemas do not match the
+ * Whisper specification.
+ */
+export async function createWhisperSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
+  config: WhisperSttModel<L>,
+  runtime?: WorkletRuntime
+): Promise<WhisperSpeechToText<L>> {
   const { modelPath, tokenizerPath, supportedLanguages, vadModel } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
   const tokenizer = await wrapAsync(loadTokenizer, runtime)(tokenizerPath);

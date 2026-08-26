@@ -1,3 +1,7 @@
+/**
+ * Kokoro Text-to-Speech (TTS) synthesis task pipeline.
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import RNBlobUtil from 'react-native-blob-util';
@@ -11,7 +15,7 @@ import {
   f32,
   bool,
   DynamicDim as Dyn,
-  constr,
+  constraint,
 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { RnExecuTorchError } from '../../../core/error';
@@ -30,7 +34,7 @@ import {
 
 /**
  * Kokoro audio sampling rate in Hz (24000).
- * @category Constants
+ * @category Speech / Constants
  */
 export const KOKORO_SAMPLE_RATE = 24000;
 
@@ -49,7 +53,7 @@ const LETTER_PATTERN = /\p{L}/u;
 
 /**
  * Model configuration required to instantiate the Kokoro Text-to-Speech pipeline.
- * @category Types
+ * @category Speech / Types
  * @typeParam K Voice keys record constraint (strictly inferred from voices keys).
  */
 export type KokoroTtsModel<K extends PropertyKey> = {
@@ -70,7 +74,7 @@ export type KokoroTtsModel<K extends PropertyKey> = {
 
 /**
  * Per-call execution options for Kokoro Text-to-Speech synthesis.
- * @category Types
+ * @category Speech / Types
  * @typeParam K Voice keys record constraint.
  */
 export type KokoroTtsOptions<K extends PropertyKey> = {
@@ -86,7 +90,7 @@ export type KokoroTtsOptions<K extends PropertyKey> = {
 
 /**
  * Audio output chunk yielded by the {@link createKokoroTextToSpeech} generator.
- * @category Types
+ * @category Speech / Types
  */
 export type KokoroTtsChunk = {
   /** Float32 PCM audio samples for this chunk, normalized in `[-1, 1]`. */
@@ -102,39 +106,54 @@ export type KokoroTtsChunk = {
 };
 
 /**
+ * Kokoro text-to-speech task runner.
+ * @category Speech / Types
+ * @typeParam K Voice keys record constraint.
+ */
+export type KokoroTextToSpeech<K extends PropertyKey = string> = {
+  /**
+   * Releases all allocated native resources.
+   */
+  readonly dispose: () => void;
+
+  /**
+   * Streams synthesized audio chunks as an async generator as each text chunk finishes.
+   * @param text Input text (or IPA phonemes) to synthesize into speech.
+   * @param options Per-call execution options. See {@link KokoroTtsOptions}.
+   * @returns An AsyncGenerator yielding {@link KokoroTtsChunk} audio buffers.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the voice is unknown
+   * or speed is out of range, `RESOURCE_BUSY` if the model is in use, or
+   * `RESOURCE_DISPOSED` if disposed.
+   */
+  readonly synthesize: (
+    text: string,
+    options: KokoroTtsOptions<K>
+  ) => AsyncGenerator<KokoroTtsChunk>;
+
+  /** Cancels any in-flight synthesis started by {@link synthesize}. */
+  readonly synthesizeStop: () => void;
+};
+
+/**
  * Creates a Kokoro Text-to-Speech pipeline.
  *
  * It validates both sub-model method schemas, builds the grapheme-to-phoneme
  * pipeline, pre-parses the voice files into memory, and registers disposal
  * hooks to release all native resources.
- * @category Typescript API
+ * @category Speech / Tasks
  * @typeParam K Voice keys record constraint.
  * @param config Kokoro TTS pipeline configuration containing model and asset paths.
+ * See {@link KokoroTtsModel}.
  * @param runtime Optional worklet runtime thread on which to run inference.
- * @returns A promise resolving to an object with audio synthesis and disposal controls.
+ * @returns A promise resolving to the instantiated {@link KokoroTextToSpeech} runner.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if models or voice files
+ * fail to load, `SCHEMA_MISMATCH` if model schemas do not match the Kokoro
+ * specification, or `INVALID_STATE` if phonemizer native support is missing.
  */
 export async function createKokoroTextToSpeech<K extends PropertyKey>(
   config: KokoroTtsModel<K>,
   runtime?: WorkletRuntime
-): Promise<{
-  /** Releases the allocated native models, phonemizer and execution tensors. */
-  dispose: () => void;
-
-  /**
-   * Streams synthesized audio chunks as an async generator as each text chunk finishes.
-   * @param text Input text (or IPA phonemes) to synthesize into speech.
-   * @param options Per-call execution options.
-   * @param options.voice Voice name, one of the keys of the config's `voices`.
-   * @param options.speed Speech speed factor (range: 0.1 to 3.0). Defaults to 1.0.
-   * @param options.phonemize Whether to phonemize the input. Defaults to true.
-   * @param options.maxChunkLength Maximum phoneme count per chunk.
-   * @returns An AsyncGenerator yielding {@link KokoroTtsChunk} audio buffers.
-   */
-  synthesize: (text: string, options: KokoroTtsOptions<K>) => AsyncGenerator<KokoroTtsChunk>;
-
-  /** Cancels any in-flight synthesis started by {@link synthesize}. */
-  synthesizeStop: () => void;
-}> {
+): Promise<KokoroTextToSpeech<K>> {
   const load = wrapAsync(loadModel, runtime);
   const [durationPredictor, synthesizer] = await Promise.all([
     load(config.modelPaths.durationPredictor),
@@ -160,7 +179,7 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
           f32(1, Dyn('T'), DURATION_FEATURE_DIM), // durationFeatures
         ],
         [
-          constr.eq(
+          constraint.equality(
             { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
             { paramSide: 'input', tensorIdx: 1, dimIdx: 1 },
             { paramSide: 'output', tensorIdx: 0, dimIdx: 0 },
@@ -182,12 +201,12 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
         ],
         [f32(1, 1, Dyn('AUDIO_LEN'))], // audio
         [
-          constr.eq(
+          constraint.equality(
             { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
             { paramSide: 'input', tensorIdx: 1, dimIdx: 1 },
             { paramSide: 'input', tensorIdx: 3, dimIdx: 1 }
           ),
-          constr.linear(
+          constraint.linear(
             { paramSide: 'output', tensorIdx: 0, dimIdx: 2 },
             { paramSide: 'input', tensorIdx: 2, dimIdx: 0 },
             TICKS_PER_DURATION

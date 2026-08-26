@@ -1,32 +1,51 @@
+/**
+ * Grapheme-to-phoneme (G2P) conversion using native Phonemis bindings.
+ */
+
 import { rnexecutorchJsi } from '../../../native/bridge';
 import { RnExecuTorchError } from '../../../core/error';
 
 declare const phonemizerBrand: unique symbol;
 
 /**
- * Union of all (currently) supported languages in our G2P pipeline.
+ * Union of all supported language codes in the G2P pipeline.
+ * @category Speech / Types
  */
 export type PhonemizerLanguage = 'en-us' | 'en-gb' | 'fr' | 'es' | 'it' | 'pt' | 'de' | 'pl' | 'hi';
 
 /**
- * A configuration type compatible with the underlying
- * Phonemis library interface.
+ * Configuration options and asset paths for initializing a {@link Phonemizer}.
+ * @category Speech / Types
  */
 export type PhonemizerConfig = {
-  lang: PhonemizerLanguage;
-  taggerSource?: string;
-  lexiconSource?: string;
-  neuralModelSource?: string;
+  /** Target language code to configure the G2P rules for. */
+  readonly lang: PhonemizerLanguage;
+  /** Optional local file path to the part-of-speech tagger model data. */
+  readonly taggerSource?: string;
+  /** Optional local file path to the pronunciation lexicon dictionary. */
+  readonly lexiconSource?: string;
+  /** Optional local file path to the neural G2P model data. */
+  readonly neuralModelSource?: string;
 };
 
+/**
+ * Native Grapheme-to-Phoneme (G2P) conversion interface.
+ * @category Speech / Types
+ */
 export type Phonemizer = {
   /**
-   * A standard G2P (grapheme to phoneme) utility.
-   * @param text Input text to be phonemized.
+   * Converts input text into phonetic IPA transcription.
+   * @param text Input text string to be phonemized.
+   * @returns Phonetic transcription string.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the phonemizer is
+   * in use, or `RESOURCE_DISPOSED` if disposed.
    */
   phonemize(text: string): string;
 
-  /** Releases the native phonemizer. The instance must not be used afterwards. */
+  /**
+   * Releases the allocated native phonemizer resources. The instance must not
+   * be used afterwards.
+   */
   dispose(): void;
 
   /**
@@ -37,10 +56,13 @@ export type Phonemizer = {
 };
 
 /**
- * Creates a grapheme-to-phoneme pipeline for the configured language.
- * @category Typescript API
- * @param config The phonemizer configuration and asset paths.
+ * Creates a grapheme-to-phoneme (G2P) pipeline for the configured language.
+ * @category Speech / Functions
+ * @param config Phonemizer configuration and asset paths.
+ * See {@link PhonemizerConfig}.
  * @returns The native {@link Phonemizer} instance.
+ * @throws {RnExecuTorchError} With code `INVALID_STATE` if the native build
+ * lacks phonemizer support, or `LOAD_FAILED` if phonemizer assets fail to load.
  */
 export function createPhonemizer(config: PhonemizerConfig): Phonemizer {
   'worklet';

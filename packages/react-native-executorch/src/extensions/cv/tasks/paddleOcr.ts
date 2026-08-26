@@ -1,7 +1,7 @@
-// PP-OCRv6: a DBNet text detector and an SVTR recognizer fused into one PTE.
-// One pass locates every text line on the page, warps each to the recognizer
-// canvas and reads it. Worklet source order matters here: a referenced worklet
-// must be defined above its callers.
+/**
+ * PP-OCRv6 optical character recognition (DBNet text detection + SVTR text
+ * recognition).
+ */
 
 import type { WorkletRuntime } from 'react-native-worklets';
 import RNBlobUtil from 'react-native-blob-util';
@@ -13,7 +13,7 @@ import { tensor, type Tensor } from '../../../core/tensor';
 import {
   validateSpec,
   method,
-  constr,
+  constraint,
   f32,
   DynamicDim,
   type ConcreteDim,
@@ -28,7 +28,7 @@ import {
   FORMAT_CHANNELS,
   FORMAT_CONVERSION,
 } from '../ops/image';
-import { interpolatePoint } from '../ops/points';
+import { interpolatePoint } from '../ops/point';
 import {
   boundingBoxOfPoints,
   orderQuad,
@@ -39,11 +39,11 @@ import {
 } from '../ops/quad';
 import { argmax, gather } from '../../math';
 import { extractDbnetTextQuads } from '../utils/paddleOcrUtils';
-import { createImagePreprocessor } from './preprocessing';
+import { createImagePreprocessor } from '../utils/imagePreprocessor';
 
 /**
  * A single recognized text region.
- * @category Types
+ * @category CV / Types
  */
 export type OcrDetection = {
   /** The recognized text. */
@@ -53,14 +53,14 @@ export type OcrDetection = {
   /**
    * The region's corners, ordered top-left, top-right, bottom-right, bottom-left,
    * in original image pixels. Oriented, so a rotated line keeps its angle; take
-   * `boundingBoxOfPoints(quad, 'xyxy')` for the axis-aligned box.
+   * {@link boundingBoxOfPoints} for the axis-aligned box.
    */
   readonly quad: Quad;
 };
 
 /**
  * Options for the PP-OCRv6 pipeline.
- * @category Types
+ * @category CV / Types
  */
 export type PaddleOcrModelOptions = {
   /**
@@ -71,9 +71,21 @@ export type PaddleOcrModelOptions = {
 };
 
 /**
+ * Optional configuration parameters for optical character recognition inference.
+ * @category CV / Types
+ */
+export type RecognizeCharactersOptions = {
+  /**
+   * Minimum confidence threshold to retain recognized text regions, in `[0, 1]`.
+   * Overrides the model's `defaultConfidenceThreshold` for this call.
+   */
+  readonly confidenceThreshold?: number;
+};
+
+/**
  * Model configuration for the PP-OCRv6 pipeline: one fused detect/recognize PTE,
  * the charset published beside it, and the run options.
- * @category Types
+ * @category CV / Types
  */
 export type PaddleOcrModel = {
   /** The fused detect/recognize PTE. Resolved to a local path by the fetcher. */
@@ -86,6 +98,38 @@ export type PaddleOcrModel = {
   readonly charsetPath: string;
   /** Run options. See {@link PaddleOcrModelOptions}. */
   readonly modelOpts: PaddleOcrModelOptions;
+};
+
+/**
+ * PP-OCRv6 optical character recognition task runner.
+ * @category CV / Types
+ */
+export type PaddleOcr = {
+  /**
+   * Releases all allocated native resources.
+   */
+  readonly dispose: () => void;
+
+  /**
+   * Detects and recognizes every text line in the given image.
+   * @param input The input image buffer.
+   * @param options Per-call overrides. See {@link RecognizeCharactersOptions}.
+   * @returns A promise resolving to the recognized lines in reading order
+   * (leftmost column top to bottom, then the next column).
+   */
+  readonly recognizeCharacters: (
+    input: ImageBuffer,
+    options?: RecognizeCharactersOptions
+  ) => Promise<OcrDetection[]>;
+
+  /**
+   * Synchronous version of {@link recognizeCharacters} to be executed directly
+   * on the caller or worklet thread.
+   */
+  readonly recognizeCharactersWorklet: (
+    input: ImageBuffer,
+    options?: RecognizeCharactersOptions
+  ) => OcrDetection[];
 };
 
 // Fixed by the export: the detector was trained on ImageNet-normalized RGB and
@@ -341,46 +385,21 @@ function greedyCtcDecode(
  * Creates the PP-OCRv6 runner: one pass detects text quads on the whole page,
  * warps each to the recognizer canvas and reads it, returning the lines in
  * reading order.
- * @category Typescript API
- * @param config Model path, charset path, and run options.
- * @param runtime Optional worklet runtime thread.
- * @returns A promise resolving to an object containing recognition and disposal
- * controls.
- * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if the loaded model
- * does not match the PP-OCRv6 detect/recognize contract, or if the charset does
- * not match the recognizer's vocabulary.
+ * @category CV / Tasks
+ * @param config PaddleOCR task configuration containing the model, charset,
+ * and detection thresholds. See {@link PaddleOcrModel}.
+ * @param runtime Optional worklet runtime thread on which to run detection and
+ * recognition.
+ * @returns A promise resolving to the instantiated {@link PaddleOcr} runner.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the model or charset
+ * fails to load, `SCHEMA_MISMATCH` if the loaded model does not match the
+ * PP-OCRv6 detect/recognize contract, or if the charset does not match the
+ * recognizer's vocabulary.
  */
 export async function createPaddleOcr(
   config: PaddleOcrModel,
   runtime?: WorkletRuntime
-): Promise<{
-  /**
-   * Releases all allocated native resources.
-   */
-  dispose: () => void;
-
-  /**
-   * Detects and recognizes every text line in the given image.
-   * @param input The input image buffer.
-   * @param options Per-call overrides. `confidenceThreshold` replaces the
-   * model's `defaultConfidenceThreshold` for this call.
-   * @returns A promise resolving to the recognized lines in reading order
-   * (leftmost column top to bottom, then the next column).
-   */
-  recognizeCharacters: (
-    input: ImageBuffer,
-    options?: { confidenceThreshold?: number }
-  ) => Promise<OcrDetection[]>;
-
-  /**
-   * Synchronous version of {@link recognizeCharacters} to be executed directly
-   * on the caller or worklet thread.
-   */
-  recognizeCharactersWorklet: (
-    input: ImageBuffer,
-    options?: { confidenceThreshold?: number }
-  ) => OcrDetection[];
-}> {
+): Promise<PaddleOcr> {
   const { modelPath, charsetPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
@@ -399,7 +418,7 @@ export async function createPaddleOcr(
         [f32(1, 3, 'recH', DynamicDim('recW'))],
         [f32(1, DynamicDim('recT'), 'vocab')],
         [
-          constr.linear(
+          constraint.linear(
             { paramSide: 'input', tensorIdx: 0, dimIdx: 3 },
             { paramSide: 'output', tensorIdx: 0, dimIdx: 1 },
             SVTR_CTC_STRIDE
@@ -430,7 +449,7 @@ export async function createPaddleOcr(
 
   const recognizeCharactersWorklet = (
     input: ImageBuffer,
-    options?: { confidenceThreshold?: number }
+    options?: RecognizeCharactersOptions
   ): OcrDetection[] => {
     'worklet';
     const confidenceThreshold =

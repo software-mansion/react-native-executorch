@@ -1,3 +1,8 @@
+/**
+ * SDXS single-step text-to-image generation pipeline with latent diffusion and
+ * TAESD decoding.
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
@@ -35,7 +40,7 @@ const NOISE_COEFF = -14.579279;
 
 /**
  * Model configuration required to instantiate the SDXS text-to-image runner.
- * @category Types
+ * @category CV / Types
  */
 export type SdxsTextToImageModel = {
   /** Local path to the model `.pte`. */
@@ -45,21 +50,14 @@ export type SdxsTextToImageModel = {
 };
 
 /**
- * Creates an SDXS text-to-image runner.
- *
- * It validates the exported method schemas, pre-allocates the static execution
- * tensors, and registers disposal hooks that release all native memory.
- * @category Typescript API
- * @param config SDXS pipeline configuration containing the model and tokenizer paths.
- * @param runtime Optional worklet runtime thread on which to run generation.
- * @returns A promise resolving to an object with generation and disposal controls.
+ * SDXS single-step text-to-image generation task runner.
+ * @category CV / Types
  */
-export async function createSdxsTextToImage(
-  config: SdxsTextToImageModel,
-  runtime?: WorkletRuntime
-): Promise<{
-  /** Releases all allocated native resources. */
-  dispose: () => void;
+export type SdxsTextToImage = {
+  /**
+   * Releases all allocated native resources.
+   */
+  readonly dispose: () => void;
 
   /**
    * Generates an image from a text prompt.
@@ -67,15 +65,35 @@ export async function createSdxsTextToImage(
    * @param seed Seed for the initial latent noise (same seed → same image).
    * Defaults to a time-based value so omitting it yields a fresh image each call.
    * @returns A promise resolving to the generated RGBA image buffer.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
    */
-  generate: (prompt: string, seed?: number) => Promise<ImageBuffer>;
+  readonly generate: (prompt: string, seed?: number) => Promise<ImageBuffer>;
 
   /**
    * Synchronous version of {@link generate} to be executed directly on the
    * caller or worklet thread.
    */
-  generateWorklet: (prompt: string, seed?: number) => ImageBuffer;
-}> {
+  readonly generateWorklet: (prompt: string, seed?: number) => ImageBuffer;
+};
+
+/**
+ * Creates an SDXS text-to-image runner.
+ *
+ * It validates the exported method schemas, pre-allocates the static execution
+ * tensors, and registers disposal hooks that release all native memory.
+ * @category CV / Tasks
+ * @param config SDXS pipeline configuration containing the model and tokenizer paths.
+ * See {@link SdxsTextToImageModel}.
+ * @param runtime Optional worklet runtime thread on which to run generation.
+ * @returns A promise resolving to the instantiated {@link SdxsTextToImage} runner.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model or tokenizer
+ * fails to load, or `SCHEMA_MISMATCH` if model schema does not match SDXS spec.
+ */
+export async function createSdxsTextToImage(
+  config: SdxsTextToImageModel,
+  runtime?: WorkletRuntime
+): Promise<SdxsTextToImage> {
   const { modelPath, tokenizerPath } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
   const tokenizer = await wrapAsync(loadTokenizer, runtime)(tokenizerPath);

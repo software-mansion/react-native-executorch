@@ -6,21 +6,24 @@ import {
 } from '../extensions/speech/tasks/fsmnVoiceActivityDetection';
 
 /**
- * React hook to load and run a Voice Activity Detection model.
+ * React hook to load and run a Voice Activity Detection (VAD) model.
  *
- * This hook manages downloading (if it's a remote URL) and loading the model
- * file, compiling it, tracking download progress and compilation errors, and
- * cleaning up native model memory when the component unmounts or configuration
+ * This hook manages downloading (if remote URLs are provided) and loading the
+ * model assets, compiling them, tracking download progress and load errors, and
+ * releasing native memory when the component unmounts or the configuration
  * changes.
+ *
+ * For imperative usage, see {@link createFsmnVoiceActivityDetector}.
  * @category Hooks
- * @param config The VAD model configuration.
+ * @param config The VAD model configuration. See {@link FsmnVadModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download
- * progress, one-shot detection functions, and live detection controls.
+ * @returns The same object as {@link createFsmnVoiceActivityDetector} (without `dispose`),
+ * combined with loading state and download progress.
+ * @see {@link createFsmnVoiceActivityDetector}
  */
 export function useVoiceActivityDetector(config: FsmnVadModel, options?: ResourceOptions) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
-  const { model, error } = useModel(createFsmnVoiceActivityDetector, resource ?? null);
+  const { model, error } = useModel(createFsmnVoiceActivityDetector, resource);
 
   return {
     isReady: !!model,

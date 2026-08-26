@@ -1,3 +1,7 @@
+/**
+ * Reusable image preprocessing pipeline for neural network inputs.
+ */
+
 import { tensor, type Tensor } from '../../../core/tensor';
 
 import type { ImageBuffer } from '../image';
@@ -16,41 +20,29 @@ import { RnExecuTorchError } from '../../../core/error';
 
 /**
  * Options for configuring the image preprocessor pipeline.
- * @category Types
+ * @category CV / Types
  */
 export type ImagePreprocessorOptions = {
-  /**
-   * How the input image is resized to match the model's expected
-   * dimensions {@link ResizeMode}.
-   */
+  /** How the input image is resized to match the model's expected dimensions. */
   readonly resizeMode: ResizeMode;
-  /** Algorithm used when resizing {@link InterpolationMethod}. `'linear'` is a good default. */
+  /** Algorithm used when resizing (e.g. `'linear'`, `'lanczos'`). */
   readonly interpolation: InterpolationMethod;
   /** Normalization scaling coefficients. */
   readonly normalizeOpts: NormalizeOptions;
-  /** Optional background fill value used when letterboxing. */
+  /** Optional background fill value used when letterboxing (padding). */
   readonly padValue?: number;
 };
 
 /**
- * Creates a reusable image preprocessor pipeline.
- *
- * Configures a pipeline to resize, color convert, convert layout (HWC to CHW),
- * normalize, and copy raw image buffers into target tensors matching model
- * input shapes. All intermediate scratch tensors are pre-allocated and safely
- * disposed of when calling `dispose()`.
- * @category Typescript API
- * @param options Normalization scaling coefficients, interpolation algorithms, and
- * crop/resize modes.
- * @param outputShape Expected output shape of the model input tensor (must
- * match `[1, 3, H, W]` or `[3, H, W]`).
- * @returns An object containing the `process` runner function and a `dispose`
- * method.
+ * Image preprocessor runner for transforming image buffers into model input tensors.
+ * @category CV / Types
  */
-export function createImagePreprocessor(
-  options: ImagePreprocessorOptions,
-  outputShape: number[]
-): {
+export type ImagePreprocessor = {
+  /**
+   * Releases all allocated native resources.
+   */
+  readonly dispose: () => void;
+
   /**
    * Preprocesses the input image by resizing, converting color space, changing
    * format layout, and normalizing values, copying the output directly to the
@@ -60,14 +52,32 @@ export function createImagePreprocessor(
    * need to dispose of it manually.
    * @param input The input image buffer to preprocess.
    * @returns A reference to the output tensor containing preprocessed float32
-   * data.
+   * data of shape `[3, H, W]` (or `[1, 3, H, W]`) and data type `float32`.
    */
-  process: (input: ImageBuffer) => Tensor;
-  /**
-   * Releases all allocated native resources.
-   */
-  dispose: () => void;
-} {
+  readonly process: (input: ImageBuffer) => Tensor;
+};
+
+/**
+ * Creates a reusable image preprocessor pipeline.
+ *
+ * Configures a pipeline to resize, color convert, convert layout (HWC to CHW),
+ * normalize, and copy raw image buffers into target tensors matching model
+ * input shapes. All intermediate scratch tensors are pre-allocated and safely
+ * disposed of when calling `dispose()`.
+ * @category CV / Functions
+ * @param options Normalization scaling coefficients, interpolation algorithms, and
+ * resize modes.
+ * See {@link ImagePreprocessorOptions}.
+ * @param outputShape Expected output shape of the preprocessed model input
+ * tensor (must match rank-3 `[3, H, W]` or rank-4 `[1, 3, H, W]`).
+ * @returns An instantiated {@link ImagePreprocessor} pipeline.
+ * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if `outputShape` does
+ * not match rank-3 `[3, H, W]` or rank-4 `[1, 3, H, W]`.
+ */
+export function createImagePreprocessor(
+  options: ImagePreprocessorOptions,
+  outputShape: number[]
+): ImagePreprocessor {
   'worklet';
   const numRgbChannels = 3;
   const isRank3 = outputShape.length === 3 && outputShape[0] === numRgbChannels;
@@ -91,10 +101,8 @@ export function createImagePreprocessor(
   const [tColor, tChanFirst, tNorm, tOutput] = tensors;
   const { resizeMode, interpolation, normalizeOpts, padValue } = options;
 
-  const dispose = () => {
-    'worklet';
-    tensors.forEach((t) => t.dispose());
-  };
+  const dispose = () => tensors.forEach((t) => t.dispose());
+
   const process = (input: ImageBuffer): Tensor => {
     'worklet';
     const { data, width, height, format } = input;

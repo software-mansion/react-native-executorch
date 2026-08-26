@@ -1,3 +1,8 @@
+/**
+ * Instance segmentation task pipeline with NMS, bounding box scaling, and mask
+ * extraction.
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
@@ -6,7 +11,7 @@ import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import type { ImageBuffer } from '../image';
-import { createImagePreprocessor, type ImagePreprocessorOptions } from './preprocessing';
+import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils/imagePreprocessor';
 import { threshold } from '../../math';
 import { resize, normalize } from '../ops/image';
 import {
@@ -16,15 +21,13 @@ import {
   restrictToBox,
   type BoundingBox,
   type BoxFormat,
-} from '../ops/boxes';
+} from '../ops/box';
 import { RnExecuTorchError } from '../../../core/error';
-
-export type { BoxFormat };
 
 /**
  * Options for configuring an instance segmenter preprocessor, label
  * vocabulary, and threshold parameters.
- * @category Types
+ * @category CV / Types
  * @typeParam F The format type of the bounding box.
  * @typeParam L The label type.
  */
@@ -48,7 +51,7 @@ export type InstanceSegmenterOptions<F extends BoxFormat, L> = Omit<
 
 /**
  * Model configuration required to instantiate an instance segmenter task runner.
- * @category Types
+ * @category CV / Types
  * @typeParam F The format type of the bounding box.
  * @typeParam L The label type.
  */
@@ -56,17 +59,39 @@ export type InstanceSegmenterModel<F extends BoxFormat, L> = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /**
-   * Image preprocessing, label vocabulary, bounding box format,
-   * and default NMS/mask/confidence thresholds
-   * {@link InstanceSegmenterOptions}.
+   * Image preprocessing, label vocabulary, bounding box format, and default
+   * NMS/mask/confidence thresholds.
+   * See {@link InstanceSegmenterOptions}.
    */
   readonly modelOpts: InstanceSegmenterOptions<F, L>;
 };
 
 /**
+ * Optional configuration parameters for instance segmentation inference.
+ * @category CV / Types
+ */
+export type SegmentInstancesOptions = {
+  /**
+   * Minimum confidence threshold. If omitted, uses
+   * {@link InstanceSegmenterOptions.defaultConfidenceThreshold}.
+   */
+  readonly confidenceThreshold?: number;
+  /**
+   * Intersection over Union (IoU) threshold in NMS. If omitted, uses
+   * {@link InstanceSegmenterOptions.defaultIouThreshold}.
+   */
+  readonly iouThreshold?: number;
+  /**
+   * Mask binarization probability threshold. If omitted, uses
+   * {@link InstanceSegmenterOptions.defaultMaskThreshold}.
+   */
+  readonly maskThreshold?: number;
+};
+
+/**
  * Result structure representing a single detected instance with its bounding box,
  * segmentation mask, label, and confidence score.
- * @category Types
+ * @category CV / Types
  * @typeParam F The format type of the bounding box.
  * @typeParam L The label type.
  */
@@ -82,56 +107,65 @@ export type InstanceSegmentationResult<F extends BoxFormat, L> = {
 };
 
 /**
- * Creates an instance segmenter runner for executing local Instance
- * Segmentation models.
- *
- * It validates model input/output tensor shapes and types, pre-allocates
- * execution and auxiliary tensors, sets up an image preprocessor, and returns
- * execution and resource management controls.
- * @category Typescript API
- * @typeParam F The bounding box format type.
+ * Instance segmentation task runner.
+ * @category CV / Types
+ * @typeParam F The format type of the bounding box.
  * @typeParam L The label type.
- * @param config Model configuration containing path and options.
- * @param runtime Optional worklet runtime thread on which to run the model
- * execution.
- * @returns A promise resolving to an object containing instance segmentation
- * and disposal controls.
  */
-export async function createInstanceSegmenter<F extends BoxFormat, L>(
-  config: InstanceSegmenterModel<F, L>,
-  runtime?: WorkletRuntime
-): Promise<{
+export type InstanceSegmenter<F extends BoxFormat, L> = {
   /**
    * Releases all allocated native resources.
    */
-  dispose: () => void;
+  readonly dispose: () => void;
 
   /**
    * Performs asynchronous instance segmentation on the given input image.
    * @param input The input image buffer.
    * @param options Execution override options.
-   * @param options.confidenceThreshold Minimum confidence threshold. If
-   * omitted, uses `modelOpts.defaultConfidenceThreshold`.
-   * @param options.iouThreshold Intersection over Union (IoU) threshold in NMS. If omitted, uses
-   * `modelOpts.defaultIouThreshold`.
-   * @param options.maskThreshold Mask binarization threshold. If omitted,
-   * uses `modelOpts.defaultMaskThreshold`.
+   * See {@link SegmentInstancesOptions}.
    * @returns A promise resolving to a list of detected instances.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if predicted class
+   * index is out of bounds, `RESOURCE_BUSY` if the model is in use, or
+   * `RESOURCE_DISPOSED` if disposed.
    */
-  segmentInstances: (
+  readonly segmentInstances: (
     input: ImageBuffer,
-    options?: { confidenceThreshold?: number; iouThreshold?: number; maskThreshold?: number }
+    options?: SegmentInstancesOptions
   ) => Promise<InstanceSegmentationResult<F, L>[]>;
 
   /**
    * Synchronous version of {@link segmentInstances} to be executed directly on
    * the caller or worklet thread.
    */
-  segmentInstancesWorklet: (
+  readonly segmentInstancesWorklet: (
     input: ImageBuffer,
-    options?: { confidenceThreshold?: number; iouThreshold?: number; maskThreshold?: number }
+    options?: SegmentInstancesOptions
   ) => InstanceSegmentationResult<F, L>[];
-}> {
+};
+
+/**
+ * Creates an instance segmenter runner for executing local Instance
+ * Segmentation models.
+ *
+ * It validates model input/output tensor shapes and types, pre-allocates
+ * execution and auxiliary tensors, sets up an image preprocessor, and returns
+ * execution and resource management controls.
+ * @category CV / Tasks
+ * @typeParam F The bounding box format type.
+ * @typeParam L The label type.
+ * @param config Model configuration containing path and options.
+ * See {@link InstanceSegmenterModel}.
+ * @param runtime Optional worklet runtime thread on which to run the model
+ * execution.
+ * @returns A promise resolving to the instantiated {@link InstanceSegmenter} runner.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
+ * or `SCHEMA_MISMATCH` if model schema does not match instance segmentation
+ * spec.
+ */
+export async function createInstanceSegmenter<F extends BoxFormat, L>(
+  config: InstanceSegmenterModel<F, L>,
+  runtime?: WorkletRuntime
+): Promise<InstanceSegmenter<F, L>> {
   const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 

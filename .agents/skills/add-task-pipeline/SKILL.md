@@ -100,7 +100,7 @@ import { loadModel } from '../../../core/model';
 import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { type ImageBuffer } from '../image';
-import { createImagePreprocessor, type ImagePreprocessorOptions } from './preprocessing';
+import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils/imagePreprocessor';
 
 export type MyTaskOptions = ImagePreprocessorOptions & {
   readonly defaultThreshold: number;
@@ -190,28 +190,21 @@ Wrap the task pipeline in a custom React Hook using the core hooks `useResourceD
 
 ```typescript
 import { useModel } from './useModel';
-import { useResourceDownload } from './useResourceDownload';
+import { useResourceDownload, type ResourceOptions } from './useResourceDownload';
 import { createMyTask, type MyTaskModel } from '../extensions/<domain>/tasks/<task>';
 
-export function useMyTask(config: MyTaskModel, options?: { preventLoad?: boolean }) {
+export function useMyTask(config: MyTaskModel, options?: ResourceOptions) {
   // 1. Resolve remote or local asset model path and download progress
-  const { localPath, downloadProgress, downloadError } = useResourceDownload(
-    config.modelPath,
-    options?.preventLoad
-  );
+  const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
 
   // 2. Instantiate and compile the task pipeline (with automatic lifecycle cleanup)
-  const { model, error } = useModel(
-    createMyTask,
-    localPath ? { ...config, modelPath: localPath } : null,
-    [localPath]
-  );
+  const { model, error } = useModel(createMyTask, resource);
 
   return {
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath,
+    resource,
     runTask: model?.runTask,
     runTaskWorklet: model?.runTaskWorklet,
   };

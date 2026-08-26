@@ -1,3 +1,8 @@
+/**
+ * Object detection task pipeline with integrated preprocessing, NMS, and box
+ * scaling.
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
@@ -7,22 +12,20 @@ import { wrapAsync } from '../../../core/runtime';
 
 import type { ResizeMode } from '../ops/image';
 import type { ImageBuffer } from '../image';
-import { createImagePreprocessor, type ImagePreprocessorOptions } from './preprocessing';
-import { nms, scaleBox, decodeBox, type BoundingBox, type BoxFormat } from '../ops/boxes';
+import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils/imagePreprocessor';
+import { nms, scaleBox, decodeBox, type BoundingBox, type BoxFormat } from '../ops/box';
 import { RnExecuTorchError } from '../../../core/error';
-
-export type { BoxFormat };
 
 /**
  * Options for configuring an object detector preprocessor, label vocabulary,
  * and detection thresholds.
- * @category Types
+ * @category CV / Types
  */
 export type ObjectDetectorOptions<F extends BoxFormat, L> = Omit<
   ImagePreprocessorOptions,
   'resizeMode'
 > & {
-  /** Resize mode for preprocessing input images {@link ResizeMode} (excluding `'crop'`). */
+  /** Resize mode for preprocessing input images (excluding `'crop'`). */
   readonly resizeMode: Exclude<ResizeMode, 'crop'>;
   /** Array of class labels matching the model's output vocabulary. */
   readonly labels: readonly L[];
@@ -36,22 +39,39 @@ export type ObjectDetectorOptions<F extends BoxFormat, L> = Omit<
 
 /**
  * Model configuration required to instantiate an object detector task runner.
- * @category Types
+ * @category CV / Types
  */
 export type ObjectDetectorModel<F extends BoxFormat, L> = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /**
-   * Image preprocessing, label vocabulary, and default
-   * NMS/confidence thresholds {@link ObjectDetectorOptions}.
-   * Used as fallbacks when per-call overrides are omitted.
+   * Image preprocessing, label vocabulary, and default NMS/confidence
+   * thresholds. Used as fallbacks when per-call overrides are omitted.
+   * See {@link ObjectDetectorOptions}.
    */
   readonly modelOpts: ObjectDetectorOptions<F, L>;
 };
 
 /**
+ * Optional configuration parameters for object detection inference.
+ * @category CV / Types
+ */
+export type DetectObjectsOptions = {
+  /**
+   * Minimum confidence score threshold. If omitted, uses
+   * {@link ObjectDetectorOptions.defaultConfidenceThreshold}.
+   */
+  readonly confidenceThreshold?: number;
+  /**
+   * Intersection over Union (IoU) threshold for NMS. If omitted, uses
+   * {@link ObjectDetectorOptions.defaultIouThreshold}.
+   */
+  readonly iouThreshold?: number;
+};
+
+/**
  * Result structure representing a single object detection prediction.
- * @category Types
+ * @category CV / Types
  */
 export type ObjectDetection<F extends BoxFormat, L> = {
   /** Scaled bounding box coordinates matching the input image resolution. */
@@ -63,53 +83,64 @@ export type ObjectDetection<F extends BoxFormat, L> = {
 };
 
 /**
- * Creates an object detector runner for executing local Object Detection
- * models.
- *
- * It validates the model inputs and outputs requirements, pre-allocates the
- * necessary static execution tensors (boxes, scores, classes), sets up an image
- * preprocessor, and registers clean disposal hooks to clear all native memory.
- * @category Typescript API
+ * Object detection task runner.
+ * @category CV / Types
  * @typeParam F The bounding box format.
  * @typeParam L The type representing the class labels.
- * @param config Object detector task configuration containing path and options.
- * @param runtime Optional worklet runtime thread on which to run the model
- * execution.
- * @returns A promise resolving to an object containing object detection and
- * disposal controls.
  */
-export async function createObjectDetector<F extends BoxFormat, L>(
-  config: ObjectDetectorModel<F, L>,
-  runtime?: WorkletRuntime
-): Promise<{
+export type ObjectDetector<F extends BoxFormat, L> = {
   /**
    * Releases all allocated native resources.
    */
-  dispose: () => void;
+  readonly dispose: () => void;
 
   /**
+   * Asynchronously performs object detection on the input image.
    * @param input The input image buffer.
    * @param options Configuration options for object detection.
-   * @param options.confidenceThreshold Minimum confidence score threshold. If
-   * omitted, uses `modelOpts.defaultConfidenceThreshold`.
-   * @param options.iouThreshold Intersection over Union (IoU) threshold. If
-   * omitted, uses `modelOpts.defaultIouThreshold`.
+   * See {@link DetectObjectsOptions}.
    * @returns A promise resolving to the list of object detections.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if predicted class
+   * index is out of bounds, `RESOURCE_BUSY` if the model is in use, or
+   * `RESOURCE_DISPOSED` if disposed.
    */
-  detectObjects: (
+  readonly detectObjects: (
     input: ImageBuffer,
-    options?: { confidenceThreshold?: number; iouThreshold?: number }
+    options?: DetectObjectsOptions
   ) => Promise<ObjectDetection<F, L>[]>;
 
   /**
    * Synchronous version of {@link detectObjects} to be executed directly on the
    * caller or worklet thread.
    */
-  detectObjectsWorklet: (
+  readonly detectObjectsWorklet: (
     input: ImageBuffer,
-    options?: { confidenceThreshold?: number; iouThreshold?: number }
+    options?: DetectObjectsOptions
   ) => ObjectDetection<F, L>[];
-}> {
+};
+
+/**
+ * Creates an object detector runner for executing local Object Detection
+ * models.
+ *
+ * It validates the model inputs and outputs requirements, pre-allocates the
+ * necessary static execution tensors (boxes, scores, classes), sets up an image
+ * preprocessor, and registers clean disposal hooks to clear all native memory.
+ * @category CV / Tasks
+ * @typeParam F The bounding box format.
+ * @typeParam L The type representing the class labels.
+ * @param config Object detector task configuration containing path and options.
+ * See {@link ObjectDetectorModel}.
+ * @param runtime Optional worklet runtime thread on which to run the model
+ * execution.
+ * @returns A promise resolving to the instantiated {@link ObjectDetector} runner.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
+ * or `SCHEMA_MISMATCH` if model schema does not match object detection spec.
+ */
+export async function createObjectDetector<F extends BoxFormat, L>(
+  config: ObjectDetectorModel<F, L>,
+  runtime?: WorkletRuntime
+): Promise<ObjectDetector<F, L>> {
   const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 

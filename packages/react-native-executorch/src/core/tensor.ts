@@ -1,10 +1,18 @@
+/**
+ * Native C++ tensor allocation, data transfers, and memory management.
+ *
+ * Tensors are the fundamental data structures used throughout React Native
+ * ExecuTorch. They hold multidimensional typed arrays allocated in native
+ * heap memory and provide transfers to and from JavaScript typed arrays.
+ */
+
 import { rnexecutorchJsi } from '../native/bridge';
 
 declare const tensorBrand: unique symbol;
 
 /**
  * Element data type of a {@link Tensor}.
- * @category Types
+ * @category Core / Types
  */
 export type DType = 'float32' | 'uint8' | 'int32' | 'int64' | 'bool';
 
@@ -17,7 +25,7 @@ export type DType = 'float32' | 'uint8' | 'int32' | 'int64' | 'bool';
  * {@link Tensor.dispose} when no longer needed to avoid native memory leaks.
  *
  * Create tensors with the {@link tensor} factory function.
- * @category Types
+ * @category Core / Types
  */
 export type Tensor = {
   /** The element data type of the tensor. */
@@ -37,6 +45,10 @@ export type Tensor = {
    * `numel - offset`, i.e. copies from `offset` to the end of the source
    * tensor.
    * @returns The destination tensor `dst`.
+   * @throws {RnExecuTorchError} Thrown with code `INVALID_ARGUMENT` if the copy
+   * bounds exceed the tensor size or data types mismatch, `RESOURCE_BUSY` if
+   * either tensor is in use, or `RESOURCE_DISPOSED` if either tensor was
+   * disposed.
    */
   copyTo(dst: Tensor, options?: { offset?: number; length?: number }): Tensor;
 
@@ -53,6 +65,9 @@ export type Tensor = {
    * tensor's size. Use a `BigInt64Array` for `int64` tensors and a
    * `Uint8Array` for `bool` tensors.
    * @returns `this` tensor.
+   * @throws {RnExecuTorchError} Thrown with code `INVALID_ARGUMENT` if `src`
+   * byte length does not match tensor size, `RESOURCE_BUSY` if the tensor is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
    */
   setData(src: Float32Array | Uint8Array | Int32Array | BigInt64Array): Tensor;
 
@@ -62,6 +77,9 @@ export type Tensor = {
    * @param dst The destination typed array. Its size in bytes must match
    * tensor's size.
    * @returns The same `dst` array, now filled with tensor data.
+   * @throws {RnExecuTorchError} Thrown with code `INVALID_ARGUMENT` if `dst`
+   * byte length does not match tensor size, `RESOURCE_BUSY` if the tensor is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
    */
   getData<T extends Float32Array | Uint8Array | Int32Array | BigInt64Array>(dst: T): T;
 
@@ -106,12 +124,25 @@ export type Tensor = {
  * `src` is omitted the buffer contents are undefined. The returned tensor
  * resides in native C++ memory; call {@link Tensor.dispose} when the tensor is
  * no longer needed.
- * @category Typescript API
+ * @category Core / Functions
  * @param dtype The element data type of the tensor.
  * @param shape An array of dimension sizes (e.g. `[1, 3, 224, 224]`).
  * @param src Optional typed array used to initialize the tensor's data. Its
  * size in bytes must match tensor's size.
  * @returns A newly allocated native tensor.
+ * @throws {RnExecuTorchError} Thrown with code `INVALID_ARGUMENT` if any
+ * dimension in `shape` is non-positive or if `src` byte length does not match
+ * the allocated tensor size.
+ * @example
+ * ```typescript
+ * const t = tensor('float32', [1, 4], new Float32Array([1.0, 2.0, 3.0, 4.0]));
+ * try {
+ *   const data = t.getData(new Float32Array(4));
+ *   console.log(data); // Float32Array [1, 2, 3, 4]
+ * } finally {
+ *   t.dispose();
+ * }
+ * ```
  */
 export function tensor(
   dtype: DType,

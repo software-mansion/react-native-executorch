@@ -1,3 +1,8 @@
+/**
+ * Multimodal chat message template rendering, incremental prompt diffing, and
+ * media tensor preprocessing for LLM runners.
+ */
+
 import { Template } from '@huggingface/jinja';
 
 import { tensor, type Tensor } from '../../../core/tensor';
@@ -6,14 +11,14 @@ import type { ImageBuffer } from '../../cv';
 import {
   createImagePreprocessor,
   type ImagePreprocessorOptions,
-} from '../../cv/tasks/preprocessing';
+} from '../../cv/utils/imagePreprocessor';
 
 import type { Modality, Prompt, MediaInput } from '../llmRunner';
 import type { ToolDefinition, ToolCall } from './toolCalling';
 
 /**
  * High-level media payload input for chat turns.
- * @category Types
+ * @category LLM / Types
  */
 export type ChatMediaInput =
   | { readonly kind: 'image'; readonly image: ImageBuffer }
@@ -21,13 +26,13 @@ export type ChatMediaInput =
 
 /**
  * Interleaved text and media content for a chat turn.
- * @category Types
+ * @category LLM / Types
  */
 export type ChatMessageContent = string | readonly (string | ChatMediaInput)[];
 
 /**
  * Conversation turn representing system, user, assistant, or tool execution messages.
- * @category Types
+ * @category LLM / Types
  */
 export type ChatMessage = Readonly<
   | { role: 'system' | 'user'; content: ChatMessageContent }
@@ -37,7 +42,7 @@ export type ChatMessage = Readonly<
 
 /**
  * Image preprocessing and sentinel token config for vision-language LLMs.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMImagePreprocessorConfig = {
   /** Sentinel token delimiters inserted into Jinja prompts. */
@@ -50,7 +55,7 @@ export type LLMImagePreprocessorConfig = {
 
 /**
  * Audio preprocessing and sentinel token config for audio-language LLMs.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMAudioPreprocessorConfig = {
   /** Sentinel token delimiters inserted into Jinja prompts. */
@@ -59,28 +64,34 @@ export type LLMAudioPreprocessorConfig = {
 
 /**
  * Preprocessor configuration for media modalities.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMMediaPreprocessorConfig = {
+  /** Image preprocessing configuration for vision-language models. */
   readonly image?: LLMImagePreprocessorConfig;
+  /** Audio preprocessing configuration for audio-language models. */
   readonly audio?: LLMAudioPreprocessorConfig;
 };
 
 /**
  * Options for instantiating a ChatPreprocessor.
- * @category Types
+ * @category LLM / Types
  */
 export type ChatPreprocessorConfig = {
+  /** Jinja chat template string for prompt rendering. */
   readonly chatTemplate: string;
+  /** Tool definitions available to the model. */
   readonly tools?: readonly ToolDefinition[];
+  /** Supported input modalities (e.g. `['image']`). */
   readonly modalities?: readonly Modality[];
+  /** Media preprocessing configuration for non-text inputs. */
   readonly preprocessorConfig?: LLMMediaPreprocessorConfig;
 };
 
 /**
  * Chat preprocessor object for Jinja template rendering, prompt diffing, and
  * media tensor preprocessing.
- * @category Types
+ * @category LLM / Types
  */
 export type ChatPreprocessor = {
   /**
@@ -161,6 +172,8 @@ const MEDIA_SENTINEL_REGEX = /\uFFFC__ET_MEDIA_(\d+)__/g;
  * @param content Chat message text or media input array.
  * @param options Sentinel tokens, supported modalities, and starting media index.
  * @returns Object containing serialized text and a map of media items.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if a media kind is
+ * unsupported or a required sentinel token is missing.
  */
 function chatContentToString(
   content?: ChatMessageContent,
@@ -282,7 +295,7 @@ function prepareStringMessages(
 /**
  * Handles Jinja template formatting and media tensor preprocessing for chat
  * turns.
- * @category Typescript API
+ * @category LLM / Functions
  * @param config Preprocessor configuration including template and preprocessor
  * settings.
  * @returns A ChatPreprocessor object containing process, render, buildPrompt,

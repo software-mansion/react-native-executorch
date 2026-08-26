@@ -9,7 +9,17 @@
     "customConditions": ["react-native"],
     "noEmit": true,
     "paths": {
-      "react-native-executorch": ["../../packages/react-native-executorch/src"]
+      "react-native-executorch": ["../../packages/react-native-executorch/src"],
+      "react-native-executorch/cv": ["../../packages/react-native-executorch/src/extensions/cv"],
+      "react-native-executorch/llm": ["../../packages/react-native-executorch/src/extensions/llm"],
+      "react-native-executorch/nlp": ["../../packages/react-native-executorch/src/extensions/nlp"],
+      "react-native-executorch/speech": [
+        "../../packages/react-native-executorch/src/extensions/speech"
+      ],
+      "react-native-executorch/math": [
+        "../../packages/react-native-executorch/src/extensions/math"
+      ],
+      "react-native-executorch/schema": ["../../packages/react-native-executorch/src/core/schema"]
     }
   }
 }

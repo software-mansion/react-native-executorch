@@ -1,3 +1,8 @@
+/**
+ * Keypoint and pose detection task pipeline with weighted NMS and landmark
+ * scaling.
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor, type Tensor } from '../../../core/tensor';
@@ -6,23 +11,21 @@ import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import type { ImageBuffer } from '../image';
-import { createImagePreprocessor, type ImagePreprocessorOptions } from './preprocessing';
+import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils/imagePreprocessor';
 
 import type { ResizeMode } from '../ops/image';
-import { scalePoint, type Point } from '../ops/points';
-import { nms, type BoundingBox, type BoxFormat, decodeBox, scaleBox } from '../ops/boxes';
-
-export type { BoxFormat };
+import { scalePoint, type Point } from '../ops/point';
+import { nms, type BoundingBox, type BoxFormat, decodeBox, scaleBox } from '../ops/box';
 
 /**
  * Options for configuring a keypoint detector runner.
- * @category Types
+ * @category CV / Types
  */
 export type KeypointDetectorOptions<F extends BoxFormat, L extends PropertyKey> = Omit<
   ImagePreprocessorOptions,
   'resizeMode'
 > & {
-  /** Resize mode for preprocessing input images {@link ResizeMode} (excluding `'crop'`). */
+  /** Resize mode for preprocessing input images (excluding `'crop'`). */
   readonly resizeMode: Exclude<ResizeMode, 'crop'>;
   /** How bounding box coordinates are interpreted {@link BoxFormat}. */
   readonly boxFormat: F;
@@ -36,30 +39,47 @@ export type KeypointDetectorOptions<F extends BoxFormat, L extends PropertyKey> 
 
 /**
  * Model configuration required to instantiate a keypoint detector task runner.
- * @category Types
+ * @category CV / Types
  */
 export type KeypointDetectorModel<F extends BoxFormat, L extends PropertyKey> = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /**
-   * Image preprocessing, landmark names, bounding box format,
-   * and default NMS/confidence thresholds
-   * {@link KeypointDetectorOptions}.
+   * Image preprocessing, landmark names, bounding box format, and default
+   * NMS/confidence thresholds.
+   * See {@link KeypointDetectorOptions}.
    */
   readonly modelOpts: KeypointDetectorOptions<F, L>;
 };
 
 /**
+ * Optional configuration parameters for keypoint detection inference.
+ * @category CV / Types
+ */
+export type DetectKeypointsOptions = {
+  /**
+   * Minimum confidence score threshold for detections. If omitted, uses
+   * {@link KeypointDetectorOptions.defaultConfidenceThreshold}.
+   */
+  readonly confidenceThreshold?: number;
+  /**
+   * Intersection over Union (IoU) threshold for NMS. If omitted, uses
+   * {@link KeypointDetectorOptions.defaultIouThreshold}.
+   */
+  readonly iouThreshold?: number;
+};
+
+/**
  * Plural landmarks mapped by their names to coordinates and detection
  * confidence.
- * @category Types
+ * @category CV / Types
  */
 export type Landmarks<L extends PropertyKey> = Record<L, Point & { readonly confidence: number }>;
 
 /**
  * Result structure representing a single detected bounding box and its
  * associated landmarks.
- * @category Types
+ * @category CV / Types
  */
 export type KeypointDetection<F extends BoxFormat, L extends PropertyKey> = {
   /** Scaled bounding box coordinates matching the input image resolution. */
@@ -71,9 +91,45 @@ export type KeypointDetection<F extends BoxFormat, L extends PropertyKey> = {
 };
 
 /**
+ * Keypoint and pose detection task runner.
+ * @category CV / Types
+ * @typeParam F The bounding box format.
+ * @typeParam L The landmark labels type.
+ */
+export type KeypointDetector<F extends BoxFormat, L extends PropertyKey> = {
+  /**
+   * Releases all allocated native resources.
+   */
+  readonly dispose: () => void;
+
+  /**
+   * Performs asynchronous keypoint and bounding box detection on the given
+   * input image.
+   * @param input The input image buffer.
+   * @param options Configuration options for keypoint detection.
+   * See {@link DetectKeypointsOptions}.
+   * @returns A promise resolving to the list of keypoint detections.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
+   */
+  readonly detectKeypoints: (
+    input: ImageBuffer,
+    options?: DetectKeypointsOptions
+  ) => Promise<KeypointDetection<F, L>[]>;
+
+  /**
+   * Synchronous version of {@link detectKeypoints} to be executed directly on
+   * the caller or worklet thread.
+   */
+  readonly detectKeypointsWorklet: (
+    input: ImageBuffer,
+    options?: DetectKeypointsOptions
+  ) => KeypointDetection<F, L>[];
+};
+
+/**
  * Post-processes model outputs by applying Non-Maximum Suppression (NMS) and
  * scaling coordinates.
- * @category Utils
  * @param tBoxes Bounding boxes tensor output from inference.
  * @param tScores Scores tensor output from inference.
  * @param tKeypoints Keypoints tensor output from inference.
@@ -151,49 +207,21 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
  * It validates model inputs and output shapes (bounding boxes, confidence
  * scores, and landmark coordinates), pre-allocates execution tensors, setups
  * preprocessing, and sets up lifecycle disposals.
- * @category Typescript API
+ * @category CV / Tasks
  * @typeParam F The bounding box format.
  * @typeParam L The landmark labels type.
  * @param config Keypoint task configuration containing path and options.
+ * See {@link KeypointDetectorModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
- * @returns A promise resolving to an object containing keypoint detection and
- * disposal bindings.
+ * @returns A promise resolving to the instantiated {@link KeypointDetector} runner.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
+ * or `SCHEMA_MISMATCH` if model schema does not match keypoint detection spec.
  */
 export async function createKeypointDetector<F extends BoxFormat, L extends PropertyKey>(
   config: KeypointDetectorModel<F, L>,
   runtime?: WorkletRuntime
-): Promise<{
-  /**
-   * Releases all allocated native resources.
-   */
-  dispose: () => void;
-
-  /**
-   * Performs asynchronous keypoint and bounding box detection on the given
-   * input image.
-   * @param input The input image buffer.
-   * @param options Configuration options for keypoint detection.
-   * @param options.confidenceThreshold Minimum confidence score for a
-   * detection. If omitted, uses `modelOpts.defaultConfidenceThreshold`.
-   * @param options.iouThreshold Intersection over Union (IoU) threshold for
-   * NMS. If omitted, uses `modelOpts.defaultIouThreshold`.
-   * @returns A promise resolving to the list of keypoint detections.
-   */
-  detectKeypoints: (
-    input: ImageBuffer,
-    options?: { confidenceThreshold?: number; iouThreshold?: number }
-  ) => Promise<KeypointDetection<F, L>[]>;
-
-  /**
-   * Synchronous version of {@link detectKeypoints} to be executed directly on
-   * the caller or worklet thread.
-   */
-  detectKeypointsWorklet: (
-    input: ImageBuffer,
-    options?: { confidenceThreshold?: number; iouThreshold?: number }
-  ) => KeypointDetection<F, L>[];
-}> {
+): Promise<KeypointDetector<F, L>> {
   const { modelPath, modelOpts } = config;
   const { landmarks } = modelOpts;
   const model = await wrapAsync(loadModel, runtime)(modelPath);

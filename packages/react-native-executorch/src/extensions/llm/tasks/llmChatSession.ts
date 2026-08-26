@@ -1,3 +1,9 @@
+/**
+ * Multi-turn LLM chat session with history management, tool calling, and KV
+ * cache prefilling.
+ * @module LLM/Tasks/LLMChatSession
+ */
+
 import { scheduleOnRN, type WorkletRuntime } from 'react-native-worklets';
 import RNBlobUtil from 'react-native-blob-util';
 
@@ -14,35 +20,15 @@ import {
 import { parseTokenizerConfig } from '../utils/tokenizerConfig';
 import {
   createChatPreprocessor,
-  type ChatMediaInput,
   type ChatMessageContent,
   type ChatMessage,
-  type LLMImagePreprocessorConfig,
-  type LLMAudioPreprocessorConfig,
   type LLMMediaPreprocessorConfig,
 } from '../utils/chatPreprocessor';
-import type { ToolDefinition, ToolCall, ToolParser, ToolParserResult } from '../utils/toolCalling';
-
-export type {
-  LLMKVCacheState,
-  LLMGenerationConfig,
-  LLMGenerationStats,
-  Modality,
-  ChatMediaInput,
-  ChatMessageContent,
-  ChatMessage,
-  LLMImagePreprocessorConfig,
-  LLMAudioPreprocessorConfig,
-  LLMMediaPreprocessorConfig,
-  ToolDefinition,
-  ToolCall,
-  ToolParser,
-  ToolParserResult,
-};
+import type { ToolDefinition, ToolParser } from '../utils/toolCalling';
 
 /**
  * Model configuration required to instantiate an LLM chat session.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMModel = {
   /** Local path or remote URL of the `.pte` model file. */
@@ -59,7 +45,7 @@ export type LLMModel = {
 
 /**
  * Configuration options for tool calling in an LLM chat session.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMToolOpts = {
   /** Tool definitions available to the model. */
@@ -72,7 +58,7 @@ export type LLMToolOpts = {
 
 /**
  * Options for configuring an LLM chat session.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMChatSessionOptions = {
   /** Default generation configuration options. */
@@ -92,7 +78,7 @@ export type LLMChatSessionOptions = {
 
 /**
  * Result returned by an LLM chat turn.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMChatTurnResult = {
   /** The messages added to history during this chat turn. */
@@ -109,7 +95,7 @@ export type LLMChatTurnResult = {
 
 /**
  * Handle to an active LLM chat session.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMChatSession = {
   /**
@@ -138,6 +124,8 @@ export type LLMChatSession = {
    * @param onToken Callback fired on the RN thread for each decoded token.
    * @param genConfig Generation options overriding session defaults.
    * @returns A promise resolving to the generated messages and turn stats.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the message is
+   * malformed, or `INVALID_STATE` if the chat template is non-monotonic.
    */
   sendMessage(
     message: ChatMessageContent,
@@ -178,11 +166,11 @@ const DEFAULT_MAX_TURNS = 5;
 
 /**
  * Instantiates an LLM chat session using background thread execution.
- * @category Typescript API
+ * @category LLM / Tasks
  * @param config Model configuration containing model, tokenizer, and tokenizer config paths.
  * @param options Custom generation, tool calling, and state options.
  * @param runtime The worklet runtime thread to run native generation on.
- * @returns A Promise resolving to an LLMChatSession instance.
+ * @returns A promise resolving to the instantiated {@link LLMChatSession} session.
  */
 export async function createLLMChatSession(
   config: LLMModel,

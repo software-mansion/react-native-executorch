@@ -1,3 +1,8 @@
+/**
+ * Neural style transfer task pipeline with output rendering and colorspace
+ * conversion.
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
@@ -6,7 +11,7 @@ import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import type { ImageBuffer } from '../image';
-import { createImagePreprocessor, type ImagePreprocessorOptions } from './preprocessing';
+import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils/imagePreprocessor';
 import {
   toChannelsLast,
   normalize,
@@ -18,7 +23,7 @@ import {
 
 /**
  * Options for configuring the style transfer preprocessor and postprocessor.
- * @category Types
+ * @category CV / Types
  */
 export type StyleTransferOptions = Omit<ImagePreprocessorOptions, 'resizeMode'> & {
   /** Resize mode for input images. Must be `'stretch'`. */
@@ -31,17 +36,43 @@ export type StyleTransferOptions = Omit<ImagePreprocessorOptions, 'resizeMode'> 
 
 /**
  * Model configuration required to instantiate a style transfer task runner.
- * @category Types
+ * @category CV / Types
  */
 export type StyleTransferModel = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /**
-   * Input preprocessing and output postprocessing
-   * {@link StyleTransferOptions} (normalization back to uint8,
+   * Input preprocessing and output postprocessing (normalization back to uint8,
    * interpolation). `resizeMode` is fixed to `'stretch'`.
+   * See {@link StyleTransferOptions}.
    */
   readonly modelOpts: StyleTransferOptions;
+};
+
+/**
+ * Image style transfer task runner.
+ * @category CV / Types
+ */
+export type StyleTransfer = {
+  /**
+   * Releases all allocated native resources.
+   */
+  readonly dispose: () => void;
+
+  /**
+   * Performs asynchronous image style transfer on the given input image.
+   * @param input The input image buffer.
+   * @returns A promise resolving to the styled image buffer.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
+   */
+  readonly transferStyle: (input: ImageBuffer) => Promise<ImageBuffer>;
+
+  /**
+   * Synchronous version of {@link transferStyle} to be executed directly on the
+   * caller or worklet thread.
+   */
+  readonly transferStyleWorklet: (input: ImageBuffer) => ImageBuffer;
 };
 
 /**
@@ -50,33 +81,18 @@ export type StyleTransferModel = {
  * It validates the model inputs and outputs requirements, pre-allocates
  * the necessary static execution tensors, sets up an image preprocessor, and
  * registers clean disposal hooks to clear all native memory.
- * @category Typescript API
+ * @category CV / Tasks
  * @param config Style transfer task configuration containing path and options.
+ * See {@link StyleTransferModel}.
  * @param runtime Optional worklet runtime thread on which to run the model execution.
- * @returns A promise resolving to an object containing style transfer and disposal controls.
+ * @returns A promise resolving to the instantiated {@link StyleTransfer} runner.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
+ * or `SCHEMA_MISMATCH` if model schema does not match style transfer spec.
  */
 export async function createStyleTransfer(
   config: StyleTransferModel,
   runtime?: WorkletRuntime
-): Promise<{
-  /**
-   * Releases all allocated native resources.
-   */
-  dispose: () => void;
-
-  /**
-   * Performs asynchronous image style transfer on the given input image.
-   * @param input The input image buffer.
-   * @returns A promise resolving to the styled image buffer.
-   */
-  transferStyle: (input: ImageBuffer) => Promise<ImageBuffer>;
-
-  /**
-   * Synchronous version of {@link transferStyle} to be executed directly on the
-   * caller or worklet thread.
-   */
-  transferStyleWorklet: (input: ImageBuffer) => ImageBuffer;
-}> {
+): Promise<StyleTransfer> {
   const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 

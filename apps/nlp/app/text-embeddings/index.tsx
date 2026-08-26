@@ -24,16 +24,22 @@ const MODELS: {
   docPrompt?: string;
   iosOnly?: boolean;
 }[] = [
-  { label: 'MiniLM L6', value: models.textEmbeddings.ALL_MINILM_L6_V2 },
-  { label: 'MPNet Base', value: models.textEmbeddings.ALL_MPNET_BASE_V2 },
-  { label: 'MultiQA MiniLM', value: models.textEmbeddings.MULTI_QA_MINILM_L6_COS_V1 },
-  { label: 'MultiQA MPNet', value: models.textEmbeddings.MULTI_QA_MPNET_BASE_DOT_V1 },
-  { label: 'Paraphrase ML', value: models.textEmbeddings.PARAPHRASE_MULTILINGUAL_MINILM_L12_V2 },
-  { label: 'DistilUSE ML', value: models.textEmbeddings.DISTILUSE_BASE_MULTILINGUAL_CASED_V2 },
-  { label: 'CLIP Text', value: models.textEmbeddings.CLIP_VIT_BASE_PATCH32_TEXT },
+  { label: 'MiniLM L6', value: models.textEmbeddings.ALL_MINILM_L6_V2.DEFAULT },
+  { label: 'MPNet Base', value: models.textEmbeddings.ALL_MPNET_BASE_V2.DEFAULT },
+  { label: 'MultiQA MiniLM', value: models.textEmbeddings.MULTI_QA_MINILM_L6_COS_V1.DEFAULT },
+  { label: 'MultiQA MPNet', value: models.textEmbeddings.MULTI_QA_MPNET_BASE_DOT_V1.DEFAULT },
+  {
+    label: 'Paraphrase ML',
+    value: models.textEmbeddings.PARAPHRASE_MULTILINGUAL_MINILM_L12_V2.DEFAULT,
+  },
+  {
+    label: 'DistilUSE ML',
+    value: models.textEmbeddings.DISTILUSE_BASE_MULTILINGUAL_CASED_V2.DEFAULT,
+  },
+  { label: 'CLIP Text', value: models.textEmbeddings.CLIP_VIT_BASE_PATCH32_TEXT.DEFAULT },
   {
     label: 'LFM2.5',
-    value: models.textEmbeddings.LFM2_5_EMBEDDING_350M,
+    value: models.textEmbeddings.LFM2_5_EMBEDDING_350M.DEFAULT,
     docPrompt: 'document: ',
   },
   {

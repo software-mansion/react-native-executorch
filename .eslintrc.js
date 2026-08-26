@@ -1,14 +1,7 @@
 const path = require('path');
+const typedocConfig = require('./docs/typedoc.json');
 
-const VALID_CATEGORIES = [
-  'Constants',
-  'Errors',
-  'Hooks',
-  'Types',
-  'Typescript API',
-  'Utils',
-  'Utilities - General',
-];
+const VALID_CATEGORIES = typedocConfig.categoryOrder.filter((cat) => cat !== '*');
 
 const CATEGORY_TAG_MATCH = `^(${VALID_CATEGORIES.join('|')})$`;
 
