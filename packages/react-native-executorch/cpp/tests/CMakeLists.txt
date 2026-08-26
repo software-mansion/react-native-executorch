@@ -232,6 +232,18 @@ endif()
 if(RNE_TESTS_ENABLE_PHONEMIS)
   add_subdirectory("${PHONEMIS_DIR}" "${CMAKE_BINARY_DIR}/phonemis" EXCLUDE_FROM_ALL)
   list(APPEND RNE_SOURCES ${PHONEMIS_SOURCES})
+
+  # Two phonemis headers use std::optional and std::u32string without including
+  # <optional> / <string>. libc++ pulls both in transitively, so the Android
+  # (NDK) and iOS builds never notice; libstdc++ does not, and the member
+  # declarations then fail to parse, leaving a pile of "no declaration matches"
+  # errors on their definitions. Force-include the two headers rather than patch
+  # a pinned submodule; drop this once upstream adds the includes.
+  # SHELL: keeps the two -include flags paired; without it CMake de-duplicates
+  # the repeated -include and the second header becomes an input file.
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(phonemis PRIVATE "SHELL:-include optional" "SHELL:-include string")
+  endif()
 endif()
 
 add_library(rne_under_test STATIC ${RNE_SOURCES})
