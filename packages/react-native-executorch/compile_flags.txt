@@ -9,3 +9,9 @@
 -isystemthird-party/include/executorch/extension/llm/tokenizers/third-party/json/include
 -isystemthird-party/include/executorch/extension/llm/tokenizers/third-party/re2
 -isystemthird-party/include/executorch/extension/llm/tokenizers/third-party/abseil-cpp
+-Icpp/tests
+-isystem../../third-party/googletest/googletest/include
+-isystem../../third-party/googletest/googlemock/include
+-isystem.native-test-deps/hermes/src/API
+-isystem.native-test-deps/hermes/src/API/jsi
+-isystem.native-test-deps/hermes/src/public

@@ -139,15 +139,20 @@ void install_extractDbnetTextQuads(jsi::Runtime &rt, jsi::Object &module) {
         const int32_t h = src->shape_[2];
         const int32_t w = src->shape_[3];
 
+        // Read the options outside the try below: a missing or mistyped one is an
+        // InvalidArgument from the caller, and rewrapping it as an OpenCV
+        // failure would both mislabel it and lose the code.
         const char *ctx = "extractDbnetTextQuads";
+        const auto binThreshold = conversions::getRequiredProperty<float>(rt, ctx, opts, "binThreshold");
+        const auto boxThreshold = conversions::getRequiredProperty<float>(rt, ctx, opts, "boxThreshold");
+        const auto unclipRatio = conversions::getRequiredProperty<float>(rt, ctx, opts, "unclipRatio");
+        const auto minBoxSide = conversions::getRequiredProperty<int32_t>(rt, ctx, opts, "minBoxSide");
+        const auto maxCandidates = conversions::getRequiredProperty<int32_t>(rt, ctx, opts, "maxCandidates");
+
         std::vector<Quad> quads;
         try {
             ::cv::Mat prob(h, w, CV_32F, dataPtr);
-            quads = extractDbnet(prob, conversions::getRequiredProperty<float>(rt, ctx, opts, "binThreshold"),
-                                 conversions::getRequiredProperty<float>(rt, ctx, opts, "boxThreshold"),
-                                 conversions::getRequiredProperty<float>(rt, ctx, opts, "unclipRatio"),
-                                 conversions::getRequiredProperty<int32_t>(rt, ctx, opts, "minBoxSide"),
-                                 conversions::getRequiredProperty<int32_t>(rt, ctx, opts, "maxCandidates"));
+            quads = extractDbnet(prob, binThreshold, boxThreshold, unclipRatio, minBoxSide, maxCandidates);
         } catch (const std::exception &e) {
             throw error::ExecutionFailed(std::format("extractDbnetTextQuads: OpenCV error: {}", e.what()));
         }
