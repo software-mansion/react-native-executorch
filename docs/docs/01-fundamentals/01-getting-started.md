@@ -83,7 +83,7 @@ pnpm add react-native-executorch react-native-worklets react-native-blob-util
 :::info Requirements
 React Native ExecuTorch requires the **New Architecture** (React Native 0.74+ or Expo SDK 51+ using development builds).
 
-For supported React Native and Expo versions, see the [Compatibility table](https://docs.swmansion.com/react-native-executorch/docs/other/compatibility).
+For supported React Native and Expo versions, see the [Compatibility table](../07-other/01-compatibility.mdx).
 :::
 
 ### Selecting native libraries
