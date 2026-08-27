@@ -142,22 +142,23 @@ hidden behind abstractions. This means:
 
 ### High-Level Task Pipelines
 
-Have a specific problem to solve — speech-to-text, LLM chat, object detection,
-text-to-speech? Each task has a ready-made pipeline you can drop into your app.
-Hooks handle downloading, caching, and memory disposal automatically. Imperative
-APIs give you manual control. Both work with pre-exported models from our
-[HuggingFace collection](https://huggingface.co/software-mansion/collections)
-or your own `.pte` files — as long as they match the pipeline's schema.
+Have a specific problem to solve — text-to-speech, LLM chat, object detection,
+image generation? Each task has a ready-made pipeline you can drop into your
+app. Hooks handle downloading, caching, and memory disposal automatically.
+Imperative APIs give you manual control. Both work with pre-exported models from
+our [HuggingFace
+collection](https://huggingface.co/software-mansion/collections) or your own
+`.pte` files — as long as they match the pipeline's schema.
 
 [Explore High-Level Pipelines →](../category/extensions)
 
 ### Lower-Level Runtime & Custom Pipelines
 
-Working with a custom or niche model — or chaining multiple models together
-— and need to build your own end-to-end pipeline? The lower-level API gives you
+Working with a custom or niche model — or chaining multiple models together —
+and need to build your own end-to-end pipeline? The lower-level API gives you
 direct access to ExecuTorch model execution, native tensor operations, C++
 operators for vision, math, NLP, and audio, plus worklet-based multi-threading.
-This is exactly how every built-in pipeline in the library is implemented —
-you're working with the same primitives the core team uses.
+This is exactly how we implemented every built-in pipeline in the library — you
+will be working with the same primitives that we use.
 
 [Explore Lower-Level API →](../category/core--advanced)
