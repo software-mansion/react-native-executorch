@@ -17,7 +17,7 @@
  * Anything holding native memory that has to be released explicitly.
  * @category Core / Types
  */
-export type Disposable = { dispose: () => void };
+export type NativeResource = { dispose: () => void };
 
 /**
  * A set of native resources with a single teardown.
@@ -28,7 +28,7 @@ export type ResourceScope = {
    * Takes ownership of a resource and returns it unchanged, so it can wrap an
    * allocation in place.
    */
-  readonly track: <D extends Disposable>(resource: D) => D;
+  readonly track: <R extends NativeResource>(resource: R) => R;
 
   /**
    * Releases every tracked resource, most recently allocated first. Safe to
@@ -63,10 +63,10 @@ export type ResourceScope = {
  * ```
  */
 export function createResourceScope(): ResourceScope {
-  const allocated: Disposable[] = [];
+  const allocated: NativeResource[] = [];
 
   return {
-    track: <D extends Disposable>(resource: D): D => {
+    track: <R extends NativeResource>(resource: R): R => {
       allocated.push(resource);
       return resource;
     },

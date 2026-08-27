@@ -9,9 +9,9 @@
  * Disposal is idempotent, so tests that assert on `dispose()` explicitly can
  * still call it themselves.
  */
-type Disposable = { dispose: () => void };
+type NativeResource = { dispose: () => void };
 
-const created: Disposable[] = [];
+const created: NativeResource[] = [];
 
 /**
  * Registers `instance` for disposal at the end of the current test.
@@ -19,7 +19,7 @@ const created: Disposable[] = [];
  * @param instance The pipeline to track.
  * @returns The same instance.
  */
-export function tracked<T extends Disposable>(instance: T): T {
+export function tracked<T extends NativeResource>(instance: T): T {
   created.push(instance);
   return instance;
 }
