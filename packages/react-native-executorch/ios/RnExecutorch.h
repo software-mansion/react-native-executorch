@@ -1,5 +1,5 @@
 #import <RnExecutorchSpec/RnExecutorchSpec.h>
 
-@interface RnExecutorch : NativeRnExecutorchSpecBase <NativeRnExecutorchSpec>
+@interface RnExecutorch : NSObject <NativeRnExecutorchSpec>
 
 @end

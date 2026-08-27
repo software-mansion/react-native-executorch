@@ -118,10 +118,16 @@
     "@huggingface/jinja": "^0.5.9"
   },
   "peerDependencies": {
+    "@kesha-antonov/react-native-background-downloader": ">=4.4.0",
     "react": "*",
     "react-native": "*",
     "react-native-blob-util": "^0.24.0",
     "react-native-worklets": "^0.10.0"
+  },
+  "peerDependenciesMeta": {
+    "@kesha-antonov/react-native-background-downloader": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@babel/core": "^7.25.1",
