@@ -13,7 +13,6 @@ import { deferred, fakeNet } from '../support/blobUtilMock';
 import { cachePathFor } from '../support/cachePath';
 import { fakeJsi } from '../support/fakeJsi';
 import { STRETCH_PREPROCESSING, exported, imageBuffer, writesOutputs } from '../support/fixtures';
-import { allowNativeLeaks } from '../support/setup';
 
 const MODEL_URL = 'https://huggingface.co/software-mansion/model/resolve/v1/model.pte';
 const TOKENIZER_URL = 'https://huggingface.co/software-mansion/model/resolve/v1/tokenizer.json';
@@ -121,11 +120,11 @@ describe('useClassifier', () => {
     expect(result.current.error?.message).toMatch(/labels length \(2\)/);
     expect(result.current.isReady).toBe(false);
 
-    // The failed construction abandons the native model it had already loaded,
-    // and the hook has no handle to release — this is the app-level shape of
-    // the leak recorded in `tasks/constructionFailure.test.ts`.
-    expect(fakeJsi.liveModels()).toEqual([cachePathFor(MODEL_URL)]);
-    allowNativeLeaks();
+    // The hook never receives a `dispose` for a pipeline that failed to build,
+    // so the factory has to have released the model itself. `useModel` re-runs
+    // the factory on every config change, which is what makes this the
+    // app-level shape of `tasks/constructionFailure.test.ts`.
+    expect(fakeJsi.liveModels()).toEqual([]);
   });
 
   it('loads nothing while preventLoad is set', async () => {

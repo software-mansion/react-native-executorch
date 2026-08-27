@@ -8,7 +8,6 @@ import {
   exported,
   imageBuffer,
 } from '../support/fixtures';
-import { allowNativeLeaks } from '../support/setup';
 
 const MODEL_PATH = '/models/style.pte';
 const SIZE = 4;
@@ -77,7 +76,6 @@ describe('createStyleTransfer', () => {
     });
 
     await expect(createStyleTransfer(config)).rejects.toThrow(/inconsistent bindings/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('produces the same result synchronously and asynchronously', async () => {

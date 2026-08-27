@@ -3,7 +3,6 @@ import { createClassifier } from '../../src/extensions/cv/tasks/classification';
 import { fakeJsi } from '../support/fakeJsi';
 import { tracked } from '../support/lifetime';
 import { STRETCH_PREPROCESSING, exported, imageBuffer, writesOutputs } from '../support/fixtures';
-import { allowNativeLeaks } from '../support/setup';
 
 const MODEL_PATH = '/models/classifier.pte';
 const LABELS = ['cat', 'dog', 'bird'] as const;
@@ -46,7 +45,6 @@ describe('createClassifier — model acceptance', () => {
     });
 
     await expect(createClassifier(config())).rejects.toThrow(/doesn't match any of the provided/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('rejects a labels array that does not match the output dimension', async () => {
@@ -54,7 +52,6 @@ describe('createClassifier — model acceptance', () => {
     await expect(createClassifier(config(['cat', 'dog']))).rejects.toThrow(
       /labels length \(2\) must match model output dimension \(3\)/
     );
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('surfaces a load failure', async () => {

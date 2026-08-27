@@ -80,7 +80,11 @@ Key helpers:
 5. **Options** — every default in `modelOpts`, and every per-call override.
 6. **Disposal** — `dispose()` leaves `fakeJsi.liveTensors()` at 0 and
    `fakeJsi.liveModels()` empty, and repeated calls do not accumulate scratch
-   tensors.
+   tensors. The same has to hold when construction *fails*: allocate through a
+   `createResourceScope()` and wrap the factory body in `try`/`catch` so a
+   schema mismatch releases the model instead of stranding it. Add the factory
+   to `__tests__/tasks/constructionFailure.test.ts`, which drives every one of
+   them.
 7. **Sync/async parity** — `runTaskWorklet(x)` equals `await runTask(x)`.
 
 Only the *weights* are out of scope, not the pipeline that runs on them. Before
@@ -144,5 +148,8 @@ When adding or changing code under `src/`, verify that:
       is intentional (a removal or rename is a breaking change).
 - [ ] Any new fake behaviour in `__tests__/support/` is faithful where fidelity
       changes an assertion, and its simplifications are commented.
-- [ ] No test was made to pass by calling `allowNativeLeaks()` without an
-      explanation.
+- [ ] A new `create<Task>` allocates through `createResourceScope()` and is
+      listed in `__tests__/tasks/constructionFailure.test.ts`.
+- [ ] No test was made to pass by calling `allowNativeLeaks()`. Nothing in the
+      suite needs it today, so reach for it only when a leak is genuinely the
+      point of the test, and say why.

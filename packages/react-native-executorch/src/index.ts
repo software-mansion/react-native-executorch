@@ -35,10 +35,11 @@
  *   Imperative asset downloader and caching engine with abort control, progress
  *   tracking, and deduplicated local storage.
  *
- * - **Core Primitives ({@link Model}, {@link Tensor}, {@link schema}, {@link wrapAsync})**:
+ * - **Core Primitives ({@link Model}, {@link Tensor}, {@link schema}, {@link wrapAsync},
+ *   {@link createResourceScope})**:
  *   Low-level building blocks for custom architectures: direct C++ tensor
  *   memory management, raw model execution, load-time shape/domain validation,
- *   and worklet threading.
+ *   worklet threading, and construction-time ownership of native resources.
  * @packageDocumentation
  */
 
@@ -93,6 +94,7 @@ export * from './core/error';
 export * from './core/model';
 export * from './core/tensor';
 export * from './core/runtime';
+export * from './core/lifetime';
 
 /**
  * Model schema validation and dimension constraints.
