@@ -291,8 +291,8 @@ tOutput.dispose();
 
 Using an object after disposal throws an
 [`RnExecuTorchError`](../06-api-reference/functions/RnExecuTorchError.md) with
-code [`RESOURCE_DISPOSED`](./05-error-handling.md#the-code-set). Two patterns
-cover nearly every case.
+code [`RESOURCE_DISPOSED`](./05-error-handling.md#the-code-set). A few patterns
+cover the common cases.
 
 ### Static pre-allocation for repeated runs
 
@@ -351,6 +351,48 @@ function processImage(model: Model, width: number, height: number, pixels: Uint8
   }
 }
 ```
+
+### Failure-safe construction with a resource scope
+
+The static pattern has a gap: if construction throws _after_ some resources are
+allocated — a failed [`validateSpec`](./03-schema-validation.md), a second model
+that won't load — the caller never receives a `dispose`, and the memory allocated
+so far leaks for the rest of the process. `createResourceScope` closes that window.
+Track each resource as you allocate it, wrap the body in `try` / `catch`, and reuse
+the scope's `dispose` as the pipeline's own, so one teardown path covers both a
+mid-construction failure and normal disposal:
+
+```typescript
+import { createResourceScope, loadModel, tensor, wrapAsync } from 'react-native-executorch';
+
+export async function createClassifier(modelPath: string) {
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
+
+  try {
+    const model = scope.track(await wrapAsync(loadModel)(modelPath));
+    const tInput = scope.track(tensor('float32', [1, 3, 224, 224]));
+    const tOutput = scope.track(tensor('float32', [1, 1000]));
+
+    const classify = (imageData: Float32Array) => {
+      'worklet';
+      tInput.setData(imageData);
+      model.execute('forward', [tInput], [tOutput]);
+      return tOutput.getData(new Float32Array(tOutput.numel));
+    };
+
+    return { classify, dispose };
+  } catch (error) {
+    dispose(); // release whatever was tracked before the failure
+    throw error;
+  }
+}
+```
+
+`scope.track(resource)` returns the resource unchanged, so you wrap it in place.
+`dispose` releases everything tracked so far, most-recently-allocated first, and is
+safe to call more than once. This is how the library's own pipelines manage their
+resources.
 
 ## Thread safety
 
