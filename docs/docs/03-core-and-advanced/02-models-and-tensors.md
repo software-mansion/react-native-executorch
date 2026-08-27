@@ -357,7 +357,9 @@ function processImage(model: Model, width: number, height: number, pixels: Uint8
 The static pattern has a gap: if construction throws _after_ some resources are
 allocated — a failed [`validateSpec`](./03-schema-validation.md), a second model
 that won't load — the caller never receives a `dispose`, and the memory allocated
-so far leaks for the rest of the process. `createResourceScope` closes that window.
+so far leaks for the rest of the process.
+[`createResourceScope`](../06-api-reference/functions/createResourceScope.md) closes
+that window.
 Track each resource as you allocate it, wrap the body in `try` / `catch`, and reuse
 the scope's `dispose` as the pipeline's own, so one teardown path covers both a
 mid-construction failure and normal disposal:
@@ -483,4 +485,5 @@ single `setData` at the top and the single `getData` at the end.
 
 - [`Model`](../06-api-reference/type-aliases/Model.md) · [`Tensor`](../06-api-reference/type-aliases/Tensor.md) · [`DType`](../06-api-reference/type-aliases/DType.md)
 - [`loadModel()`](../06-api-reference/functions/loadModel.md) · [`tensor()`](../06-api-reference/functions/tensor.md) · [`wrapAsync()`](../06-api-reference/functions/wrapAsync.md)
+- [`createResourceScope()`](../06-api-reference/functions/createResourceScope.md) · [`ResourceScope`](../06-api-reference/type-aliases/ResourceScope.md) · [`NativeResource`](../06-api-reference/type-aliases/NativeResource.md)
 - Namespaces: [`math`](../06-api-reference/react-native-executorch/namespaces/math/index.md) · [`cv`](../06-api-reference/react-native-executorch/namespaces/cv/index.md) · [`speech`](../06-api-reference/react-native-executorch/namespaces/speech/index.md)
