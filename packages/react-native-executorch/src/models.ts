@@ -1343,9 +1343,10 @@ const QWEN3_4B_XNNPACK_BF16: LLMModel = {
  *
  * Models published for more than one backend expose their exports as named
  * variants (`XNNPACK_INT8`, `COREML_FP16`, ...) plus a `DEFAULT` alias. The
- * alias is chosen for the device the app runs on: Core ML on iOS hardware,
- * XNNPACK on Android and on the iOS simulator, always narrowed to the backends
- * the app actually linked in. Reach for a named variant to override that.
+ * alias is chosen for the device the app runs on: Core ML then MLX on iOS
+ * hardware, Vulkan on Android, XNNPACK as the fallback everywhere and the only
+ * option on the iOS simulator — always narrowed to the backends the app
+ * actually linked in. Reach for a named variant to override that.
  * @category Models
  */
 export const models = {
@@ -1646,11 +1647,16 @@ export const models = {
      * RF-DETR (Roboflow Detection Transformer) pose keypoint detector
      * predicting 17 COCO body keypoints (see {@link COCO_LANDMARKS}).
      */
-    RFDETR_KEYPOINT: variants({
-      XNNPACK_FP32: RFDETR_KEYPOINT_XNNPACK_FP32,
-      COREML_FP32: RFDETR_KEYPOINT_COREML_FP32,
-      MLX_FP32: RFDETR_KEYPOINT_MLX_FP32,
-    }),
+    RFDETR_KEYPOINT: variants(
+      {
+        XNNPACK_FP32: RFDETR_KEYPOINT_XNNPACK_FP32,
+        COREML_FP32: RFDETR_KEYPOINT_COREML_FP32,
+        MLX_FP32: RFDETR_KEYPOINT_MLX_FP32,
+      },
+      // Core ML over MLX: the MLX delegate runs on the GPU, and #1318 measured
+      // it losing to the Neural Engine across the vision models that ship both.
+      { ios: 'COREML_FP32' }
+    ),
   },
 
   /**
@@ -1797,66 +1803,93 @@ export const models = {
      * Voice Activity Detection. Includes multilingual and English-only (`EN`)
      * variants across model sizes (`TINY`, `BASE`, `SMALL`).
      */
+    // Every size defaults to Core ML over MLX on iOS: the MLX encoder has to
+    // hold the whole mel spectrogram, and the bf16 builds are jetsam-killed on
+    // an iPhone 16. Reach for MLX_INT8 explicitly if you want the GPU path.
     WHISPER: {
       /**
        * Multilingual Whisper Tiny model. Supporting 99+ languages. High speed
        * speech recognition.
        */
-      TINY: variants({
-        XNNPACK_FP32: WHISPER_TINY_XNNPACK_FP32,
-        COREML_FP16: WHISPER_TINY_COREML_FP16,
-        MLX_BF16: WHISPER_TINY_MLX_BF16,
-        MLX_INT8: WHISPER_TINY_MLX_INT8,
-      }),
+      TINY: variants(
+        {
+          XNNPACK_FP32: WHISPER_TINY_XNNPACK_FP32,
+          COREML_FP16: WHISPER_TINY_COREML_FP16,
+          MLX_BF16: WHISPER_TINY_MLX_BF16,
+          MLX_INT8: WHISPER_TINY_MLX_INT8,
+        },
+        // Core ML over MLX, see the note on WHISPER.
+        { ios: 'COREML_FP16' }
+      ),
       /**
        * Multilingual Whisper Base model. Higher accuracy across supported
        * languages.
        */
-      BASE: variants({
-        XNNPACK_FP32: WHISPER_BASE_XNNPACK_FP32,
-        COREML_FP16: WHISPER_BASE_COREML_FP16,
-        MLX_BF16: WHISPER_BASE_MLX_BF16,
-        MLX_INT8: WHISPER_BASE_MLX_INT8,
-      }),
+      BASE: variants(
+        {
+          XNNPACK_FP32: WHISPER_BASE_XNNPACK_FP32,
+          COREML_FP16: WHISPER_BASE_COREML_FP16,
+          MLX_BF16: WHISPER_BASE_MLX_BF16,
+          MLX_INT8: WHISPER_BASE_MLX_INT8,
+        },
+        // Core ML over MLX, see the note on WHISPER.
+        { ios: 'COREML_FP16' }
+      ),
       /**
        * Multilingual Whisper Small model. Best accuracy for complex
        * multi-language audio.
        */
-      SMALL: variants({
-        XNNPACK_FP32: WHISPER_SMALL_XNNPACK_FP32,
-        COREML_FP16: WHISPER_SMALL_COREML_FP16,
-        MLX_INT8: WHISPER_SMALL_MLX_INT8,
-      }),
+      SMALL: variants(
+        {
+          XNNPACK_FP32: WHISPER_SMALL_XNNPACK_FP32,
+          COREML_FP16: WHISPER_SMALL_COREML_FP16,
+          MLX_INT8: WHISPER_SMALL_MLX_INT8,
+        },
+        // Core ML over MLX, see the note on WHISPER.
+        { ios: 'COREML_FP16' }
+      ),
       /** English-only optimized Whisper models (`TINY`, `BASE`, `SMALL`). */
       EN: {
         /**
          * English-only Whisper Tiny model. Fast and compact for English STT.
          */
-        TINY: variants({
-          XNNPACK_FP32: WHISPER_TINY_EN_XNNPACK_FP32,
-          COREML_FP16: WHISPER_TINY_EN_COREML_FP16,
-          MLX_BF16: WHISPER_TINY_EN_MLX_BF16,
-          MLX_INT8: WHISPER_TINY_EN_MLX_INT8,
-        }),
+        TINY: variants(
+          {
+            XNNPACK_FP32: WHISPER_TINY_EN_XNNPACK_FP32,
+            COREML_FP16: WHISPER_TINY_EN_COREML_FP16,
+            MLX_BF16: WHISPER_TINY_EN_MLX_BF16,
+            MLX_INT8: WHISPER_TINY_EN_MLX_INT8,
+          },
+          // Core ML over MLX, see the note on WHISPER.
+          { ios: 'COREML_FP16' }
+        ),
         /**
          * English-only Whisper Base model. High accuracy English speech
          * recognition.
          */
-        BASE: variants({
-          XNNPACK_FP32: WHISPER_BASE_EN_XNNPACK_FP32,
-          COREML_FP16: WHISPER_BASE_EN_COREML_FP16,
-          MLX_BF16: WHISPER_BASE_EN_MLX_BF16,
-          MLX_INT8: WHISPER_BASE_EN_MLX_INT8,
-        }),
+        BASE: variants(
+          {
+            XNNPACK_FP32: WHISPER_BASE_EN_XNNPACK_FP32,
+            COREML_FP16: WHISPER_BASE_EN_COREML_FP16,
+            MLX_BF16: WHISPER_BASE_EN_MLX_BF16,
+            MLX_INT8: WHISPER_BASE_EN_MLX_INT8,
+          },
+          // Core ML over MLX, see the note on WHISPER.
+          { ios: 'COREML_FP16' }
+        ),
         /**
          * English-only Whisper Small model. Superior accuracy for English
          * transcription.
          */
-        SMALL: variants({
-          XNNPACK_FP32: WHISPER_SMALL_EN_XNNPACK_FP32,
-          COREML_FP16: WHISPER_SMALL_EN_COREML_FP16,
-          MLX_INT8: WHISPER_SMALL_EN_MLX_INT8,
-        }),
+        SMALL: variants(
+          {
+            XNNPACK_FP32: WHISPER_SMALL_EN_XNNPACK_FP32,
+            COREML_FP16: WHISPER_SMALL_EN_COREML_FP16,
+            MLX_INT8: WHISPER_SMALL_EN_MLX_INT8,
+          },
+          // Core ML over MLX, see the note on WHISPER.
+          { ios: 'COREML_FP16' }
+        ),
       },
     },
   },
@@ -2189,11 +2222,15 @@ export const models = {
      * shared text-image space. Used for zero-shot visual classification and
      * cross-modal image search.
      */
-    CLIP_VIT_BASE_PATCH32: variants({
-      XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32,
-      COREML_FP16: CLIP_VIT_BASE_PATCH32_IMAGE_COREML_FP16,
-      MLX_INT8: CLIP_VIT_BASE_PATCH32_IMAGE_MLX_INT8,
-    }),
+    CLIP_VIT_BASE_PATCH32: variants(
+      {
+        XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32,
+        COREML_FP16: CLIP_VIT_BASE_PATCH32_IMAGE_COREML_FP16,
+        MLX_INT8: CLIP_VIT_BASE_PATCH32_IMAGE_MLX_INT8,
+      },
+      // Core ML over MLX, as for every other vision encoder — see #1318.
+      { ios: 'COREML_FP16' }
+    ),
   },
 
   /**

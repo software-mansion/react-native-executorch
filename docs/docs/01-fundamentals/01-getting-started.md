@@ -247,13 +247,14 @@ models.classification.EFFICIENTNET_V2_S.COREML_FP16; // always this export
 models.classification.EFFICIENTNET_V2_S.XNNPACK_INT8;
 ```
 
-`DEFAULT` is not a fixed file. It is resolved when the library loads, to the fastest export the device can actually run:
+`DEFAULT` is not a fixed file. It is resolved when the library loads, to the fastest export the device can actually run. A model is only exported to an accelerated backend once it has been shown to run better there, so a published accelerated variant is preferred and XNNPACK is the fallback:
 
-- **iOS device** — the Core ML export where one exists, so the model reaches the Neural Engine.
-- **Android, and the iOS simulator** — the XNNPACK export. The simulator has no Neural Engine and cannot run Core ML models at all.
-- **Either, narrowed by your config** — only backends your app downloaded are considered. Trimming `coreml` out of an iOS build moves every `DEFAULT` back to XNNPACK rather than failing to load.
+- **iOS device** — Core ML where one exists, otherwise MLX, otherwise XNNPACK.
+- **Android** — Vulkan where one exists, otherwise XNNPACK.
+- **iOS simulator** — XNNPACK. The simulator has no Neural Engine, cannot run Core ML models at all, and MLX ships a device slice only.
+- **All of them, narrowed by your config** — only backends your app downloaded are considered. Trimming `coreml` out of an iOS build moves those `DEFAULT`s to the next best export rather than failing to load.
 
-MLX and Vulkan are never picked automatically: they win on some models and lose on others, so reach for `MLX_*` / `VULKAN_*` explicitly when you have benchmarked your case. Naming any variant directly always overrides the resolution.
+A handful of models publish both a Core ML and an MLX export. There the two are close enough that the winner is a per-model benchmark result, so the registry pins it explicitly rather than letting the order above decide. Naming any variant directly always overrides the resolution.
 
 ### Platform notes
 

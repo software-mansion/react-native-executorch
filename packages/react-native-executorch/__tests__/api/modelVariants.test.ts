@@ -6,6 +6,9 @@
  * below therefore reloads the registry behind a `jest.resetModules()` rather
  * than reading the copy the test file imported.
  */
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
 import { Platform } from 'react-native';
 
 import { fakeJsi } from '../support/fakeJsi';
@@ -87,6 +90,36 @@ function registryFor(options: {
   return require('../../src/models').models as Node;
 }
 
+/**
+ * Every `variants(...)` call in the registry source, with the variant keys it
+ * lists and whether it pins one for iOS.
+ *
+ * Prettier gives the two call shapes distinct first lines — `variants({` when
+ * the group takes no pins, `variants(` when it does — which is what this reads.
+ * @returns One entry per call, in source order.
+ */
+function variantsCalls(): { name: string; keys: string[]; pinsIos: boolean }[] {
+  const source = readFileSync(join(__dirname, '../../src/models.ts'), 'utf8').split('\n');
+  const calls: { name: string; keys: string[]; pinsIos: boolean }[] = [];
+
+  for (let line = 0; line < source.length; line++) {
+    const opened = source[line]!.match(/^(\s*)([A-Z][A-Z0-9_]*): variants\((\{?)$/);
+    if (!opened) continue;
+    const [, indent, name, inlineBrace] = opened;
+
+    const closer = inlineBrace ? `${indent}}),` : `${indent}),`;
+    let end = line + 1;
+    while (end < source.length && source[end] !== closer) end++;
+
+    const body = source.slice(line + 1, end);
+    const keys = body.flatMap((entry) => entry.match(/^\s*([A-Z][A-Z0-9_]*):/)?.slice(1) ?? []);
+    calls.push({ name: name!, keys, pinsIos: body.some((entry) => /\bios:/.test(entry)) });
+    line = end;
+  }
+
+  return calls;
+}
+
 /** Every group of the reloaded registry, paired with the key it defaulted to. */
 const defaultsOf = (registry: Node) =>
   variantGroups(registry).map(({ label, group }) => ({
@@ -123,26 +156,77 @@ describe('DEFAULT variant resolution', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('defaults to XNNPACK on Android wherever an XNNPACK export exists', () => {
+  it('defaults to XNNPACK on Android where no Vulkan export exists', () => {
     const offenders = defaultsOf(registryFor({ os: 'android' }))
       .filter(({ offers }) => offers.some((key) => key.startsWith('XNNPACK')))
+      .filter(({ offers }) => !offers.some((key) => key.startsWith('VULKAN')))
       .filter(({ key }) => key !== undefined && !key.startsWith('XNNPACK'))
       .map(({ label, key }) => `${label}: ${key}`);
 
     expect(offenders).toEqual([]);
   });
 
-  it('leaves Vulkan and MLX as an explicit opt-in on both platforms', () => {
-    for (const os of ['ios', 'android'] as const) {
-      const offenders = defaultsOf(registryFor({ os }))
-        .filter(({ key }) => key?.startsWith('VULKAN') || key?.startsWith('MLX'))
-        .map(({ label, key }) => `${os} ${label}: ${key}`);
+  it('prefers MLX over XNNPACK on iOS where no Core ML export exists', () => {
+    const offenders = defaultsOf(registryFor({ os: 'ios' }))
+      .filter(({ offers }) => offers.some((key) => key.startsWith('MLX')))
+      .filter(({ offers }) => !offers.some((key) => key.startsWith('COREML')))
+      .filter(({ key }) => key !== undefined && !key.startsWith('MLX'))
+      .map(({ label, key }) => `${label}: ${key}`);
 
-      expect(offenders).toEqual([]);
-    }
+    expect(offenders).toEqual([]);
   });
 
-  it('falls back to XNNPACK on the iOS simulator, which cannot run Core ML', () => {
+  it('prefers Vulkan over XNNPACK on Android wherever a Vulkan export exists', () => {
+    const offenders = defaultsOf(registryFor({ os: 'android' }))
+      .filter(({ offers }) => offers.some((key) => key.startsWith('VULKAN')))
+      .filter(({ key }) => key !== undefined && !key.startsWith('VULKAN'))
+      .map(({ label, key }) => `${label}: ${key}`);
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('never picks Vulkan on iOS or an iOS-only backend on Android', () => {
+    expect(
+      defaultsOf(registryFor({ os: 'ios' }))
+        .filter(({ key }) => key?.startsWith('VULKAN'))
+        .map(({ label, key }) => `${label}: ${key}`)
+    ).toEqual([]);
+
+    expect(
+      defaultsOf(registryFor({ os: 'android' }))
+        .filter(({ key }) => key?.startsWith('COREML') || key?.startsWith('MLX'))
+        .map(({ label, key }) => `${label}: ${key}`)
+    ).toEqual([]);
+  });
+
+  it('reads every variant group out of the registry source', () => {
+    // The pin case below is a source-level check, so it passes for free if the
+    // scanner stops matching the shape Prettier writes.
+    const calls = variantsCalls();
+    expect(calls.length).toBeGreaterThan(100);
+    expect(calls.filter(({ pinsIos }) => pinsIos).length).toBeGreaterThan(0);
+    expect(calls.filter(({ keys }) => keys.length === 0)).toEqual([]);
+  });
+
+  it('every group offering both Core ML and MLX pins one', () => {
+    // Core ML sits above MLX in the backend order only to make the resolution
+    // deterministic, and that ordering is not a benchmark result. Where a model
+    // publishes both, the winner has to be written down at the call site so the
+    // choice is reviewable rather than an accident of the enum order.
+    //
+    // A pin to the backend the order would have picked anyway is invisible at
+    // runtime, so this reads the registry source rather than the resolved
+    // registry.
+    const offenders = variantsCalls()
+      .filter(({ keys }) => keys.some((key) => key.startsWith('COREML')))
+      .filter(({ keys }) => keys.some((key) => key.startsWith('MLX')))
+      .filter(({ pinsIos }) => !pinsIos)
+      .map(({ name, keys }) => `${name}: ${keys.join(', ')}`);
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('falls back to XNNPACK on the iOS simulator, which runs neither Core ML nor MLX', () => {
     const offenders = defaultsOf(registryFor({ os: 'ios', isEmulator: true }))
       .filter(({ path }) => /\/(coreml|mlx)\//.test(path))
       .map(({ label, path }) => `${label}: ${path}`);

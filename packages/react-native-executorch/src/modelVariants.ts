@@ -18,11 +18,11 @@
  *    otherwise").
  *
  * A model whose best variant does not follow from that ordering can pin one
- * per platform — see the second argument of {@link variants}.
- *
- * Backends the resolver never picks on its own — MLX on iOS, Vulkan on
- * Android — stay reachable through their explicit keys. They win on some
- * models and lose on others, so they are an opt-in rather than a default.
+ * per platform — see the second argument of {@link variants}. A model that
+ * publishes both a Core ML and an MLX export has to: the two are close enough
+ * that the winner is a per-model benchmark result, not something an ordering
+ * can state, so `every group offering both Core ML and MLX pins one` in
+ * `__tests__/api/modelVariants.test.ts` fails until the choice is written down.
  * @module ModelVariants
  * @internal
  */
@@ -40,13 +40,18 @@ type TargetPlatform = 'ios' | 'android';
 /**
  * Backends to try, best first, per platform.
  *
- * Core ML leads on iOS: it reaches the Neural Engine, which beats XNNPACK's
- * CPU kernels on every model family that ships both. XNNPACK leads on Android
- * and backs iOS up, because it is the one backend every model exports to.
+ * The accelerated backends lead and XNNPACK trails on both platforms: a model
+ * is only exported to Core ML, MLX or Vulkan once it has been shown to run
+ * better there, so a published accelerated variant is itself the signal that it
+ * should be preferred. XNNPACK is the fallback because it is the one backend
+ * every model exports to.
+ *
+ * Core ML sits above MLX on iOS only to give the pair a deterministic order;
+ * every model that publishes both has to pin its winner explicitly.
  */
 const BACKEND_ORDER: Record<TargetPlatform, readonly BackendTag[]> = {
-  ios: ['COREML', 'XNNPACK'],
-  android: ['XNNPACK'],
+  ios: ['COREML', 'MLX', 'XNNPACK'],
+  android: ['VULKAN', 'XNNPACK'],
 };
 
 /** Variant keys pinned per platform, overriding {@link BACKEND_ORDER}. */
