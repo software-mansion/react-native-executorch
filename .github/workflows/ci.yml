@@ -39,3 +39,86 @@ jobs:
 
       - name: Build all packages
         run: yarn workspaces foreach --all --exclude react-native-executorch-webrtc --topological-dev run prepare
+
+  native-tests:
+    name: C++ unit tests
+    runs-on: ubuntu-latest
+    # Well clear of a cold run (the Hermes + ExecuTorch dependency build is the
+    # bulk of it) but far below the 6 h default, so a stalled download fails
+    # with logs instead of hanging.
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: packages/react-native-executorch
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # googletest for the harness, phonemis because cpp/extensions/speech
+      # compiles it. GIT_LFS_SKIP_SMUDGE keeps phonemis' `data/` as pointer
+      # files: it is Git LFS, several tens of MB, and nothing in the host suite
+      # reads it (see cpp/tests/extensions/PhonemizerTest.cpp).
+      - name: Check out the submodules the tests build
+        run: |
+          git submodule update --init --depth 1 third-party/googletest
+          GIT_LFS_SKIP_SMUDGE=1 git submodule update --init --depth 1 \
+            packages/react-native-executorch/third-party/common/phonemis
+        working-directory: ${{ github.workspace }}
+
+      # download-libs.js is dependency-free, so this job needs node but not a
+      # yarn install.
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      # Only the two OpenCV modules the cv extension uses. The `libopencv-dev`
+      # meta-package hard-depends on the viz and contrib modules, which pull VTK,
+      # OpenMPI and ~220 packages — over 50 minutes on a throttled mirror.
+      # OpenCVConfig.cmake ships only in that meta-package, so cpp/tests
+      # falls back to locating the libraries directly.
+      - name: Install build tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build libopencv-core-dev libopencv-imgproc-dev
+        working-directory: ${{ github.workspace }}
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Provision third-party headers
+        run: RNET_HEADERS_ONLY=1 node scripts/download-libs.js
+
+      # Hermes and ExecuTorch are pinned to exact tags, so the cache only misses
+      # when scripts/build-native-test-deps.sh changes those pins.
+      #
+      # Split restore/save rather than actions/cache: the combined action only
+      # saves in a post step when the job succeeds, so a failing test would throw
+      # away the ~9 min dependency build and rebuild it on every retry.
+      - name: Restore native test dependencies
+        id: deps-cache
+        uses: actions/cache/restore@v5
+        with:
+          path: packages/react-native-executorch/.native-test-deps
+          key: ${{ runner.os }}-native-test-deps-${{ hashFiles('packages/react-native-executorch/scripts/build-native-test-deps.sh') }}
+
+      - name: Build native test dependencies
+        if: steps.deps-cache.outputs.cache-hit != 'true'
+        run: scripts/build-native-test-deps.sh
+
+      - name: Save native test dependencies
+        if: steps.deps-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: packages/react-native-executorch/.native-test-deps
+          key: ${{ steps.deps-cache.outputs.cache-primary-key }}
+
+      # ~3 MB in total (a .pte program and a tokenizer.json), each pinned to an
+      # exact HF revision and checksum-verified. Fetched as its own step so a
+      # Hugging Face outage is an obvious failure rather than a confusing one
+      # inside the test run.
+      - name: Fetch test fixtures
+        run: scripts/fetch-test-fixtures.sh
+
+      - name: Run C++ unit tests
+        run: scripts/run-native-tests.sh
