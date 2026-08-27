@@ -213,17 +213,47 @@ The three lists are merged, so you can pair a `features` set with an extra `back
 
 ### Feature → backend / lib mapping
 
-These tasks are available today:
+Each feature provisions the union of the backends its models are published for, so that the `DEFAULT` variant of every model in that family can resolve to the fastest export the device supports (see below).
 
 | Feature | Backends | Extra libs |
 | --- | --- | --- |
+| `llm` | xnnpack, mlx | — |
+| `multimodalLLM` | xnnpack, mlx, vulkan | opencv |
+| `privacyFilter` | xnnpack, mlx | — |
+| `speechToText` | xnnpack, coreml, mlx | — |
+| `textToSpeech` | xnnpack, mlx | phonemis |
+| `vad` | xnnpack | — |
+| `textEmbeddings` | xnnpack, mlx | — |
+| `imageEmbeddings` | xnnpack, coreml, mlx | opencv |
 | `classification` | xnnpack, coreml | opencv |
-| `semanticSegmentation` | xnnpack | opencv |
-| `styleTransfer` | xnnpack, coreml | opencv |
+| `objectDetection` | xnnpack, coreml | opencv |
 | `keypointDetection` | xnnpack, coreml, mlx | opencv |
+| `semanticSegmentation` | xnnpack, coreml | opencv |
+| `instanceSegmentation` | xnnpack, coreml | opencv |
+| `ocr` | xnnpack, coreml, vulkan | opencv |
+| `verticalOCR` | xnnpack | opencv |
+| `styleTransfer` | xnnpack, coreml | opencv |
+| `textToImage` | xnnpack, coreml | opencv |
+| `segmentAnything` | xnnpack, coreml | opencv |
 | `tokenizer` | — | — |
 
-The map also contains forward-looking entries (`llm`, `multimodalLLM`, `speechToText`, `objectDetection`, `ocr`, …) for tasks that are not yet exposed in the JS API; requesting one provisions the right binaries but has no hook to call yet.
+### How the backends you pick change which model runs
+
+Models published for more than one backend expose their exports as named variants next to a `DEFAULT` alias:
+
+```ts
+models.classification.EFFICIENTNET_V2_S.DEFAULT; // resolved for this device
+models.classification.EFFICIENTNET_V2_S.COREML_FP16; // always this export
+models.classification.EFFICIENTNET_V2_S.XNNPACK_INT8;
+```
+
+`DEFAULT` is not a fixed file. It is resolved when the library loads, to the fastest export the device can actually run:
+
+- **iOS device** — the Core ML export where one exists, so the model reaches the Neural Engine.
+- **Android, and the iOS simulator** — the XNNPACK export. The simulator has no Neural Engine and cannot run Core ML models at all.
+- **Either, narrowed by your config** — only backends your app downloaded are considered. Trimming `coreml` out of an iOS build moves every `DEFAULT` back to XNNPACK rather than failing to load.
+
+MLX and Vulkan are never picked automatically: they win on some models and lose on others, so reach for `MLX_*` / `VULKAN_*` explicitly when you have benchmarked your case. Naming any variant directly always overrides the resolution.
 
 ### Platform notes
 

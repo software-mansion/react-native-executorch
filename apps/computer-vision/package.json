@@ -10,8 +10,10 @@
       "instanceSegmentation",
       "keypointDetection",
       "objectDetection",
+      "ocr",
       "semanticSegmentation",
-      "styleTransfer"
+      "styleTransfer",
+      "textToImage"
     ]
   },
   "scripts": {

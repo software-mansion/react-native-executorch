@@ -1,0 +1,325 @@
+/**
+ * How the `DEFAULT` alias in the `models` registry is chosen.
+ *
+ * The alias is resolved once, when the registry module is first imported, from
+ * the platform and the backends the native binary was linked with. Every case
+ * below therefore reloads the registry behind a `jest.resetModules()` rather
+ * than reading the copy the test file imported.
+ */
+import { Platform } from 'react-native';
+
+import { fakeJsi } from '../support/fakeJsi';
+
+type Node = Record<string, unknown>;
+
+const isObject = (value: unknown): value is Node =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const isConfig = (value: unknown): value is Node =>
+  isObject(value) &&
+  (typeof value.modelPath === 'string' ||
+    (isObject(value.modelPaths) &&
+      Object.values(value.modelPaths).every((path) => typeof path === 'string')));
+
+/** The `.pte` file(s) a config names, as one comparable string. */
+const modelPathsOf = (config: Node): string =>
+  typeof config.modelPath === 'string'
+    ? config.modelPath
+    : Object.values(config.modelPaths as Node)
+        .map(String)
+        .sort()
+        .join('|');
+
+const isUpperKey = (key: string) => /^[A-Z0-9_]+$/.test(key);
+
+/** Every group that names a `DEFAULT`, with the dotted path it sits at. */
+function variantGroups(node: unknown, path: string[] = []): { label: string; group: Node }[] {
+  if (!isObject(node)) return [];
+  const here = isConfig(node.DEFAULT) ? [{ label: path.join('.'), group: node }] : [];
+  const nested = Object.entries(node)
+    .filter(([key, value]) => key !== 'DEFAULT' && isObject(value))
+    .flatMap(([key, value]) => variantGroups(value, [...path, key]));
+  return [...here, ...nested];
+}
+
+/** The backend variants a group lists directly, by key. */
+const namedVariants = (group: Node): [string, Node][] =>
+  Object.entries(group).filter(
+    ([key, value]) => key !== 'DEFAULT' && isUpperKey(key) && isConfig(value)
+  ) as [string, Node][];
+
+/** The variant key a group's `DEFAULT` points at, when it points at its own. */
+const defaultKeyOf = (group: Node): string | undefined =>
+  namedVariants(group).find(
+    ([, value]) => modelPathsOf(value) === modelPathsOf(group.DEFAULT as Node)
+  )?.[0];
+
+const originalOs = Platform.OS;
+
+/**
+ * Points `Platform.OS` at a target, on the module instance the next `require`
+ * will resolve to. Has to run after `jest.resetModules()`, which hands out a
+ * fresh `react-native` module.
+ * @param os The platform to pretend to run on.
+ */
+function setPlatform(os: 'ios' | 'android'): void {
+  (require('react-native').Platform as { OS: string }).OS = os;
+}
+
+/**
+ * Reloads the registry as it would resolve on a given device.
+ * @param options The platform, the linked backends, and whether the device is
+ * a simulator.
+ * @returns The freshly resolved `models` registry.
+ */
+function registryFor(options: {
+  os: 'ios' | 'android';
+  backends?: string[];
+  isEmulator?: boolean;
+}): Node {
+  fakeJsi.setRegisteredBackends(
+    options.backends ?? ['XnnpackBackend', 'CoreMLBackend', 'MLXBackend', 'VulkanBackend']
+  );
+  fakeJsi.setIsEmulator(options.isEmulator ?? false);
+
+  jest.resetModules();
+  setPlatform(options.os);
+  return require('../../src/models').models as Node;
+}
+
+/** Every group of the reloaded registry, paired with the key it defaulted to. */
+const defaultsOf = (registry: Node) =>
+  variantGroups(registry).map(({ label, group }) => ({
+    label,
+    key: defaultKeyOf(group),
+    path: modelPathsOf(group.DEFAULT as Node),
+    offers: namedVariants(group).map(([key]) => key),
+  }));
+
+afterEach(() => {
+  jest.resetModules();
+  setPlatform(originalOs as 'ios' | 'android');
+});
+
+describe('DEFAULT variant resolution', () => {
+  it('finds groups to check', () => {
+    expect(defaultsOf(registryFor({ os: 'ios' })).length).toBeGreaterThan(100);
+  });
+
+  it('defaults to Core ML on iOS wherever a Core ML export exists', () => {
+    const offenders = defaultsOf(registryFor({ os: 'ios' }))
+      .filter(({ offers }) => offers.some((key) => key.startsWith('COREML')))
+      .filter(({ key }) => key !== undefined && !key.startsWith('COREML'))
+      .map(({ label, key }) => `${label}: ${key}`);
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('never defaults to an iOS-only backend on Android', () => {
+    const offenders = defaultsOf(registryFor({ os: 'android' }))
+      .filter(({ path }) => /\/(coreml|mlx)\//.test(path))
+      .map(({ label, path }) => `${label}: ${path}`);
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('defaults to XNNPACK on Android wherever an XNNPACK export exists', () => {
+    const offenders = defaultsOf(registryFor({ os: 'android' }))
+      .filter(({ offers }) => offers.some((key) => key.startsWith('XNNPACK')))
+      .filter(({ key }) => key !== undefined && !key.startsWith('XNNPACK'))
+      .map(({ label, key }) => `${label}: ${key}`);
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('leaves Vulkan and MLX as an explicit opt-in on both platforms', () => {
+    for (const os of ['ios', 'android'] as const) {
+      const offenders = defaultsOf(registryFor({ os }))
+        .filter(({ key }) => key?.startsWith('VULKAN') || key?.startsWith('MLX'))
+        .map(({ label, key }) => `${os} ${label}: ${key}`);
+
+      expect(offenders).toEqual([]);
+    }
+  });
+
+  it('falls back to XNNPACK on the iOS simulator, which cannot run Core ML', () => {
+    const offenders = defaultsOf(registryFor({ os: 'ios', isEmulator: true }))
+      .filter(({ path }) => /\/(coreml|mlx)\//.test(path))
+      .map(({ label, path }) => `${label}: ${path}`);
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('falls back to XNNPACK on iOS when the app links XNNPACK only', () => {
+    const offenders = defaultsOf(registryFor({ os: 'ios', backends: ['XnnpackBackend'] }))
+      .filter(({ key }) => key !== undefined && !key.startsWith('XNNPACK'))
+      .map(({ label, key }) => `${label}: ${key}`);
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('picks a variant the group actually offers, on every device', () => {
+    const devices = [
+      { os: 'ios' as const },
+      { os: 'ios' as const, isEmulator: true },
+      { os: 'ios' as const, backends: ['XnnpackBackend'] },
+      { os: 'android' as const },
+      // An app that opted out of every backend its models were published for:
+      // the registry still has to name a model rather than yield `undefined`.
+      { os: 'android' as const, backends: ['CoreMLBackend'] },
+    ];
+
+    for (const device of devices) {
+      const offenders = variantGroups(registryFor(device))
+        .filter(({ group }) => namedVariants(group).length > 0)
+        .filter(({ group }) => defaultKeyOf(group) === undefined)
+        .map(({ label }) => `${JSON.stringify(device)} ${label}`);
+
+      expect(offenders).toEqual([]);
+    }
+  });
+
+  it('keeps the same model files reachable through named variants on both platforms', () => {
+    // Only the default moves per platform; the catalogue itself must not.
+    const keysOf = (registry: Node) =>
+      defaultsOf(registry)
+        .map(({ label, offers }) => `${label}: ${offers.join(',')}`)
+        .sort();
+
+    expect(keysOf(registryFor({ os: 'ios' }))).toEqual(keysOf(registryFor({ os: 'android' })));
+  });
+
+  it('resolves a family to the default of its first sub-group', () => {
+    const registry = registryFor({ os: 'ios' });
+    const objectDetection = registry.objectDetection as Node;
+    const yolo = objectDetection.YOLO26 as Node;
+    const nano = yolo.NANO as Node;
+
+    expect(yolo.DEFAULT).toBe(nano.DEFAULT);
+    expect(nano.DEFAULT).toBe((nano.SIZE_384 as Node).DEFAULT);
+  });
+});
+
+describe('variants()', () => {
+  const A = { modelPath: 'a.pte' };
+  const B = { modelPath: 'b.pte' };
+  const C = { modelPath: 'c.pte' };
+
+  /**
+   * Reloads the helper module for a given device.
+   * @param os The platform to resolve for.
+   * @param backends The backends the binary reports as linked.
+   * @returns The freshly loaded `modelVariants` module.
+   */
+  function load(os: 'ios' | 'android', backends?: string[]) {
+    fakeJsi.setRegisteredBackends(backends ?? ['XnnpackBackend', 'CoreMLBackend']);
+    jest.resetModules();
+    setPlatform(os);
+    return require('../../src/modelVariants') as typeof import('../../src/modelVariants');
+  }
+
+  it('breaks a tie within one backend by declaration order', () => {
+    const { variants } = load('android');
+    expect(variants({ XNNPACK_INT8: A, XNNPACK_FP32: B }).DEFAULT).toBe(A);
+    expect(variants({ XNNPACK_FP32: B, XNNPACK_INT8: A }).DEFAULT).toBe(B);
+  });
+
+  it('honours a pinned variant over the backend order', () => {
+    const { variants } = load('ios');
+    const group = variants({ XNNPACK_FP32: A, COREML_FP16: B }, { ios: 'XNNPACK_FP32' });
+    expect(group.DEFAULT).toBe(A);
+  });
+
+  it('ignores a pin whose backend the app did not link in', () => {
+    const { variants } = load('ios', ['XnnpackBackend']);
+    const group = variants({ XNNPACK_FP32: A, COREML_FP16: B }, { ios: 'COREML_FP16' });
+    expect(group.DEFAULT).toBe(A);
+  });
+
+  it('applies a pin only on the platform it names', () => {
+    const pinned = { android: 'XNNPACK_INT8' } as const;
+    expect(load('android').variants({ XNNPACK_FP32: A, XNNPACK_INT8: B }, pinned).DEFAULT).toBe(B);
+    expect(load('ios').variants({ XNNPACK_FP32: A, XNNPACK_INT8: B }, pinned).DEFAULT).toBe(A);
+  });
+
+  it('falls back to the first variant when no preferred backend is linked in', () => {
+    const { variants } = load('android', ['CoreMLBackend']);
+    expect(variants({ COREML_FP16: C, XNNPACK_FP32: A }).DEFAULT).toBe(C);
+  });
+
+  it('keeps every named variant alongside the default', () => {
+    const { variants } = load('ios');
+    const group = variants({ XNNPACK_FP32: A, COREML_FP16: B });
+    expect(group).toEqual({ XNNPACK_FP32: A, COREML_FP16: B, DEFAULT: B });
+  });
+});
+
+describe('feature map', () => {
+  // `models.<task>.<MODEL>.DEFAULT` only reaches the accelerated export when
+  // the app downloaded that backend, and `features` is the documented way to
+  // say which backends an app needs. A family whose feature entry is missing a
+  // backend it publishes therefore falls back to XNNPACK forever, quietly.
+  //
+  // Categories map to feature names one-to-one except where noted; a category
+  // added without an entry here fails the coverage case below.
+  const FEATURE_OF_CATEGORY: Record<string, string> = {
+    classification: 'classification',
+    styleTransfer: 'styleTransfer',
+    semanticSegmentation: 'semanticSegmentation',
+    objectDetection: 'objectDetection',
+    keypointDetection: 'keypointDetection',
+    instanceSegmentation: 'instanceSegmentation',
+    voiceActivityDetection: 'vad',
+    speechToText: 'speechToText',
+    tokenizer: 'tokenizer',
+    llm: 'llm',
+    textEmbeddings: 'textEmbeddings',
+    privacyFilter: 'privacyFilter',
+    imageEmbeddings: 'imageEmbeddings',
+    textToImage: 'textToImage',
+    textToSpeech: 'textToSpeech',
+    ocr: 'ocr',
+  };
+
+  const { FEATURE_MAP } = require('../../scripts/download-libs.js');
+
+  /** Every backend folder the URLs under a registry category point into. */
+  function publishedBackends(node: unknown): Set<string> {
+    const found = new Set<string>();
+    const walk = (value: unknown): void => {
+      if (typeof value === 'string') {
+        const match = value.match(/\/(xnnpack|coreml|mlx|vulkan)\//);
+        if (match) found.add(match[1]!);
+      } else if (Array.isArray(value)) value.forEach(walk);
+      else if (isObject(value)) Object.values(value).forEach(walk);
+    };
+    walk(node);
+    return found;
+  }
+
+  const registry = registryFor({ os: 'ios' });
+
+  it('names a feature for every registry category', () => {
+    expect(Object.keys(registry).filter((category) => !FEATURE_OF_CATEGORY[category])).toEqual([]);
+  });
+
+  it('provisions every backend the registry publishes for that feature', () => {
+    const offenders: string[] = [];
+
+    for (const [category, node] of Object.entries(registry)) {
+      const feature = FEATURE_OF_CATEGORY[category]!;
+      // Multimodal LLMs are split into their own feature; both entries cover
+      // the `llm` category, so the union of the two is what an LLM app gets.
+      const provisioned = new Set<string>([
+        ...FEATURE_MAP[feature].backends,
+        ...(feature === 'llm' ? FEATURE_MAP.multimodalLLM.backends : []),
+      ]);
+
+      for (const backend of publishedBackends(node)) {
+        if (!provisioned.has(backend)) offenders.push(`${feature} is missing ${backend}`);
+      }
+    }
+
+    expect(offenders.sort()).toEqual([]);
+  });
+});
