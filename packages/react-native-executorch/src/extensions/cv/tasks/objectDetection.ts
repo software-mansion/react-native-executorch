@@ -15,6 +15,7 @@ import type { ImageBuffer } from '../image';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils/imagePreprocessor';
 import { nms, scaleBox, decodeBox, type BoundingBox, type BoxFormat } from '../ops/box';
 import { RnExecuTorchError } from '../../../core/error';
+import { createResourceScope } from '../../../core/lifetime';
 
 /**
  * Options for configuring an object detector preprocessor, label vocabulary,
@@ -141,100 +142,104 @@ export async function createObjectDetector<F extends BoxFormat, L>(
   config: ObjectDetectorModel<F, L>,
   runtime?: WorkletRuntime
 ): Promise<ObjectDetector<F, L>> {
-  const { modelPath, modelOpts } = config;
-  const model = await wrapAsync(loadModel, runtime)(modelPath);
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
 
-  const { variant, dims } = validateSpec(model.schema, {
-    batched: method(
-      'forward', // prettier-ignore
-      [f32(1, 3, 'H', 'W')],
-      [f32('N', 4), f32('N'), f32('N')]
-    ),
-    unbatched: method(
-      'forward', // prettier-ignore
-      [f32(3, 'H', 'W')],
-      [f32('N', 4), f32('N'), f32('N')]
-    ),
-  });
+  try {
+    const { modelPath, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
-  const [N, H, W] = dims.constant('N', 'H', 'W');
-  const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
-  const outShape = { boxes: [N, 4], scores: [N], classes: [N] };
-
-  const tensors = [
-    tensor('float32', outShape.boxes),
-    tensor('float32', outShape.scores),
-    tensor('float32', outShape.classes),
-  ] as const;
-
-  const [tBoxes, tScores, tClasses] = tensors;
-  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
-
-  const { boxFormat } = modelOpts;
-
-  const dispose = () => {
-    preprocessor.dispose();
-    tensors.forEach((t) => t.dispose());
-    model.dispose();
-  };
-
-  const detectObjectsWorklet = (
-    input: ImageBuffer,
-    options?: { confidenceThreshold?: number; iouThreshold?: number }
-  ): ObjectDetection<F, L>[] => {
-    'worklet';
-    const tInput = preprocessor.process(input);
-    model.execute('forward', [tInput], [tBoxes, tScores, tClasses]);
-
-    const boxes = tBoxes.getData(new Float32Array(tBoxes.numel));
-    const scores = tScores.getData(new Float32Array(tScores.numel));
-    const classes = tClasses.getData(new Float32Array(tClasses.numel));
-
-    const iouThreshold = options?.iouThreshold ?? modelOpts.defaultIouThreshold;
-    const confidenceThreshold =
-      options?.confidenceThreshold ?? modelOpts.defaultConfidenceThreshold;
-
-    const results: ObjectDetection<F, L>[] = [];
-    const indices = nms(tBoxes, tScores, {
-      boxFormat,
-      iouThreshold,
-      confidenceThreshold,
-      nmsType: 'standard',
+    const { variant, dims } = validateSpec(model.schema, {
+      batched: method(
+        'forward', // prettier-ignore
+        [f32(1, 3, 'H', 'W')],
+        [f32('N', 4), f32('N'), f32('N')]
+      ),
+      unbatched: method(
+        'forward', // prettier-ignore
+        [f32(3, 'H', 'W')],
+        [f32('N', 4), f32('N'), f32('N')]
+      ),
     });
 
-    for (const index of indices) {
-      const confidence = scores[index]!;
-      const classIdx = Math.round(classes[index]!);
-      const label = modelOpts.labels[classIdx];
+    const [N, H, W] = dims.constant('N', 'H', 'W');
+    const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+    const outShape = { boxes: [N, 4], scores: [N], classes: [N] };
 
-      if (label === undefined) {
-        throw RnExecuTorchError(
-          'INVALID_ARGUMENT',
-          `ObjectDetector: Predicted class index ${classIdx} is out of bounds for` +
-            `labels array of size ${modelOpts.labels.length}.`
-        );
+    const tensors = [
+      tensor('float32', outShape.boxes),
+      tensor('float32', outShape.scores),
+      tensor('float32', outShape.classes),
+    ] as const;
+
+    tensors.forEach(scope.track);
+
+    const [tBoxes, tScores, tClasses] = tensors;
+    const preprocessor = scope.track(createImagePreprocessor(modelOpts, inpShape));
+
+    const { boxFormat } = modelOpts;
+
+    const detectObjectsWorklet = (
+      input: ImageBuffer,
+      options?: { confidenceThreshold?: number; iouThreshold?: number }
+    ): ObjectDetection<F, L>[] => {
+      'worklet';
+      const tInput = preprocessor.process(input);
+      model.execute('forward', [tInput], [tBoxes, tScores, tClasses]);
+
+      const boxes = tBoxes.getData(new Float32Array(tBoxes.numel));
+      const scores = tScores.getData(new Float32Array(tScores.numel));
+      const classes = tClasses.getData(new Float32Array(tClasses.numel));
+
+      const iouThreshold = options?.iouThreshold ?? modelOpts.defaultIouThreshold;
+      const confidenceThreshold =
+        options?.confidenceThreshold ?? modelOpts.defaultConfidenceThreshold;
+
+      const results: ObjectDetection<F, L>[] = [];
+      const indices = nms(tBoxes, tScores, {
+        boxFormat,
+        iouThreshold,
+        confidenceThreshold,
+        nmsType: 'standard',
+      });
+
+      for (const index of indices) {
+        const confidence = scores[index]!;
+        const classIdx = Math.round(classes[index]!);
+        const label = modelOpts.labels[classIdx];
+
+        if (label === undefined) {
+          throw RnExecuTorchError(
+            'INVALID_ARGUMENT',
+            `ObjectDetector: Predicted class index ${classIdx} is out of bounds for` +
+              `labels array of size ${modelOpts.labels.length}.`
+          );
+        }
+
+        const a = boxes[index * 4]!;
+        const b = boxes[index * 4 + 1]!;
+        const c = boxes[index * 4 + 2]!;
+        const d = boxes[index * 4 + 3]!;
+
+        results.push({
+          label,
+          confidence,
+          box: scaleBox(decodeBox([a, b, c, d], boxFormat), {
+            from: { width: W, height: H },
+            to: { width: input.width, height: input.height },
+            ...modelOpts,
+          }),
+        });
       }
 
-      const a = boxes[index * 4]!;
-      const b = boxes[index * 4 + 1]!;
-      const c = boxes[index * 4 + 2]!;
-      const d = boxes[index * 4 + 3]!;
+      return results;
+    };
 
-      results.push({
-        label,
-        confidence,
-        box: scaleBox(decodeBox([a, b, c, d], boxFormat), {
-          from: { width: W, height: H },
-          to: { width: input.width, height: input.height },
-          ...modelOpts,
-        }),
-      });
-    }
+    const detectObjects = wrapAsync(detectObjectsWorklet, runtime);
 
-    return results;
-  };
-
-  const detectObjects = wrapAsync(detectObjectsWorklet, runtime);
-
-  return { detectObjects, detectObjectsWorklet, dispose };
+    return { detectObjects, detectObjectsWorklet, dispose };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }

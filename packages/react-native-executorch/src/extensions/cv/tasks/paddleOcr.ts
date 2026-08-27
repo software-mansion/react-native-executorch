@@ -10,6 +10,7 @@ import { loadModel } from '../../../core/model';
 import { RnExecuTorchError } from '../../../core/error';
 import { wrapAsync } from '../../../core/runtime';
 import { tensor, type Tensor } from '../../../core/tensor';
+import { createResourceScope } from '../../../core/lifetime';
 import {
   validateSpec,
   method,
@@ -400,160 +401,174 @@ export async function createPaddleOcr(
   config: PaddleOcrModel,
   runtime?: WorkletRuntime
 ): Promise<PaddleOcr> {
-  const { modelPath, charsetPath, modelOpts } = config;
-  const model = await wrapAsync(loadModel, runtime)(modelPath);
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
 
-  // Both methods are `DynamicDim` on every backend — a range on XNNPACK and
-  // Vulkan, an enum on CoreML, which has no RangeDim — so one variant covers
-  // all three.
-  const { dims } = validateSpec(model.schema, {
-    ppOcrV6: {
-      ...method(
-        'detect',
-        [f32(1, 3, DynamicDim('detH'), DynamicDim('detW'))],
-        [f32(1, 1, DynamicDim('detOutH'), DynamicDim('detOutW'))]
-      ),
-      ...method(
-        'recognize',
-        [f32(1, 3, 'recH', DynamicDim('recW'))],
-        [f32(1, DynamicDim('recT'), 'vocab')],
-        [
-          constraint.linear(
-            { paramSide: 'input', tensorIdx: 0, dimIdx: 3 },
-            { paramSide: 'output', tensorIdx: 0, dimIdx: 1 },
-            SVTR_CTC_STRIDE
-          ),
-        ]
-      ),
-    },
-  });
+  try {
+    const { modelPath, charsetPath, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
-  const [detHDim, detWDim, recWDim] = dims.dynamic('detH', 'detW', 'recW');
-  const [recH, vocabSize] = dims.constant('recH', 'vocab');
-  const [detHMax, detWMax, recWMax] = [dimMax(detHDim), dimMax(detWDim), dimMax(recWDim)];
+    // Both methods are `DynamicDim` on every backend — a range on XNNPACK and
+    // Vulkan, an enum on CoreML, which has no RangeDim — so one variant covers
+    // all three.
+    const { dims } = validateSpec(model.schema, {
+      ppOcrV6: {
+        ...method(
+          'detect',
+          [f32(1, 3, DynamicDim('detH'), DynamicDim('detW'))],
+          [f32(1, 1, DynamicDim('detOutH'), DynamicDim('detOutW'))]
+        ),
+        ...method(
+          'recognize',
+          [f32(1, 3, 'recH', DynamicDim('recW'))],
+          [f32(1, DynamicDim('recT'), 'vocab')],
+          [
+            constraint.linear(
+              { paramSide: 'input', tensorIdx: 0, dimIdx: 3 },
+              { paramSide: 'output', tensorIdx: 0, dimIdx: 1 },
+              SVTR_CTC_STRIDE
+            ),
+          ]
+        ),
+      },
+    });
 
-  // Kept off the JS bundle on purpose: the table is ~128 KB, and an app that
-  // never runs OCR should not carry it. CTC lookup: index 0 is the blank, then
-  // the model's characters.
-  const charsetString = await RNBlobUtil.fs.readFile(charsetPath, 'utf8');
-  const charset: readonly string[] = ['[blank]', ...JSON.parse(charsetString)];
-  if (charset.length !== vocabSize) {
-    throw RnExecuTorchError(
-      'SCHEMA_MISMATCH',
-      `createPaddleOcr: charset size (${charset.length}, incl. blank) must match the ` +
-        `recognizer output vocab (${vocabSize}).`
-    );
-  }
+    const [detHDim, detWDim, recWDim] = dims.dynamic('detH', 'detW', 'recW');
+    const [recH, vocabSize] = dims.constant('recH', 'vocab');
+    const [detHMax, detWMax, recWMax] = [dimMax(detHDim), dimMax(detWDim), dimMax(recWDim)];
 
-  const dispose = () => model.dispose();
-
-  const recognizeCharactersWorklet = (
-    input: ImageBuffer,
-    options?: RecognizeCharactersOptions
-  ): OcrDetection[] => {
-    'worklet';
-    const confidenceThreshold =
-      options?.confidenceThreshold ?? modelOpts.defaultConfidenceThreshold;
-
-    const [H, W] = [input.height, input.width];
-    const numChannels = FORMAT_CHANNELS[input.format];
-    const colorCode = FORMAT_CONVERSION[input.format].rgb;
-
-    // Scale the page down to fit the detector before snapping, so a wide page
-    // keeps its aspect ratio instead of paying for padding on the short side.
-    const scale = Math.min(1, detHMax / H, detWMax / W);
-    const [detH, detW] = [
-      snap(Math.round(H * scale), detHDim),
-      snap(Math.round(W * scale), detWDim),
-    ];
-
-    // 1. Detect the quads holding text.
-    let quads: Quad[];
-    const detPreprocessor = createImagePreprocessor(DETECTOR_PREPROCESSOR_OPTS, [1, 3, detH, detW]);
-    // DBNet emits one full-resolution probability map, [1, 1, H, W].
-    const tDetProbas = tensor('float32', [1, 1, detH, detW]);
-    try {
-      const tDetInput = detPreprocessor.process(input);
-      model.execute('detect', [tDetInput], [tDetProbas]);
-
-      quads = extractDbnetTextQuads(tDetProbas, DBNET_DECODE_OPTS)
-        .map((q) => orderQuad(scaleQuad(q, { from: { width: detW, height: detH }, to: input })))
-        .filter((q) => Object.values(quadSize(q)).every((s) => s >= MIN_RECOGNIZABLE_SIDE));
-    } finally {
-      tDetProbas.dispose();
-      detPreprocessor.dispose();
+    // Kept off the JS bundle on purpose: the table is ~128 KB, and an app that
+    // never runs OCR should not carry it. CTC lookup: index 0 is the blank, then
+    // the model's characters.
+    const charsetString = await RNBlobUtil.fs.readFile(charsetPath, 'utf8');
+    const charset: readonly string[] = ['[blank]', ...JSON.parse(charsetString)];
+    if (charset.length !== vocabSize) {
+      throw RnExecuTorchError(
+        'SCHEMA_MISMATCH',
+        `createPaddleOcr: charset size (${charset.length}, incl. blank) must match the ` +
+          `recognizer output vocab (${vocabSize}).`
+      );
     }
 
-    // 2. Read the text inside each quad.
-    const detections: OcrDetection[] = [];
-    const tImage = tensor('uint8', [H, W, numChannels], input.data);
-    try {
-      for (const quad of quads) {
-        const size = quadSize(quad);
-        const aspectW = Math.max(1, Math.round((recH * size.width) / size.height));
+    const recognizeCharactersWorklet = (
+      input: ImageBuffer,
+      options?: RecognizeCharactersOptions
+    ): OcrDetection[] => {
+      'worklet';
+      const confidenceThreshold =
+        options?.confidenceThreshold ?? modelOpts.defaultConfidenceThreshold;
 
-        // Known limitation: segments abut with no overlap, so a glyph straddling
-        // a cut can be mangled at the seam. Acceptable for now, since a line this
-        // wide is the rare case.
-        const splits =
-          aspectW > recWMax * WIDE_SQUISH_TOLERANCE
-            ? splitWideQuad(quad, Math.ceil(aspectW / recWMax))
-            : [quad];
+      const [H, W] = [input.height, input.width];
+      const numChannels = FORMAT_CHANNELS[input.format];
+      const colorCode = FORMAT_CONVERSION[input.format].rgb;
 
-        let text = '';
-        let weightedConf = 0;
+      // Scale the page down to fit the detector before snapping, so a wide page
+      // keeps its aspect ratio instead of paying for padding on the short side.
+      const scale = Math.min(1, detHMax / H, detWMax / W);
+      const [detH, detW] = [
+        snap(Math.round(H * scale), detHDim),
+        snap(Math.round(W * scale), detWDim),
+      ];
 
-        for (const splitQuad of splits) {
-          const splitSize = quadSize(splitQuad);
-          const splitAspectW = Math.max(1, Math.round((recH * splitSize.width) / splitSize.height));
-          const recW = snap(splitAspectW, recWDim);
+      // 1. Detect the quads holding text.
+      let quads: Quad[];
+      const detPreprocessor = createImagePreprocessor(DETECTOR_PREPROCESSOR_OPTS, [
+        1,
+        3,
+        detH,
+        detW,
+      ]);
+      // DBNet emits one full-resolution probability map, [1, 1, H, W].
+      const tDetProbas = tensor('float32', [1, 1, detH, detW]);
+      try {
+        const tDetInput = detPreprocessor.process(input);
+        model.execute('detect', [tDetInput], [tDetProbas]);
 
-          const auxTensors = [
-            tensor('uint8', [recH, recW, numChannels]), // tQuad
-            tensor('uint8', [recH, recW, 3]), // tColor
-            tensor('uint8', [3, recH, recW]), // tChanFirst
-            tensor('float32', [3, recH, recW]), // tNorm
-            tensor('float32', [1, 3, recH, recW]), // tRecInput
-            // Every width the domain admits is a multiple of SVTR_CTC_STRIDE, so
-            // the dynamically-sized probs output can be pre-allocated exactly.
-            tensor('float32', [1, recW / SVTR_CTC_STRIDE, vocabSize]), // tRecProbas
-          ] as const;
-          const [tQuad, tColor, tChanFirst, tNorm, tRecInput, tRecProbas] = auxTensors;
+        quads = extractDbnetTextQuads(tDetProbas, DBNET_DECODE_OPTS)
+          .map((q) => orderQuad(scaleQuad(q, { from: { width: detW, height: detH }, to: input })))
+          .filter((q) => Object.values(quadSize(q)).every((s) => s >= MIN_RECOGNIZABLE_SIDE));
+      } finally {
+        tDetProbas.dispose();
+        detPreprocessor.dispose();
+      }
 
-          try {
-            tImage
-              .through(rectifyQuad, tQuad, splitQuad, {
-                contentWidth: Math.min(recWMax, splitAspectW),
-                padValue: RECOGNIZER_PREPROCESSOR_OPTS.padValue,
-              })
-              .throughIf(colorCode !== null, cvtColor, tColor, colorCode!)
-              .through(toChannelsFirst, tChanFirst)
-              .through(normalize, tNorm, RECOGNIZER_PREPROCESSOR_OPTS.normalizeOpts)
-              .copyTo(tRecInput);
+      // 2. Read the text inside each quad.
+      const detections: OcrDetection[] = [];
+      const tImage = tensor('uint8', [H, W, numChannels], input.data);
+      try {
+        for (const quad of quads) {
+          const size = quadSize(quad);
+          const aspectW = Math.max(1, Math.round((recH * size.width) / size.height));
 
-            model.execute('recognize', [tRecInput], [tRecProbas]);
+          // Known limitation: segments abut with no overlap, so a glyph straddling
+          // a cut can be mangled at the seam. Acceptable for now, since a line this
+          // wide is the rare case.
+          const splits =
+            aspectW > recWMax * WIDE_SQUISH_TOLERANCE
+              ? splitWideQuad(quad, Math.ceil(aspectW / recWMax))
+              : [quad];
 
-            const split = greedyCtcDecode(tRecProbas, charset);
-            text += split.text;
-            weightedConf += split.conf * split.text.length;
-          } finally {
-            auxTensors.forEach((t) => t.dispose());
+          let text = '';
+          let weightedConf = 0;
+
+          for (const splitQuad of splits) {
+            const splitSize = quadSize(splitQuad);
+            const splitAspectW = Math.max(
+              1,
+              Math.round((recH * splitSize.width) / splitSize.height)
+            );
+            const recW = snap(splitAspectW, recWDim);
+
+            const auxTensors = [
+              tensor('uint8', [recH, recW, numChannels]), // tQuad
+              tensor('uint8', [recH, recW, 3]), // tColor
+              tensor('uint8', [3, recH, recW]), // tChanFirst
+              tensor('float32', [3, recH, recW]), // tNorm
+              tensor('float32', [1, 3, recH, recW]), // tRecInput
+              // Every width the domain admits is a multiple of SVTR_CTC_STRIDE, so
+              // the dynamically-sized probs output can be pre-allocated exactly.
+              tensor('float32', [1, recW / SVTR_CTC_STRIDE, vocabSize]), // tRecProbas
+            ] as const;
+            const [tQuad, tColor, tChanFirst, tNorm, tRecInput, tRecProbas] = auxTensors;
+
+            try {
+              tImage
+                .through(rectifyQuad, tQuad, splitQuad, {
+                  contentWidth: Math.min(recWMax, splitAspectW),
+                  padValue: RECOGNIZER_PREPROCESSOR_OPTS.padValue,
+                })
+                .throughIf(colorCode !== null, cvtColor, tColor, colorCode!)
+                .through(toChannelsFirst, tChanFirst)
+                .through(normalize, tNorm, RECOGNIZER_PREPROCESSOR_OPTS.normalizeOpts)
+                .copyTo(tRecInput);
+
+              model.execute('recognize', [tRecInput], [tRecProbas]);
+
+              const split = greedyCtcDecode(tRecProbas, charset);
+              text += split.text;
+              weightedConf += split.conf * split.text.length;
+            } finally {
+              auxTensors.forEach((t) => t.dispose());
+            }
+          }
+
+          const confidence = text.length === 0 ? 0 : weightedConf / text.length;
+          if (text.length > 0 && confidence >= confidenceThreshold) {
+            detections.push({ text, confidence, quad });
           }
         }
-
-        const confidence = text.length === 0 ? 0 : weightedConf / text.length;
-        if (text.length > 0 && confidence >= confidenceThreshold) {
-          detections.push({ text, confidence, quad });
-        }
+      } finally {
+        tImage.dispose();
       }
-    } finally {
-      tImage.dispose();
-    }
 
-    return orderByReadingOrder(detections);
-  };
+      return orderByReadingOrder(detections);
+    };
 
-  const recognizeCharacters = wrapAsync(recognizeCharactersWorklet, runtime);
+    const recognizeCharacters = wrapAsync(recognizeCharactersWorklet, runtime);
 
-  return { recognizeCharacters, recognizeCharactersWorklet, dispose };
+    return { recognizeCharacters, recognizeCharactersWorklet, dispose };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }

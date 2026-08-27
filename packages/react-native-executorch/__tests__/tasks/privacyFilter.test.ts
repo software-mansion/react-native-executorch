@@ -19,7 +19,6 @@ import { createPrivacyFilter } from '../../src/extensions/nlp/tasks/privacyFilte
 import { fakeJsi, type FakeExecute } from '../support/fakeJsi';
 import { exported } from '../support/fixtures';
 import { tracked } from '../support/lifetime';
-import { allowNativeLeaks } from '../support/setup';
 
 const MODEL_PATH = '/models/privacy-filter.pte';
 const TOKENIZER_PATH = '/models/tokenizer.json';
@@ -126,14 +125,12 @@ describe('createPrivacyFilter — the label space', () => {
     await expect(createPrivacyFilter(config)).rejects.toThrow(
       /output #0 Tensor dim #2: Constant dimension mismatch/
     );
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('rejects a window too short to hold a span and its context', async () => {
     fakeJsi.registerModel(MODEL_PATH, { schema: staticSchema(1) });
 
     await expect(createPrivacyFilter(config)).rejects.toThrow(/at least 2 tokens/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 });
 

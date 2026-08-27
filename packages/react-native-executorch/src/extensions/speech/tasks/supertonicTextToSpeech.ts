@@ -29,6 +29,7 @@ import {
 } from '../utils/supertonicUtils';
 import { partition } from '../utils/textPartitioner';
 import { RnExecuTorchError } from '../../../core/error';
+import { createResourceScope } from '../../../core/lifetime';
 
 /**
  * Supertonic audio sampling rate in Hz (44100).
@@ -180,257 +181,263 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
   config: SupertonicTtsModel<K>,
   runtime?: WorkletRuntime
 ): Promise<SupertonicTextToSpeech<K>> {
-  const load = wrapAsync(loadModel, runtime);
-  const [durationPredictor, vectorEstimator, textEncoder, vocoder] = await Promise.all([
-    load(config.modelPaths.durationPredictor),
-    load(config.modelPaths.vectorEstimator),
-    load(config.modelPaths.textEncoder),
-    load(config.modelPaths.vocoder),
-  ]);
-  const models = { durationPredictor, textEncoder, vectorEstimator, vocoder };
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
 
-  validateSpec(models.durationPredictor.schema, {
-    default: method(
-      'forward',
-      [
-        i64(1, Dyn('T')), // textIds
-        f32(...STYLE_DP_SHAPE), // styleDp
-        f32(1, 1, Dyn('T')), // textMask
-      ],
-      [f32(1)], // duration
-      [
-        constraint.equality(
-          { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
-          { paramSide: 'input', tensorIdx: 2, dimIdx: 2 }
-        ),
-      ]
-    ),
-  });
+  try {
+    const load = wrapAsync(loadModel, runtime);
+    const durationPredictor = scope.track(await load(config.modelPaths.durationPredictor));
+    const vectorEstimator = scope.track(await load(config.modelPaths.vectorEstimator));
+    const textEncoder = scope.track(await load(config.modelPaths.textEncoder));
+    const vocoder = scope.track(await load(config.modelPaths.vocoder));
+    const models = { durationPredictor, textEncoder, vectorEstimator, vocoder };
 
-  validateSpec(models.textEncoder.schema, {
-    default: method(
-      'forward',
-      [
-        i64(1, Dyn('T')), // textIds
-        f32(...STYLE_TTL_SHAPE), // styleTtl
-        f32(1, 1, Dyn('T')), // textMask
-      ],
-      [f32(1, TEXT_EMB_DIM, Dyn('T'))], // textEmb
-      [
-        constraint.equality(
-          { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
-          { paramSide: 'input', tensorIdx: 2, dimIdx: 2 },
-          { paramSide: 'output', tensorIdx: 0, dimIdx: 2 }
-        ),
-      ]
-    ),
-  });
+    validateSpec(models.durationPredictor.schema, {
+      default: method(
+        'forward',
+        [
+          i64(1, Dyn('T')), // textIds
+          f32(...STYLE_DP_SHAPE), // styleDp
+          f32(1, 1, Dyn('T')), // textMask
+        ],
+        [f32(1)], // duration
+        [
+          constraint.equality(
+            { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
+            { paramSide: 'input', tensorIdx: 2, dimIdx: 2 }
+          ),
+        ]
+      ),
+    });
 
-  validateSpec(models.vectorEstimator.schema, {
-    default: method(
-      'forward',
-      [
-        f32(1, LATENT_DIM, Dyn('L')), // noisyLatent
-        f32(1, TEXT_EMB_DIM, Dyn('T')), // textEmb
-        f32(...STYLE_TTL_SHAPE), // styleTtl
-        f32(1, 1, Dyn('T')), // textMask
-        f32(1, 1, Dyn('L')), // latentMask
-        f32(1), // currentStep
-        f32(1), // totalStep
-      ],
-      [f32(1, LATENT_DIM, Dyn('L'))], // denoisedLatent
-      [
-        constraint.equality(
-          { paramSide: 'input', tensorIdx: 0, dimIdx: 2 },
-          { paramSide: 'input', tensorIdx: 4, dimIdx: 2 },
-          { paramSide: 'output', tensorIdx: 0, dimIdx: 2 }
-        ),
-        constraint.equality(
-          { paramSide: 'input', tensorIdx: 1, dimIdx: 2 },
-          { paramSide: 'input', tensorIdx: 3, dimIdx: 2 }
-        ),
-      ]
-    ),
-  });
+    validateSpec(models.textEncoder.schema, {
+      default: method(
+        'forward',
+        [
+          i64(1, Dyn('T')), // textIds
+          f32(...STYLE_TTL_SHAPE), // styleTtl
+          f32(1, 1, Dyn('T')), // textMask
+        ],
+        [f32(1, TEXT_EMB_DIM, Dyn('T'))], // textEmb
+        [
+          constraint.equality(
+            { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
+            { paramSide: 'input', tensorIdx: 2, dimIdx: 2 },
+            { paramSide: 'output', tensorIdx: 0, dimIdx: 2 }
+          ),
+        ]
+      ),
+    });
 
-  validateSpec(models.vocoder.schema, {
-    default: method(
-      'forward',
-      [f32(1, LATENT_DIM, Dyn('L'))], // latent
-      [f32(1, Dyn('AUDIO_LEN'))], // wav
-      [
-        constraint.linear(
-          { paramSide: 'output', tensorIdx: 0, dimIdx: 1 },
-          { paramSide: 'input', tensorIdx: 0, dimIdx: 2 },
-          CHUNK_SIZE
-        ),
-      ]
-    ),
-  });
+    validateSpec(models.vectorEstimator.schema, {
+      default: method(
+        'forward',
+        [
+          f32(1, LATENT_DIM, Dyn('L')), // noisyLatent
+          f32(1, TEXT_EMB_DIM, Dyn('T')), // textEmb
+          f32(...STYLE_TTL_SHAPE), // styleTtl
+          f32(1, 1, Dyn('T')), // textMask
+          f32(1, 1, Dyn('L')), // latentMask
+          f32(1), // currentStep
+          f32(1), // totalStep
+        ],
+        [f32(1, LATENT_DIM, Dyn('L'))], // denoisedLatent
+        [
+          constraint.equality(
+            { paramSide: 'input', tensorIdx: 0, dimIdx: 2 },
+            { paramSide: 'input', tensorIdx: 4, dimIdx: 2 },
+            { paramSide: 'output', tensorIdx: 0, dimIdx: 2 }
+          ),
+          constraint.equality(
+            { paramSide: 'input', tensorIdx: 1, dimIdx: 2 },
+            { paramSide: 'input', tensorIdx: 3, dimIdx: 2 }
+          ),
+        ]
+      ),
+    });
 
-  // Parse unicode indexer JSON
-  const indexStr = await RNBlobUtil.fs.readFile(config.unicodeIndexerPath, 'utf8');
-  const indexer: readonly number[] = JSON.parse(indexStr);
+    validateSpec(models.vocoder.schema, {
+      default: method(
+        'forward',
+        [f32(1, LATENT_DIM, Dyn('L'))], // latent
+        [f32(1, Dyn('AUDIO_LEN'))], // wav
+        [
+          constraint.linear(
+            { paramSide: 'output', tensorIdx: 0, dimIdx: 1 },
+            { paramSide: 'input', tensorIdx: 0, dimIdx: 2 },
+            CHUNK_SIZE
+          ),
+        ]
+      ),
+    });
 
-  // Pre-parse voice styles map into memory
-  const parsedVoiceStyles = {} as Record<K, SupertonicVoiceStyle>;
-  for (const [key, path] of Object.entries(config.voiceStyles) as [K, string][]) {
-    const jsonStr = await RNBlobUtil.fs.readFile(path, 'utf8');
-    parsedVoiceStyles[key] = parseVoiceStyle(JSON.parse(jsonStr));
-  }
+    // Parse unicode indexer JSON
+    const indexStr = await RNBlobUtil.fs.readFile(config.unicodeIndexerPath, 'utf8');
+    const indexer: readonly number[] = JSON.parse(indexStr);
 
-  const tensors = [
-    tensor('float32', [...STYLE_DP_SHAPE]),
-    tensor('float32', [...STYLE_TTL_SHAPE]),
-    tensor('float32', [1]),
-    tensor('float32', [1]),
-    tensor('float32', [1]),
-  ] as const;
+    // Pre-parse voice styles map into memory
+    const parsedVoiceStyles = {} as Record<K, SupertonicVoiceStyle>;
+    for (const [key, path] of Object.entries(config.voiceStyles) as [K, string][]) {
+      const jsonStr = await RNBlobUtil.fs.readFile(path, 'utf8');
+      parsedVoiceStyles[key] = parseVoiceStyle(JSON.parse(jsonStr));
+    }
 
-  const [tStyleDp, tStyleTtl, tDuration, tStep, tTotalStep] = tensors;
+    const tensors = [
+      tensor('float32', [...STYLE_DP_SHAPE]),
+      tensor('float32', [...STYLE_TTL_SHAPE]),
+      tensor('float32', [1]),
+      tensor('float32', [1]),
+      tensor('float32', [1]),
+    ] as const;
 
-  const dispose = () => {
-    tensors.forEach((t) => t.dispose());
-    Object.values(models).forEach((m) => m.dispose());
-  };
+    tensors.forEach(scope.track);
 
-  const synthesizeChunkWorklet = (
-    chunkText: string,
-    chunkOpts: { voiceStyle: SupertonicVoiceStyle; speed: number; totalSteps: number }
-  ): { audio: Float32Array; sampleRate: number; duration: number } => {
-    'worklet';
+    const [tStyleDp, tStyleTtl, tDuration, tStep, tTotalStep] = tensors;
 
-    const { voiceStyle, speed, totalSteps } = chunkOpts;
-    const textIdsData = encodeText(chunkText, indexer);
-    const textLen = textIdsData.length;
+    const synthesizeChunkWorklet = (
+      chunkText: string,
+      chunkOpts: { voiceStyle: SupertonicVoiceStyle; speed: number; totalSteps: number }
+    ): { audio: Float32Array; sampleRate: number; duration: number } => {
+      'worklet';
 
-    // Load style data into static pre-allocated tensors
-    tStyleDp.setData(voiceStyle.styleDp);
-    tStyleTtl.setData(voiceStyle.styleTtl);
+      const { voiceStyle, speed, totalSteps } = chunkOpts;
+      const textIdsData = encodeText(chunkText, indexer);
+      const textLen = textIdsData.length;
 
-    // Collect dynamic execution tensors for cleanup in a single try/finally block
-    const auxTensors: Tensor[] = [];
+      // Load style data into static pre-allocated tensors
+      tStyleDp.setData(voiceStyle.styleDp);
+      tStyleTtl.setData(voiceStyle.styleTtl);
 
-    try {
-      // 1. Predict duration
-      const tTextIds = tensor('int64', [1, textLen], textIdsData);
-      const tTextMask = tensor('float32', [1, 1, textLen], new Float32Array(textLen).fill(1.0));
-      auxTensors.push(tTextIds, tTextMask);
+      // Collect dynamic execution tensors for cleanup in a single try/finally block
+      const auxTensors: Tensor[] = [];
 
-      models.durationPredictor.execute('forward', [tTextIds, tStyleDp, tTextMask], [tDuration]);
+      try {
+        // 1. Predict duration
+        const tTextIds = tensor('int64', [1, textLen], textIdsData);
+        const tTextMask = tensor('float32', [1, 1, textLen], new Float32Array(textLen).fill(1.0));
+        auxTensors.push(tTextIds, tTextMask);
 
-      const durationSec = tDuration.getData(new Float32Array(1))[0]! / speed;
+        models.durationPredictor.execute('forward', [tTextIds, tStyleDp, tTextMask], [tDuration]);
 
-      // 2. Encode text
-      const tTextEmb = tensor('float32', [1, TEXT_EMB_DIM, textLen]);
-      auxTensors.push(tTextEmb);
+        const durationSec = tDuration.getData(new Float32Array(1))[0]! / speed;
 
-      models.textEncoder.execute('forward', [tTextIds, tStyleTtl, tTextMask], [tTextEmb]);
+        // 2. Encode text
+        const tTextEmb = tensor('float32', [1, TEXT_EMB_DIM, textLen]);
+        auxTensors.push(tTextEmb);
 
-      // Calculate latent length from speed-adjusted duration
-      const latentLen = Math.max(1, Math.ceil((durationSec * SUPERTONIC_SAMPLE_RATE) / CHUNK_SIZE));
+        models.textEncoder.execute('forward', [tTextIds, tStyleTtl, tTextMask], [tTextEmb]);
 
-      // 3. Flow-matching denoising loop
-      const initialNoise = randomNormal(LATENT_DIM * latentLen);
-      const latentMaskData = new Float32Array(latentLen).fill(1.0);
-
-      const tNoisyLatent = tensor('float32', [1, LATENT_DIM, latentLen], initialNoise);
-      const tDenoisedLatent = tensor('float32', [1, LATENT_DIM, latentLen]);
-      const tLatentMask = tensor('float32', [1, 1, latentLen], latentMaskData);
-      const tWav = tensor('float32', [1, CHUNK_SIZE * latentLen]);
-      auxTensors.push(tNoisyLatent, tDenoisedLatent, tLatentMask, tWav);
-
-      tTotalStep.setData(new Float32Array([totalSteps]));
-
-      for (let step = 0; step < totalSteps; step++) {
-        tStep.setData(new Float32Array([step]));
-        models.vectorEstimator.execute(
-          'forward',
-          [tNoisyLatent, tTextEmb, tStyleTtl, tTextMask, tLatentMask, tStep, tTotalStep],
-          [tDenoisedLatent]
+        // Calculate latent length from speed-adjusted duration
+        const latentLen = Math.max(
+          1,
+          Math.ceil((durationSec * SUPERTONIC_SAMPLE_RATE) / CHUNK_SIZE)
         );
-        tDenoisedLatent.copyTo(tNoisyLatent);
+
+        // 3. Flow-matching denoising loop
+        const initialNoise = randomNormal(LATENT_DIM * latentLen);
+        const latentMaskData = new Float32Array(latentLen).fill(1.0);
+
+        const tNoisyLatent = tensor('float32', [1, LATENT_DIM, latentLen], initialNoise);
+        const tDenoisedLatent = tensor('float32', [1, LATENT_DIM, latentLen]);
+        const tLatentMask = tensor('float32', [1, 1, latentLen], latentMaskData);
+        const tWav = tensor('float32', [1, CHUNK_SIZE * latentLen]);
+        auxTensors.push(tNoisyLatent, tDenoisedLatent, tLatentMask, tWav);
+
+        tTotalStep.setData(new Float32Array([totalSteps]));
+
+        for (let step = 0; step < totalSteps; step++) {
+          tStep.setData(new Float32Array([step]));
+          models.vectorEstimator.execute(
+            'forward',
+            [tNoisyLatent, tTextEmb, tStyleTtl, tTextMask, tLatentMask, tStep, tTotalStep],
+            [tDenoisedLatent]
+          );
+          tDenoisedLatent.copyTo(tNoisyLatent);
+        }
+
+        // 4. Vocoder waveform generation
+        models.vocoder.execute('forward', [tNoisyLatent], [tWav]);
+
+        const audio = tWav.getData(new Float32Array(tWav.numel));
+
+        return {
+          audio,
+          sampleRate: SUPERTONIC_SAMPLE_RATE,
+          duration: audio.length / SUPERTONIC_SAMPLE_RATE,
+        };
+      } finally {
+        auxTensors.forEach((t) => t.dispose());
       }
+    };
 
-      // 4. Vocoder waveform generation
-      models.vocoder.execute('forward', [tNoisyLatent], [tWav]);
+    const synthesizeChunk = wrapAsync(synthesizeChunkWorklet, runtime);
 
-      const audio = tWav.getData(new Float32Array(tWav.numel));
-
-      return {
-        audio,
-        sampleRate: SUPERTONIC_SAMPLE_RATE,
-        duration: audio.length / SUPERTONIC_SAMPLE_RATE,
-      };
-    } finally {
-      auxTensors.forEach((t) => t.dispose());
-    }
-  };
-
-  const synthesizeChunk = wrapAsync(synthesizeChunkWorklet, runtime);
-
-  let isSynthesizing = false;
-  const synthesizeStop = (): void => {
-    isSynthesizing = false;
-  };
-
-  async function* synthesize(
-    text: string,
-    options: SupertonicTtsOptions<K>
-  ): AsyncGenerator<SupertonicTtsChunk> {
-    if (isSynthesizing) {
-      throw RnExecuTorchError('INVALID_STATE', 'synthesize: Synthesis is already in progress.');
-    }
-
-    if (!text || !text.trim()) {
-      throw RnExecuTorchError('INVALID_ARGUMENT', 'synthesize: Input text cannot be empty.');
-    }
-
-    const speed = options.speed ?? DEFAULT_SPEED;
-    if (speed < MIN_SPEED || speed > MAX_SPEED) {
-      throw RnExecuTorchError(
-        'INVALID_ARGUMENT',
-        `synthesize: speed must be between ${MIN_SPEED} and ${MAX_SPEED}.`
-      );
-    }
-
-    const totalSteps = options.totalSteps ?? DEFAULT_TOTAL_STEPS;
-    if (!Number.isInteger(totalSteps) || totalSteps <= 0) {
-      throw RnExecuTorchError(
-        'INVALID_ARGUMENT',
-        'synthesize: totalSteps must be a positive integer.'
-      );
-    }
-
-    const voiceStyle =
-      typeof options.voiceStyle === 'object'
-        ? options.voiceStyle
-        : parsedVoiceStyles[options.voiceStyle];
-
-    const maxChunkLength = options.maxChunkLength ?? getDefaultMaxChunkLength(options.lang);
-    if (maxChunkLength > MAX_CHUNK_LENGTH_CAP) {
-      throw RnExecuTorchError(
-        'INVALID_ARGUMENT',
-        `synthesize: maxChunkLength cannot exceed ${MAX_CHUNK_LENGTH_CAP}.`
-      );
-    }
-
-    const cleanedText = cleanText(text);
-    const textChunks = partition(cleanedText, maxChunkLength);
-
-    isSynthesizing = true;
-    try {
-      for (const [chunkIndex, rawChunk] of textChunks.entries()) {
-        if (!isSynthesizing) break;
-
-        const textChunk = formatChunk(rawChunk, options.lang);
-        const audioChunk = await synthesizeChunk(textChunk, { voiceStyle, speed, totalSteps });
-        yield { ...audioChunk, chunkIndex, totalChunks: textChunks.length };
-      }
-    } finally {
+    let isSynthesizing = false;
+    const synthesizeStop = (): void => {
       isSynthesizing = false;
-    }
-  }
+    };
 
-  return { dispose, synthesize, synthesizeStop };
+    async function* synthesize(
+      text: string,
+      options: SupertonicTtsOptions<K>
+    ): AsyncGenerator<SupertonicTtsChunk> {
+      if (isSynthesizing) {
+        throw RnExecuTorchError('INVALID_STATE', 'synthesize: Synthesis is already in progress.');
+      }
+
+      if (!text || !text.trim()) {
+        throw RnExecuTorchError('INVALID_ARGUMENT', 'synthesize: Input text cannot be empty.');
+      }
+
+      const speed = options.speed ?? DEFAULT_SPEED;
+      if (speed < MIN_SPEED || speed > MAX_SPEED) {
+        throw RnExecuTorchError(
+          'INVALID_ARGUMENT',
+          `synthesize: speed must be between ${MIN_SPEED} and ${MAX_SPEED}.`
+        );
+      }
+
+      const totalSteps = options.totalSteps ?? DEFAULT_TOTAL_STEPS;
+      if (!Number.isInteger(totalSteps) || totalSteps <= 0) {
+        throw RnExecuTorchError(
+          'INVALID_ARGUMENT',
+          'synthesize: totalSteps must be a positive integer.'
+        );
+      }
+
+      const voiceStyle =
+        typeof options.voiceStyle === 'object'
+          ? options.voiceStyle
+          : parsedVoiceStyles[options.voiceStyle];
+
+      const maxChunkLength = options.maxChunkLength ?? getDefaultMaxChunkLength(options.lang);
+      if (maxChunkLength > MAX_CHUNK_LENGTH_CAP) {
+        throw RnExecuTorchError(
+          'INVALID_ARGUMENT',
+          `synthesize: maxChunkLength cannot exceed ${MAX_CHUNK_LENGTH_CAP}.`
+        );
+      }
+
+      const cleanedText = cleanText(text);
+      const textChunks = partition(cleanedText, maxChunkLength);
+
+      isSynthesizing = true;
+      try {
+        for (const [chunkIndex, rawChunk] of textChunks.entries()) {
+          if (!isSynthesizing) break;
+
+          const textChunk = formatChunk(rawChunk, options.lang);
+          const audioChunk = await synthesizeChunk(textChunk, { voiceStyle, speed, totalSteps });
+          yield { ...audioChunk, chunkIndex, totalChunks: textChunks.length };
+        }
+      } finally {
+        isSynthesizing = false;
+      }
+    }
+
+    return { dispose, synthesize, synthesizeStop };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }

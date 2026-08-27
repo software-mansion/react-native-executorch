@@ -139,6 +139,7 @@ exports[`public API surface matches the recorded export list 1`] = `
   "createObjectDetector",
   "createPaddleOcr",
   "createPrivacyFilter",
+  "createResourceScope",
   "createSdxsTextToImage",
   "createSemanticSegmenter",
   "createStyleTransfer",

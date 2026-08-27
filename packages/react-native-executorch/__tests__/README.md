@@ -65,7 +65,10 @@ for free.
 
 Wrap construction in `tracked()` and the harness disposes it at the end of the
 test — which also keeps a failing assertion from cascading into a second,
-misleading leak error. A test that means to leak calls `allowNativeLeaks()`.
+misleading leak error. A test that means to leak calls `allowNativeLeaks()`;
+nothing in the suite currently does, including the construction-failure cases,
+because a factory that throws part-way now releases what it had allocated
+(`src/core/lifetime.ts`).
 
 ## Layout
 

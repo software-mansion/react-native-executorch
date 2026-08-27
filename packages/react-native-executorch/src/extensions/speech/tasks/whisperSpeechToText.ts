@@ -19,6 +19,7 @@ import {
   type VadStreamOptions,
 } from './fsmnVoiceActivityDetection';
 import { RnExecuTorchError } from '../../../core/error';
+import { createResourceScope } from '../../../core/lifetime';
 
 /**
  * Sample rate (Hz) Whisper models expect their input waveform to be at.
@@ -195,223 +196,231 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
   config: WhisperSttModel<L>,
   runtime?: WorkletRuntime
 ): Promise<WhisperSpeechToText<L>> {
-  const { modelPath, tokenizerPath, supportedLanguages, vadModel } = config;
-  const model = await wrapAsync(loadModel, runtime)(modelPath);
-  const tokenizer = await wrapAsync(loadTokenizer, runtime)(tokenizerPath);
-  const voiceDetector = await createFsmnVoiceActivityDetector(vadModel, runtime);
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
 
-  const eotToken = tokenizer.tokenToId('<|endoftext|>')!;
-  const isEnglishOnly = supportedLanguages.length === 1 && supportedLanguages[0] === 'en';
+  try {
+    const { modelPath, tokenizerPath, supportedLanguages, vadModel } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
+    const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
+    const voiceDetector = scope.track(await createFsmnVoiceActivityDetector(vadModel, runtime));
 
-  const { dims } = validateSpec(model.schema, {
-    default: {
-      ...method(
-        'encode', // prettier-ignore
-        [f32(Dyn('T_audio'))], // Internally, model always pads audio to the maximum duration.
-        [f32(1, 'SeqLen', 'StateDim')]
-      ),
-      ...method(
-        'decode',
-        [i64(1, 1), i64(1), f32(1, 'SeqLen', 'StateDim')],
-        [f32(1, 1, 'VocabSize')]
-      ),
-    },
-  });
+    const eotToken = tokenizer.tokenToId('<|endoftext|>')!;
+    const isEnglishOnly = supportedLanguages.length === 1 && supportedLanguages[0] === 'en';
 
-  const [seqLen, stateDim] = dims.constant('SeqLen', 'StateDim');
+    const { dims } = validateSpec(model.schema, {
+      default: {
+        ...method(
+          'encode', // prettier-ignore
+          [f32(Dyn('T_audio'))], // Internally, model always pads audio to the maximum duration.
+          [f32(1, 'SeqLen', 'StateDim')]
+        ),
+        ...method(
+          'decode',
+          [i64(1, 1), i64(1), f32(1, 'SeqLen', 'StateDim')],
+          [f32(1, 1, 'VocabSize')]
+        ),
+      },
+    });
 
-  const tensors = [
-    tensor('int64', [1]), // tPosition
-    tensor('int64', [1, 1]), // tToken
-    tensor('int32', [1, 1, 1]), // tArgmax
-    tensor('float32', [1, seqLen, stateDim]), //tEncodings
-    tensor('float32', [1, 1, tokenizer.getVocabSize()]), // tLogits
-  ] as const;
+    const [seqLen, stateDim] = dims.constant('SeqLen', 'StateDim');
 
-  const [tPosition, tToken, tArgmax, tEncodings, tLogits] = tensors;
-  const isCancelled = createSynchronizable(false);
+    const tensors = [
+      tensor('int64', [1]), // tPosition
+      tensor('int64', [1, 1]), // tToken
+      tensor('int32', [1, 1, 1]), // tArgmax
+      tensor('float32', [1, seqLen, stateDim]), //tEncodings
+      tensor('float32', [1, 1, tokenizer.getVocabSize()]), // tLogits
+    ] as const;
 
-  const dispose = () => {
-    tensors.forEach((t) => t.dispose());
-    voiceDetector.dispose();
-    tokenizer.dispose();
-    model.dispose();
-  };
+    tensors.forEach(scope.track);
 
-  const decode = (token: number, position: number): number => {
-    'worklet';
-    tPosition.setData(new BigInt64Array([BigInt(position)]));
-    tToken.setData(new BigInt64Array([BigInt(token)]));
-    model.execute('decode', [tToken, tPosition, tEncodings], [tLogits]);
-    return tLogits.through(argmax, tArgmax).getData(new Int32Array(1))[0]!;
-  };
+    const [tPosition, tToken, tArgmax, tEncodings, tLogits] = tensors;
+    const isCancelled = createSynchronizable(false);
 
-  const transcribeWorklet = (
-    audio: Float32Array,
-    options: WhisperSttOptions<L>,
-    onToken?: (token: string) => void
-  ): string => {
-    'worklet';
-    isCancelled.setBlocking(false);
-
-    const promptTokenStrings = isEnglishOnly
-      ? ['<|startoftranscript|>', '<|notimestamps|>']
-      : ['<|startoftranscript|>', `<|${options.language}|>`, '<|transcribe|>', '<|notimestamps|>'];
-
-    if (!isEnglishOnly && tokenizer.tokenToId(`<|${options.language}|>`) === undefined) {
-      throw RnExecuTorchError(
-        'INVALID_ARGUMENT',
-        `Language "${options.language}" is not recognized.`
-      );
-    }
-    const promptTokens = promptTokenStrings.map((token) => tokenizer.tokenToId(token));
-    const maxNewTokens = MAX_SEQ_LEN - promptTokens.length;
-
-    let text = '';
-    let offset = 0;
-
-    while (offset < audio.length) {
-      if (isCancelled.getBlocking()) break;
-
-      const audioChunk = audio.slice(offset, Math.min(offset + BUFFER_SIZE, audio.length));
-      if (audioChunk.length < MIN_CHUNK_SIZE) {
-        break;
-      }
-
-      const tAudioInput = tensor('float32', [audioChunk.length], audioChunk);
-      try {
-        model.execute('encode', [tAudioInput], [tEncodings]);
-      } finally {
-        tAudioInput.dispose();
-      }
-
-      let nextToken = eotToken;
-      let position = promptTokens.length;
-      promptTokens.forEach((token, pos) => (nextToken = decode(token, pos)));
-
-      const generated: number[] = [];
-      while (generated.length < maxNewTokens && nextToken !== eotToken) {
-        if (isCancelled.getBlocking()) break;
-
-        generated.push(nextToken);
-        if (onToken) scheduleOnRN(onToken, tokenizer.decode(Int32Array.of(nextToken)));
-        nextToken = decode(nextToken, position);
-        position++;
-      }
-
-      text += tokenizer.decode(Int32Array.from(generated));
-      offset += BUFFER_SIZE;
-    }
-
-    return text.trim();
-  };
-
-  const transcribe = wrapAsync(transcribeWorklet, runtime);
-  const transcribeStop = () => isCancelled.setBlocking(true);
-
-  let isStreaming = false;
-  let audioBuffer = new Float32Array(0);
-  let signal: (() => void) | null = null;
-
-  const streamInsert = (audioChunk: Float32Array): void => {
-    if (!isStreaming) return;
-
-    const next = new Float32Array(audioBuffer.length + audioChunk.length);
-    next.set(audioBuffer);
-    next.set(audioChunk, audioBuffer.length);
-    audioBuffer = next;
-    signal?.();
-    signal = null;
-  };
-
-  const streamStop = (): void => {
-    if (!isStreaming) return;
-
-    isStreaming = false;
-    signal?.();
-    signal = null;
-  };
-
-  async function* stream(
-    options: WhisperStreamOptions<L>
-  ): AsyncGenerator<{ committed: string; nonCommitted: string }> {
-    if (isStreaming) {
-      throw RnExecuTorchError('INVALID_STATE', 'Streaming is already in progress');
-    }
-    isStreaming = true;
-    audioBuffer = new Float32Array(0);
-
-    voiceDetector.resetStream();
-
-    let isSpeaking = false;
-    let currentText = '';
-    let committedText = '';
-    let processedLength = 0;
-
-    const commit = () => {
-      if (currentText !== '') {
-        committedText += (committedText ? ' ' : '') + currentText;
-        currentText = '';
-      }
-      audioBuffer = audioBuffer.slice(processedLength);
-      processedLength = 0;
+    const decode = (token: number, position: number): number => {
+      'worklet';
+      tPosition.setData(new BigInt64Array([BigInt(position)]));
+      tToken.setData(new BigInt64Array([BigInt(token)]));
+      model.execute('decode', [tToken, tPosition, tEncodings], [tLogits]);
+      return tLogits.through(argmax, tArgmax).getData(new Int32Array(1))[0]!;
     };
 
-    try {
-      while (isStreaming) {
-        if (audioBuffer.length - processedLength < STRIDE_SIZE) {
-          await new Promise<void>((resolve) => (signal = resolve));
-          continue;
+    const transcribeWorklet = (
+      audio: Float32Array,
+      options: WhisperSttOptions<L>,
+      onToken?: (token: string) => void
+    ): string => {
+      'worklet';
+      isCancelled.setBlocking(false);
+
+      const promptTokenStrings = isEnglishOnly
+        ? ['<|startoftranscript|>', '<|notimestamps|>']
+        : [
+            '<|startoftranscript|>',
+            `<|${options.language}|>`,
+            '<|transcribe|>',
+            '<|notimestamps|>',
+          ];
+
+      if (!isEnglishOnly && tokenizer.tokenToId(`<|${options.language}|>`) === undefined) {
+        throw RnExecuTorchError(
+          'INVALID_ARGUMENT',
+          `Language "${options.language}" is not recognized.`
+        );
+      }
+      const promptTokens = promptTokenStrings.map((token) => tokenizer.tokenToId(token));
+      const maxNewTokens = MAX_SEQ_LEN - promptTokens.length;
+
+      let text = '';
+      let offset = 0;
+
+      while (offset < audio.length) {
+        if (isCancelled.getBlocking()) break;
+
+        const audioChunk = audio.slice(offset, Math.min(offset + BUFFER_SIZE, audio.length));
+        if (audioChunk.length < MIN_CHUNK_SIZE) {
+          break;
         }
 
-        const newSamples = audioBuffer.slice(processedLength);
-        processedLength = audioBuffer.length;
+        const tAudioInput = tensor('float32', [audioChunk.length], audioChunk);
+        try {
+          model.execute('encode', [tAudioInput], [tEncodings]);
+        } finally {
+          tAudioInput.dispose();
+        }
 
-        const event = voiceDetector.detectVoiceOnStream(newSamples, options.vadOptions);
-        switch (event) {
-          case 'speechStart':
-            isSpeaking = true;
-            break;
-          case 'speechEnd':
-            isSpeaking = false;
-            currentText = await transcribe(audioBuffer.slice(0, processedLength), options);
-            commit();
-            yield { committed: committedText, nonCommitted: '' };
+        let nextToken = eotToken;
+        let position = promptTokens.length;
+        promptTokens.forEach((token, pos) => (nextToken = decode(token, pos)));
+
+        const generated: number[] = [];
+        while (generated.length < maxNewTokens && nextToken !== eotToken) {
+          if (isCancelled.getBlocking()) break;
+
+          generated.push(nextToken);
+          if (onToken) scheduleOnRN(onToken, tokenizer.decode(Int32Array.of(nextToken)));
+          nextToken = decode(nextToken, position);
+          position++;
+        }
+
+        text += tokenizer.decode(Int32Array.from(generated));
+        offset += BUFFER_SIZE;
+      }
+
+      return text.trim();
+    };
+
+    const transcribe = wrapAsync(transcribeWorklet, runtime);
+    const transcribeStop = () => isCancelled.setBlocking(true);
+
+    let isStreaming = false;
+    let audioBuffer = new Float32Array(0);
+    let signal: (() => void) | null = null;
+
+    const streamInsert = (audioChunk: Float32Array): void => {
+      if (!isStreaming) return;
+
+      const next = new Float32Array(audioBuffer.length + audioChunk.length);
+      next.set(audioBuffer);
+      next.set(audioChunk, audioBuffer.length);
+      audioBuffer = next;
+      signal?.();
+      signal = null;
+    };
+
+    const streamStop = (): void => {
+      if (!isStreaming) return;
+
+      isStreaming = false;
+      signal?.();
+      signal = null;
+    };
+
+    async function* stream(
+      options: WhisperStreamOptions<L>
+    ): AsyncGenerator<{ committed: string; nonCommitted: string }> {
+      if (isStreaming) {
+        throw RnExecuTorchError('INVALID_STATE', 'Streaming is already in progress');
+      }
+      isStreaming = true;
+      audioBuffer = new Float32Array(0);
+
+      voiceDetector.resetStream();
+
+      let isSpeaking = false;
+      let currentText = '';
+      let committedText = '';
+      let processedLength = 0;
+
+      const commit = () => {
+        if (currentText !== '') {
+          committedText += (committedText ? ' ' : '') + currentText;
+          currentText = '';
+        }
+        audioBuffer = audioBuffer.slice(processedLength);
+        processedLength = 0;
+      };
+
+      try {
+        while (isStreaming) {
+          if (audioBuffer.length - processedLength < STRIDE_SIZE) {
+            await new Promise<void>((resolve) => (signal = resolve));
             continue;
+          }
+
+          const newSamples = audioBuffer.slice(processedLength);
+          processedLength = audioBuffer.length;
+
+          const event = voiceDetector.detectVoiceOnStream(newSamples, options.vadOptions);
+          switch (event) {
+            case 'speechStart':
+              isSpeaking = true;
+              break;
+            case 'speechEnd':
+              isSpeaking = false;
+              currentText = await transcribe(audioBuffer.slice(0, processedLength), options);
+              commit();
+              yield { committed: committedText, nonCommitted: '' };
+              continue;
+          }
+
+          if (isSpeaking) {
+            currentText = await transcribe(audioBuffer.slice(0, processedLength), options);
+            if (processedLength >= BUFFER_SIZE) commit();
+            yield { committed: committedText, nonCommitted: currentText };
+          } else {
+            const retainSamples = Math.min(audioBuffer.length, STRIDE_SIZE);
+            audioBuffer = audioBuffer.slice(audioBuffer.length - retainSamples);
+            processedLength = audioBuffer.length;
+            yield { committed: committedText, nonCommitted: '' };
+          }
         }
 
-        if (isSpeaking) {
-          currentText = await transcribe(audioBuffer.slice(0, processedLength), options);
-          if (processedLength >= BUFFER_SIZE) commit();
-          yield { committed: committedText, nonCommitted: currentText };
-        } else {
-          const retainSamples = Math.min(audioBuffer.length, STRIDE_SIZE);
-          audioBuffer = audioBuffer.slice(audioBuffer.length - retainSamples);
-          processedLength = audioBuffer.length;
+        if (isSpeaking && audioBuffer.length >= MIN_CHUNK_SIZE) {
+          currentText = await transcribe(audioBuffer, options);
+          commit();
           yield { committed: committedText, nonCommitted: '' };
         }
+      } finally {
+        signal = null;
+        isStreaming = false;
+        voiceDetector.resetStream();
+        audioBuffer = new Float32Array(0);
       }
-
-      if (isSpeaking && audioBuffer.length >= MIN_CHUNK_SIZE) {
-        currentText = await transcribe(audioBuffer, options);
-        commit();
-        yield { committed: committedText, nonCommitted: '' };
-      }
-    } finally {
-      signal = null;
-      isStreaming = false;
-      voiceDetector.resetStream();
-      audioBuffer = new Float32Array(0);
     }
-  }
 
-  return {
-    dispose,
-    transcribe,
-    transcribeWorklet,
-    transcribeStop,
-    stream,
-    streamStop,
-    streamInsert,
-  };
+    return {
+      dispose,
+      transcribe,
+      transcribeWorklet,
+      transcribeStop,
+      stream,
+      streamStop,
+      streamInsert,
+    };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }

@@ -9,6 +9,7 @@ import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { validateSpec, method, i64, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
+import { createResourceScope } from '../../../core/lifetime';
 import { randomNormal } from '../../math';
 import { loadTokenizer } from '../../nlp/tokenizer';
 
@@ -94,90 +95,94 @@ export async function createSdxsTextToImage(
   config: SdxsTextToImageModel,
   runtime?: WorkletRuntime
 ): Promise<SdxsTextToImage> {
-  const { modelPath, tokenizerPath } = config;
-  const model = await wrapAsync(loadModel, runtime)(modelPath);
-  const tokenizer = await wrapAsync(loadTokenizer, runtime)(tokenizerPath);
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
 
-  validateSpec(model.schema, {
-    default: {
-      ...method(
-        'encode', // prettier-ignore
-        [i64(1, CLIP_MAX_TOKENS)],
-        [f32(1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE)]
-      ),
-      ...method(
-        'denoise',
-        [f32(...LATENT_SHAPE), i64(1), f32(1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE)],
-        [f32(...LATENT_SHAPE)]
-      ),
-      ...method(
-        'decode', // prettier-ignore
-        [f32(...LATENT_SHAPE)],
-        [f32(1, 3, IMAGE_SIZE, IMAGE_SIZE)]
-      ),
-    },
-  });
+  try {
+    const { modelPath, tokenizerPath } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
+    const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
-  const tensors = [
-    tensor('int64', [1, CLIP_MAX_TOKENS]),
-    tensor('float32', [1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE]),
-    tensor('int64', [1]),
-    tensor('float32', LATENT_SHAPE),
-    tensor('float32', LATENT_SHAPE),
-    tensor('float32', [1, 3, IMAGE_SIZE, IMAGE_SIZE]),
-    tensor('float32', [3, IMAGE_SIZE, IMAGE_SIZE]),
-    tensor('uint8', [3, IMAGE_SIZE, IMAGE_SIZE]),
-    tensor('uint8', [IMAGE_SIZE, IMAGE_SIZE, 3]),
-    tensor('uint8', [IMAGE_SIZE, IMAGE_SIZE, 4]),
-  ] as const;
+    validateSpec(model.schema, {
+      default: {
+        ...method(
+          'encode', // prettier-ignore
+          [i64(1, CLIP_MAX_TOKENS)],
+          [f32(1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE)]
+        ),
+        ...method(
+          'denoise',
+          [f32(...LATENT_SHAPE), i64(1), f32(1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE)],
+          [f32(...LATENT_SHAPE)]
+        ),
+        ...method(
+          'decode', // prettier-ignore
+          [f32(...LATENT_SHAPE)],
+          [f32(1, 3, IMAGE_SIZE, IMAGE_SIZE)]
+        ),
+      },
+    });
 
-  // prettier-ignore
-  const [
-    tTokens, tEmbeddings, tTimestep, tLatents, tNoisePred,
-    tDecoded, tReshape, tUint8, tChanLast, tRgba
-  ] = tensors;
+    const tensors = [
+      tensor('int64', [1, CLIP_MAX_TOKENS]),
+      tensor('float32', [1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE]),
+      tensor('int64', [1]),
+      tensor('float32', LATENT_SHAPE),
+      tensor('float32', LATENT_SHAPE),
+      tensor('float32', [1, 3, IMAGE_SIZE, IMAGE_SIZE]),
+      tensor('float32', [3, IMAGE_SIZE, IMAGE_SIZE]),
+      tensor('uint8', [3, IMAGE_SIZE, IMAGE_SIZE]),
+      tensor('uint8', [IMAGE_SIZE, IMAGE_SIZE, 3]),
+      tensor('uint8', [IMAGE_SIZE, IMAGE_SIZE, 4]),
+    ] as const;
 
-  const dispose = () => {
-    tensors.forEach((t) => t.dispose());
-    tokenizer.dispose();
-    model.dispose();
-  };
+    tensors.forEach(scope.track);
 
-  const generateWorklet = (prompt: string, seed?: number): ImageBuffer => {
-    'worklet';
+    // prettier-ignore
+    const [
+      tTokens, tEmbeddings, tTimestep, tLatents, tNoisePred,
+      tDecoded, tReshape, tUint8, tChanLast, tRgba
+    ] = tensors;
 
-    const ids = tokenizer.encode(prompt);
-    const tokens = new BigInt64Array(CLIP_MAX_TOKENS);
-    for (let i = 0; i < CLIP_MAX_TOKENS; i++) {
-      tokens[i] = BigInt(i < ids.length ? ids[i]! : CLIP_PAD_TOKEN_ID);
-    }
-    tTokens.setData(tokens);
-    model.execute('encode', [tTokens], [tEmbeddings]);
+    const generateWorklet = (prompt: string, seed?: number): ImageBuffer => {
+      'worklet';
 
-    tLatents.setData(randomNormal(tLatents.numel, { std: INIT_NOISE_SIGMA, seed }));
-    tTimestep.setData(new BigInt64Array([BigInt(TIMESTEP)]));
-    model.execute('denoise', [tLatents, tTimestep, tEmbeddings], [tNoisePred]);
+      const ids = tokenizer.encode(prompt);
+      const tokens = new BigInt64Array(CLIP_MAX_TOKENS);
+      for (let i = 0; i < CLIP_MAX_TOKENS; i++) {
+        tokens[i] = BigInt(i < ids.length ? ids[i]! : CLIP_PAD_TOKEN_ID);
+      }
+      tTokens.setData(tokens);
+      model.execute('encode', [tTokens], [tEmbeddings]);
 
-    const latents = tLatents.getData(new Float32Array(tLatents.numel));
-    const modelOutput = tNoisePred.getData(new Float32Array(tNoisePred.numel));
-    for (let i = 0; i < latents.length; i++) {
-      latents[i] = SAMPLE_COEFF * latents[i]! + NOISE_COEFF * modelOutput[i]!;
-    }
-    tLatents.setData(latents);
+      tLatents.setData(randomNormal(tLatents.numel, { std: INIT_NOISE_SIGMA, seed }));
+      tTimestep.setData(new BigInt64Array([BigInt(TIMESTEP)]));
+      model.execute('denoise', [tLatents, tTimestep, tEmbeddings], [tNoisePred]);
 
-    model.execute('decode', [tLatents], [tDecoded]);
+      const latents = tLatents.getData(new Float32Array(tLatents.numel));
+      const modelOutput = tNoisePred.getData(new Float32Array(tNoisePred.numel));
+      for (let i = 0; i < latents.length; i++) {
+        latents[i] = SAMPLE_COEFF * latents[i]! + NOISE_COEFF * modelOutput[i]!;
+      }
+      tLatents.setData(latents);
 
-    const data = tDecoded
-      .copyTo(tReshape)
-      .through(normalize, tUint8, { alpha: 255.0 })
-      .through(toChannelsLast, tChanLast)
-      .through(cvtColor, tRgba, 'RGB2RGBA')
-      .getData(new Uint8Array(IMAGE_SIZE * IMAGE_SIZE * 4));
+      model.execute('decode', [tLatents], [tDecoded]);
 
-    return { data, width: IMAGE_SIZE, height: IMAGE_SIZE, format: 'rgba', layout: 'hwc' };
-  };
+      const data = tDecoded
+        .copyTo(tReshape)
+        .through(normalize, tUint8, { alpha: 255.0 })
+        .through(toChannelsLast, tChanLast)
+        .through(cvtColor, tRgba, 'RGB2RGBA')
+        .getData(new Uint8Array(IMAGE_SIZE * IMAGE_SIZE * 4));
 
-  const generate = wrapAsync(generateWorklet, runtime);
+      return { data, width: IMAGE_SIZE, height: IMAGE_SIZE, format: 'rgba', layout: 'hwc' };
+    };
 
-  return { generate, generateWorklet, dispose };
+    const generate = wrapAsync(generateWorklet, runtime);
+
+    return { generate, generateWorklet, dispose };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }

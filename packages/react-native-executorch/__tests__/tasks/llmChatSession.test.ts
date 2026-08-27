@@ -17,7 +17,6 @@ import type { ToolCall, ToolParserResult } from '../../src/extensions/llm/utils/
 import { fakeJsi } from '../support/fakeJsi';
 import { fakeFs } from '../support/blobUtilMock';
 import { tracked } from '../support/lifetime';
-import { allowNativeLeaks } from '../support/setup';
 
 const MODEL_PATH = '/models/llm.pte';
 const TOKENIZER_PATH = '/models/tokenizer.json';
@@ -405,6 +404,20 @@ describe('createLLMChatSession — failure', () => {
     writeTokenizerConfig();
 
     await expect(createLLMChatSession(config)).rejects.toThrow(/no runner registered/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
+    expect(fakeJsi.liveRunners()).toEqual([]);
+  });
+
+  it('releases the runner when the initial prefill fails', async () => {
+    // The one window where construction allocates and can still throw: the
+    // runner exists, and rendering the initial messages blows up. The caller
+    // never gets a `dispose`, so the factory has to release it itself.
+    // eslint-disable-next-line camelcase
+    writeRawTokenizerConfig({ chat_template: '{{ not_a_filter() }}', eos_token: EOS });
+
+    await expect(
+      createLLMChatSession(config, { initialMessages: [{ role: 'user', content: 'hi' }] })
+    ).rejects.toThrow();
+
+    expect(fakeJsi.liveRunners()).toEqual([]);
   });
 });

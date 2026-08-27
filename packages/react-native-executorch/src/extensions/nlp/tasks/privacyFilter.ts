@@ -18,6 +18,7 @@ import {
 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { RnExecuTorchError } from '../../../core/error';
+import { createResourceScope } from '../../../core/lifetime';
 
 import { loadTokenizer } from '../tokenizer';
 import {
@@ -130,161 +131,162 @@ export async function createPrivacyFilter<Label extends string>(
   config: PrivacyFilterModel<Label>,
   runtime?: WorkletRuntime
 ): Promise<PrivacyFilter<Label>> {
-  const { modelPath, tokenizerPath, modelOpts } = config;
-  const { labelNames } = modelOpts;
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
 
-  if (labelNames.length === 0 || labelNames[0] !== 'O') {
-    throw RnExecuTorchError(
-      'INVALID_ARGUMENT',
-      "createPrivacyFilter: labelNames must be non-empty and start with 'O' at index 0."
-    );
-  }
+  try {
+    const { modelPath, tokenizerPath, modelOpts } = config;
+    const { labelNames } = modelOpts;
 
-  const [model, tokenizer] = await Promise.all([
-    wrapAsync(loadModel, runtime)(modelPath),
-    wrapAsync(loadTokenizer, runtime)(tokenizerPath),
-  ]);
-
-  const numLabels = labelNames.length;
-  // Token classifiers take the token ids and the attention mask, both
-  // [1, sequence_length], and emit one logit row per token over the configured
-  // label space. The sequence length is shared by both inputs and the logits,
-  // so it must take the same value in every call. The XNNPACK exports declare
-  // it dynamic, binding `S` to the accepted range; the MLX ones are exported
-  // for a single window length, binding `S` to that constant.
-  const seqLenIsShared = [
-    constraint.equality(
-      { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
-      { paramSide: 'input', tensorIdx: 1, dimIdx: 1 },
-      { paramSide: 'output', tensorIdx: 0, dimIdx: 1 }
-    ),
-  ];
-  const { variant, dim } = validateSpec(model.schema, {
-    dynamic: method(
-      'forward', // prettier-ignore
-      [i64(1, Dyn('S')), i64(1, Dyn('S'))],
-      [f32(1, Dyn('S'), numLabels)],
-      seqLenIsShared
-    ),
-    static: method(
-      'forward', // prettier-ignore
-      [i64(1, 'S'), i64(1, 'S')],
-      [f32(1, 'S', numLabels)]
-    ),
-  });
-
-  // A statically exported model accepts exactly one sequence length; a
-  // dynamically exported one accepts a whole range, whose upper bound is the
-  // widest window the model can see at once.
-  const seqLenRange = variant === 'dynamic' ? dim('S', 'range') : null;
-  const windowSize = seqLenRange ? seqLenRange.max : dim('S', 'constant');
-  if (windowSize < 2) {
-    throw RnExecuTorchError(
-      'SCHEMA_MISMATCH',
-      `createPrivacyFilter: expected a forward window of at least 2 tokens, got ${windowSize}.`
-    );
-  }
-
-  const padTokenId = BigInt(modelOpts.padTokenId);
-  const grammar = buildGrammar(labelNames, modelOpts.viterbiBiases);
-  // Consecutive windows overlap by half; predictions within `edgeMargin` of a
-  // window boundary are re-predicted by the neighboring window with more
-  // context on that side, and the more centered prediction wins.
-  const stride = Math.floor(windowSize / 2);
-  const edgeMargin = Math.floor(windowSize / 4);
-
-  // The XNNPACK exports carry a dynamic sequence dim, so a window there is
-  // sized to the tokens it actually holds. That is the dominant cost: the MoE
-  // runs every expert on every token, so inference is linear in sequence length
-  // and a short input would otherwise pay for a full window of padding. The MLX
-  // exports are static and only accept the one shape they were exported with,
-  // so every window is padded up to `windowSize`. A dynamic window still has to
-  // land on a length the model accepts, i.e. the exported range's `min + k*step`
-  // grid; these primitives let the worklet round onto it without a host call.
-  const isDynamic = seqLenRange !== null;
-  const rangeMin = seqLenRange ? seqLenRange.min : windowSize;
-  const rangeStep = seqLenRange ? seqLenRange.step : 1;
-
-  const dispose = () => {
-    tokenizer.dispose();
-    model.dispose();
-  };
-
-  const detectPiiWorklet = (input: string): PiiEntity<PiiEntityType<Label>>[] => {
-    'worklet';
-    const ids = tokenizer.encode(input);
-    const totalTokens = ids.length;
-    if (totalTokens === 0) return [];
-
-    const predictedLabels = new Int32Array(totalTokens);
-
-    for (let windowStart = 0; windowStart < totalTokens; windowStart += stride) {
-      const validLen = Math.min(windowSize, totalTokens - windowStart);
-      // A static model only accepts the full window, so it is padded to it; a
-      // dynamic one runs the exact token count, rounded up onto its accepted
-      // `min + k*step` grid. Tensors are allocated per window rather than
-      // pooled: allocation is orders of magnitude cheaper than the inference it
-      // feeds, and it avoids holding a tensor per bucket for the model's life.
-      const wanted = Math.max(validLen, rangeMin);
-      const runLen = isDynamic
-        ? Math.min(windowSize, rangeMin + Math.ceil((wanted - rangeMin) / rangeStep) * rangeStep)
-        : windowSize;
-
-      const idsData = new BigInt64Array(runLen);
-      const maskData = new BigInt64Array(runLen);
-      idsData.fill(padTokenId);
-      for (let i = 0; i < validLen; i++) {
-        idsData[i] = BigInt(ids[windowStart + i]!);
-        maskData[i] = 1n;
-      }
-      const tInputIds = tensor('int64', [1, runLen], idsData);
-      const tAttentionMask = tensor('int64', [1, runLen], maskData);
-      const tLogits = tensor('float32', [1, runLen, numLabels]);
-
-      let logits: Float32Array;
-      try {
-        model.execute('forward', [tInputIds, tAttentionMask], [tLogits]);
-        logits = tLogits.getData(new Float32Array(tLogits.numel));
-      } finally {
-        tInputIds.dispose();
-        tAttentionMask.dispose();
-        tLogits.dispose();
-      }
-
-      // Only the final window ends where the text ends, so only it should be
-      // forced to close on a valid BIOES terminal (O/E/S); a mid-document
-      // window may legitimately be cut through an open span, and its boundary
-      // predictions are discarded and re-decoded by the next window anyway.
-      const isLast = windowStart + windowSize >= totalTokens;
-      const path = viterbiDecode(logits, validLen, grammar, isLast);
-
-      const writeFrom = windowStart === 0 ? 0 : edgeMargin;
-      const writeTo = Math.min(isLast ? validLen : windowSize - edgeMargin, validLen);
-      for (let i = writeFrom; i < writeTo; i++) {
-        predictedLabels[windowStart + i] = path[i]!;
-      }
-
-      if (isLast) break;
+    if (labelNames.length === 0 || labelNames[0] !== 'O') {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        "createPrivacyFilter: labelNames must be non-empty and start with 'O' at index 0."
+      );
     }
 
-    // Char offsets are computed once per input so consumers can slice spans
-    // straight out of `input` (or feed the result to `piiSegments`) without
-    // having to re-find each entity in the source themselves.
-    const offsets = computeCharOffsets(tokenizer, ids);
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
+    const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
-    return extractSpans(predictedLabels, labelNames).map((span) => ({
-      // `extractSpans` derives the entity string from `labelNames` at runtime,
-      // so it is one of this model's entity types by construction.
-      label: span.entity as PiiEntityType<Label>,
-      text: tokenizer.decode(ids.slice(span.start, span.end), true).trim(),
-      startToken: span.start,
-      endToken: span.end,
-      charStart: offsets[span.start * 2]!,
-      charEnd: offsets[(span.end - 1) * 2 + 1]!,
-    }));
-  };
+    const numLabels = labelNames.length;
+    // Token classifiers take the token ids and the attention mask, both
+    // [1, sequence_length], and emit one logit row per token over the configured
+    // label space. The sequence length is shared by both inputs and the logits,
+    // so it must take the same value in every call. The XNNPACK exports declare
+    // it dynamic, binding `S` to the accepted range; the MLX ones are exported
+    // for a single window length, binding `S` to that constant.
+    const seqLenIsShared = [
+      constraint.equality(
+        { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
+        { paramSide: 'input', tensorIdx: 1, dimIdx: 1 },
+        { paramSide: 'output', tensorIdx: 0, dimIdx: 1 }
+      ),
+    ];
+    const { variant, dim } = validateSpec(model.schema, {
+      dynamic: method(
+        'forward', // prettier-ignore
+        [i64(1, Dyn('S')), i64(1, Dyn('S'))],
+        [f32(1, Dyn('S'), numLabels)],
+        seqLenIsShared
+      ),
+      static: method(
+        'forward', // prettier-ignore
+        [i64(1, 'S'), i64(1, 'S')],
+        [f32(1, 'S', numLabels)]
+      ),
+    });
 
-  const detectPii = wrapAsync(detectPiiWorklet, runtime);
+    // A statically exported model accepts exactly one sequence length; a
+    // dynamically exported one accepts a whole range, whose upper bound is the
+    // widest window the model can see at once.
+    const seqLenRange = variant === 'dynamic' ? dim('S', 'range') : null;
+    const windowSize = seqLenRange ? seqLenRange.max : dim('S', 'constant');
+    if (windowSize < 2) {
+      throw RnExecuTorchError(
+        'SCHEMA_MISMATCH',
+        `createPrivacyFilter: expected a forward window of at least 2 tokens, got ${windowSize}.`
+      );
+    }
 
-  return { detectPii, detectPiiWorklet, dispose };
+    const padTokenId = BigInt(modelOpts.padTokenId);
+    const grammar = buildGrammar(labelNames, modelOpts.viterbiBiases);
+    // Consecutive windows overlap by half; predictions within `edgeMargin` of a
+    // window boundary are re-predicted by the neighboring window with more
+    // context on that side, and the more centered prediction wins.
+    const stride = Math.floor(windowSize / 2);
+    const edgeMargin = Math.floor(windowSize / 4);
+
+    // The XNNPACK exports carry a dynamic sequence dim, so a window there is
+    // sized to the tokens it actually holds. That is the dominant cost: the MoE
+    // runs every expert on every token, so inference is linear in sequence length
+    // and a short input would otherwise pay for a full window of padding. The MLX
+    // exports are static and only accept the one shape they were exported with,
+    // so every window is padded up to `windowSize`. A dynamic window still has to
+    // land on a length the model accepts, i.e. the exported range's `min + k*step`
+    // grid; these primitives let the worklet round onto it without a host call.
+    const isDynamic = seqLenRange !== null;
+    const rangeMin = seqLenRange ? seqLenRange.min : windowSize;
+    const rangeStep = seqLenRange ? seqLenRange.step : 1;
+
+    const detectPiiWorklet = (input: string): PiiEntity<PiiEntityType<Label>>[] => {
+      'worklet';
+      const ids = tokenizer.encode(input);
+      const totalTokens = ids.length;
+      if (totalTokens === 0) return [];
+
+      const predictedLabels = new Int32Array(totalTokens);
+
+      for (let windowStart = 0; windowStart < totalTokens; windowStart += stride) {
+        const validLen = Math.min(windowSize, totalTokens - windowStart);
+        // A static model only accepts the full window, so it is padded to it; a
+        // dynamic one runs the exact token count, rounded up onto its accepted
+        // `min + k*step` grid. Tensors are allocated per window rather than
+        // pooled: allocation is orders of magnitude cheaper than the inference it
+        // feeds, and it avoids holding a tensor per bucket for the model's life.
+        const wanted = Math.max(validLen, rangeMin);
+        const runLen = isDynamic
+          ? Math.min(windowSize, rangeMin + Math.ceil((wanted - rangeMin) / rangeStep) * rangeStep)
+          : windowSize;
+
+        const idsData = new BigInt64Array(runLen);
+        const maskData = new BigInt64Array(runLen);
+        idsData.fill(padTokenId);
+        for (let i = 0; i < validLen; i++) {
+          idsData[i] = BigInt(ids[windowStart + i]!);
+          maskData[i] = 1n;
+        }
+        const tInputIds = tensor('int64', [1, runLen], idsData);
+        const tAttentionMask = tensor('int64', [1, runLen], maskData);
+        const tLogits = tensor('float32', [1, runLen, numLabels]);
+
+        let logits: Float32Array;
+        try {
+          model.execute('forward', [tInputIds, tAttentionMask], [tLogits]);
+          logits = tLogits.getData(new Float32Array(tLogits.numel));
+        } finally {
+          tInputIds.dispose();
+          tAttentionMask.dispose();
+          tLogits.dispose();
+        }
+
+        // Only the final window ends where the text ends, so only it should be
+        // forced to close on a valid BIOES terminal (O/E/S); a mid-document
+        // window may legitimately be cut through an open span, and its boundary
+        // predictions are discarded and re-decoded by the next window anyway.
+        const isLast = windowStart + windowSize >= totalTokens;
+        const path = viterbiDecode(logits, validLen, grammar, isLast);
+
+        const writeFrom = windowStart === 0 ? 0 : edgeMargin;
+        const writeTo = Math.min(isLast ? validLen : windowSize - edgeMargin, validLen);
+        for (let i = writeFrom; i < writeTo; i++) {
+          predictedLabels[windowStart + i] = path[i]!;
+        }
+
+        if (isLast) break;
+      }
+
+      // Char offsets are computed once per input so consumers can slice spans
+      // straight out of `input` (or feed the result to `piiSegments`) without
+      // having to re-find each entity in the source themselves.
+      const offsets = computeCharOffsets(tokenizer, ids);
+
+      return extractSpans(predictedLabels, labelNames).map((span) => ({
+        // `extractSpans` derives the entity string from `labelNames` at runtime,
+        // so it is one of this model's entity types by construction.
+        label: span.entity as PiiEntityType<Label>,
+        text: tokenizer.decode(ids.slice(span.start, span.end), true).trim(),
+        startToken: span.start,
+        endToken: span.end,
+        charStart: offsets[span.start * 2]!,
+        charEnd: offsets[(span.end - 1) * 2 + 1]!,
+      }));
+    };
+
+    const detectPii = wrapAsync(detectPiiWorklet, runtime);
+
+    return { detectPii, detectPiiWorklet, dispose };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }
