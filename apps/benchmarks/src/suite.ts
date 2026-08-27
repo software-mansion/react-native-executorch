@@ -302,16 +302,23 @@ export const CASES: readonly BenchCase[] = [
     note: 'timed on the RN thread; includes per-chunk thread hops',
   }),
   defineCase(createInstanceSegmenter, {
-    id: 'instance-segmentation/fastsam-s-xnnpack-fp32',
+    id: 'instance-segmentation/rfdetr-nano-xnnpack-fp32',
     task: 'instanceSegmentation',
-    model: 'FASTSAM.S.XNNPACK_FP32',
+    model: 'RFDETR_NANO.XNNPACK_FP32',
     tier: 'full',
-    config: models.instanceSegmentation.FASTSAM.S.XNNPACK_FP32,
+    config: models.instanceSegmentation.RFDETR_NANO.XNNPACK_FP32,
     modelPathKey: 'modelPath',
     run: (instance) => () => {
       'worklet';
       return instance.segmentInstancesWorklet(IMAGE_640).length;
     },
+    // RF-DETR rather than FastSAM on purpose. FastSAM pairs a 0.5 confidence
+    // threshold with an IoU of 0.9, which suppresses almost nothing, so on a
+    // textured synthetic image nearly every candidate survives and each one
+    // materialises a full 640x640 mask in JS. That wedged a run. RF-DETR emits
+    // a fixed set of queries and runs NMS at 0.55, so its post-processing is
+    // bounded whatever the input happens to look like.
+    note: 'bounded query set; FastSAM is unsuitable for synthetic input',
   }),
   defineCase(createPaddleOcr, {
     id: 'ocr/ppocrv6-small-xnnpack-int8',
