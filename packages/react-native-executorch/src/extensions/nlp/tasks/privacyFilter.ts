@@ -145,9 +145,6 @@ export async function createPrivacyFilter<Label extends string>(
       );
     }
 
-    // Loaded one at a time on purpose: `Promise.all` rejects on the first
-    // failure while the others keep loading, so their resources would land
-    // after the scope has already been disposed.
     const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
