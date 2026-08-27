@@ -68,7 +68,13 @@ Pod::Spec.new do |s|
   source_files += phonemis_source_files if enable_phonemis
   s.source_files = source_files
 
-  exclude_files = ["third-party/common/phonemis/src/phonemis/main.cpp"]
+  # cpp/tests holds the host GoogleTest suites, built by cpp/tests/CMakeLists.txt
+  # and never by the app: `cpp/**` above sweeps them in, and the pod carries no
+  # googletest headers, so an app build fails on <gmock/gmock.h>.
+  exclude_files = [
+    "third-party/common/phonemis/src/phonemis/main.cpp",
+    "cpp/tests/**/*",
+  ]
   exclude_files += opencv_source_files unless enable_opencv
   exclude_files += phonemis_source_files unless enable_phonemis
   s.exclude_files = exclude_files
