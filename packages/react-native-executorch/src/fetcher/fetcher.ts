@@ -119,6 +119,27 @@ async function foldResumedChunkIntoPartial(
   await RNBlobUtil.fs.unlink(chunkPath).catch(() => {});
 }
 
+// DownloadManager's byte counter is 64-bit, but blob-util reads it out of the
+// cursor with `getInt`, so what reaches JS is the low 32 bits reinterpreted as
+// a signed int: past 2 GB it arrives NEGATIVE and wraps every 4 GB after that.
+// Multi-GB LLM models spend most of their download inside that range, which is
+// what collapsed their progress bar. The counter only ever grows, so the
+// discarded high bits can be rebuilt by counting how often the low ones wrap.
+const UINT32 = 0x100000000;
+function reassemble32BitCounter(): (raw: number) => number {
+  let wraps = 0;
+  let previous = 0;
+  return (raw) => {
+    const low = raw < 0 ? raw + UINT32 : raw;
+    if (low < previous) wraps += 1;
+    previous = low;
+    return low + wraps * UINT32;
+  };
+}
+
+// Reports absolute bytes for one file. `total` is 0 when the transfer does not
+// know the length yet — the receiver keeps using whatever length it already
+// had rather than treating the file as complete.
 type OnBytes = (received: number, total: number) => void;
 
 interface DownloadUrlCallbacks {
@@ -207,9 +228,19 @@ async function startDownload(url: string, dest: string, entry: InFlightDownload)
     },
   };
 
-  return IS_ANDROID
-    ? downloadUrlViaAndroidDownloadManager(url, dest, cb)
-    : downloadUrlViaIosStream(url, dest, cb);
+  const path = IS_ANDROID
+    ? await downloadUrlViaAndroidDownloadManager(url, dest, cb)
+    : await downloadUrlViaIosStream(url, dest, cb);
+
+  // Neither backend is guaranteed to emit a last sample at 100%: blob-util
+  // throttles progress events, and DownloadManager is polled, so the final
+  // chunk usually lands between two polls. Without this a finished file stays
+  // stuck a little short of its own size, and in a multi-file config that
+  // shortfall is what the user sees while the remaining files download.
+  const finalSize = await fileSize(path);
+  if (finalSize > 0) cb.onBytes?.(finalSize, finalSize);
+
+  return path;
 }
 
 // Attaches one caller to a shared download. The caller's own signal only
@@ -260,12 +291,13 @@ async function downloadUrlViaAndroidDownloadManager(
   const onAbort = () => task.cancel();
   cb.signal?.addEventListener('abort', onAbort);
 
-  // DownloadManager reports total as -1 until the size is known; forward the
-  // received byte count regardless so byte-weighted progress still advances.
+  // DownloadManager reports total as -1 until the size is known; pass that on
+  // as 0 rather than echoing the received count, which would otherwise look
+  // like a file that is complete at every sample.
+  const absoluteBytes = reassemble32BitCounter();
   task.progress({ count: 100 }, (received, total) => {
-    const recv = Number(received);
     const tot = Number(total);
-    cb.onBytes?.(recv, tot > 0 ? tot : recv);
+    cb.onBytes?.(absoluteBytes(Number(received)), tot > 0 ? tot : 0);
   });
 
   try {
@@ -336,9 +368,22 @@ async function downloadUrlViaIosStream(
     earlyStatus = Number(info?.status) || 0;
   });
 
-  task.progress({ count: 20 }, (received, total) => {
+  // A resume starts with `offset` bytes already on disk. Say so before the
+  // first byte of the tail arrives, so continuing a 90%-complete download
+  // doesn't show the bar restarting from zero.
+  if (offset > 0 && cb.expectedBytes && cb.expectedBytes > offset) {
+    cb.onBytes?.(offset, cb.expectedBytes);
+  }
+
+  // Same granularity as Android. blob-util still floors the rate at one event
+  // per 250 ms, so this only means a large file advances in ~1% steps instead
+  // of the 5% ones that made a multi-GB download look stalled between jumps.
+  task.progress({ count: 100 }, (received, total) => {
     const recv = Number(received);
     const tot = Number(total);
+    // A response with no Content-Length reports `written: 0, total: -1` on a
+    // timer; forwarding it would drag this file's progress back to zero.
+    if (tot <= 0) return;
     cb.onBytes?.(offset + recv, offset + tot);
   });
 
@@ -558,18 +603,49 @@ export async function download<T>(source: T, options: DownloadOptions = {}): Pro
     return source;
   }
 
-  // Weight overall progress by real byte sizes so a 1 GB model isn't treated
-  // like a 1 MB tokenizer. When any HEAD fails we fall back to equal weighting.
-  const sizes = await Promise.all(urls.map(remoteSize));
-  const haveAllSizes = sizes.every((size) => size > 0);
-  const total = haveAllSizes ? sizes.reduce((a, b) => a + b, 0) : urls.length;
+  // Measure every file up front so overall progress can be weighted by real
+  // byte sizes and a 1 GB model isn't treated like a 1 MB tokenizer. A file
+  // that is already cached is measured on disk: it needs no HEAD at all, which
+  // also keeps a warm start from paying a round trip per file.
+  const measured = await Promise.all(
+    urls.map(async (url) => {
+      if (!options.forceDownload) {
+        const cached = await fileSize(cachePathFor(url));
+        if (cached > 0) return { size: cached, cached: true };
+      }
+      return { size: await remoteSize(url), cached: false };
+    })
+  );
 
-  const received = new Array<number>(urls.length).fill(0);
+  // Per-file weight and per-file completion, kept apart so one unmeasurable
+  // file can't change how the others are weighted. A failed HEAD used to flip
+  // EVERY file to equal weighting, which is how a tokenizer came to count for
+  // as much as a 3 GB model; now only the unmeasured file falls back, and even
+  // that is corrected the moment its transfer reports a real length.
+  const weights = measured.map((m) => m.size);
+  const fractions: number[] = measured.map((m) => (m.cached ? 1 : 0));
+  const known = weights.filter((weight) => weight > 0);
+  const fallbackWeight = known.length ? known.reduce((a, b) => a + b, 0) / known.length : 1;
+
+  let reported = 0;
   const report = () => {
     if (!options.onProgress) return;
-    const sum = received.reduce((a, b) => a + b, 0);
-    options.onProgress(total > 0 ? Math.min(sum / total, 1) : 0);
+    let done = 0;
+    let total = 0;
+    for (let i = 0; i < weights.length; i++) {
+      const weight = weights[i]! > 0 ? weights[i]! : fallbackWeight;
+      done += fractions[i]! * weight;
+      total += weight;
+    }
+    // Learning a weight mid-flight shifts the denominator, and a transfer that
+    // has to restart genuinely loses ground. Neither is worth showing: a bar
+    // that only ever moves forward is the one users can read.
+    const next = total > 0 ? Math.min(done / total, 1) : 0;
+    if (next <= reported) return;
+    reported = next;
+    options.onProgress(next);
   };
+  report();
 
   const resolved = new Map<string, string>();
   await Promise.all(
@@ -578,11 +654,16 @@ export async function download<T>(source: T, options: DownloadOptions = {}): Pro
       downloadUrl(url, {
         signal: options.signal,
         forceDownload: options.forceDownload,
-        // Already HEADed above for progress weighting — reuse it rather than
-        // asking again when the completeness check needs the length.
-        expectedBytes: sizes[i],
+        // Already measured above — reuse it rather than asking again when the
+        // completeness check needs the length.
+        expectedBytes: weights[i],
         onBytes: (recv, tot) => {
-          received[i] = haveAllSizes ? recv : tot > 0 ? recv / tot : 0;
+          // The transfer's own length beats the HEAD's: it is what the bytes
+          // are actually being counted against, and it is the only length
+          // available for a file whose HEAD failed.
+          if (tot > 0) weights[i] = tot;
+          const size = weights[i]!;
+          fractions[i] = size > 0 ? Math.min(Math.max(recv / size, 0), 1) : 0;
           report();
         },
       }).then((path) => {
