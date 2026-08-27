@@ -1,21 +1,22 @@
 /**
  * Construction-time ownership of native resources.
  *
- * A `create<Task>` factory allocates as it goes: it loads a model, maybe a
- * tokenizer or a phonemizer, validates the schema, pre-allocates its execution
- * tensors, and only at the end hands the caller a `dispose`. Anything that
- * throws in between leaves the caller with no reference to what was already
- * allocated, and native memory is not garbage collected, so it stays alive for
- * the rest of the process.
+ * A factory that builds a pipeline allocates as it goes: it loads models,
+ * validates their schemas, pre-allocates execution tensors, and only at the end
+ * hands the caller a `dispose`. Anything that throws in between leaves the
+ * caller with no reference to what was already allocated, and native memory is
+ * not garbage collected, so it stays alive for the rest of the process.
  *
  * A scope closes that window: every resource is tracked as it is created, and
  * one `dispose` releases whatever exists at the moment it is called. The same
- * function is the factory's own `dispose`, so there is a single teardown path
+ * function is the pipeline's own `dispose`, so there is a single teardown path
  * rather than one for failure and one for success.
- * @module Core/Lifetime
  */
 
-/** Anything holding native memory that has to be released explicitly. */
+/**
+ * Anything holding native memory that has to be released explicitly.
+ * @category Core / Types
+ */
 export type Disposable = { dispose: () => void };
 
 /**
@@ -28,6 +29,7 @@ export type ResourceScope = {
    * allocation in place.
    */
   readonly track: <D extends Disposable>(resource: D) => D;
+
   /**
    * Releases every tracked resource, most recently allocated first. Safe to
    * call more than once: a second call has nothing left to release.
@@ -36,10 +38,16 @@ export type ResourceScope = {
 };
 
 /**
- * Creates a {@link ResourceScope} for a factory to allocate into.
+ * Creates a {@link ResourceScope} for semi-automatic lifetime management of
+ * native resources.
  *
- * Wrap the factory body in `try`/`catch`, `track` each resource as it is
- * created, and return `scope.dispose` as the pipeline's `dispose`:
+ * Wrap the allocating body in `try`/`catch`, `track` each resource as it is
+ * created, and return `scope.dispose` as the resulting object's `dispose`. A
+ * failure part-way through then releases everything allocated so far, and a
+ * successful build hands the caller the same teardown path.
+ * @category Core / Functions
+ * @returns A scope that tracks resources and releases them on `dispose`.
+ * @example
  * ```typescript
  * const scope = createResourceScope();
  * const dispose = scope.dispose;
@@ -53,8 +61,6 @@ export type ResourceScope = {
  *   throw error;
  * }
  * ```
- * @category Core / Functions
- * @returns A scope that tracks resources and releases them on `dispose`.
  */
 export function createResourceScope(): ResourceScope {
   const allocated: Disposable[] = [];

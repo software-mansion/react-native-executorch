@@ -93,10 +93,11 @@ export async function createTextEmbedder(
 
   try {
     const { modelPath, tokenizerPath, defaultPrompt } = config;
-    const [model, tokenizer] = await Promise.all([
-      wrapAsync(loadModel, runtime)(modelPath).then(scope.track),
-      wrapAsync(loadTokenizer, runtime)(tokenizerPath).then(scope.track),
-    ]);
+    // Loaded one at a time on purpose: `Promise.all` rejects on the first
+    // failure while the others keep loading, so their resources would land
+    // after the scope has already been disposed.
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
+    const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
     // Text embedding models take two int64 inputs: the token ids and the
     // attention mask, both of shape [1, sequence_length].

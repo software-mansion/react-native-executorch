@@ -160,10 +160,11 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
 
   try {
     const load = wrapAsync(loadModel, runtime);
-    const [durationPredictor, synthesizer] = await Promise.all([
-      load(config.modelPaths.durationPredictor).then(scope.track),
-      load(config.modelPaths.synthesizer).then(scope.track),
-    ]);
+    // Loaded one at a time on purpose: `Promise.all` rejects on the first
+    // failure while the others keep loading, so their resources would land
+    // after the scope has already been disposed.
+    const durationPredictor = scope.track(await load(config.modelPaths.durationPredictor));
+    const synthesizer = scope.track(await load(config.modelPaths.synthesizer));
     const models = { durationPredictor, synthesizer };
     const predictorSpec = validateSpec(models.durationPredictor.schema, {
       default: method(

@@ -186,12 +186,13 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
 
   try {
     const load = wrapAsync(loadModel, runtime);
-    const [durationPredictor, vectorEstimator, textEncoder, vocoder] = await Promise.all([
-      load(config.modelPaths.durationPredictor).then(scope.track),
-      load(config.modelPaths.vectorEstimator).then(scope.track),
-      load(config.modelPaths.textEncoder).then(scope.track),
-      load(config.modelPaths.vocoder).then(scope.track),
-    ]);
+    // Loaded one at a time on purpose: `Promise.all` rejects on the first
+    // failure while the others keep loading, so their resources would land
+    // after the scope has already been disposed.
+    const durationPredictor = scope.track(await load(config.modelPaths.durationPredictor));
+    const vectorEstimator = scope.track(await load(config.modelPaths.vectorEstimator));
+    const textEncoder = scope.track(await load(config.modelPaths.textEncoder));
+    const vocoder = scope.track(await load(config.modelPaths.vocoder));
     const models = { durationPredictor, textEncoder, vectorEstimator, vocoder };
 
     validateSpec(models.durationPredictor.schema, {
