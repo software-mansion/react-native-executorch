@@ -353,3 +353,6 @@ backgrounding
 LibriSpeech
 recompiles
 xzmf
+memcpy
+autoregressive
+dispatchable
