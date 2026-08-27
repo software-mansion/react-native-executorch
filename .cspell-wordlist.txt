@@ -336,3 +336,16 @@ binarizes
 unshrunk
 DEEPSEEK
 LLMKV
+macrotask
+microtask
+microtasks
+unbatched
+sdcard
+dontMock
+BIES
+binarize
+binarized
+unclip
+phonemizations
+phonemizes
+həlˈoʊ
