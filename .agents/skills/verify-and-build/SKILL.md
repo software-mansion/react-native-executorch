@@ -22,6 +22,14 @@ To check types and compile the TypeScript source code:
   ```bash
   yarn typecheck
   ```
+- **Run the TypeScript API Tests**:
+  ```bash
+  yarn workspace react-native-executorch test
+  ```
+  _Jest suites over the public `src/` surface — hooks, task pipelines, core
+  primitives, the fetcher and the model registry — running against a fake
+  native runtime, so they need no simulator, device or `.pte` file. See the
+  [Add API Tests skill](../add-api-tests/SKILL.md)._
 - **Build Bundles**:
   ```bash
   yarn prepare
@@ -174,7 +182,7 @@ This project does **not** bundle local `.pte` model files inside the React Nativ
 
 ## 🚫 Avoid / Anti-Patterns
 
-- **Do NOT run code without verification:** Do not test TypeScript changes in the app without first running `yarn typecheck` (verify types) and `yarn prepare` (build target bundles).
+- **Do NOT run code without verification:** Do not test TypeScript changes in the app without first running `yarn typecheck` (verify types), `yarn workspace react-native-executorch test` (API suites) and `yarn prepare` (build target bundles).
 - **Do NOT skip native rebuilds after C++ edits:** If any C++ files or config bindings are added/modified, do not attempt to run the app without executing `pod install` (for iOS) or letting Gradle sync (for Android).
 - **Do NOT run `lint:cpp` with the system `clang-tidy`**: Use the Homebrew LLVM binary: `CLANG_TIDY=$(brew --prefix llvm)/bin/clang-tidy yarn workspace react-native-executorch lint:cpp`.
 - **Do NOT trust a green macOS-only syntax check for platform-conditional C++:** see the clang-tidy notes above.
@@ -188,6 +196,7 @@ This project does **not** bundle local `.pte` model files inside the React Nativ
 When verifying or compiling your modifications, check that:
 
 - [ ] TypeScript typechecking passes without errors (`yarn typecheck`).
+- [ ] The TypeScript API tests pass (`yarn workspace react-native-executorch test`), and any new `src/` behavior is covered by them.
 - [ ] Bundles compile successfully (`yarn prepare`).
 - [ ] `pod install` has been run inside `apps/<domain-app>/ios/` after any native C++ edits.
 - [ ] `lint:cpp` passes cleanly: `CLANG_TIDY=$(brew --prefix llvm)/bin/clang-tidy yarn workspace react-native-executorch lint:cpp`.

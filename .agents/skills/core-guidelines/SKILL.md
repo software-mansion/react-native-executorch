@@ -72,6 +72,7 @@ Use the following index to locate the specific procedural guides for your task:
 | **Add a new native operator or C++ binding** | [SKILL.md](../add-native-extension/SKILL.md)    | Procedural guide to implementing C++ functions, exposing them via JSI, and writing TypeScript bridge wrappers. |
 | **Create a task pipeline or hook**           | [SKILL.md](../add-task-pipeline/SKILL.md)       | Guide to building end-to-end TS pipelines (e.g. object detection) and exposing them via React hooks.           |
 | **Verify, rebuild, or troubleshoot changes** | [SKILL.md](../verify-and-build/SKILL.md)        | Workflows for rebuilding TS/C++ and resolving common JSI runtime errors.                                       |
+| **Test TypeScript changes**                  | [SKILL.md](../add-api-tests/SKILL.md)           | Covering `src/` with the Jest API suites and their fake native runtime.                                        |
 | **Validate model constraints & schemas**     | [SKILL.md](../model-schema-validation/SKILL.md) | Guide on specifying model specs, dynamic shapes, and runtime constraints for model validation.                 |
 | **Throw, catch, or classify an error**       | [SKILL.md](../error-handling/SKILL.md)          | The error code set, `RnExecuTorchError`, C++ `RnExecuTorchException`/`guarded`, and adding a code.             |
 | **Maintain or refactor codebase patterns**   | [SKILL.md](../skills-maintenance/SKILL.md)      | Guide to keeping workspace skills in sync with codebase state to prevent documentation decay.                  |
