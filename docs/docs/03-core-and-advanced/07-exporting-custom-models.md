@@ -109,6 +109,11 @@ const [N, H, W] = dims.constant('N', 'H', 'W');
 // ...allocate tensors of these shapes, then build the classify/execute closure
 ```
 
+Wrap that construction in a
+[resource scope](./02-models-and-tensors.md#failure-safe-construction-with-a-resource-scope)
+so a failure part-way through — a `validateSpec` mismatch, say — releases the model
+already loaded instead of leaking it.
+
 From here the rest of the section covers each piece:
 [Models & Tensors](./02-models-and-tensors.md) for execution and tensor lifetime,
 [Operations & Utilities](./04-operations-and-utilities.md) for the preprocessing
