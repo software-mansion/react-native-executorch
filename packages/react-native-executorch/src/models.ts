@@ -296,7 +296,7 @@ const RFDETR_NANO_DETECTOR_OPTS = {
   defaultIouThreshold: 0.55,
 };
 const RFDETR_NANO_DETECTOR_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClass> = {
-  modelPath: `${BASE_URL}-rfdetr-nano-detector/${VERSION_TAG}/xnnpack/rfdetr_nano_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-rfdetr-nano-detector/${NEXT_VERSION_TAG}/xnnpack/rfdetr_nano_xnnpack_fp32.pte`,
   modelOpts: RFDETR_NANO_DETECTOR_OPTS,
 };
 const RFDETR_NANO_DETECTOR_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClass> = {
@@ -492,10 +492,6 @@ const RFDETR_KEYPOINT_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> 
 };
 const RFDETR_KEYPOINT_COREML_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
   modelPath: `${BASE_URL}-rfdetr-keypoint/${NEXT_VERSION_TAG}/preview/coreml/rfdetr_keypoint_preview_coreml_fp16.pte`,
-  modelOpts: RFDETR_KEYPOINT_OPTS,
-};
-const RFDETR_KEYPOINT_COREML_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}-rfdetr-keypoint/${NEXT_VERSION_TAG}/preview/coreml/rfdetr_keypoint_preview_coreml_fp32.pte`,
   modelOpts: RFDETR_KEYPOINT_OPTS,
 };
 const RFDETR_KEYPOINT_MLX_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
@@ -1655,13 +1651,18 @@ export const models = {
       {
         XNNPACK_FP32: RFDETR_KEYPOINT_XNNPACK_FP32,
         COREML_FP16: RFDETR_KEYPOINT_COREML_FP16,
-        COREML_FP32: RFDETR_KEYPOINT_COREML_FP32,
         MLX_FP32: RFDETR_KEYPOINT_MLX_FP32,
       },
-      // Core ML over MLX: 164.1 ms against 272.3 on an iPhone 16, at 378 MB
-      // against 1304 MB. fp16 over fp32: 144.0 ms against 165.1, a 263 MB peak
-      // against 389 MB, and half the download, matching fp32 to 0.0008
-      // confidence and 0.23 px.
+      // Core ML over MLX: 144.0 ms against 272.3 on an iPhone 16, at 263 MB
+      // against 1304 MB.
+      //
+      // fp16 is the only Core ML build published for this model. It replaced an
+      // fp32 one that was 165.1 ms, 389 MB peak and twice the download, after
+      // fp16 was checked against it across 13 real photos and 40 detections:
+      // visible landmarks agreed to 1.04 px, boxes to 0.653 px and scores to
+      // 0.072, with no detection crossing the threshold. (Landmarks the model
+      // marks invisible drift further, up to 15.7 px, but their coordinates are
+      // undefined when `vis` is 0.)
       //
       // That fp16 build took a while to exist and is fragile in a specific way,
       // so do not "simplify" it. It is correct on device only with both the CPU
