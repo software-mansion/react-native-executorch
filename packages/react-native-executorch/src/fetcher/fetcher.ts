@@ -71,14 +71,36 @@ async function fileSize(path: string): Promise<number> {
   }
 }
 
-// Best-effort remote content length via a HEAD request; 0 when unknown.
-async function remoteSize(url: string): Promise<number> {
+// How long a length lookup may take before it is treated as unknown. The HEAD
+// is never on the path to the first byte (see download()), so this is not a
+// latency budget: it only bounds how long a server that accepts the connection
+// and then answers nothing can hold a download that has otherwise finished.
+// React Native gives that no ceiling of its own — OkHttp is configured with
+// connect/read/write timeouts of 0 — so without this a black-holed HEAD would
+// leave the download promise pending forever.
+const HEAD_TIMEOUT_MS = 15_000;
+
+// Best-effort remote content length via a HEAD request; 0 when unknown, which
+// covers a refusal, a response without a Content-Length, the caller aborting,
+// and a server that simply never replies.
+async function remoteSize(url: string, signal?: AbortSignal): Promise<number> {
+  // AbortSignal.timeout()/any() don't exist here: React Native polyfills
+  // AbortSignal with abort-controller@3, which has neither.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HEAD_TIMEOUT_MS);
+  const onAbort = () => controller.abort();
+  if (signal?.aborted) controller.abort();
+  else signal?.addEventListener('abort', onAbort);
+
   try {
-    const res = await fetch(url, { method: 'HEAD' });
+    const res = await fetch(url, { method: 'HEAD', signal: controller.signal });
     const len = res.headers.get('content-length');
     return len ? Number(len) : 0;
   } catch {
     return 0;
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', onAbort);
   }
 }
 
@@ -92,11 +114,12 @@ async function remoteSize(url: string): Promise<number> {
 // needed, to check the transfer arrived whole, it resolved long ago.
 async function expectedBytesFor(
   url: string,
-  known: number | Promise<number> | undefined
+  known: number | Promise<number> | undefined,
+  signal?: AbortSignal
 ): Promise<number> {
   const resolved = await known;
   if (resolved && resolved > 0) return resolved;
-  return remoteSize(url);
+  return remoteSize(url, signal);
 }
 
 // Raised when a transfer reported success but the bytes on disk don't match
@@ -362,7 +385,7 @@ async function downloadUrlViaAndroidDownloadManager(
   // gives us no status to check. Promoting a short file would cache it under
   // its final name forever — the existence-only cache check can't tell the
   // difference, and a truncated .pte only fails much later, at load.
-  const expected = await expectedBytesFor(url, cb.expectedBytes);
+  const expected = await expectedBytesFor(url, cb.expectedBytes, cb.signal);
   if (expected > 0 && size !== expected) {
     await RNBlobUtil.fs.unlink(tmp).catch(() => {});
     throw incompleteError(url, size, expected);
@@ -440,7 +463,7 @@ async function downloadUrlViaBackgroundSession(
   // before the transfer rather than after it.
   const staged = await fileSize(part);
   if (staged > 0) {
-    const stagedExpected = await expectedBytesFor(url, cb.expectedBytes);
+    const stagedExpected = await expectedBytesFor(url, cb.expectedBytes, cb.signal);
     if (stagedExpected > 0 && staged === stagedExpected) {
       await RNBlobUtil.fs.mv(part, dest);
       cb.onBytes?.(stagedExpected, stagedExpected);
@@ -527,7 +550,7 @@ async function downloadUrlViaBackgroundSession(
   // what keeps a short file from being renamed into the cache, where the
   // existence-only hit check would serve it forever and the truncated .pte would
   // only fail much later, at load.
-  const expected = await expectedBytesFor(url, cb.expectedBytes);
+  const expected = await expectedBytesFor(url, cb.expectedBytes, cb.signal);
   const assembled = await fileSize(part);
   if (expected > 0 && assembled !== expected) {
     throw incompleteError(url, assembled, expected);
@@ -632,7 +655,7 @@ async function downloadUrlViaIosStream(
     throw abortError();
   }
 
-  const expected = await expectedBytesFor(url, cb.expectedBytes);
+  const expected = await expectedBytesFor(url, cb.expectedBytes, cb.signal);
 
   // Whether the response body is a tail or the whole file is decided by the
   // BYTE COUNTS rather than by `status` alone, so a range the server answers in
@@ -847,7 +870,7 @@ export async function download<T>(source: T, options: DownloadOptions = {}): Pro
         const cached = await fileSize(cachePathFor(url));
         if (cached > 0) return { size: cached, pending: undefined, cached: true };
       }
-      return { size: 0, pending: remoteSize(url), cached: false };
+      return { size: 0, pending: remoteSize(url, options.signal), cached: false };
     })
   );
 
