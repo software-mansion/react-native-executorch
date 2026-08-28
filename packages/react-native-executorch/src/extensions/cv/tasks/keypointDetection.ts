@@ -85,7 +85,11 @@ export type Landmarks<L extends PropertyKey> = Record<L, Point & { readonly conf
 export type KeypointDetection<F extends BoxFormat, L extends PropertyKey> = {
   /** Scaled bounding box coordinates matching the input image resolution. */
   readonly box: BoundingBox<F>;
-  /** Overall confidence score of the detection (between 0.0 and 1.0). */
+  /**
+   * Overall confidence score of the detection (between 0.0 and 1.0). When
+   * several boxes are merged by NMS, this is the highest score in the merged
+   * group, so it does not depend on how many low-scoring boxes were absorbed.
+   */
   readonly confidence: number;
   /** Map of landmark names to their scaled pixel coordinates and individual confidence scores. */
   readonly landmarks: Landmarks<L>;
@@ -163,6 +167,7 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
 
   for (const group of nmsGroups) {
     const totalScore = group.reduce((total, idx) => total + (scores[idx] ?? 0), 0);
+    const peakScore = group.reduce((peak, idx) => Math.max(peak, scores[idx] ?? 0), 0);
     const weightedBox = new Float32Array(4);
     const weightedKpt = new Float32Array(options.landmarks.length * 3);
 
@@ -195,7 +200,7 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
       landmarks[key] = { ...point, confidence };
     }
 
-    results.push({ box, confidence: totalScore / group.length, landmarks });
+    results.push({ box, confidence: peakScore, landmarks });
   }
 
   return results;

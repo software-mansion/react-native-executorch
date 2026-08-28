@@ -21,7 +21,8 @@ import { createSdxsTextToImage } from '../../src/extensions/cv/tasks/sdxsTextToI
 import { createFsmnVoiceActivityDetector } from '../../src/extensions/speech/tasks/fsmnVoiceActivityDetection';
 import { createWhisperSpeechToText } from '../../src/extensions/speech/tasks/whisperSpeechToText';
 import { fakeJsi } from '../support/fakeJsi';
-import { STRETCH_PREPROCESSING, exported } from '../support/fixtures';
+import { tracked } from '../support/lifetime';
+import { STRETCH_PREPROCESSING, exported, imageBuffer, writesOutputs } from '../support/fixtures';
 
 const MODEL_PATH = '/models/task.pte';
 const TOKENIZER_PATH = '/models/tokenizer.json';
@@ -76,6 +77,64 @@ describe('createKeypointDetector', () => {
     });
 
     await expect(createKeypointDetector(config)).rejects.toThrow(/Rank mismatch/);
+  });
+
+  /**
+   * Weighted NMS merges a group of overlapping boxes into one detection. The
+   * box and the landmarks are score-weighted, so a near-zero member barely
+   * moves them; the reported confidence has to behave the same way, otherwise
+   * it silently rescales with the caller's confidence threshold — a lower
+   * threshold lets more weak boxes into the group and drags the mean down.
+   */
+  describe('merged detection confidence', () => {
+    const SIZE = 16;
+    // Two boxes with IoU 49/79 = 0.62, so they always merge into one group.
+    const BOXES = [0, 0, 8, 8, 1, 1, 9, 9];
+    const SCORES = [0.9, 0.01];
+    const KEYPOINTS = [1, 1, 0.9, 2, 2, 0.8, 3, 3, 0.7, 1, 1, 0.01, 2, 2, 0.01, 3, 3, 0.01];
+
+    const detectorConfig = {
+      modelPath: MODEL_PATH,
+      modelOpts: { ...config.modelOpts, defaultIouThreshold: 0.5 },
+    } as const;
+
+    beforeEach(() => {
+      fakeJsi.registerModel(MODEL_PATH, {
+        schema: exported(
+          method(
+            'forward',
+            [f32(1, 3, SIZE, SIZE)],
+            [f32(2, 4), f32(2), f32(2, LANDMARKS.length, 3)]
+          )
+        ),
+        execute: writesOutputs(BOXES, SCORES, KEYPOINTS),
+      });
+    });
+
+    it('reports the peak score of the group, not its mean', async () => {
+      const detector = tracked(await createKeypointDetector(detectorConfig));
+
+      const detections = await detector.detectKeypoints(imageBuffer(SIZE, SIZE), {
+        confidenceThreshold: 0.001,
+      });
+
+      expect(detections).toHaveLength(1);
+      expect(detections[0]!.confidence).toBeCloseTo(0.9, 5);
+    });
+
+    it('keeps the confidence stable when a lower threshold widens the group', async () => {
+      const detector = tracked(await createKeypointDetector(detectorConfig));
+      const image = imageBuffer(SIZE, SIZE);
+
+      // At 0.5 only the peak box is a candidate; at 0.001 the near-zero box
+      // joins its group. The detection is the same one either way.
+      const strict = await detector.detectKeypoints(image, { confidenceThreshold: 0.5 });
+      const loose = await detector.detectKeypoints(image, { confidenceThreshold: 0.001 });
+
+      expect(strict).toHaveLength(1);
+      expect(loose).toHaveLength(1);
+      expect(loose[0]!.confidence).toBeCloseTo(strict[0]!.confidence, 5);
+    });
   });
 });
 
