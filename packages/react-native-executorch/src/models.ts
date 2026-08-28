@@ -1658,8 +1658,11 @@ export const models = {
       // fp16-only, so this fp32 program never reaches it, and a compute-unit
       // sweep confirms it (`cpu_and_ne` 337.5 ms matches `cpu_only` 352.9,
       // while `all` 173.6 matches `cpu_and_gpu` 176.7). An fp16 build would
-      // reach the ANE and is 23% faster, but returns zero detections on a real
-      // photo: the score head does not survive fp16.
+      // reach the ANE and is 23% faster; exporting one is open, and blocked on
+      // the export environment rather than on precision. fp16 and fp32 built
+      // from the same trace agree to 0.0008 confidence on device, but both
+      // score 3x below the published fp32, and that build's `rfdetr` leaves
+      // `keypoint_head.keypoint_proj.*` unconsumed when loading the checkpoint.
       { ios: 'COREML_FP32' }
     ),
   },
