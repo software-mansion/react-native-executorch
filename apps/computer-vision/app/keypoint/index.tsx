@@ -27,8 +27,8 @@ const MODEL_OPTIONS: ModelOption[] = [
     value: models.keypointDetection.RFDETR_KEYPOINT.XNNPACK_FP32,
   },
   {
-    label: 'RF-DETR Keypoint (CoreML FP32)',
-    value: models.keypointDetection.RFDETR_KEYPOINT.COREML_FP32,
+    label: 'RF-DETR Keypoint (CoreML FP16)',
+    value: models.keypointDetection.RFDETR_KEYPOINT.COREML_FP16,
     disabled: Platform.OS !== 'ios',
   },
   {
