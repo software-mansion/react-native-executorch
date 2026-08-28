@@ -139,8 +139,18 @@ describe('DEFAULT variant resolution', () => {
     expect(defaultsOf(registryFor({ os: 'ios' })).length).toBeGreaterThan(100);
   });
 
-  it('defaults to Core ML on iOS wherever a Core ML export exists', () => {
+  it('defaults to Core ML on iOS wherever a Core ML export exists and nothing is pinned', () => {
+    // Core ML leads the iOS order, so it wins by default. It does not always
+    // win on the device: distiluse pins MLX because MLX measured faster there.
+    // A group that names an explicit iOS pin has been measured, so it is
+    // exempt; the pin itself is guarded by `pins one` below.
+    const pinned = new Set(
+      variantsCalls()
+        .filter(({ pinsIos }) => pinsIos)
+        .map(({ name }) => name)
+    );
     const offenders = defaultsOf(registryFor({ os: 'ios' }))
+      .filter(({ label }) => !pinned.has(label.split('.').pop()!))
       .filter(({ offers }) => offers.some((key) => key.startsWith('COREML')))
       .filter(({ key }) => key !== undefined && !key.startsWith('COREML'))
       .map(({ label, key }) => `${label}: ${key}`);

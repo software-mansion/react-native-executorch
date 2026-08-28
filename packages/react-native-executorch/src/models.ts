@@ -468,12 +468,24 @@ const YOLO26_POSE_384_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> 
   modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/xnnpack/yolo26n_pose_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_POSE_OPTS,
 };
+const YOLO26_POSE_384_COREML_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/coreml/yolo26n_pose_384_coreml_fp16.pte`,
+  modelOpts: YOLO26_POSE_OPTS,
+};
 const YOLO26_POSE_512_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
   modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/xnnpack/yolo26n_pose_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_POSE_OPTS,
 };
+const YOLO26_POSE_512_COREML_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/coreml/yolo26n_pose_512_coreml_fp16.pte`,
+  modelOpts: YOLO26_POSE_OPTS,
+};
 const YOLO26_POSE_640_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
   modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/xnnpack/yolo26n_pose_640_xnnpack_fp32.pte`,
+  modelOpts: YOLO26_POSE_OPTS,
+};
+const YOLO26_POSE_640_COREML_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/coreml/yolo26n_pose_640_coreml_fp16.pte`,
   modelOpts: YOLO26_POSE_OPTS,
 };
 
@@ -563,12 +575,24 @@ const YOLO26_NANO_SEG_384_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClass
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/n/xnnpack/yolo26_seg_n_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
+const YOLO26_NANO_SEG_384_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/n/coreml/yolo26_seg_n_384_coreml_fp16.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_NANO_SEG_512_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/n/xnnpack/yolo26_seg_n_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
+const YOLO26_NANO_SEG_512_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/n/coreml/yolo26_seg_n_512_coreml_fp16.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_NANO_SEG_640_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/n/xnnpack/yolo26_seg_n_640_xnnpack_fp32.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
+const YOLO26_NANO_SEG_640_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/n/coreml/yolo26_seg_n_640_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 
@@ -576,12 +600,24 @@ const YOLO26_SMALL_SEG_384_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClas
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/s/xnnpack/yolo26_seg_s_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
+const YOLO26_SMALL_SEG_384_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/s/coreml/yolo26_seg_s_384_coreml_fp16.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_SMALL_SEG_512_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/s/xnnpack/yolo26_seg_s_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
+const YOLO26_SMALL_SEG_512_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/s/coreml/yolo26_seg_s_512_coreml_fp16.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_SMALL_SEG_640_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/s/xnnpack/yolo26_seg_s_640_xnnpack_fp32.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
+const YOLO26_SMALL_SEG_640_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/s/coreml/yolo26_seg_s_640_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 
@@ -589,12 +625,24 @@ const YOLO26_MEDIUM_SEG_384_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoCla
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/m/xnnpack/yolo26_seg_m_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
+const YOLO26_MEDIUM_SEG_384_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/m/coreml/yolo26_seg_m_384_coreml_fp16.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_MEDIUM_SEG_512_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/m/xnnpack/yolo26_seg_m_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
+const YOLO26_MEDIUM_SEG_512_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/m/coreml/yolo26_seg_m_512_coreml_fp16.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_MEDIUM_SEG_640_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/m/xnnpack/yolo26_seg_m_640_xnnpack_fp32.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
+const YOLO26_MEDIUM_SEG_640_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/m/coreml/yolo26_seg_m_640_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 
@@ -602,12 +650,24 @@ const YOLO26_LARGE_SEG_384_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClas
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/l/xnnpack/yolo26_seg_l_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
+const YOLO26_LARGE_SEG_384_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/l/coreml/yolo26_seg_l_384_coreml_fp16.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_LARGE_SEG_512_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/l/xnnpack/yolo26_seg_l_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
+const YOLO26_LARGE_SEG_512_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/l/coreml/yolo26_seg_l_512_coreml_fp16.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_LARGE_SEG_640_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/l/xnnpack/yolo26_seg_l_640_xnnpack_fp32.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
+const YOLO26_LARGE_SEG_640_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/l/coreml/yolo26_seg_l_640_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 
@@ -615,12 +675,24 @@ const YOLO26_XLARGE_SEG_384_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoCla
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/x/xnnpack/yolo26_seg_x_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
+const YOLO26_XLARGE_SEG_384_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/x/coreml/yolo26_seg_x_384_coreml_fp16.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_XLARGE_SEG_512_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/x/xnnpack/yolo26_seg_x_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
+const YOLO26_XLARGE_SEG_512_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/x/coreml/yolo26_seg_x_512_coreml_fp16.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_XLARGE_SEG_640_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/x/xnnpack/yolo26_seg_x_640_xnnpack_fp32.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
+const YOLO26_XLARGE_SEG_640_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/x/coreml/yolo26_seg_x_640_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 
@@ -631,12 +703,20 @@ const ALL_MINILM_L6_V2_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/xnnpack/all_minilm_l6_v2_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
+const ALL_MINILM_L6_V2_COREML_FP16: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/coreml/all_minilm_l6_v2_coreml_fp16.pte`,
+  tokenizerPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
 const ALL_MPNET_BASE_V2_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/xnnpack/all_mpnet_base_v2_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
 const MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${NEXT_VERSION_TAG}/xnnpack/multi_qa_minilm_l6_cos_v1_xnnpack_fp32.pte`,
+  tokenizerPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
+const MULTI_QA_MINILM_L6_COS_V1_COREML_FP16: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${NEXT_VERSION_TAG}/coreml/multi_qa_minilm_l6_cos_v1_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
 const MULTI_QA_MPNET_BASE_DOT_V1_EMBEDDINGS: TextEmbedderModel = {
@@ -647,8 +727,24 @@ const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${NEXT_VERSION_TAG}/xnnpack/paraphrase_multilingual_minilm_l12_v2_xnnpack_8da4w.pte`,
   tokenizerPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
+const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_XNNPACK_FP32: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${NEXT_VERSION_TAG}/xnnpack/paraphrase_multilingual_minilm_l12_v2_xnnpack_fp32.pte`,
+  tokenizerPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
+const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_COREML_FP16: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${NEXT_VERSION_TAG}/coreml/paraphrase_multilingual_minilm_l12_v2_coreml_fp16.pte`,
+  tokenizerPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/xnnpack/distiluse_base_multilingual_cased_v2_xnnpack_8da4w.pte`,
+  tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
+const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_XNNPACK_FP32: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/xnnpack/distiluse_base_multilingual_cased_v2_xnnpack_fp32.pte`,
+  tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
+const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/coreml/distiluse_base_multilingual_cased_v2_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8: TextEmbedderModel = {
@@ -657,6 +753,10 @@ const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8: TextEmbedderModel = {
 };
 const CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_fp32.pte`,
+  tokenizerPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
+const CLIP_VIT_BASE_PATCH32_TEXT_COREML_FP16: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/coreml/clip_vit_base_patch32_text_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
 const LFM2_5_EMBEDDING_350M_EMBEDDINGS: TextEmbedderModel = {
@@ -714,6 +814,12 @@ const WHISPER_TINY_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
+const WHISPER_TINY_EN_XNNPACK_INT8: WhisperSttModel<'en'> = {
+  modelPath: `${BASE_URL}-whisper-tiny.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_int8.pte`,
+  tokenizerPath: `${BASE_URL}-whisper-tiny.en/${NEXT_VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: ['en'],
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
 const WHISPER_TINY_EN_COREML_FP16: WhisperSttModel<'en'> = {
   modelPath: `${BASE_URL}-whisper-tiny.en/${NEXT_VERSION_TAG}/coreml/whisper_tiny_en_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}-whisper-tiny.en/${NEXT_VERSION_TAG}/tokenizer.json`,
@@ -764,6 +870,12 @@ const WHISPER_BASE_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
+const WHISPER_BASE_EN_XNNPACK_INT8: WhisperSttModel<'en'> = {
+  modelPath: `${BASE_URL}-whisper-base.en/${NEXT_VERSION_TAG}/xnnpack/whisper_base_en_xnnpack_int8.pte`,
+  tokenizerPath: `${BASE_URL}-whisper-base.en/${NEXT_VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: ['en'],
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
 const WHISPER_BASE_EN_COREML_FP16: WhisperSttModel<'en'> = {
   modelPath: `${BASE_URL}-whisper-base.en/${NEXT_VERSION_TAG}/coreml/whisper_base_en_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}-whisper-base.en/${NEXT_VERSION_TAG}/tokenizer.json`,
@@ -810,6 +922,12 @@ const WHISPER_BASE_MLX_INT8: WhisperSttModel = {
 
 const WHISPER_SMALL_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
   modelPath: `${BASE_URL}-whisper-small.en/${NEXT_VERSION_TAG}/xnnpack/whisper_small_en_xnnpack_fp32.pte`,
+  tokenizerPath: `${BASE_URL}-whisper-small.en/${NEXT_VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: ['en'],
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
+const WHISPER_SMALL_EN_XNNPACK_INT8: WhisperSttModel<'en'> = {
+  modelPath: `${BASE_URL}-whisper-small.en/${NEXT_VERSION_TAG}/xnnpack/whisper_small_en_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}-whisper-small.en/${NEXT_VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -897,14 +1015,29 @@ const SUPERTONIC_3_MLX_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
 const KOKORO_ROOT = `${BASE_URL}-kokoro/${NEXT_VERSION_TAG}`;
 const KOKORO_PHONEMIZER_ROOT = `${KOKORO_ROOT}/phonemizer`;
 
-const kokoroModelPaths = (variant: 'std' | 'pl' | 'de', dir: string) => ({
-  durationPredictor: `${KOKORO_ROOT}/xnnpack/${dir}/duration_predictor_${variant}_xnnpack_fp32.pte`,
-  synthesizer: `${KOKORO_ROOT}/xnnpack/${dir}/synthesizer_${variant}_xnnpack_fp32.pte`,
+// Both backends export at fp32, so the precision is not a parameter here.
+const kokoroModelPaths = (
+  variant: 'std' | 'pl' | 'de',
+  dir: string,
+  backend: 'xnnpack' | 'coreml' = 'xnnpack'
+) => ({
+  durationPredictor: `${KOKORO_ROOT}/${backend}/${dir}/duration_predictor_${variant}_${backend}_fp32.pte`,
+  synthesizer: `${KOKORO_ROOT}/${backend}/${dir}/synthesizer_${variant}_${backend}_fp32.pte`,
 });
 
 const KOKORO_STANDARD_PATHS = kokoroModelPaths('std', 'standard');
 const KOKORO_POLISH_PATHS = kokoroModelPaths('pl', 'polish');
 const KOKORO_GERMAN_PATHS = kokoroModelPaths('de', 'german');
+const KOKORO_STANDARD_COREML_PATHS = kokoroModelPaths('std', 'standard', 'coreml');
+const KOKORO_POLISH_COREML_PATHS = kokoroModelPaths('pl', 'polish', 'coreml');
+const KOKORO_GERMAN_COREML_PATHS = kokoroModelPaths('de', 'german', 'coreml');
+
+// A language differs from its Core ML twin only in which pair of .pte files it
+// loads: the voices, the phonemizer and the voice union are all backend-free.
+const kokoroCoreMl = <V extends string>(
+  model: KokoroTtsModel<V>,
+  modelPaths: KokoroTtsModel<V>['modelPaths']
+): KokoroTtsModel<V> => ({ ...model, modelPaths });
 
 const kokoroVoices = <const N extends string>(names: readonly N[]) =>
   names.reduce(
@@ -985,6 +1118,22 @@ const KOKORO_DE_XNNPACK_FP32: KokoroTtsModel<'df_anna'> = {
   voices: kokoroVoices(['df_anna']),
 };
 
+const KOKORO_EN_US_COREML_FP32 = kokoroCoreMl(
+  KOKORO_EN_US_XNNPACK_FP32,
+  KOKORO_STANDARD_COREML_PATHS
+);
+const KOKORO_EN_GB_COREML_FP32 = kokoroCoreMl(
+  KOKORO_EN_GB_XNNPACK_FP32,
+  KOKORO_STANDARD_COREML_PATHS
+);
+const KOKORO_ES_COREML_FP32 = kokoroCoreMl(KOKORO_ES_XNNPACK_FP32, KOKORO_STANDARD_COREML_PATHS);
+const KOKORO_FR_COREML_FP32 = kokoroCoreMl(KOKORO_FR_XNNPACK_FP32, KOKORO_STANDARD_COREML_PATHS);
+const KOKORO_IT_COREML_FP32 = kokoroCoreMl(KOKORO_IT_XNNPACK_FP32, KOKORO_STANDARD_COREML_PATHS);
+const KOKORO_PT_COREML_FP32 = kokoroCoreMl(KOKORO_PT_XNNPACK_FP32, KOKORO_STANDARD_COREML_PATHS);
+const KOKORO_HI_COREML_FP32 = kokoroCoreMl(KOKORO_HI_XNNPACK_FP32, KOKORO_STANDARD_COREML_PATHS);
+const KOKORO_PL_COREML_FP32 = kokoroCoreMl(KOKORO_PL_XNNPACK_FP32, KOKORO_POLISH_COREML_PATHS);
+const KOKORO_DE_COREML_FP32 = kokoroCoreMl(KOKORO_DE_XNNPACK_FP32, KOKORO_GERMAN_COREML_PATHS);
+
 // =============================================================================
 // Privacy Filter
 // =============================================================================
@@ -1043,6 +1192,11 @@ const PPOCRV6_OPTS = { defaultConfidenceThreshold: 0.5 };
 const PPOCRV6_CHARSET = `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/charset.json`;
 const PPOCRV6_SMALL_XNNPACK_INT8: PaddleOcrModel = {
   modelPath: `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/xnnpack/pp_ocrv6_xnnpack_int8.pte`,
+  charsetPath: PPOCRV6_CHARSET,
+  modelOpts: PPOCRV6_OPTS,
+};
+const PPOCRV6_SMALL_XNNPACK_FP32: PaddleOcrModel = {
+  modelPath: `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/xnnpack/pp_ocrv6_xnnpack_fp32.pte`,
   charsetPath: PPOCRV6_CHARSET,
   modelOpts: PPOCRV6_OPTS,
 };
@@ -1134,6 +1288,20 @@ const LFM2_5_VL_450M_VULKAN_8DA4W: LLMModel = {
 };
 const LFM2_5_VL_1_6B_VULKAN_8DA4W: LLMModel = {
   modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/vulkan/lfm_2_5_vl_1_6b_vulkan_8da4w.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
+  modalities: ['image'],
+  preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
+};
+const LFM2_5_VL_1_6B_MLX_INT4: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/mlx/lfm_2_5_vl_1_6b_mlx_int4.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
+  modalities: ['image'],
+  preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
+};
+const LFM2_5_VL_1_6B_MLX_INT8: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/mlx/lfm_2_5_vl_1_6b_mlx_int8.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
   modalities: ['image'],
@@ -1292,6 +1460,11 @@ const GEMMA4_BASE_URL = `${BASE_URL}-gemma-4/${NEXT_VERSION_TAG}`;
 
 const GEMMA4_E2B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${GEMMA4_BASE_URL}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
+  tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
+};
+const GEMMA4_E2B_VULKAN_8DA4W: LLMModel = {
+  modelPath: `${GEMMA4_BASE_URL}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
 };
@@ -1635,12 +1808,15 @@ export const models = {
     YOLO26_POSE: family({
       SIZE_384: variants({
         XNNPACK_FP32: YOLO26_POSE_384_XNNPACK_FP32,
+        COREML_FP16: YOLO26_POSE_384_COREML_FP16,
       }),
       SIZE_512: variants({
         XNNPACK_FP32: YOLO26_POSE_512_XNNPACK_FP32,
+        COREML_FP16: YOLO26_POSE_512_COREML_FP16,
       }),
       SIZE_640: variants({
         XNNPACK_FP32: YOLO26_POSE_640_XNNPACK_FP32,
+        COREML_FP16: YOLO26_POSE_640_COREML_FP16,
       }),
     }),
     /**
@@ -1725,12 +1901,15 @@ export const models = {
       NANO: family({
         SIZE_384: variants({
           XNNPACK_FP32: YOLO26_NANO_SEG_384_XNNPACK_FP32,
+          COREML_FP16: YOLO26_NANO_SEG_384_COREML_FP16,
         }),
         SIZE_512: variants({
           XNNPACK_FP32: YOLO26_NANO_SEG_512_XNNPACK_FP32,
+          COREML_FP16: YOLO26_NANO_SEG_512_COREML_FP16,
         }),
         SIZE_640: variants({
           XNNPACK_FP32: YOLO26_NANO_SEG_640_XNNPACK_FP32,
+          COREML_FP16: YOLO26_NANO_SEG_640_COREML_FP16,
         }),
       }),
       /**
@@ -1740,12 +1919,15 @@ export const models = {
       SMALL: family({
         SIZE_384: variants({
           XNNPACK_FP32: YOLO26_SMALL_SEG_384_XNNPACK_FP32,
+          COREML_FP16: YOLO26_SMALL_SEG_384_COREML_FP16,
         }),
         SIZE_512: variants({
           XNNPACK_FP32: YOLO26_SMALL_SEG_512_XNNPACK_FP32,
+          COREML_FP16: YOLO26_SMALL_SEG_512_COREML_FP16,
         }),
         SIZE_640: variants({
           XNNPACK_FP32: YOLO26_SMALL_SEG_640_XNNPACK_FP32,
+          COREML_FP16: YOLO26_SMALL_SEG_640_COREML_FP16,
         }),
       }),
       /**
@@ -1755,12 +1937,15 @@ export const models = {
       MEDIUM: family({
         SIZE_384: variants({
           XNNPACK_FP32: YOLO26_MEDIUM_SEG_384_XNNPACK_FP32,
+          COREML_FP16: YOLO26_MEDIUM_SEG_384_COREML_FP16,
         }),
         SIZE_512: variants({
           XNNPACK_FP32: YOLO26_MEDIUM_SEG_512_XNNPACK_FP32,
+          COREML_FP16: YOLO26_MEDIUM_SEG_512_COREML_FP16,
         }),
         SIZE_640: variants({
           XNNPACK_FP32: YOLO26_MEDIUM_SEG_640_XNNPACK_FP32,
+          COREML_FP16: YOLO26_MEDIUM_SEG_640_COREML_FP16,
         }),
       }),
       /**
@@ -1770,12 +1955,15 @@ export const models = {
       LARGE: family({
         SIZE_384: variants({
           XNNPACK_FP32: YOLO26_LARGE_SEG_384_XNNPACK_FP32,
+          COREML_FP16: YOLO26_LARGE_SEG_384_COREML_FP16,
         }),
         SIZE_512: variants({
           XNNPACK_FP32: YOLO26_LARGE_SEG_512_XNNPACK_FP32,
+          COREML_FP16: YOLO26_LARGE_SEG_512_COREML_FP16,
         }),
         SIZE_640: variants({
           XNNPACK_FP32: YOLO26_LARGE_SEG_640_XNNPACK_FP32,
+          COREML_FP16: YOLO26_LARGE_SEG_640_COREML_FP16,
         }),
       }),
       /**
@@ -1785,12 +1973,15 @@ export const models = {
       XLARGE: family({
         SIZE_384: variants({
           XNNPACK_FP32: YOLO26_XLARGE_SEG_384_XNNPACK_FP32,
+          COREML_FP16: YOLO26_XLARGE_SEG_384_COREML_FP16,
         }),
         SIZE_512: variants({
           XNNPACK_FP32: YOLO26_XLARGE_SEG_512_XNNPACK_FP32,
+          COREML_FP16: YOLO26_XLARGE_SEG_512_COREML_FP16,
         }),
         SIZE_640: variants({
           XNNPACK_FP32: YOLO26_XLARGE_SEG_640_XNNPACK_FP32,
+          COREML_FP16: YOLO26_XLARGE_SEG_640_COREML_FP16,
         }),
       }),
     }),
@@ -1880,6 +2071,7 @@ export const models = {
         TINY: variants(
           {
             XNNPACK_FP32: WHISPER_TINY_EN_XNNPACK_FP32,
+            XNNPACK_INT8: WHISPER_TINY_EN_XNNPACK_INT8,
             COREML_FP16: WHISPER_TINY_EN_COREML_FP16,
             MLX_BF16: WHISPER_TINY_EN_MLX_BF16,
             MLX_INT8: WHISPER_TINY_EN_MLX_INT8,
@@ -1894,6 +2086,7 @@ export const models = {
         BASE: variants(
           {
             XNNPACK_FP32: WHISPER_BASE_EN_XNNPACK_FP32,
+            XNNPACK_INT8: WHISPER_BASE_EN_XNNPACK_INT8,
             COREML_FP16: WHISPER_BASE_EN_COREML_FP16,
             MLX_BF16: WHISPER_BASE_EN_MLX_BF16,
             MLX_INT8: WHISPER_BASE_EN_MLX_INT8,
@@ -1908,6 +2101,7 @@ export const models = {
         SMALL: variants(
           {
             XNNPACK_FP32: WHISPER_SMALL_EN_XNNPACK_FP32,
+            XNNPACK_INT8: WHISPER_SMALL_EN_XNNPACK_INT8,
             COREML_FP16: WHISPER_SMALL_EN_COREML_FP16,
             MLX_INT8: WHISPER_SMALL_EN_MLX_INT8,
           },
@@ -1974,6 +2168,8 @@ export const models = {
     LFM2_5_VL_1_6B: variants({
       XNNPACK_8DA4W: LFM2_5_VL_1_6B_XNNPACK_8DA4W,
       VULKAN_8DA4W: LFM2_5_VL_1_6B_VULKAN_8DA4W,
+      MLX_INT4: LFM2_5_VL_1_6B_MLX_INT4,
+      MLX_INT8: LFM2_5_VL_1_6B_MLX_INT8,
     }),
     /**
      * Bielik v3 1.5B bilingual Polish & English language model, developed by
@@ -2140,6 +2336,7 @@ export const models = {
      */
     GEMMA4_E2B: variants({
       XNNPACK_8DA4W: GEMMA4_E2B_XNNPACK_8DA4W,
+      VULKAN_8DA4W: GEMMA4_E2B_VULKAN_8DA4W,
       MLX_INT4: GEMMA4_E2B_MLX_INT4,
     }),
   },
@@ -2156,6 +2353,7 @@ export const models = {
      */
     ALL_MINILM_L6_V2: variants({
       XNNPACK_FP32: ALL_MINILM_L6_V2_EMBEDDINGS,
+      COREML_FP16: ALL_MINILM_L6_V2_COREML_FP16,
     }),
     /**
      * High-quality 768-dimensional sentence transformer model based on MPNet.
@@ -2170,6 +2368,7 @@ export const models = {
      */
     MULTI_QA_MINILM_L6_COS_V1: variants({
       XNNPACK_FP32: MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS,
+      COREML_FP16: MULTI_QA_MINILM_L6_COS_V1_COREML_FP16,
     }),
     /**
      * 768-dimensional sentence transformer fine-tuned specifically for
@@ -2184,15 +2383,29 @@ export const models = {
      */
     PARAPHRASE_MULTILINGUAL_MINILM_L12_V2: variants({
       XNNPACK_8DA4W: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_EMBEDDINGS,
+      XNNPACK_FP32: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_XNNPACK_FP32,
+      COREML_FP16: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_COREML_FP16,
     }),
     /**
      * Multilingual sentence transformer supporting 50+ languages, based on
      * distilled Universal Sentence Encoder (512-dim output).
      */
-    DISTILUSE_BASE_MULTILINGUAL_CASED_V2: variants({
-      XNNPACK_8DA4W: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS,
-      MLX_INT8: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8,
-    }),
+    DISTILUSE_BASE_MULTILINGUAL_CASED_V2: variants(
+      {
+        XNNPACK_8DA4W: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS,
+        XNNPACK_FP32: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_XNNPACK_FP32,
+        COREML_FP16: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16,
+        MLX_INT8: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8,
+      },
+      // The one Core ML/MLX pair that does not go Core ML's way. On an
+      // iPhone 16, warm, over 150 embeds of five sentences in five languages:
+      // MLX int8 3.46 ms, Core ML fp16 3.96 ms, XNNPACK 8da4w 5.86 ms, stable
+      // when the arms are run in reverse. MLX is also half the download
+      // (140 MB against 271 MB) and skips Core ML's 786 ms first-use compile.
+      // Fidelity does not break the tie: against the XNNPACK reference both
+      // sit at 0.973 worst-case cosine.
+      { ios: 'MLX_INT8' }
+    ),
     /**
      * CLIP text encoder (ViT-B/32) mapping text queries into a 512-dimensional
      * joint text-image embedding space. Used in combination with
@@ -2201,6 +2414,7 @@ export const models = {
      */
     CLIP_VIT_BASE_PATCH32_TEXT: variants({
       XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS,
+      COREML_FP16: CLIP_VIT_BASE_PATCH32_TEXT_COREML_FP16,
     }),
     /**
      * Liquid AI LFM 2.5 350M parameter embedding model for asymmetric search
@@ -2292,34 +2506,50 @@ export const models = {
      * Kokoro — a lightweight phoneme-driven Text-to-Speech model. Each language
      * entry bundles the matching model weights, grapheme-to-phoneme assets and
      * the voices available for that language, nested per backend.
+     *
+     * The Core ML builds are the registry's only fp32 Core ML exports — that is
+     * what is published, and fp32 keeps them off the Neural Engine, which is
+     * fp16-only. They still default on iOS because the duration predictor runs
+     * 14-21x faster warm there than the XNNPACK one on an iPhone 16. The cost
+     * is a one-time per-method Core ML compile on first use (~13s), cached
+     * across launches; reach for `XNNPACK_FP32` explicitly to avoid it.
      */
     KOKORO: {
       EN_US: variants({
         XNNPACK_FP32: KOKORO_EN_US_XNNPACK_FP32,
+        COREML_FP32: KOKORO_EN_US_COREML_FP32,
       }),
       EN_GB: variants({
         XNNPACK_FP32: KOKORO_EN_GB_XNNPACK_FP32,
+        COREML_FP32: KOKORO_EN_GB_COREML_FP32,
       }),
       ES: variants({
         XNNPACK_FP32: KOKORO_ES_XNNPACK_FP32,
+        COREML_FP32: KOKORO_ES_COREML_FP32,
       }),
       FR: variants({
         XNNPACK_FP32: KOKORO_FR_XNNPACK_FP32,
+        COREML_FP32: KOKORO_FR_COREML_FP32,
       }),
       IT: variants({
         XNNPACK_FP32: KOKORO_IT_XNNPACK_FP32,
+        COREML_FP32: KOKORO_IT_COREML_FP32,
       }),
       PT: variants({
         XNNPACK_FP32: KOKORO_PT_XNNPACK_FP32,
+        COREML_FP32: KOKORO_PT_COREML_FP32,
       }),
       HI: variants({
         XNNPACK_FP32: KOKORO_HI_XNNPACK_FP32,
+        COREML_FP32: KOKORO_HI_COREML_FP32,
       }),
       PL: variants({
         XNNPACK_FP32: KOKORO_PL_XNNPACK_FP32,
+        COREML_FP32: KOKORO_PL_COREML_FP32,
       }),
       DE: variants({
         XNNPACK_FP32: KOKORO_DE_XNNPACK_FP32,
+        COREML_FP32: KOKORO_DE_COREML_FP32,
       }),
     },
   },
@@ -2341,6 +2571,7 @@ export const models = {
        */
       PPOCRV6_SMALL: variants({
         XNNPACK: PPOCRV6_SMALL_XNNPACK_INT8,
+        XNNPACK_FP32: PPOCRV6_SMALL_XNNPACK_FP32,
         COREML: PPOCRV6_SMALL_COREML_INT8,
         VULKAN: PPOCRV6_SMALL_VULKAN_FP16,
       }),

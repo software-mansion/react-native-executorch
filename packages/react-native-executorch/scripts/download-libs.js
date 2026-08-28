@@ -121,8 +121,9 @@ const ALL_LIBS = ['opencv', 'phonemis'];
 // downloaded silently drops that model back to XNNPACK. The registry test
 // `feature map` in __tests__/api/modelVariants.test.ts holds this in sync.
 const FEATURE_MAP = {
-  // Text-only LLMs ship xnnpack + mlx (Gemma 4 ships an MLX iOS export).
-  llm: { backends: ['xnnpack', 'mlx'], libs: [] },
+  // Text-only LLMs ship xnnpack + mlx (Gemma 4 ships an MLX iOS export) and
+  // vulkan (Gemma 4 E2B ships a Vulkan export).
+  llm: { backends: ['xnnpack', 'mlx', 'vulkan'], libs: [] },
   // Multimodal LLMs add vulkan (Gemma-3-multimodal ships a Vulkan export) and
   // mlx (Gemma 4 ships an MLX iOS export); the vision encoder needs opencv.
   multimodalLLM: { backends: ['xnnpack', 'mlx', 'vulkan'], libs: ['opencv'] },
@@ -130,12 +131,13 @@ const FEATURE_MAP = {
   privacyFilter: { backends: ['xnnpack', 'mlx'], libs: [] },
   // Whisper ships xnnpack, coreml and an MLX iOS export.
   speechToText: { backends: ['xnnpack', 'coreml', 'mlx'], libs: [] },
-  // Kokoro ships xnnpack; Supertonic adds an MLX iOS export.
-  textToSpeech: { backends: ['xnnpack', 'mlx'], libs: ['phonemis'] },
+  // Kokoro ships xnnpack + coreml; Supertonic adds an MLX iOS export.
+  textToSpeech: { backends: ['xnnpack', 'coreml', 'mlx'], libs: ['phonemis'] },
   // FSMN VAD — xnnpack only.
   vad: { backends: ['xnnpack'], libs: [] },
-  // LFM2.5-Embedding ships an MLX iOS export alongside xnnpack.
-  textEmbeddings: { backends: ['xnnpack', 'mlx'], libs: [] },
+  // The MiniLM/CLIP-text/distiluse family ships coreml alongside xnnpack, and
+  // LFM2.5-Embedding and distiluse add MLX iOS exports.
+  textEmbeddings: { backends: ['xnnpack', 'coreml', 'mlx'], libs: [] },
   // CLIP's vision encoder ships xnnpack, coreml and mlx.
   imageEmbeddings: { backends: ['xnnpack', 'coreml', 'mlx'], libs: ['opencv'] },
   // EfficientNet ships xnnpack + coreml.
