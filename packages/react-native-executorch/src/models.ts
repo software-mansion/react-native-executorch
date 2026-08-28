@@ -490,6 +490,10 @@ const RFDETR_KEYPOINT_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> 
   modelPath: `${BASE_URL}-rfdetr-keypoint/${VERSION_TAG}/preview/xnnpack/rfdetr_keypoint_preview_xnnpack_fp32.pte`,
   modelOpts: RFDETR_KEYPOINT_OPTS,
 };
+const RFDETR_KEYPOINT_COREML_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-rfdetr-keypoint/${VERSION_TAG}/preview/coreml/rfdetr_keypoint_preview_coreml_fp16.pte`,
+  modelOpts: RFDETR_KEYPOINT_OPTS,
+};
 const RFDETR_KEYPOINT_COREML_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
   modelPath: `${BASE_URL}-rfdetr-keypoint/${VERSION_TAG}/preview/coreml/rfdetr_keypoint_preview_coreml_fp32.pte`,
   modelOpts: RFDETR_KEYPOINT_OPTS,
@@ -1650,20 +1654,24 @@ export const models = {
     RFDETR_KEYPOINT: variants(
       {
         XNNPACK_FP32: RFDETR_KEYPOINT_XNNPACK_FP32,
+        COREML_FP16: RFDETR_KEYPOINT_COREML_FP16,
         COREML_FP32: RFDETR_KEYPOINT_COREML_FP32,
         MLX_FP32: RFDETR_KEYPOINT_MLX_FP32,
       },
       // Core ML over MLX: 164.1 ms against 272.3 on an iPhone 16, at 378 MB
-      // against 1304 MB. Note this is not a Neural Engine win — the ANE is
-      // fp16-only, so this fp32 program never reaches it, and a compute-unit
-      // sweep confirms it (`cpu_and_ne` 337.5 ms matches `cpu_only` 352.9,
-      // while `all` 173.6 matches `cpu_and_gpu` 176.7). An fp16 build would
-      // reach the ANE and is 23% faster; exporting one is open, and blocked on
-      // the export environment rather than on precision. fp16 and fp32 built
-      // from the same trace agree to 0.0008 confidence on device, but both
-      // score 3x below the published fp32, and that build's `rfdetr` leaves
-      // `keypoint_head.keypoint_proj.*` unconsumed when loading the checkpoint.
-      { ios: 'COREML_FP32' }
+      // against 1304 MB. fp16 over fp32: 144.0 ms against 165.1, a 263 MB peak
+      // against 389 MB, and half the download, matching fp32 to 0.0008
+      // confidence and 0.23 px.
+      //
+      // That fp16 build took a while to exist and is fragile in a specific way,
+      // so do not "simplify" it. It is correct on device only with both the CPU
+      // and the Neural Engine excluded — measured against fp32's 0.863, `all`
+      // gives 0.421, `cpu_only` 0.411, `cpu_and_ne` 0.422 and `cpu_and_gpu`
+      // 0.862 — and on macOS only the CPU path is wrong, so a host check passes
+      // a build the device gets wrong. It also needs an iOS17 deployment target;
+      // iOS18 degrades every build of this model at either precision. Both
+      // constraints live in export-scripts (MR !18).
+      { ios: 'COREML_FP16' }
     ),
   },
 
