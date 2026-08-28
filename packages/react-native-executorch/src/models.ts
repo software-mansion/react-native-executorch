@@ -1653,8 +1653,13 @@ export const models = {
         COREML_FP32: RFDETR_KEYPOINT_COREML_FP32,
         MLX_FP32: RFDETR_KEYPOINT_MLX_FP32,
       },
-      // Core ML over MLX: the MLX delegate runs on the GPU, and #1318 measured
-      // it losing to the Neural Engine across the vision models that ship both.
+      // Core ML over MLX: 164.1 ms against 272.3 on an iPhone 16, at 378 MB
+      // against 1304 MB. Note this is not a Neural Engine win — the ANE is
+      // fp16-only, so this fp32 program never reaches it, and a compute-unit
+      // sweep confirms it (`cpu_and_ne` 337.5 ms matches `cpu_only` 352.9,
+      // while `all` 173.6 matches `cpu_and_gpu` 176.7). An fp16 build would
+      // reach the ANE and is 23% faster, but returns zero detections on a real
+      // photo: the score head does not survive fp16.
       { ios: 'COREML_FP32' }
     ),
   },
@@ -1803,9 +1808,16 @@ export const models = {
      * Voice Activity Detection. Includes multilingual and English-only (`EN`)
      * variants across model sizes (`TINY`, `BASE`, `SMALL`).
      */
-    // Every size defaults to Core ML over MLX on iOS: the MLX encoder has to
-    // hold the whole mel spectrogram, and the bf16 builds are jetsam-killed on
-    // an iPhone 16. Reach for MLX_INT8 explicitly if you want the GPU path.
+    // Every size defaults to Core ML over MLX on iOS, which wins on all three
+    // axes. Speed: 2.5-3.1x faster end to end on 14.5s of real speech, once the
+    // Core ML builds stopped dispatching their single-token `decode` to the
+    // Neural Engine (export-scripts MR !18 — decode is dispatch-bound, so
+    // CPU_ONLY runs it at 6.7 ms/step against 20.0). Memory: base peaks at
+    // 532 MB against 1834 MB for MLX bf16, which is jetsam territory on an
+    // iPhone 16 — MLX bf16 at small does not load at all. Accuracy: on the same
+    // clip MLX bf16 misheard "brown fox" as "round box" and "compute unit" as
+    // "computer unit", where Core ML matched the reference exactly.
+    // Reach for MLX_INT8 explicitly if you want the GPU path.
     WHISPER: {
       /**
        * Multilingual Whisper Tiny model. Supporting 99+ languages. High speed
@@ -2228,7 +2240,8 @@ export const models = {
         COREML_FP16: CLIP_VIT_BASE_PATCH32_IMAGE_COREML_FP16,
         MLX_INT8: CLIP_VIT_BASE_PATCH32_IMAGE_MLX_INT8,
       },
-      // Core ML over MLX, as for every other vision encoder — see #1318.
+      // Core ML over MLX: 3.5 ms against 14.1 on an iPhone 16, the widest
+      // margin of any pair that ships both.
       { ios: 'COREML_FP16' }
     ),
   },
