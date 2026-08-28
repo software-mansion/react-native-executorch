@@ -490,10 +490,6 @@ const RFDETR_KEYPOINT_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> 
   modelPath: `${BASE_URL}-rfdetr-keypoint/${VERSION_TAG}/preview/xnnpack/rfdetr_keypoint_preview_xnnpack_fp32.pte`,
   modelOpts: RFDETR_KEYPOINT_OPTS,
 };
-const RFDETR_KEYPOINT_COREML_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}-rfdetr-keypoint/${NEXT_VERSION_TAG}/preview/coreml/rfdetr_keypoint_preview_coreml_fp16.pte`,
-  modelOpts: RFDETR_KEYPOINT_OPTS,
-};
 const RFDETR_KEYPOINT_COREML_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
   modelPath: `${BASE_URL}-rfdetr-keypoint/${VERSION_TAG}/preview/coreml/rfdetr_keypoint_preview_coreml_fp32.pte`,
   modelOpts: RFDETR_KEYPOINT_OPTS,
@@ -1654,16 +1650,12 @@ export const models = {
     RFDETR_KEYPOINT: variants(
       {
         XNNPACK_FP32: RFDETR_KEYPOINT_XNNPACK_FP32,
-        COREML_FP16: RFDETR_KEYPOINT_COREML_FP16,
         COREML_FP32: RFDETR_KEYPOINT_COREML_FP32,
         MLX_FP32: RFDETR_KEYPOINT_MLX_FP32,
       },
-      // Core ML fp16 over MLX, measured on an iPhone 16 at 20 iterations:
-      // 122.7 ms against 270.3 ms for MLX and 159.9 ms for the fp32 Core ML
-      // build. The Neural Engine is fp16-only, which is why fp32 never reached
-      // it — restricting fp32 to CPU_AND_NE costs 2x, while doing the same to
-      // fp16 costs nothing.
-      { ios: 'COREML_FP16' }
+      // Core ML over MLX: the MLX delegate runs on the GPU, and #1318 measured
+      // it losing to the Neural Engine across the vision models that ship both.
+      { ios: 'COREML_FP32' }
     ),
   },
 
