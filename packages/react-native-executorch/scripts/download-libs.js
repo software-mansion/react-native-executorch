@@ -135,9 +135,10 @@ const FEATURE_MAP = {
   textToSpeech: { backends: ['xnnpack', 'coreml', 'mlx'], libs: ['phonemis'] },
   // FSMN VAD — xnnpack only.
   vad: { backends: ['xnnpack'], libs: [] },
-  // The MiniLM/CLIP-text/distiluse family ships coreml alongside xnnpack, and
-  // LFM2.5-Embedding and distiluse add MLX iOS exports.
-  textEmbeddings: { backends: ['xnnpack', 'coreml', 'mlx'], libs: [] },
+  // The MiniLM/CLIP-text/distiluse family ships coreml alongside xnnpack,
+  // LFM2.5-Embedding and distiluse add MLX iOS exports, and all-MiniLM-L6-v2
+  // adds a vulkan Android export.
+  textEmbeddings: { backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'], libs: [] },
   // CLIP's vision encoder ships xnnpack, coreml and mlx.
   imageEmbeddings: { backends: ['xnnpack', 'coreml', 'mlx'], libs: ['opencv'] },
   // EfficientNet ships xnnpack + coreml.

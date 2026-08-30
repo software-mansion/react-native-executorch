@@ -707,6 +707,10 @@ const ALL_MINILM_L6_V2_COREML_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/coreml/all_minilm_l6_v2_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
+const ALL_MINILM_L6_V2_VULKAN_FP32: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/vulkan/all_minilm_l6_v2_vulkan_fp32.pte`,
+  tokenizerPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
 const ALL_MPNET_BASE_V2_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/xnnpack/all_mpnet_base_v2_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
@@ -2354,6 +2358,7 @@ export const models = {
     ALL_MINILM_L6_V2: variants({
       XNNPACK_FP32: ALL_MINILM_L6_V2_EMBEDDINGS,
       COREML_FP16: ALL_MINILM_L6_V2_COREML_FP16,
+      VULKAN_FP32: ALL_MINILM_L6_V2_VULKAN_FP32,
     }),
     /**
      * High-quality 768-dimensional sentence transformer model based on MPNet.
