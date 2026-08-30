@@ -298,6 +298,36 @@ describe('createWhisperSpeechToText', () => {
     stt.dispose();
   });
 
+  it('accepts a model whose encode is exported at one fixed sample count', async () => {
+    register();
+    // Vulkan has no dynamic-shape support, so its encode takes a constant length.
+    fakeJsi.registerModel(MODEL_PATH, {
+      schema: exported({
+        ...method('encode', [f32(480000)], [f32(1, 1500, 3072)]),
+        ...method('decode', [i64(1, 1), i64(1), f32(1, 1500, 3072)], [f32(1, 1, 51865)]),
+      }),
+    });
+
+    const stt = await createWhisperSpeechToText(config);
+    expect(stt.transcribe).toBeInstanceOf(Function);
+
+    stt.dispose();
+  });
+
+  it('rejects a model whose encode signature matches no variant', async () => {
+    register();
+    fakeJsi.registerModel(MODEL_PATH, {
+      schema: exported({
+        ...method('encode', [f32(2, AUDIO_SAMPLES)], [f32(1, 1500, 384)]),
+        ...method('decode', [i64(1, 1), i64(1), f32(1, 1500, 384)], [f32(1, 1, 51865)]),
+      }),
+    });
+
+    await expect(createWhisperSpeechToText(config)).rejects.toThrow(
+      /doesn't match any of the provided variants/
+    );
+  });
+
   it('releases the model, the tokenizer and the nested VAD pipeline on dispose', async () => {
     register();
 

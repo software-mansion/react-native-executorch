@@ -27,6 +27,22 @@ import { createResourceScope } from '../../../core/lifetime';
  */
 export const WHISPER_SAMPLE_RATE_HZ = 16000;
 
+/**
+ * Zero-pads (or truncates) audio to exactly the length a model's `encode` was
+ * exported for. Returns the input untouched when it already matches, so the
+ * dynamic-shape path allocates nothing.
+ * @param samples The audio samples to fit.
+ * @param length The exact number of samples to produce.
+ * @returns A Float32Array of exactly `length` samples.
+ */
+const fitToLength = (samples: Float32Array, length: number): Float32Array => {
+  'worklet';
+  if (samples.length === length) return samples;
+  const fitted = new Float32Array(length);
+  fitted.set(samples.subarray(0, length));
+  return fitted;
+};
+
 const MAX_SEQ_LEN = 128; // maximum decoder output tokens per chunk
 const MIN_CHUNK_SIZE = 201; // shortest audio slice (samples) the model was exported for
 const CHUNK_LENGTH_SECONDS = 29; // Whisper's fixed context window length
@@ -208,22 +224,37 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
     const eotToken = tokenizer.tokenToId('<|endoftext|>')!;
     const isEnglishOnly = supportedLanguages.length === 1 && supportedLanguages[0] === 'en';
 
-    const { dims } = validateSpec(model.schema, {
+    const decodeMethod = method(
+      'decode',
+      [i64(1, 1), i64(1), f32(1, 'SeqLen', 'StateDim')],
+      [f32(1, 1, 'VocabSize')]
+    );
+
+    const { variant, dims } = validateSpec(model.schema, {
       default: {
         ...method(
           'encode', // prettier-ignore
           [f32(Dyn('T_audio'))], // Internally, model always pads audio to the maximum duration.
           [f32(1, 'SeqLen', 'StateDim')]
         ),
+        ...decodeMethod,
+      },
+      // Backends without dynamic-shape support (Vulkan) export `encode` at one
+      // fixed sample count. Whisper pads or truncates to a fixed 3000 mel frames
+      // internally regardless, so a fixed window is the shape the model already
+      // works in; the chunk is padded up to it before every call.
+      staticAudio: {
         ...method(
-          'decode',
-          [i64(1, 1), i64(1), f32(1, 'SeqLen', 'StateDim')],
-          [f32(1, 1, 'VocabSize')]
+          'encode', // prettier-ignore
+          [f32('AudioLen')],
+          [f32(1, 'SeqLen', 'StateDim')]
         ),
+        ...decodeMethod,
       },
     });
 
     const [seqLen, stateDim] = dims.constant('SeqLen', 'StateDim');
+    const staticAudioLen = variant === 'staticAudio' ? dims.constant('AudioLen')[0]! : null;
 
     const tensors = [
       tensor('int64', [1]), // tPosition
@@ -283,7 +314,9 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
           break;
         }
 
-        const tAudioInput = tensor('float32', [audioChunk.length], audioChunk);
+        const encodeInput =
+          staticAudioLen === null ? audioChunk : fitToLength(audioChunk, staticAudioLen);
+        const tAudioInput = tensor('float32', [encodeInput.length], encodeInput);
         try {
           model.execute('encode', [tAudioInput], [tEncodings]);
         } finally {
