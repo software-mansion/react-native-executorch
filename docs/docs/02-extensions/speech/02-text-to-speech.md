@@ -73,6 +73,25 @@ function SpeechComponent() {
 See [`src/app/text-to-speech.tsx`](https://github.com/barhanc/react-native-executorch-gallery/blob/main/src/app/text-to-speech.tsx) and [`src/hooks/useAudioPlayer.ts`](https://github.com/barhanc/react-native-executorch-gallery/blob/main/src/hooks/useAudioPlayer.ts) in the [React Native ExecuTorch Gallery](https://github.com/barhanc/react-native-executorch-gallery) for a complete example featuring voice selection, `react-native-audio-api` buffer queue streaming, Time-to-First-Audio (TTFA) benchmarking, and live waveform visualization.
 :::
 
+## Output Format
+
+`synthesize()` returns an `AsyncGenerator` yielding audio chunks ([`KokoroTtsChunk`](../../06-api-reference/type-aliases/KokoroTtsChunk.md) or [`SupertonicTtsChunk`](../../06-api-reference/type-aliases/SupertonicTtsChunk.md)) sequentially as each sentence finishes synthesis:
+
+```typescript
+type TtsChunk = {
+  /** Float32 PCM audio samples normalized in [-1.0, 1.0] */
+  readonly audio: Float32Array;
+  /** Audio sampling rate in Hz (44100 for Supertonic, 24000 for Kokoro) */
+  readonly sampleRate: number;
+  /** Duration of this synthesized chunk in seconds */
+  readonly duration: number;
+  /** Zero-based index of this chunk */
+  readonly chunkIndex: number;
+  /** Total number of chunks partitioned from the input text */
+  readonly totalChunks: number;
+};
+```
+
 ## How Streaming Works
 
 On-device text-to-speech is built for instant audio feedback:
@@ -133,6 +152,8 @@ Because Text-to-Speech architectures require distinct multi-model orchestration 
 
 - [`SupertonicTextToSpeech`](../../06-api-reference/type-aliases/SupertonicTextToSpeech.md) — Supertonic pipeline runner interface (`synthesize`, `synthesizeStop`, `dispose`).
 - [`KokoroTextToSpeech`](../../06-api-reference/type-aliases/KokoroTextToSpeech.md) — Kokoro pipeline runner interface (`synthesize`, `synthesizeStop`, `dispose`).
+- [`SupertonicTtsChunk`](../../06-api-reference/type-aliases/SupertonicTtsChunk.md) — Audio buffer chunk yielded by Supertonic (`audio`, `sampleRate`, `duration`, `chunkIndex`, `totalChunks`).
+- [`KokoroTtsChunk`](../../06-api-reference/type-aliases/KokoroTtsChunk.md) — Audio buffer chunk yielded by Kokoro (`audio`, `sampleRate`, `duration`, `chunkIndex`, `totalChunks`).
 - [`SupertonicTtsModel`](../../06-api-reference/type-aliases/SupertonicTtsModel.md) — Supertonic model and asset configuration spec.
 - [`KokoroTtsModel`](../../06-api-reference/type-aliases/KokoroTtsModel.md) — Kokoro model and asset configuration spec.
 - [`SupertonicTtsOptions`](../../06-api-reference/type-aliases/SupertonicTtsOptions.md) — Execution options for Supertonic synthesis (`voice`, `speed`, `totalSteps`).
