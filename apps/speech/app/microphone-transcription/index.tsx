@@ -67,6 +67,16 @@ const MODELS = [
     disabled: Platform.OS !== 'ios',
   },
   {
+    name: 'Tiny Multilingual (Vulkan fp16)',
+    config: models.speechToText.WHISPER.TINY.VULKAN_FP16,
+    disabled: Platform.OS !== 'android',
+  },
+  {
+    name: 'Tiny Multilingual (Vulkan int8)',
+    config: models.speechToText.WHISPER.TINY.VULKAN_INT8,
+    disabled: Platform.OS !== 'android',
+  },
+  {
     name: 'Base Multilingual (CPU)',
     config: models.speechToText.WHISPER.BASE.XNNPACK_FP32,
   },

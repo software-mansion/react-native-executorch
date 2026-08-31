@@ -129,8 +129,8 @@ const FEATURE_MAP = {
   multimodalLLM: { backends: ['xnnpack', 'mlx', 'vulkan'], libs: ['opencv'] },
   // Privacy filter classifiers ship xnnpack + an MLX iOS export.
   privacyFilter: { backends: ['xnnpack', 'mlx'], libs: [] },
-  // Whisper ships xnnpack, coreml and an MLX iOS export.
-  speechToText: { backends: ['xnnpack', 'coreml', 'mlx'], libs: [] },
+  // Whisper ships xnnpack, coreml, an MLX iOS export and a Vulkan Android one.
+  speechToText: { backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'], libs: [] },
   // Kokoro ships xnnpack + coreml; Supertonic adds an MLX iOS export.
   textToSpeech: { backends: ['xnnpack', 'coreml', 'mlx'], libs: ['phonemis'] },
   // FSMN VAD — xnnpack only.
