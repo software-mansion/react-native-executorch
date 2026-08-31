@@ -110,7 +110,7 @@ try {
 }
 ```
 
-## Real-Time & Worklet Execution
+## Synchronous Execution
 
 For high-throughput loops like camera frame processors, `createClassifier`
 exposes a synchronous `classifyWorklet` function. This executes directly inside

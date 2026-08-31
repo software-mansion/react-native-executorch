@@ -111,7 +111,7 @@ try {
 }
 ```
 
-## Real-Time & Worklet Execution
+## Synchronous Execution
 
 For high-throughput loops like live camera background removal or portrait mode effects, `createSemanticSegmenter` exposes a synchronous `segmentWorklet` function. This runs directly on the worklet thread with zero Promise scheduling overhead:
 

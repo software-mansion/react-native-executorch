@@ -128,7 +128,7 @@ try {
 }
 ```
 
-## Real-Time & Worklet Execution
+## Synchronous Execution
 
 For real-time camera tracking and live fitness apps, `createKeypointDetector` exposes a synchronous `detectKeypointsWorklet` function. This runs directly on the worklet thread with zero Promise scheduling overhead:
 

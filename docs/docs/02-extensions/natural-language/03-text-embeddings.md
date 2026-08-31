@@ -116,7 +116,7 @@ try {
 }
 ```
 
-## Real-Time & Worklet Execution
+## Synchronous Execution
 
 For synchronous worklet execution contexts or high-throughput indexing workers, `createTextEmbedder` exposes a synchronous `embedWorklet` function:
 

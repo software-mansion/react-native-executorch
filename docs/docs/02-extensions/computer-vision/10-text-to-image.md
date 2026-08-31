@@ -101,7 +101,7 @@ try {
 }
 ```
 
-## Real-Time & Worklet Execution
+## Synchronous Execution
 
 For synchronous worklet execution contexts, `createSdxsTextToImage` exposes a `generateWorklet` function that executes directly inside a worklet runtime without Promise scheduling overhead:
 

@@ -93,7 +93,7 @@ try {
 }
 ```
 
-## Real-Time & Worklet Execution
+## Synchronous Execution
 
 For high-throughput loops like live viewfinder styling or video recording, `createStyleTransfer` exposes a synchronous `transferStyleWorklet` function. This runs directly on the worklet thread with zero Promise scheduling overhead:
 
