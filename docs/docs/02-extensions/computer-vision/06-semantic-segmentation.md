@@ -72,7 +72,10 @@ type SemanticSegmentationResult<L extends PropertyKey = string> = {
 };
 ```
 
-For binary models (such as `SELFIE_SEGMENTATION`), the pipeline outputs a single-channel alpha probability mask. For multi-class models (such as `DEEPLAB_V3`), each pixel is assigned its argmax category color from the color map.
+### Color Mapping Behavior
+
+- **Multi-class models** (e.g. `DEEPLAB_V3`, `LRASPP`): Performs an `argmax` over the class logits per pixel, then maps each class index to its corresponding `[R, G, B, A]` color tuple. The returned `colormap` contains the full active label-to-color mapping.
+- **Single-class / binary models** (e.g. `SELFIE_SEGMENTATION`): Applies a `sigmoid` activation to the single output channel, scales probabilities to pixel intensity values (0–255), and returns an RGBA mask. No color map is applied, and `colormap` is `undefined`.
 
 ## Configuration & Color Maps
 
@@ -86,7 +89,7 @@ const result = await segmenter.segment(imageBuffer, {
 });
 ```
 
-When omitted, multi-class models automatically generate high-contrast distinct colors with the first class (usually background) default to transparent `[0, 0, 0, 0]`.
+When omitted, multi-class models automatically generate high-contrast distinct colors with the first class (typically background) defaulting to transparent `[0, 0, 0, 0]`. If a partial map is provided, any labels omitted from it will default to being rendered as fully transparent.
 
 ## Imperative API
 
@@ -121,7 +124,7 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 ## Available Models
 
-The library provides ready-to-use segmentation models in [`models.semanticSegmentation`](../../06-api-reference/variables/models.md#semanticsegmentation):
+The library provides ready-to-use segmentation models from the [Software Mansion HuggingFace Semantic Segmentation Collection](https://huggingface.co/collections/software-mansion/semantic-segmentation), accessible via [`models.semanticSegmentation`](../../06-api-reference/variables/models.md#semanticsegmentation):
 
 | Model                   | Variant                  | Size    | Platform / Acceleration   | Notes                                                                        |
 | :---------------------- | :----------------------- | :------ | :------------------------ | :--------------------------------------------------------------------------- |
