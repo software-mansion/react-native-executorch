@@ -707,12 +707,16 @@ const ALL_MINILM_L6_V2_COREML_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/coreml/all_minilm_l6_v2_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
-const ALL_MINILM_L6_V2_VULKAN_FP32: TextEmbedderModel = {
-  modelPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/vulkan/all_minilm_l6_v2_vulkan_fp32.pte`,
+const ALL_MINILM_L6_V2_VULKAN_FP16: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/vulkan/all_minilm_l6_v2_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
 const ALL_MPNET_BASE_V2_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/xnnpack/all_mpnet_base_v2_xnnpack_fp32.pte`,
+  tokenizerPath: `${BASE_URL}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
+const ALL_MPNET_BASE_V2_VULKAN_FP16: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/vulkan/all_mpnet_base_v2_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
 const MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS: TextEmbedderModel = {
@@ -763,6 +767,10 @@ const CLIP_VIT_BASE_PATCH32_TEXT_COREML_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/coreml/clip_vit_base_patch32_text_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
+const CLIP_VIT_BASE_PATCH32_TEXT_VULKAN_FP16: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/vulkan/clip_vit_base_patch32_text_vulkan_fp16.pte`,
+  tokenizerPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
 const LFM2_5_EMBEDDING_350M_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-lfm2.5-embedding-350m/${NEXT_VERSION_TAG}/xnnpack/lfm_2_5_embedding_350m_xnnpack_8da4w.pte`,
   tokenizerPath: `${BASE_URL}-lfm2.5-embedding-350m/${NEXT_VERSION_TAG}/tokenizer.json`,
@@ -792,6 +800,10 @@ const CLIP_VIT_BASE_PATCH32_IMAGE_COREML_FP16: ImageEmbedderModel = {
 };
 const CLIP_VIT_BASE_PATCH32_IMAGE_MLX_INT8: ImageEmbedderModel = {
   modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/mlx/clip_vit_base_patch32_image_mlx_int8.pte`,
+  modelOpts: CLIP_IMAGE_EMBEDDINGS_OPTS,
+};
+const CLIP_VIT_BASE_PATCH32_IMAGE_VULKAN_FP16: ImageEmbedderModel = {
+  modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/vulkan/clip_vit_base_patch32_image_vulkan_fp16.pte`,
   modelOpts: CLIP_IMAGE_EMBEDDINGS_OPTS,
 };
 
@@ -2442,7 +2454,7 @@ export const models = {
     ALL_MINILM_L6_V2: variants({
       XNNPACK_FP32: ALL_MINILM_L6_V2_EMBEDDINGS,
       COREML_FP16: ALL_MINILM_L6_V2_COREML_FP16,
-      VULKAN_FP32: ALL_MINILM_L6_V2_VULKAN_FP32,
+      VULKAN_FP16: ALL_MINILM_L6_V2_VULKAN_FP16,
     }),
     /**
      * High-quality 768-dimensional sentence transformer model based on MPNet.
@@ -2450,6 +2462,7 @@ export const models = {
      */
     ALL_MPNET_BASE_V2: variants({
       XNNPACK_FP32: ALL_MPNET_BASE_V2_EMBEDDINGS,
+      VULKAN_FP16: ALL_MPNET_BASE_V2_VULKAN_FP16,
     }),
     /**
      * 384-dimensional sentence transformer fine-tuned specifically for semantic
@@ -2504,6 +2517,7 @@ export const models = {
     CLIP_VIT_BASE_PATCH32_TEXT: variants({
       XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS,
       COREML_FP16: CLIP_VIT_BASE_PATCH32_TEXT_COREML_FP16,
+      VULKAN_FP16: CLIP_VIT_BASE_PATCH32_TEXT_VULKAN_FP16,
     }),
     /**
      * Liquid AI LFM 2.5 350M parameter embedding model for asymmetric search
@@ -2554,6 +2568,7 @@ export const models = {
         XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32,
         COREML_FP16: CLIP_VIT_BASE_PATCH32_IMAGE_COREML_FP16,
         MLX_INT8: CLIP_VIT_BASE_PATCH32_IMAGE_MLX_INT8,
+        VULKAN_FP16: CLIP_VIT_BASE_PATCH32_IMAGE_VULKAN_FP16,
       },
       // Core ML over MLX: 3.5 ms against 14.1 on an iPhone 16, the widest
       // margin of any pair that ships both.

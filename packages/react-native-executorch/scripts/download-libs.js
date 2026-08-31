@@ -136,11 +136,12 @@ const FEATURE_MAP = {
   // FSMN VAD — xnnpack only.
   vad: { backends: ['xnnpack'], libs: [] },
   // The MiniLM/CLIP-text/distiluse family ships coreml alongside xnnpack,
-  // LFM2.5-Embedding and distiluse add MLX iOS exports, and all-MiniLM-L6-v2
-  // adds a vulkan Android export.
+  // LFM2.5-Embedding and distiluse add MLX iOS exports, and all-MiniLM-L6-v2,
+  // CLIP-text and all-mpnet-base-v2 add vulkan Android exports.
   textEmbeddings: { backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'], libs: [] },
-  // CLIP's vision encoder ships xnnpack, coreml and mlx.
-  imageEmbeddings: { backends: ['xnnpack', 'coreml', 'mlx'], libs: ['opencv'] },
+  // CLIP's vision encoder ships xnnpack, coreml and mlx, plus a vulkan Android
+  // export.
+  imageEmbeddings: { backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'], libs: ['opencv'] },
   // EfficientNet ships xnnpack + coreml.
   classification: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
   // YOLO is xnnpack-only, ssdlite/rf_detr add coreml → union.
