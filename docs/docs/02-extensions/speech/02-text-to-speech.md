@@ -129,7 +129,7 @@ try {
 
 ## Available Models
 
-The library provides ready-to-use Text-to-Speech models in [`models.textToSpeech`](../../06-api-reference/variables/models.md#texttospeech):
+The library provides ready-to-use Text-to-Speech models from the [Software Mansion HuggingFace Text to Speech Collection](https://huggingface.co/collections/software-mansion/text-to-speech), pre-packaged with neural G2P phonemizers and voice presets in [`models.textToSpeech`](../../06-api-reference/variables/models.md#texttospeech):
 
 | Model                          | Sub-Models & Assets                                                          | Sample Rate | Size (Total) | Supported Languages                                                                                                                                                                | Notes                                                                                                                                                |
 | :----------------------------- | :--------------------------------------------------------------------------- | :---------- | :----------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
