@@ -28,7 +28,7 @@ const LANGUAGE_OPTIONS = [
 
 type KokoroLanguage = (typeof LANGUAGE_OPTIONS)[number]['value'];
 
-// Core ML is exported for the standard weights only, and only runs on iOS.
+// Every language ships both backends; Core ML runs on iOS only.
 const BACKEND_OPTIONS = [
   { label: 'XNNPACK', value: 'XNNPACK_FP32' as const },
   { label: 'Core ML', value: 'COREML_FP32' as const },
@@ -36,11 +36,8 @@ const BACKEND_OPTIONS = [
 
 type KokoroBackend = (typeof BACKEND_OPTIONS)[number]['value'];
 
-const kokoroModel = (language: KokoroLanguage, backend: KokoroBackend) => {
-  const entry = models.textToSpeech.KOKORO[language];
-  const model = backend in entry ? entry[backend as keyof typeof entry] : entry.XNNPACK_FP32;
-  return model as KokoroTtsModel<string>;
-};
+const kokoroModel = (language: KokoroLanguage, backend: KokoroBackend) =>
+  models.textToSpeech.KOKORO[language][backend] as KokoroTtsModel<string>;
 
 // cspell:disable
 const SAMPLE_TEXTS: Record<KokoroLanguage, string> = {
@@ -93,9 +90,6 @@ function KokoroContent() {
   useEffect(() => {
     setVoice(Object.keys(models.textToSpeech.KOKORO[language].XNNPACK_FP32.voices)[0]!);
     setText(SAMPLE_TEXTS[language]);
-    if (!('COREML_FP32' in models.textToSpeech.KOKORO[language])) {
-      setBackend('XNNPACK_FP32');
-    }
   }, [language]);
 
   const getAudioContext = useCallback(async () => {
@@ -217,7 +211,7 @@ function KokoroContent() {
           selectedValue={language}
           onValueChange={setLanguage}
         />
-        {Platform.OS === 'ios' && 'COREML_FP32' in models.textToSpeech.KOKORO[language] && (
+        {Platform.OS === 'ios' && (
           <ModelPicker
             label="Backend"
             options={BACKEND_OPTIONS.map((b) => ({ ...b, disabled: isBusy }))}

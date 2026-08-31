@@ -903,7 +903,6 @@ const KOKORO_STANDARD_PATHS = kokoroModelPaths('xnnpack', 'std', 'standard');
 const KOKORO_POLISH_PATHS = kokoroModelPaths('xnnpack', 'pl', 'polish');
 const KOKORO_GERMAN_PATHS = kokoroModelPaths('xnnpack', 'de', 'german');
 
-// Core ML is exported for the standard (multi-language) weights only.
 const KOKORO_STANDARD_COREML_PATHS = kokoroModelPaths('coreml', 'std', 'standard');
 const KOKORO_POLISH_COREML_PATHS = kokoroModelPaths('coreml', 'pl', 'polish');
 const KOKORO_GERMAN_COREML_PATHS = kokoroModelPaths('coreml', 'de', 'german');
@@ -975,54 +974,6 @@ const KOKORO_HI_XNNPACK_FP32: KokoroTtsModel<'hf_alpha' | 'hm_omega' | 'hm_psi'>
   voices: kokoroVoices(['hf_alpha', 'hm_omega', 'hm_psi']),
 };
 
-// Core ML counterparts of the standard-weight presets. They pad the token axis
-// to the models' fixed length, so only the languages served by the standard
-// weights have a Core ML variant.
-const KOKORO_EN_US_COREML_FP32: KokoroTtsModel<
-  'af_heart' | 'af_river' | 'af_sarah' | 'am_adam' | 'am_michael' | 'am_santa'
-> = {
-  name: 'kokoro',
-  modelPaths: KOKORO_STANDARD_COREML_PATHS,
-  phonemizer: kokoroEnglishPhonemizer('en-us'),
-  voices: kokoroVoices(['af_heart', 'af_river', 'af_sarah', 'am_adam', 'am_michael', 'am_santa']),
-};
-const KOKORO_EN_GB_COREML_FP32: KokoroTtsModel<'bf_emma' | 'bm_daniel'> = {
-  name: 'kokoro',
-  modelPaths: KOKORO_STANDARD_COREML_PATHS,
-  phonemizer: kokoroEnglishPhonemizer('en-gb'),
-  voices: kokoroVoices(['bf_emma', 'bm_daniel']),
-};
-const KOKORO_ES_COREML_FP32: KokoroTtsModel<'ef_dora' | 'em_alex'> = {
-  name: 'kokoro',
-  modelPaths: KOKORO_STANDARD_COREML_PATHS,
-  phonemizer: kokoroNeuralPhonemizer('es'),
-  voices: kokoroVoices(['ef_dora', 'em_alex']),
-};
-const KOKORO_FR_COREML_FP32: KokoroTtsModel<'ff_siwis'> = {
-  name: 'kokoro',
-  modelPaths: KOKORO_STANDARD_COREML_PATHS,
-  phonemizer: kokoroNeuralPhonemizer('fr'),
-  voices: kokoroVoices(['ff_siwis']),
-};
-const KOKORO_IT_COREML_FP32: KokoroTtsModel<'if_sara' | 'im_nicola'> = {
-  name: 'kokoro',
-  modelPaths: KOKORO_STANDARD_COREML_PATHS,
-  phonemizer: kokoroNeuralPhonemizer('it'),
-  voices: kokoroVoices(['if_sara', 'im_nicola']),
-};
-const KOKORO_PT_COREML_FP32: KokoroTtsModel<'pf_dora' | 'pm_santa'> = {
-  name: 'kokoro',
-  modelPaths: KOKORO_STANDARD_COREML_PATHS,
-  phonemizer: kokoroNeuralPhonemizer('pt'),
-  voices: kokoroVoices(['pf_dora', 'pm_santa']),
-};
-const KOKORO_HI_COREML_FP32: KokoroTtsModel<'hf_alpha' | 'hm_omega' | 'hm_psi'> = {
-  name: 'kokoro',
-  modelPaths: KOKORO_STANDARD_COREML_PATHS,
-  phonemizer: kokoroNeuralPhonemizer('hi'),
-  voices: kokoroVoices(['hf_alpha', 'hm_omega', 'hm_psi']),
-};
-
 const KOKORO_PL_XNNPACK_FP32: KokoroTtsModel<'pm_mateusz'> = {
   name: 'kokoro',
   modelPaths: KOKORO_POLISH_PATHS,
@@ -1036,14 +987,29 @@ const KOKORO_DE_XNNPACK_FP32: KokoroTtsModel<'df_anna'> = {
   voices: kokoroVoices(['df_anna']),
 };
 
-const KOKORO_PL_COREML_FP32: KokoroTtsModel<'pm_mateusz'> = {
-  ...KOKORO_PL_XNNPACK_FP32,
-  modelPaths: KOKORO_POLISH_COREML_PATHS,
-};
-const KOKORO_DE_COREML_FP32: KokoroTtsModel<'df_anna'> = {
-  ...KOKORO_DE_XNNPACK_FP32,
-  modelPaths: KOKORO_GERMAN_COREML_PATHS,
-};
+// Core ML counterparts: the same weights, phonemizer and voices as the XNNPACK
+// presets, only the `.pte` files differ. Their token axis is fixed at 128, so
+// the pipeline pads every chunk up to it. iOS only.
+const kokoroCoreML = <K extends PropertyKey>(
+  base: KokoroTtsModel<K>,
+  modelPaths: KokoroTtsModel<K>['modelPaths']
+): KokoroTtsModel<K> => ({ ...base, modelPaths });
+
+const KOKORO_EN_US_COREML_FP32 = kokoroCoreML(
+  KOKORO_EN_US_XNNPACK_FP32,
+  KOKORO_STANDARD_COREML_PATHS
+);
+const KOKORO_EN_GB_COREML_FP32 = kokoroCoreML(
+  KOKORO_EN_GB_XNNPACK_FP32,
+  KOKORO_STANDARD_COREML_PATHS
+);
+const KOKORO_ES_COREML_FP32 = kokoroCoreML(KOKORO_ES_XNNPACK_FP32, KOKORO_STANDARD_COREML_PATHS);
+const KOKORO_FR_COREML_FP32 = kokoroCoreML(KOKORO_FR_XNNPACK_FP32, KOKORO_STANDARD_COREML_PATHS);
+const KOKORO_IT_COREML_FP32 = kokoroCoreML(KOKORO_IT_XNNPACK_FP32, KOKORO_STANDARD_COREML_PATHS);
+const KOKORO_PT_COREML_FP32 = kokoroCoreML(KOKORO_PT_XNNPACK_FP32, KOKORO_STANDARD_COREML_PATHS);
+const KOKORO_HI_COREML_FP32 = kokoroCoreML(KOKORO_HI_XNNPACK_FP32, KOKORO_STANDARD_COREML_PATHS);
+const KOKORO_PL_COREML_FP32 = kokoroCoreML(KOKORO_PL_XNNPACK_FP32, KOKORO_POLISH_COREML_PATHS);
+const KOKORO_DE_COREML_FP32 = kokoroCoreML(KOKORO_DE_XNNPACK_FP32, KOKORO_GERMAN_COREML_PATHS);
 
 // =============================================================================
 // Privacy Filter
