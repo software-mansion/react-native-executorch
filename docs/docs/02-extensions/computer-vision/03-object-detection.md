@@ -125,7 +125,7 @@ try {
 }
 ```
 
-## Real-Time & Worklet Execution
+## Synchronous Execution
 
 For high-throughput loops like camera frame processors, `createObjectDetector` exposes a synchronous `detectObjectsWorklet` function. This runs directly on the worklet thread with zero Promise scheduling overhead:
 

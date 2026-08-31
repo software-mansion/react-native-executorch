@@ -123,7 +123,7 @@ try {
 }
 ```
 
-## Real-Time & Worklet Execution
+## Synchronous Execution
 
 For real-time camera tracking or live object cutouts, `createInstanceSegmenter` exposes a synchronous `segmentInstancesWorklet` function. This runs directly on the worklet thread with zero Promise scheduling overhead:
 

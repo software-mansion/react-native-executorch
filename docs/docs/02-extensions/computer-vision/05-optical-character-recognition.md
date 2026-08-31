@@ -121,7 +121,7 @@ try {
 }
 ```
 
-## Real-Time & Worklet Execution
+## Synchronous Execution
 
 For high-throughput loops or live camera text detection, `createPaddleOcr` exposes a synchronous `recognizeCharactersWorklet` function. This runs directly on the worklet thread with zero Promise scheduling overhead:
 
