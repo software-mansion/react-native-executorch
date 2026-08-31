@@ -108,7 +108,7 @@ export function App() {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <Button
-        title={session.isReady ? 'Generate' : `Loading (${(session.downloadProgress * 100).toFixed(0)}%)`}
+        title={session.isReady ? 'Generate' : `Loading (${session.downloadProgress.toFixed(0)}%)`}
         onPress={handleGenerate}
         disabled={!session.isReady}
       />
