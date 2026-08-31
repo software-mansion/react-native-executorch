@@ -842,6 +842,18 @@ const WHISPER_TINY_EN_MLX_INT8: WhisperSttModel<'en'> = {
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
+const WHISPER_TINY_EN_VULKAN_FP16: WhisperSttModel<'en'> = {
+  modelPath: `${BASE_URL}-whisper-tiny.en/${NEXT_VERSION_TAG}/vulkan/whisper_tiny_en_vulkan_fp16.pte`,
+  tokenizerPath: `${BASE_URL}-whisper-tiny.en/${NEXT_VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: ['en'],
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
+const WHISPER_TINY_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
+  modelPath: `${BASE_URL}-whisper-tiny.en/${NEXT_VERSION_TAG}/vulkan/whisper_tiny_en_vulkan_int8.pte`,
+  tokenizerPath: `${BASE_URL}-whisper-tiny.en/${NEXT_VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: ['en'],
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
 
 const WHISPER_TINY_XNNPACK_FP32: WhisperSttModel = {
   modelPath: `${BASE_URL}-whisper-tiny/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_xnnpack_fp32.pte`,
@@ -910,6 +922,18 @@ const WHISPER_BASE_EN_MLX_INT8: WhisperSttModel<'en'> = {
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
+const WHISPER_BASE_EN_VULKAN_FP16: WhisperSttModel<'en'> = {
+  modelPath: `${BASE_URL}-whisper-base.en/${NEXT_VERSION_TAG}/vulkan/whisper_base_en_vulkan_fp16.pte`,
+  tokenizerPath: `${BASE_URL}-whisper-base.en/${NEXT_VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: ['en'],
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
+const WHISPER_BASE_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
+  modelPath: `${BASE_URL}-whisper-base.en/${NEXT_VERSION_TAG}/vulkan/whisper_base_en_vulkan_int8.pte`,
+  tokenizerPath: `${BASE_URL}-whisper-base.en/${NEXT_VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: ['en'],
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
 
 const WHISPER_BASE_XNNPACK_FP32: WhisperSttModel = {
   modelPath: `${BASE_URL}-whisper-base/${NEXT_VERSION_TAG}/xnnpack/whisper_base_xnnpack_fp32.pte`,
@@ -931,6 +955,18 @@ const WHISPER_BASE_MLX_BF16: WhisperSttModel = {
 };
 const WHISPER_BASE_MLX_INT8: WhisperSttModel = {
   modelPath: `${BASE_URL}-whisper-base/${NEXT_VERSION_TAG}/mlx/whisper_base_mlx_int8.pte`,
+  tokenizerPath: `${BASE_URL}-whisper-base/${NEXT_VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: WHISPER_LANGUAGES,
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
+const WHISPER_BASE_VULKAN_FP16: WhisperSttModel = {
+  modelPath: `${BASE_URL}-whisper-base/${NEXT_VERSION_TAG}/vulkan/whisper_base_vulkan_fp16.pte`,
+  tokenizerPath: `${BASE_URL}-whisper-base/${NEXT_VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: WHISPER_LANGUAGES,
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
+const WHISPER_BASE_VULKAN_INT8: WhisperSttModel = {
+  modelPath: `${BASE_URL}-whisper-base/${NEXT_VERSION_TAG}/vulkan/whisper_base_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}-whisper-base/${NEXT_VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -960,6 +996,18 @@ const WHISPER_SMALL_EN_MLX_INT8: WhisperSttModel<'en'> = {
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
+const WHISPER_SMALL_EN_VULKAN_FP16: WhisperSttModel<'en'> = {
+  modelPath: `${BASE_URL}-whisper-small.en/${NEXT_VERSION_TAG}/vulkan/whisper_small_en_vulkan_fp16.pte`,
+  tokenizerPath: `${BASE_URL}-whisper-small.en/${NEXT_VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: ['en'],
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
+const WHISPER_SMALL_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
+  modelPath: `${BASE_URL}-whisper-small.en/${NEXT_VERSION_TAG}/vulkan/whisper_small_en_vulkan_int8.pte`,
+  tokenizerPath: `${BASE_URL}-whisper-small.en/${NEXT_VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: ['en'],
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
 
 const WHISPER_SMALL_XNNPACK_FP32: WhisperSttModel = {
   modelPath: `${BASE_URL}-whisper-small/${NEXT_VERSION_TAG}/xnnpack/whisper_small_xnnpack_fp32.pte`,
@@ -975,6 +1023,18 @@ const WHISPER_SMALL_COREML_FP16: WhisperSttModel = {
 };
 const WHISPER_SMALL_MLX_INT8: WhisperSttModel = {
   modelPath: `${BASE_URL}-whisper-small/${NEXT_VERSION_TAG}/mlx/whisper_small_mlx_int8.pte`,
+  tokenizerPath: `${BASE_URL}-whisper-small/${NEXT_VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: WHISPER_LANGUAGES,
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
+const WHISPER_SMALL_VULKAN_FP16: WhisperSttModel = {
+  modelPath: `${BASE_URL}-whisper-small/${NEXT_VERSION_TAG}/vulkan/whisper_small_vulkan_fp16.pte`,
+  tokenizerPath: `${BASE_URL}-whisper-small/${NEXT_VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: WHISPER_LANGUAGES,
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
+const WHISPER_SMALL_VULKAN_INT8: WhisperSttModel = {
+  modelPath: `${BASE_URL}-whisper-small/${NEXT_VERSION_TAG}/vulkan/whisper_small_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}-whisper-small/${NEXT_VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -2064,6 +2124,8 @@ export const models = {
           COREML_FP16: WHISPER_BASE_COREML_FP16,
           MLX_BF16: WHISPER_BASE_MLX_BF16,
           MLX_INT8: WHISPER_BASE_MLX_INT8,
+          VULKAN_FP16: WHISPER_BASE_VULKAN_FP16,
+          VULKAN_INT8: WHISPER_BASE_VULKAN_INT8,
         },
         // Core ML over MLX, see the note on WHISPER.
         { ios: 'COREML_FP16' }
@@ -2077,6 +2139,8 @@ export const models = {
           XNNPACK_FP32: WHISPER_SMALL_XNNPACK_FP32,
           COREML_FP16: WHISPER_SMALL_COREML_FP16,
           MLX_INT8: WHISPER_SMALL_MLX_INT8,
+          VULKAN_FP16: WHISPER_SMALL_VULKAN_FP16,
+          VULKAN_INT8: WHISPER_SMALL_VULKAN_INT8,
         },
         // Core ML over MLX, see the note on WHISPER.
         { ios: 'COREML_FP16' }
@@ -2093,6 +2157,8 @@ export const models = {
             COREML_FP16: WHISPER_TINY_EN_COREML_FP16,
             MLX_BF16: WHISPER_TINY_EN_MLX_BF16,
             MLX_INT8: WHISPER_TINY_EN_MLX_INT8,
+          VULKAN_FP16: WHISPER_TINY_EN_VULKAN_FP16,
+          VULKAN_INT8: WHISPER_TINY_EN_VULKAN_INT8,
           },
           // Core ML over MLX, see the note on WHISPER.
           { ios: 'COREML_FP16' }
@@ -2108,6 +2174,8 @@ export const models = {
             COREML_FP16: WHISPER_BASE_EN_COREML_FP16,
             MLX_BF16: WHISPER_BASE_EN_MLX_BF16,
             MLX_INT8: WHISPER_BASE_EN_MLX_INT8,
+          VULKAN_FP16: WHISPER_BASE_EN_VULKAN_FP16,
+          VULKAN_INT8: WHISPER_BASE_EN_VULKAN_INT8,
           },
           // Core ML over MLX, see the note on WHISPER.
           { ios: 'COREML_FP16' }
@@ -2122,6 +2190,8 @@ export const models = {
             XNNPACK_INT8: WHISPER_SMALL_EN_XNNPACK_INT8,
             COREML_FP16: WHISPER_SMALL_EN_COREML_FP16,
             MLX_INT8: WHISPER_SMALL_EN_MLX_INT8,
+          VULKAN_FP16: WHISPER_SMALL_EN_VULKAN_FP16,
+          VULKAN_INT8: WHISPER_SMALL_EN_VULKAN_INT8,
           },
           // Core ML over MLX, see the note on WHISPER.
           { ios: 'COREML_FP16' }
