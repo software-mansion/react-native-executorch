@@ -16,6 +16,7 @@ import {
   bool,
   DynamicDim as Dyn,
   constraint,
+  type SpecMatch,
 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { createResourceScope } from '../../../core/lifetime';
@@ -51,6 +52,14 @@ const SILENCE_PADDING_MS = 50; // silence kept at both edges of a synthesized ch
 
 // Distinguishes spoken phonemes from punctuation and suprasegmental markers.
 const LETTER_PATTERN = /\p{L}/u;
+
+// Token counts a Kokoro sub-model accepts. A padded model takes one count and
+// one only, so its bounds collapse onto that single constant.
+const tokenBounds = (spec: SpecMatch<'dynamic' | 'padded'>) => {
+  if (spec.variant !== 'padded') return spec.dim('T', 'range');
+  const tokens = spec.dim('T', 'constant');
+  return { min: tokens, max: tokens };
+};
 
 /**
  * Model configuration required to instantiate the Kokoro Text-to-Speech pipeline.
@@ -237,7 +246,7 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
         ],
         [f32(1, 1, Dyn('AUDIO_LEN'))], // audio
         [
-          constr.linear(
+          constraint.linear(
             { paramSide: 'output', tensorIdx: 0, dimIdx: 2 },
             { paramSide: 'input', tensorIdx: 2, dimIdx: 0 },
             TICKS_PER_DURATION
@@ -246,39 +255,23 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
       ),
     });
 
-    if (predictorSpec.variant !== synthesizerSpec.variant) {
-      throw RnExecuTorchError(
-        'SCHEMA_MISMATCH',
-        `The duration predictor and the synthesizer declare different token axes ` +
-          `('${String(predictorSpec.variant)}' vs '${String(synthesizerSpec.variant)}').`
-      );
-    }
-
     const [durations] = synthesizerSpec.dims.range('D');
     const maxDurationTicks = durations.max;
 
-    let minTokens: number;
-    let maxTokens: number;
+    // Both sub-models see the same tokens, so only the counts they both accept
+    // are usable. A padded pair collapses this to its single fixed count.
+    const predictorTokens = tokenBounds(predictorSpec);
+    const synthesizerTokens = tokenBounds(synthesizerSpec);
+    const minTokens = Math.max(predictorTokens.min, synthesizerTokens.min);
+    const maxTokens = Math.min(predictorTokens.max, synthesizerTokens.max);
 
-    if (predictorSpec.variant === 'padded') {
-      // A padded model takes one token count and one only, so both bounds
-      // collapse onto it and every chunk is padded up to it.
-      const predictorTokens = predictorSpec.dim('T', 'constant');
-      const synthesizerTokens = synthesizerSpec.dim('T', 'constant');
-      if (predictorTokens !== synthesizerTokens) {
-        throw RnExecuTorchError(
-          'SCHEMA_MISMATCH',
-          `The duration predictor and the synthesizer are padded to different token ` +
-            `counts (${predictorTokens} and ${synthesizerTokens}).`
-        );
-      }
-      minTokens = predictorTokens;
-      maxTokens = predictorTokens;
-    } else {
-      const [predictorTokens] = predictorSpec.dims.range('T');
-      const [synthesizerTokens] = synthesizerSpec.dims.range('T');
-      minTokens = Math.max(predictorTokens.min, synthesizerTokens.min);
-      maxTokens = predictorTokens.max;
+    if (minTokens > maxTokens) {
+      throw RnExecuTorchError(
+        'SCHEMA_MISMATCH',
+        `The duration predictor and the synthesizer share no token count ` +
+          `(${predictorTokens.min}..${predictorTokens.max} and ` +
+          `${synthesizerTokens.min}..${synthesizerTokens.max}).`
+      );
     }
 
     const phonemizer = await wrapAsync(createPhonemizer, runtime)(config.phonemizer);
