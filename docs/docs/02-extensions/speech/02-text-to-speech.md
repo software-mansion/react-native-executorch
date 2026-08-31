@@ -1,7 +1,124 @@
 ---
-title: 02-text-to-speech
+title: Text-to-Speech (TTS)
+slug: /extensions/text-to-speech
+description: 'Synthesize natural, streaming speech waveforms directly on-device in React Native using multi-stage neural pipelines (Supertonic and Kokoro).'
+keywords:
+  [
+    react native,
+    text to speech,
+    tts,
+    speech synthesis,
+    supertonic,
+    kokoro,
+    phonemizer,
+    vocoder,
+    audio streaming,
+    mobile ml,
+    on-device ai,
+  ]
 ---
 
-# 02-text-to-speech
+# Text-to-Speech (TTS)
 
-_Coming soon._
+The Text-to-Speech extension synthesizes natural, expressive spoken audio waveforms directly on-device from input text.
+
+Speech synthesis operates through multi-stage neural pipelines that combine phonetic transcription or character indexing, duration prediction, acoustic modeling, and neural vocoder audio decompression. Because different model families use fundamentally distinct multi-stage architectures, the library provides dedicated pipelines for each:
+
+- **Supertonic ([`createSupertonicTextToSpeech`](../../06-api-reference/functions/createSupertonicTextToSpeech.md))**: A 4-stage multilingual flow-matching model (44.1 kHz) that coordinates a text encoder, duration predictor, vector estimator, and vocoder with multi-speaker voice style conditioning.
+- **Kokoro ([`createKokoroTextToSpeech`](../../06-api-reference/functions/createKokoroTextToSpeech.md))**: A 2-stage phoneme-driven model (24 kHz) that pairs language-specific grapheme-to-phoneme (G2P) transcription with a duration predictor, acoustic synthesizer, and voice embedding matrices.
+
+Both pipelines are wrapped uniformly by the [`useTextToSpeech`](../../06-api-reference/functions/useTextToSpeech.md) React hook.
+
+<!-- GIF DEMO PLACEHOLDER: Place TTS demo gif here, e.g. ![Text to Speech Demo](./media/tts.gif) -->
+
+## Quick Start
+
+The [`useTextToSpeech`](../../06-api-reference/functions/useTextToSpeech.md) hook manages downloading all sub-model weights, phonemizers, and voice files. To achieve low Time-to-First-Audio (TTFA) and seamless gapless playback, pipe the generated chunks directly to an audio buffer queue such as [`react-native-audio-api`](https://github.com/software-mansion/react-native-audio-api):
+
+```tsx
+import { useState } from 'react';
+import { models, useTextToSpeech, KOKORO_SAMPLE_RATE } from 'react-native-executorch';
+import { useAudioPlayer } from './hooks/useAudioPlayer'; // Custom helper hook built with react-native-audio-api
+
+function SpeechComponent() {
+  const [prompt, setPrompt] = useState('');
+  const tts = useTextToSpeech(models.textToSpeech.KOKORO.EN_US.DEFAULT);
+  const player = useAudioPlayer(KOKORO_SAMPLE_RATE); // 24000 Hz
+
+  // Hook state:
+  // tts.isReady          — true once all sub-models and voice assets are loaded
+  // tts.downloadProgress — 0.0 to 1.0 download progress across all files
+  // tts.error            — Error instance if download or load failed
+
+  const handleSpeak = async () => {
+    if (!tts.isReady || !tts.synthesize || !prompt.trim()) return;
+
+    // Start synthesis stream (yielding sentence-by-sentence chunks)
+    const chunksStream = tts.synthesize(prompt, { voice: 'af_heart' });
+
+    // Stream chunks directly into the audio buffer queue for instant playback
+    await player.playStream(chunksStream);
+  };
+
+  const handleStop = () => {
+    tts.synthesizeStop?.(); // Abort background generation
+    player.stop(); // Clear audio buffers and stop playback
+  };
+}
+```
+
+<!-- TODO: Update gallery URL once repo is moved to software-mansion organization -->
+
+:::tip Full Interactive Example in Gallery App
+See [`src/app/text-to-speech.tsx`](https://github.com/barhanc/react-native-executorch-gallery/blob/main/src/app/text-to-speech.tsx) and [`src/hooks/useAudioPlayer.ts`](https://github.com/barhanc/react-native-executorch-gallery/blob/main/src/hooks/useAudioPlayer.ts) in the [React Native ExecuTorch Gallery](https://github.com/barhanc/react-native-executorch-gallery) for a complete example featuring voice selection, `react-native-audio-api` buffer queue streaming, Time-to-First-Audio (TTFA) benchmarking, and live waveform visualization.
+:::
+
+## How Streaming Works
+
+On-device text-to-speech is built for instant audio feedback:
+
+- **Sentence-by-Sentence Streaming**: Long text is automatically split into natural phrases. Instead of waiting for an entire paragraph to finish generating, audio chunks are yielded one by one as each sentence is synthesized.
+- **Immediate Playback**: Your app can start playing the first sentence right away while subsequent sentences are generated seamlessly in the background.
+- **Smooth UI**: Audio generation runs in the background so your app's user interface and animations stay completely smooth.
+- **Cancellation**: Calling `synthesizeStop()` signals the generator to stop, halting synthesis before subsequent chunks are computed.
+
+## Available Models
+
+The library provides ready-to-use Text-to-Speech models in [`models.textToSpeech`](../../06-api-reference/variables/models.md#texttospeech):
+
+| Model                          | Sub-Models & Assets                                                          | Sample Rate | Size (Total) | Supported Languages                                                                                                                                                                | Notes                                                                                                                                                |
+| :----------------------------- | :--------------------------------------------------------------------------- | :---------- | :----------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Supertonic 3**               | Text Encoder, Duration Predictor, Vector Estimator, Vocoder, Voice Styles    | 44.1 kHz    | 398 MB       | [English, Spanish, French, German, Korean, Japanese, Chinese & more](../../06-api-reference/react-native-executorch/namespaces/speech/variables/SUPERTONIC_SUPPORTED_LANGUAGES.md) | High-fidelity multilingual flow-matching model with 10 bundled [speaker styles](../../06-api-reference/variables/SUPERTONIC_DEFAULT_VOICE_NAMES.md). |
+| **Kokoro (Language Packages)** | Duration Predictor, Synthesizer, G2P Lexicon / Neural Model, Language Voices | 24.0 kHz    | 332 MB each  | English (US/GB), Spanish, French, Italian, Portuguese, Hindi, Polish, German                                                                                                       | Separate model packages per language with dedicated grapheme-to-phoneme assets and native voice presets.                                             |
+
+:::note Model-Specific Pipelines
+Because Text-to-Speech architectures require distinct multi-model orchestration in TypeScript (coordinating phonemizers, duration predictors, flow-matching loops, and neural vocoders), TTS pipelines are model-specific. To use custom voices or fine-tuned weights, provide your modified `.pte` models or custom voice JSON/BIN files matching the [`SupertonicTtsModel`](../../06-api-reference/type-aliases/SupertonicTtsModel.md) or [`KokoroTtsModel`](../../06-api-reference/type-aliases/KokoroTtsModel.md) specifications.
+:::
+
+## API Reference
+
+### Hooks & Pipelines
+
+- [`useTextToSpeech()`](../../06-api-reference/functions/useTextToSpeech.md) — Unified React hook for Supertonic and Kokoro Text-to-Speech pipelines.
+- [`createSupertonicTextToSpeech()`](../../06-api-reference/functions/createSupertonicTextToSpeech.md) — Imperative factory for the Supertonic 3 TTS pipeline.
+- [`createKokoroTextToSpeech()`](../../06-api-reference/functions/createKokoroTextToSpeech.md) — Imperative factory for the Kokoro TTS pipeline.
+
+### Types & Options
+
+- [`SupertonicTextToSpeech`](../../06-api-reference/type-aliases/SupertonicTextToSpeech.md) — Supertonic pipeline runner interface (`synthesize`, `synthesizeStop`, `dispose`).
+- [`KokoroTextToSpeech`](../../06-api-reference/type-aliases/KokoroTextToSpeech.md) — Kokoro pipeline runner interface (`synthesize`, `synthesizeStop`, `dispose`).
+- [`SupertonicTtsModel`](../../06-api-reference/type-aliases/SupertonicTtsModel.md) — Supertonic model and asset configuration spec.
+- [`KokoroTtsModel`](../../06-api-reference/type-aliases/KokoroTtsModel.md) — Kokoro model and asset configuration spec.
+- [`SupertonicTtsOptions`](../../06-api-reference/type-aliases/SupertonicTtsOptions.md) — Execution options for Supertonic synthesis (`voice`, `speed`, `totalSteps`).
+- [`KokoroTtsOptions`](../../06-api-reference/type-aliases/KokoroTtsOptions.md) — Execution options for Kokoro synthesis (`voice`, `speed`, `phonemize`).
+- [`speech.PhonemizerLanguage`](../../06-api-reference/react-native-executorch/namespaces/speech/type-aliases/PhonemizerLanguage.md) — Supported language codes for G2P phonemization.
+- [`speech.PhonemizerConfig`](../../06-api-reference/react-native-executorch/namespaces/speech/type-aliases/PhonemizerConfig.md) — Neural G2P phonemizer and pronunciation lexicon config.
+
+### Constants & Model Presets
+
+- [`KOKORO_SAMPLE_RATE`](../../06-api-reference/variables/KOKORO_SAMPLE_RATE.md) — Kokoro output sample rate constant (24000 Hz).
+- [`SUPERTONIC_SAMPLE_RATE`](../../06-api-reference/variables/SUPERTONIC_SAMPLE_RATE.md) — Supertonic output sample rate constant (44100 Hz).
+- [`SUPERTONIC_DEFAULT_VOICE_NAMES`](../../06-api-reference/variables/SUPERTONIC_DEFAULT_VOICE_NAMES.md) — Default bundled voice style names for Supertonic.
+- [`speech.SUPERTONIC_SUPPORTED_LANGUAGES`](../../06-api-reference/react-native-executorch/namespaces/speech/variables/SUPERTONIC_SUPPORTED_LANGUAGES.md) — Supported language codes for Supertonic.
+- [`speech.KOKORO_PAUSE_MS`](../../06-api-reference/react-native-executorch/namespaces/speech/variables/KOKORO_PAUSE_MS.md) — Pause duration in milliseconds inserted between clauses.
+- [`models.textToSpeech`](../../06-api-reference/variables/models.md#texttospeech) — Pre-configured TTS models registry.
