@@ -318,7 +318,7 @@ The pipeline automatically verifies that the model's exported methods and KV cac
 - [`LLMKVCacheState`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState.md) — KV cache metrics (`pos`, `maxSeqLen`, `usageRatio`).
 - [`LLMChatSessionOptions`](../../06-api-reference/type-aliases/LLMChatSessionOptions.md) — Session configuration options (`generationConfig`, `initialMessages`, `toolOpts`).
 - [`LLMModel`](../../06-api-reference/type-aliases/LLMModel.md) — Model configuration spec with model, tokenizer, and tokenizer config paths.
-- [`LLMGenerationConfig`](../../06-api-reference/type-aliases/LLMGenerationConfig.md) — Sampling and decoding parameters (`temperature`, `topP`, `maxNewTokens`).
+- [`LLMGenerationConfig`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationConfig.md) — Sampling and decoding parameters (`temperature`, `topP`, `maxNewTokens`).
 - [`ChatMessage`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/ChatMessage.md) — Standard chat message structure (`role`, `content`).
 
 ### Model Presets
