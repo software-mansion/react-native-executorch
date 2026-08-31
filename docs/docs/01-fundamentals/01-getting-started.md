@@ -136,11 +136,12 @@ hidden behind abstractions. This means:
   each pipeline expects (tensor shapes, data types, preprocessing), so there's no
   guessing. Everything is in one place, readable in TypeScript.
 
-- **You can always drop down.** When the built-in pipelines don't cover your use
+- **You can always drop down.** When built-in pipelines don't fit your use
   case, the lower-level API gives you direct access to ExecuTorch model
-  execution, native tensor operations, C++ operators, and worklet threading. Build
-  custom orchestration pipelines with full control over preprocessing, model
-  execution, postprocessing, and memory.
+  execution, native tensor operations, high-performance math/vision operators,
+  and worklet threading. You build custom orchestration pipelines entirely in
+  TypeScript — no C++ required — with complete control over preprocessing,
+  inference, postprocessing, and memory.
 
 ### High-Level Task Pipelines
 
@@ -156,11 +157,11 @@ collection](https://huggingface.co/software-mansion/collections) or your own
 
 ### Lower-Level Runtime & Custom Pipelines
 
-Working with a custom or niche model — or chaining multiple models together —
-and need to build your own end-to-end pipeline? The lower-level API gives you
-direct access to ExecuTorch model execution, native tensor operations, C++
-operators for vision, math, NLP, and audio, plus worklet-based multi-threading.
-This is exactly how we implemented every built-in pipeline in the library — you
-will be working with the same primitives that we use.
+Working with a custom model or chaining multiple models together into a custom
+workflow? The lower-level API gives you direct access to ExecuTorch model
+execution, native tensor operations, native operators for vision, math, NLP, and
+audio, plus worklet-based multi-threading. You write the entire pipeline in
+TypeScript using the exact same building blocks and primitives we use to build
+the library's built-in extensions — no native C++ required.
 
 [Explore Lower-Level API →](../category/core--advanced)
