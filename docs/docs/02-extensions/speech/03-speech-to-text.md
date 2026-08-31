@@ -125,6 +125,13 @@ const transcript = await stt.transcribe(audioData, { language: 'en' }, (token) =
 });
 ```
 
+To abort an in-flight transcription prematurely, call `stt.transcribeStop()`:
+
+```typescript
+// Cancels active transcribe() execution and rejects the pending promise
+stt.transcribeStop?.();
+```
+
 ## Imperative API
 
 For background services, offline audio processors, or non-React component logic, instantiate the pipeline imperatively using [`createWhisperSpeechToText`](../../06-api-reference/functions/createWhisperSpeechToText.md):
