@@ -136,7 +136,7 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 ## Available Models
 
-The library provides mixed-precision fused PP-OCRv6 models in [`models.ocr`](../../06-api-reference/variables/models.md#ocr):
+The library provides mixed-precision fused PP-OCRv6 models from the [Software Mansion HuggingFace OCR Collection](https://huggingface.co/collections/software-mansion/ocr), available in [`models.ocr`](../../06-api-reference/variables/models.md#ocr):
 
 | Model              | Variant             | Size    | Platform / Acceleration   | Notes                                                                 |
 | :----------------- | :------------------ | :------ | :------------------------ | :-------------------------------------------------------------------- |

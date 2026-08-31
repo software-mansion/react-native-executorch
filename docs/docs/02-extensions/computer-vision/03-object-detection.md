@@ -140,7 +140,7 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 ## Available Models
 
-The library provides ready-to-use detectors trained on the 80-category COCO dataset, available in [`models.objectDetection`](../../06-api-reference/variables/models.md#objectdetection):
+The library provides ready-to-use detectors from the [Software Mansion HuggingFace Object Detection Collection](https://huggingface.co/collections/software-mansion/object-detection), trained on the 80-category COCO dataset and available in [`models.objectDetection`](../../06-api-reference/variables/models.md#objectdetection):
 
 | Model                      | Variant                        | Size      | Platform / Acceleration   | Notes                                                                         |
 | :------------------------- | :----------------------------- | :-------- | :------------------------ | :---------------------------------------------------------------------------- |
