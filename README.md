@@ -1,11 +1,9 @@
 <div align="center">
-  <img src="https://github.com/software-mansion/react-native-executorch/blob/main/docs/static/img/logo-hero.svg" alt="RNE Logo" width="25%">
+  <img src="https://github.com/software-mansion/react-native-executorch/blob/main/docs/static/img/logo-hero.svg" alt="React Native ExecuTorch Logo" width="25%">
 </div>
 
-
 <div align="center">
-  <h1 align="center" style="display:inline-block">React Native ExecuTorch
-  </h1>
+  <h1 align="center" style="display:inline-block">React Native ExecuTorch</h1>
 </div>
 
 <div align="center">
@@ -21,20 +19,11 @@
   </a>
 </div>
 
-<p align="center">
-  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/README.md"><img src="https://img.shields.io/badge/EN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README"></a>
-  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_es.md"><img src="https://img.shields.io/badge/ES-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README ES"></a>
-  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_fr.md"><img src="https://img.shields.io/badge/FR-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README FR"></a>
-  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_cn.md"><img src="https://img.shields.io/badge/CN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README CN"></a>
-  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_pt.md"><img src="https://img.shields.io/badge/PT-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README PT"></a>
-  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_in.md"><img src="https://img.shields.io/badge/IN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README IN"></a>
-</p>
+<br/>
 
-**React Native ExecuTorch** provides a declarative way to run AI models on-device using React Native, powered by **ExecuTorch** :rocket:. It offers out-of-the-box support for a wide range of LLMs, computer vision models, and more. Visit our [HuggingFace](https://huggingface.co/software-mansion) page to explore these models.
+**React Native ExecuTorch** is an on-device AI inference library for React Native, powered by [ExecuTorch](https://executorch.ai) — Meta's on-device inference runtime. It lets you run machine learning models directly on the user's phone with zero network calls, full offline capability, and guaranteed privacy. No data ever leaves the device.
 
-[**ExecuTorch**](https://executorch.ai), developed by Meta, is a novel framework allowing AI model execution on devices like mobile phones or microcontrollers.
-
-React Native ExecuTorch bridges the gap between React Native and native platform capabilities, enabling developers to efficiently run local AI models on mobile devices. This can be achieved without the need for extensive expertise in native programming or machine learning.
+The library ships with a curated set of pre-exported models covering object detection, language models, text-to-speech, transcription, and more — all available in our [Hugging Face collection](https://huggingface.co/software-mansion/collections) and ready to use out of the box. You can also bring your own `.pte` models and plug them into existing pipelines or build entirely custom ones from scratch.
 
 [![npm version](https://img.shields.io/npm/v/react-native-executorch?color=00008B)](https://www.npmjs.com/package/react-native-executorch)
 [![npm nightly](https://img.shields.io/npm/v/react-native-executorch/executorch-nightly?label=nightly&color=00008B)](https://www.npmjs.com/package/react-native-executorch)
@@ -43,142 +32,135 @@ React Native ExecuTorch bridges the gap between React Native and native platform
 <details>
 <summary><strong>Table of Contents</strong></summary>
 
-- [Supported Versions](#supported-versions)
-- [Real-world Example](#real-world-example)
-- [Quickstart - Running LFM2.5](#quickstart---running-lfm25)
-  - [:one: Installation](#one-installation)
-  - [:two: Setup \& Initialization](#two-setup--initialization)
-  - [:three: Run the Model!](#three-run-the-model)
-- [Demo Apps](#demo-apps)
-- [Ready-made Models](#ready-made-models)
+- [Key Features](#key-features)
+- [Supported Capabilities](#supported-capabilities)
+- [Quickstart](#quickstart)
+  - [1. Installation](#1-installation)
+  - [2. Run an LLM Chat Session](#2-run-an-llm-chat-session)
+- [Interactive Gallery App](#interactive-gallery-app)
 - [Documentation](#documentation)
+- [Powered by React Native ExecuTorch](#powered-by-react-native-executorch)
 - [License](#license)
-- [What's Next?](#whats-next)
-- [React Native ExecuTorch is created by Software Mansion](#react-native-executorch-is-created-by-software-mansion)
+- [Created by Software Mansion](#created-by-software-mansion)
 
 </details>
 
-## Supported Versions
+---
 
-The minimal supported version are:
-* iOS 17.0
-* Android 13
-* React Native - see [compatibility table](https://docs.swmansion.com/react-native-executorch/docs/next/other/compatibility)
+## Key Features
 
-> [!IMPORTANT]
-> React Native ExecuTorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).
+- **Native Hardware Acceleration**: Optimized execution delegates across backends: **XNNPACK** (CPU), **Core ML** & **MLX** (Apple Silicon), and **Vulkan** (Android GPU).
+- **100% Offline & Private**: Zero cloud inference costs and zero network dependency after model download. No user data ever leaves the device.
+- **Two-Layer Architecture**:
+  - **Ready-to-use Task Hooks (`use<Task>`)**: Out-of-the-box support for LLMs, computer vision, speech, and embeddings with automatic caching and lifecycle management.
+  - **Lower-level Runtime & Custom Orchestration**: Build custom pipelines entirely in TypeScript using low-level tensor operations, fast native operators, schema validation, and worklet threading.
+- **Pre-Exported Model Catalog**: Access verified models directly via the `models` registry and the [Software Mansion Hugging Face Collections](https://huggingface.co/software-mansion/collections).
 
-## Real-world Example
+---
 
-React Native ExecuTorch is powering [Private Mind](https://privatemind.swmansion.com/), a privacy-first mobile AI app available on [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) and [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
+## Supported Capabilities
 
-<img width="2720" height="1085" alt="Private Mind promo" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
+| Domain | Task Pipelines | Featured Models |
+| :--- | :--- | :--- |
+| **Natural Language** | [LLM Chat & Generation](https://docs.swmansion.com/react-native-executorch/docs/extensions/llm-chat-and-generation), [Text Embeddings](https://docs.swmansion.com/react-native-executorch/docs/extensions/text-embeddings), [Privacy Filter (PII)](https://docs.swmansion.com/react-native-executorch/docs/extensions/privacy-filter), [Tokenizers](https://docs.swmansion.com/react-native-executorch/docs/extensions/tokenizers) | LFM 2.5, Gemma 4, Qwen 3, MiniLM, Nemotron PII |
+| **Speech & Audio** | [Text-to-Speech](https://docs.swmansion.com/react-native-executorch/docs/extensions/text-to-speech), [Speech-to-Text](https://docs.swmansion.com/react-native-executorch/docs/extensions/speech-to-text), [Voice Activity Detection](https://docs.swmansion.com/react-native-executorch/docs/extensions/voice-activity-detection) | Supertonic 3, Kokoro, Whisper, FSMN-VAD |
+| **Computer Vision** | [Image Classification](https://docs.swmansion.com/react-native-executorch/docs/extensions/image-classification), [Object Detection](https://docs.swmansion.com/react-native-executorch/docs/extensions/object-detection), [Pose & Keypoints](https://docs.swmansion.com/react-native-executorch/docs/extensions/pose-and-keypoints), [OCR](https://docs.swmansion.com/react-native-executorch/docs/extensions/optical-character-recognition), [Segmentation](https://docs.swmansion.com/react-native-executorch/docs/extensions/semantic-segmentation), [Style Transfer](https://docs.swmansion.com/react-native-executorch/docs/extensions/style-transfer), [Image Embeddings](https://docs.swmansion.com/react-native-executorch/docs/extensions/image-embeddings), [Text-to-Image](https://docs.swmansion.com/react-native-executorch/docs/extensions/text-to-image) | YOLO26, RF-DETR, SSDLite, FastSAM, PP-OCRv6, CLIP, SDXS DreamShaper |
 
-## Quickstart - Running LFM2.5
+---
 
-**Get started with AI-powered text generation in 3 easy steps!**
+## Quickstart
 
-The steps below assume an Expo project. For bare React Native, follow the [Getting Started guide](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/getting-started) in the documentation.
+### 1. Installation
 
-### :one: Installation
+Install `react-native-executorch` alongside its required peer dependencies:
 
 ```bash
-# Install the package
-yarn add react-native-executorch
-
-# Add these packages for resource fetching:
-yarn add react-native-executorch-expo-resource-fetcher
-yarn add expo-file-system expo-asset
-
-# Depending on the platform, choose either iOS or Android
-yarn <ios|android>
+npm install react-native-executorch react-native-worklets react-native-blob-util
+# or
+yarn add react-native-executorch react-native-worklets react-native-blob-util
+# or
+pnpm add react-native-executorch react-native-worklets react-native-blob-util
 ```
 
-> npm and pnpm work too — use `npm install` or `pnpm add` for the packages, and `npm run <ios|android>` / `pnpm <ios|android>` for the run step.
+> [!IMPORTANT]
+> React Native ExecuTorch requires the **New React Native Architecture**, **React Native 0.81+**, **iOS 17.0+**, and **Android 13+ (API 33)**.
 
-### :two: Setup & Initialization
-
-Add this to your component file:
+### 2. Run the Model
 
 ```tsx
-import {
-  useLLM,
-  models,
-  Message,
-  initExecutorch,
-} from 'react-native-executorch';
-import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
+import { Button, View } from 'react-native';
+import { models, useLLMChatSession } from 'react-native-executorch';
 
-initExecutorch({
-  resourceFetcher: ExpoResourceFetcher,
-});
+export function App() {
+  const session = useLLMChatSession(models.llm.LFM2_5_1_2B.DEFAULT);
 
-function MyComponent() {
-  // Initialize the model 🚀
-  const llm = useLLM({ model: models.llm.lfm2_5_1_2b_instruct() });
-  // ... rest of your component
+  const handleGenerate = async () => {
+    if (!session.isReady || !session.sendMessage) return;
+
+    const result = await session.sendMessage(
+      'Explain on-device AI in one sentence.',
+      (token) => console.log(token)
+    );
+
+    console.log('Result messages:', result.messages);
+  };
+
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Button
+        title={session.isReady ? 'Generate' : `Loading (${(session.downloadProgress * 100).toFixed(0)}%)`}
+        onPress={handleGenerate}
+        disabled={!session.isReady}
+      />
+    </View>
+  );
 }
 ```
 
-### :three: Run the Model!
+---
 
-```tsx
-const handleGenerate = async () => {
-  const chat: Message[] = [
-    { role: 'system', content: 'You are a helpful assistant' },
-    { role: 'user', content: 'What is the meaning of life?' }
-  ];
+## Interactive Gallery App
 
-  // Chat completion
-  await llm.generate(chat);
-  console.log('LFM2.5 says:', llm.response);
-};
-```
+Explore interactive task examples in the [React Native ExecuTorch Gallery](https://github.com/software-mansion/react-native-executorch-gallery):
 
-## Demo Apps
+- **Large Language Models (LLMs)**: Streaming on-device chat with interactive prompt suggestions.
+- **Speech & Audio**: Streaming TTS with audio playback (`react-native-audio-api`), live Whisper microphone transcription, and real-time VAD.
+- **Computer Vision**: Object detection, pose estimation, OCR, semantic & instance segmentation, style transfer, and text-to-image.
 
-We currently host a few example [apps](https://github.com/software-mansion/react-native-executorch/tree/main/apps) demonstrating use cases of our library:
+<!-- GALLERY DEMOS PLACEHOLDER: Insert gallery task GIFs/video showcase here -->
 
-- `llm` - Chat application showcasing use of LLMs
-- `speech` - Speech to Text & Text to Speech task implementations
-- `computer-vision` - Computer vision related tasks
-- `text-embeddings` - Computing text representations for semantic search
-- `bare-rn` - LLM chat example for bare React Native (without Expo)
-
-If you would like to run a demo app, first initialize the required git submodules from the repository root:
-
-```bash
-git submodule update --init packages/react-native-executorch/third-party/common
-```
-
-Then navigate to its project directory, install dependencies and run app with:
-
-```bash
-yarn && yarn <ios|android>
-```
-
-> [!WARNING]
-> Running LLMs requires a significant amount of RAM. If you are encountering unexpected app crashes, try to increase the amount of RAM allocated to the emulator.
-
-## Ready-made Models
-
-Our library has a number of ready-to-use AI models; a complete list is available in the documentation. If you're interested in running your own AI model, you need to first export it to the `.pte` format. Instructions on how to do this are available in the [Python API](https://docs.pytorch.org/executorch/stable/using-executorch-export.html) and [optimum-executorch README](https://github.com/huggingface/optimum-executorch?tab=readme-ov-file#option-2-export-and-load-separately).
+---
 
 ## Documentation
 
-Check out how our library can help you build your React Native AI features by visiting our docs:
-https://docs.swmansion.com/react-native-executorch
+Full documentation, guides, architecture deep dives, and API references are available at:
+**[docs.swmansion.com/react-native-executorch](https://docs.swmansion.com/react-native-executorch/)**
+
+- [Getting Started Guide](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/getting-started)
+- [Downloading & Caching Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/downloading-models)
+- [Task Extensions & Pipelines](https://docs.swmansion.com/react-native-executorch/docs/category/extensions)
+- [Core Primitives & Custom Pipelines](https://docs.swmansion.com/react-native-executorch/docs/category/core--advanced)
+- [Exporting Custom `.pte` Models](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/exporting-custom-models)
+
+---
+
+## Powered by React Native ExecuTorch
+
+React Native ExecuTorch powers [Private Mind](https://privatemind.swmansion.com/), a privacy-first mobile AI application available on [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) and [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
+
+<img width="2720" height="1085" alt="Private Mind promo" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
+
+---
 
 ## License
 
-This library is licensed under [The MIT License](./LICENSE).
+React Native ExecuTorch is licensed under the [MIT License](./LICENSE). It includes components from Meta's ExecuTorch library, which is licensed under the [BSD 3-Clause License](./LICENSE).
 
-## What's Next?
+---
 
-To learn about our upcoming plans and developments, please visit our [milestones](https://github.com/software-mansion/react-native-executorch/milestones).
+## Created by Software Mansion
 
-## React Native ExecuTorch is created by Software Mansion
-
-Since 2012, [Software Mansion](https://swmansion.com) is a software agency with experience in building web and mobile apps. We are Core React Native Contributors and experts in dealing with all kinds of React Native issues. We can help you build your next dream product – [Hire us](https://swmansion.com/contact?utm_source=react-native-executorch&utm_medium=readme).
+Since 2012, [Software Mansion](https://swmansion.com) has been building mobile and web apps, contributing to open-source software, and dealing with all kinds of React Native challenges. We are Core React Native Contributors. We can help you build your next AI product – [Hire us](https://swmansion.com/contact?utm_source=react-native-executorch&utm_medium=readme).
 
 [![swm](https://logo.swmansion.com/logo?color=white&variant=desktop&width=150&tag=react-native-executorch-github 'Software Mansion')](https://swmansion.com)
+
