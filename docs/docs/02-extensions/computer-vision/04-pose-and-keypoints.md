@@ -143,7 +143,7 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 ## Available Models
 
-The library provides ready-to-use pose and landmark detectors in [`models.keypointDetection`](../../06-api-reference/variables/models.md#keypointdetection):
+The library provides ready-to-use pose and landmark detectors from the [Software Mansion HuggingFace Pose Estimation Collection](https://huggingface.co/collections/software-mansion/keypoint-detection), available in [`models.keypointDetection`](../../06-api-reference/variables/models.md#keypointdetection):
 
 | Model                   | Variant                                     | Size          | Platform / Acceleration | Notes                                                                                             |
 | :---------------------- | :------------------------------------------ | :------------ | :---------------------- | :------------------------------------------------------------------------------------------------ |
