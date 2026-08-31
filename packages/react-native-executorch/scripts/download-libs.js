@@ -124,8 +124,8 @@ const FEATURE_MAP = {
   multimodalLLM: { backends: ['xnnpack', 'mlx', 'vulkan'], libs: ['opencv'] },
   // Privacy filter classifiers ship xnnpack + an MLX iOS export.
   privacyFilter: { backends: ['xnnpack', 'mlx'], libs: [] },
-  // Whisper ships xnnpack + coreml.
-  speechToText: { backends: ['xnnpack', 'coreml'], libs: [] },
+  // Whisper ships xnnpack + coreml + a Vulkan Android export.
+  speechToText: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: [] },
   // Kokoro ships xnnpack only.
   textToSpeech: { backends: ['xnnpack'], libs: ['phonemis'] },
   // FSMN VAD — xnnpack only.

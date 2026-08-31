@@ -750,6 +750,18 @@ const WHISPER_TINY_MLX_INT8: WhisperSttModel = {
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
+const WHISPER_TINY_VULKAN_FP16: WhisperSttModel = {
+  modelPath: `${BASE_URL}-whisper-tiny/${NEXT_VERSION_TAG}/vulkan/whisper_tiny_vulkan_fp16.pte`,
+  tokenizerPath: `${BASE_URL}-whisper-tiny/${NEXT_VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: WHISPER_LANGUAGES,
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
+const WHISPER_TINY_VULKAN_INT8: WhisperSttModel = {
+  modelPath: `${BASE_URL}-whisper-tiny/${NEXT_VERSION_TAG}/vulkan/whisper_tiny_vulkan_int8.pte`,
+  tokenizerPath: `${BASE_URL}-whisper-tiny/${NEXT_VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: WHISPER_LANGUAGES,
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
 
 const WHISPER_BASE_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
   modelPath: `${BASE_URL}-whisper-base.en/${NEXT_VERSION_TAG}/xnnpack/whisper_base_en_xnnpack_fp32.pte`,
@@ -1862,6 +1874,8 @@ export const models = {
         COREML_FP16: WHISPER_TINY_COREML_FP16,
         MLX_BF16: WHISPER_TINY_MLX_BF16,
         MLX_INT8: WHISPER_TINY_MLX_INT8,
+        VULKAN_FP16: WHISPER_TINY_VULKAN_FP16,
+        VULKAN_INT8: WHISPER_TINY_VULKAN_INT8,
       },
       /**
        * Multilingual Whisper Base model. Higher accuracy across supported
