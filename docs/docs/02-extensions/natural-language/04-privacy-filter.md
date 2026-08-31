@@ -152,10 +152,10 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides ready-to-use privacy filter models in [`models.privacyFilter`](../../06-api-reference/variables/models.md#privacyfilter):
 
-| Model                       | Supported Variants                    | Size (Default) | PII Categories Covered                                                                | Best For                                                        |
-| :-------------------------- | :------------------------------------ | :------------- | :------------------------------------------------------------------------------------ | :-------------------------------------------------------------- |
-| **OpenAI Privacy Filter**   | `XNNPACK_8DA4W` (default), `MLX_INT4` | 1.2 GB         | 8 common categories (names, emails, phones, addresses, secrets, etc.)                 | General user data redaction and pre-LLM prompt sanitization.    |
-| **Nemotron Privacy Filter** | `XNNPACK_8DA4W` (default), `MLX_INT8` | 1.2 GB         | 55 fine-grained PII categories (tax IDs, credentials, credit cards, health IDs, etc.) | Strict regulatory compliance and enterprise security redaction. |
+| Model Family                | Labels / Categories        | Size Range         | Supported Backends         | Best For                                                                    |
+| :-------------------------- | :------------------------- | :----------------- | :------------------------- | :-------------------------------------------------------------------------- |
+| **OpenAI Privacy Filter**   | 8 common categories        | 834.5 MB – 1.16 GB | CPU (XNNPACK), Apple (MLX) | General user data redaction and pre-LLM prompt sanitization.                |
+| **Nemotron Privacy Filter** | 55 fine-grained categories | 1.16 GB – 1.47 GB  | CPU (XNNPACK), Apple (MLX) | Strict compliance, tax IDs, credentials, and enterprise security redaction. |
 
 :::tip Using Custom Models
 To use your own fine-tuned token classification `.pte` model, pass a [`PrivacyFilterModel`](../../06-api-reference/type-aliases/PrivacyFilterModel.md) configuration object to `usePrivacyFilter` or `createPrivacyFilter`:

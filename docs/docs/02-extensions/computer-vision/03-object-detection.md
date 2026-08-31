@@ -142,13 +142,11 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides ready-to-use detectors from the [Software Mansion HuggingFace Object Detection Collection](https://huggingface.co/collections/software-mansion/object-detection), trained on the 80-category COCO dataset and available in [`models.objectDetection`](../../06-api-reference/variables/models.md#objectdetection):
 
-| Model                      | Variant                        | Size      | Platform / Acceleration   | Notes                                                                         |
-| :------------------------- | :----------------------------- | :-------- | :------------------------ | :---------------------------------------------------------------------------- |
-| **SSDLite320 MobileNetV3** | `XNNPACK_FP32` (default)       | 13.9 MB   | Universal (CPU)           | Ultra-lightweight detector at 320x320 resolution. Fast on low-end devices.    |
-| SSDLite320 MobileNetV3     | `COREML_FP16`                  | 8.5 MB    | iOS (Neural Engine / GPU) | Accelerated via Apple Core ML on iOS 17+.                                     |
-| **RF-DETR Nano**           | `XNNPACK_FP32` (default)       | 111.6 MB  | Universal (CPU)           | DINOv2-based detection transformer. High accuracy on complex scenes.          |
-| RF-DETR Nano               | `COREML_FP16`                  | 54.7 MB   | iOS (Neural Engine / GPU) | Core ML accelerated transformer detector.                                     |
-| **YOLO26 Nano**            | `XNNPACK_FP32` / `COREML_FP16` | Multi-res | Universal / iOS           | Ultralytics YOLO26 architecture in 384x384, 512x512, and 640x640 resolutions. |
+| Model Family               | Variants / Resolutions                       | Size Range         | Supported Backends             | Dataset / Vocabulary | Best For                                                                              |
+| :------------------------- | :------------------------------------------- | :----------------- | :----------------------------- | :------------------- | :------------------------------------------------------------------------------------ |
+| **SSDLite320 MobileNetV3** | `320x320`                                    | 8.1 MB – 13.3 MB   | CPU (XNNPACK), Apple (Core ML) | COCO (80 classes)    | Ultra-lightweight detector with highest frame rates on low-end devices.               |
+| **RF-DETR Nano**           | `DINOv2 Detection`                           | 52.2 MB – 106.4 MB | CPU (XNNPACK), Apple (Core ML) | COCO (80 classes)    | DINOv2-based detection transformer with superior small-object accuracy.               |
+| **YOLO26**                 | `Nano`, `Small`, `Medium`, `Large`, `XLarge` | 5.4 MB – 212.9 MB  | CPU (XNNPACK), Apple (Core ML) | COCO (80 classes)    | Scalable real-time detection family across 384x384, 512x512, and 640x640 resolutions. |
 
 :::tip Using Custom Models
 To use your own fine-tuned object detection `.pte` model, pass an [`ObjectDetectorModel`](../../06-api-reference/type-aliases/ObjectDetectorModel.md) configuration object to `useObjectDetector` or `createObjectDetector`:

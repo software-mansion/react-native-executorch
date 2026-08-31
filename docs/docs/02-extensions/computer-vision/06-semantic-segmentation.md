@@ -126,14 +126,12 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides ready-to-use segmentation models from the [Software Mansion HuggingFace Semantic Segmentation Collection](https://huggingface.co/collections/software-mansion/semantic-segmentation), accessible via [`models.semanticSegmentation`](../../06-api-reference/variables/models.md#semanticsegmentation):
 
-| Model                   | Variant                  | Size    | Platform / Acceleration   | Notes                                                                        |
-| :---------------------- | :----------------------- | :------ | :------------------------ | :--------------------------------------------------------------------------- |
-| **Selfie Segmentation** | `XNNPACK_FP32` (default) | 0.5 MB  | Universal (CPU)           | Ultra-lightweight portrait person vs background segmenter for front cameras. |
-| Selfie Segmentation     | `COREML_FP16`            | ~0.3 MB | iOS (Neural Engine / GPU) | Accelerated via Apple Core ML on iOS 17+.                                    |
-| **LRASPP MobileNetV3**  | `XNNPACK_INT8` (default) | 3.5 MB  | Universal (CPU)           | Lightweight 21-class Pascal VOC segmenter for real-time mobile use.          |
-| LRASPP MobileNetV3      | `COREML_FP16`            | 6.5 MB  | iOS (Neural Engine / GPU) | Core ML accelerated Pascal VOC segmenter.                                    |
-| **DeepLabV3 ResNet50**  | `XNNPACK_INT8` (default) | 42.4 MB | Universal (CPU)           | High-accuracy 21-class Pascal VOC segmenter.                                 |
-| DeepLabV3 ResNet50      | `COREML_FP16`            | 79.6 MB | iOS (Neural Engine / GPU) | Accelerated via Apple Core ML on iOS 17+.                                    |
+| Model Family                 | Classes / Labels        | Size Range         | Supported Backends             | Best For                                                                 |
+| :--------------------------- | :---------------------- | :----------------- | :----------------------------- | :----------------------------------------------------------------------- |
+| **Selfie Segmentation**      | Person / Background     | 0.5 MB – 0.6 MB    | CPU (XNNPACK), Apple (Core ML) | Real-time front-camera portrait background replacement and blur effects. |
+| **LRASPP MobileNetV3**       | Pascal VOC (21 classes) | 3.4 MB – 12.3 MB   | CPU (XNNPACK), Apple (Core ML) | Lightweight multi-class scene segmentation with low CPU overhead.        |
+| **DeepLabV3 ResNet50 / 101** | Pascal VOC (21 classes) | 40.4 MB – 223.6 MB | CPU (XNNPACK), Apple (Core ML) | High-fidelity dense pixel classification for complex scenes.             |
+| **FCN ResNet50 / 101**       | Pascal VOC (21 classes) | 34.0 MB – 198.1 MB | CPU (XNNPACK), Apple (Core ML) | Fully Convolutional Networks baseline for dense multi-class parsing.     |
 
 :::tip Using Custom Models
 To use your own fine-tuned semantic segmentation `.pte` model, pass a [`SemanticSegmenterModel`](../../06-api-reference/type-aliases/SemanticSegmenterModel.md) configuration object to `useSemanticSegmenter` or `createSemanticSegmenter`:

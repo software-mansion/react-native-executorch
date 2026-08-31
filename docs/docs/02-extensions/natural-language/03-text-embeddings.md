@@ -133,16 +133,15 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides ready-to-use text embedding models from the [Software Mansion HuggingFace Text Embeddings Collection](https://huggingface.co/collections/software-mansion/text-embeddings), available in [`models.textEmbeddings`](../../06-api-reference/variables/models.md#textembeddings):
 
-| Model                                     | Supported Variants                    | Size (Default) | Output Dim | Languages     | Notes                                                                            |
-| :---------------------------------------- | :------------------------------------ | :------------- | :--------- | :------------ | :------------------------------------------------------------------------------- |
-| **all-MiniLM-L6-v2**                      | `XNNPACK_FP32` (default)              | 90 MB          | 384        | English       | Fast, lightweight general-purpose sentence transformer for mobile vector search. |
-| **all-mpnet-base-v2**                     | `XNNPACK_FP32` (default)              | 436 MB         | 768        | English       | High-capacity model based on MPNet with superior semantic retrieval accuracy.    |
-| **multi-qa-MiniLM-L6-cos-v1**             | `XNNPACK_FP32` (default)              | 90 MB          | 384        | English       | Fine-tuned specifically for Question-Answering retrieval using cosine distance.  |
-| **multi-qa-mpnet-base-dot-v1**            | `XNNPACK_FP32` (default)              | 436 MB         | 768        | English       | High-accuracy Question-Answering model optimized for dot-product matching.       |
-| **paraphrase-multilingual-MiniLM-L12-v2** | `XNNPACK_8DA4W` (default)             | 397 MB         | 384        | 50+ languages | Multilingual semantic similarity and cross-lingual text matching.                |
-| **distiluse-base-multilingual-cased-v2**  | `XNNPACK_8DA4W` (default), `MLX_INT8` | 393 MB         | 512        | 50+ languages | Distilled Universal Sentence Encoder supporting cross-lingual clustering.        |
-| **CLIP ViT-B/32 Text**                    | `XNNPACK_FP32` (default)              | 247 MB         | 512        | English       | CLIP text encoder for joint image-text cross-modal search.                       |
-| **LFM 2.5 Embedding 350M**                | `XNNPACK_8DA4W` (default), `MLX_INT4` | 575 MB         | 512        | Multilingual  | Liquid AI asymmetric search model with `query:` and `document:` prompting.       |
+| Model Family                              | Output Dim | Languages     | Size Range          | Supported Backends         | Best For                                                          |
+| :---------------------------------------- | :--------- | :------------ | :------------------ | :------------------------- | :---------------------------------------------------------------- |
+| **all-MiniLM-L6-v2**                      | 384        | English       | 86.2 MB             | CPU (XNNPACK)              | Fast, lightweight sentence transformer for mobile vector search.  |
+| **all-mpnet-base-v2**                     | 768        | English       | 415.6 MB            | CPU (XNNPACK)              | High-capacity model with superior semantic retrieval accuracy.    |
+| **multi-qa-MiniLM / mpnet**               | 384 / 768  | English       | 86.2 MB – 415.6 MB  | CPU (XNNPACK)              | Fine-tuned specifically for Question-Answering retrieval.         |
+| **paraphrase-multilingual-MiniLM-L12-v2** | 384        | 50+ languages | 378.9 MB            | CPU (XNNPACK)              | Multilingual semantic similarity and cross-lingual text matching. |
+| **distiluse-base-multilingual-cased-v2**  | 512        | 50+ languages | 133.1 MB – 375.1 MB | CPU (XNNPACK), Apple (MLX) | Distilled Universal Sentence Encoder for multilingual clustering. |
+| **Liquid LFM 2.5 Embedding 350M**         | 512        | Multilingual  | 179.8 MB – 548.2 MB | CPU (XNNPACK), Apple (MLX) | Asymmetric search with `query:` and `document:` prompting.        |
+| **CLIP ViT-B/32 Text**                    | 512        | English       | 242.2 MB            | CPU (XNNPACK)              | Text encoder for joint cross-modal text-to-image search.          |
 
 :::tip Using Custom Models
 To use your own fine-tuned sentence transformer `.pte` model, pass a [`TextEmbedderModel`](../../06-api-reference/type-aliases/TextEmbedderModel.md) configuration object to `useTextEmbedder` or `createTextEmbedder`:

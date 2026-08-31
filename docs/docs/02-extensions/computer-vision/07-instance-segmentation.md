@@ -142,13 +142,11 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides ready-to-use instance segmentation models from the [Software Mansion HuggingFace Instance Segmentation Collection](https://huggingface.co/collections/software-mansion/instance-segmentation), accessible via [`models.instanceSegmentation`](../../06-api-reference/variables/models.md#instancesegmentation):
 
-| Model                   | Variant                                  | Size          | Platform / Acceleration   | Notes                                                                             |
-| :---------------------- | :--------------------------------------- | :------------ | :------------------------ | :-------------------------------------------------------------------------------- |
-| **FastSAM Small**       | `XNNPACK_FP32` (default)                 | 47.3 MB       | Universal (CPU)           | Segment Anything Model optimized for fast mobile instance mask extraction.        |
-| FastSAM Small           | `COREML_FP16`                            | 24.2 MB       | iOS (Neural Engine / GPU) | Core ML accelerated FastSAM for iOS 17+.                                          |
-| **FastSAM Extra Large** | `XNNPACK_FP32` / `COREML_FP16`           | ~270 MB       | Universal / iOS           | High-accuracy Segment Anything variant for fine edge boundaries.                  |
-| **RF-DETR Nano**        | `COREML_FP16` (default) / `XNNPACK_FP32` | Multi-backend | Universal / iOS           | DINOv2-based detection & instance segmentation transformer.                       |
-| **YOLO26 Seg**          | `XNNPACK_FP32`                           | Multi-res     | Universal (CPU)           | Real-time YOLO26 instance segmentation (Nano, Small, Medium, Large, Extra Large). |
+| Model Family                      | Dataset / Vocabulary        | Size Range         | Supported Backends             | Best For                                                                      |
+| :-------------------------------- | :-------------------------- | :----------------- | :----------------------------- | :---------------------------------------------------------------------------- |
+| **FastSAM (Small & Extra Large)** | Open-world promptable masks | 23.1 MB – 275.7 MB | CPU (XNNPACK), Apple (Core ML) | Segment Anything Model optimized for zero-shot object mask extraction.        |
+| **RF-DETR Nano Seg**              | COCO (80 classes)           | 59.5 MB – 118.3 MB | CPU (XNNPACK), Apple (Core ML) | DINOv2-based detection & instance segmentation transformer.                   |
+| **YOLO26 Seg**                    | COCO (80 classes)           | 10.6 MB – 240.0 MB | CPU (XNNPACK)                  | Real-time simultaneous object detection and polygon instance mask extraction. |
 
 :::tip Using Custom Models
 To use your own fine-tuned instance segmentation `.pte` model, pass an [`InstanceSegmenterModel`](../../06-api-reference/type-aliases/InstanceSegmenterModel.md) configuration object to `useInstanceSegmenter` or `createInstanceSegmenter`:

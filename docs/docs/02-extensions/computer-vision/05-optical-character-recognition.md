@@ -140,11 +140,9 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides mixed-precision fused PP-OCRv6 models from the [Software Mansion HuggingFace OCR Collection](https://huggingface.co/collections/software-mansion/ocr), available in [`models.ocr`](../../06-api-reference/variables/models.md#ocr):
 
-| Model              | Variant             | Size    | Platform / Acceleration   | Notes                                                                 |
-| :----------------- | :------------------ | :------ | :------------------------ | :-------------------------------------------------------------------- |
-| **PP-OCRv6 Small** | `XNNPACK` (default) | 23.9 MB | Universal (CPU)           | INT8 DBNet text detector paired with FP32 SVTR text recognizer.       |
-| PP-OCRv6 Small     | `COREML`            | 8.3 MB  | iOS (Neural Engine / GPU) | Accelerated via Apple Core ML on iOS 17+.                             |
-| PP-OCRv6 Small     | `VULKAN`            | 26.2 MB | Android (GPU)             | GPU-accelerated text detection and recognition on Android via Vulkan. |
+| Model Family       | Size Range       | Supported Backends                               | Best For                                                                     |
+| :----------------- | :--------------- | :----------------------------------------------- | :--------------------------------------------------------------------------- |
+| **PP-OCRv6 Small** | 7.9 MB – 25.0 MB | CPU (XNNPACK), Apple (Core ML), Android (Vulkan) | Full end-to-end on-device text detection & recognition in a single pipeline. |
 
 :::tip Using Custom Models
 To use your own custom-trained PaddleOCR `.pte` model and character set, pass a [`PaddleOcrModel`](../../06-api-reference/type-aliases/PaddleOcrModel.md) configuration object to `useOpticalCharacterRecognizer` or `createPaddleOcr`:

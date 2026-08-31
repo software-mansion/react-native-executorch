@@ -118,10 +118,9 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides ready-to-use text-to-image models from the [Software Mansion HuggingFace Text to Image Collection](https://huggingface.co/collections/software-mansion/text-to-image), available in [`models.textToImage`](../../06-api-reference/variables/models.md#texttoimage):
 
-| Model                    | Variant                  | Size     | Platform / Acceleration   | Resolution | Notes                                                              |
-| :----------------------- | :----------------------- | :------- | :------------------------ | :--------- | :----------------------------------------------------------------- |
-| **SDXS 512 DreamShaper** | `XNNPACK_FP32` (default) | 1.76 GB  | Universal (CPU)           | 512x512    | Single-step distilled latent diffusion model based on DreamShaper. |
-| SDXS 512 DreamShaper     | `COREML_FP16`            | 880.7 MB | iOS (Neural Engine / GPU) | 512x512    | Accelerated via Apple Core ML on iOS 17+.                          |
+| Model Family             | Resolution | Size Range         | Supported Backends             | Best For                                                                         |
+| :----------------------- | :--------- | :----------------- | :----------------------------- | :------------------------------------------------------------------------------- |
+| **SDXS 512 DreamShaper** | 512x512    | 839.9 MB – 1.64 GB | CPU (XNNPACK), Apple (Core ML) | Single-step distilled latent diffusion for ultra-fast on-device image synthesis. |
 
 :::tip Using Custom Models
 To use your own fine-tuned SDXS `.pte` model and CLIP tokenizer, pass a [`SdxsTextToImageModel`](../../06-api-reference/type-aliases/SdxsTextToImageModel.md) configuration object to `useTextToImage` or `createSdxsTextToImage`:
