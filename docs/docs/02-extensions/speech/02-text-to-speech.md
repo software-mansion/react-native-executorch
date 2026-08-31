@@ -82,6 +82,32 @@ On-device text-to-speech is built for instant audio feedback:
 - **Smooth UI**: Audio generation runs in the background so your app's user interface and animations stay completely smooth.
 - **Cancellation**: Calling `synthesizeStop()` signals the generator to stop, halting synthesis before subsequent chunks are computed.
 
+## Imperative Pipelines
+
+For background services, audio workers, or non-React component logic, you can instantiate the pipelines imperatively using [`createSupertonicTextToSpeech`](../../06-api-reference/functions/createSupertonicTextToSpeech.md) or [`createKokoroTextToSpeech`](../../06-api-reference/functions/createKokoroTextToSpeech.md):
+
+```typescript
+import { createKokoroTextToSpeech, download, models } from 'react-native-executorch';
+
+// Download and cache remote model weights, phonemizers, and voice files
+const model = await download(models.textToSpeech.KOKORO.EN_US.DEFAULT);
+const tts = await createKokoroTextToSpeech(model);
+
+try {
+  const chunksStream = tts.synthesize('Hello from offline text-to-speech!', {
+    voice: 'af_heart',
+    speed: 1.0,
+  });
+
+  for await (const chunk of chunksStream) {
+    console.log(`Chunk generated: ${chunk.duration.toFixed(2)}s`);
+  }
+} finally {
+  // Always release native model memory and buffers when done
+  tts.dispose();
+}
+```
+
 ## Available Models
 
 The library provides ready-to-use Text-to-Speech models in [`models.textToSpeech`](../../06-api-reference/variables/models.md#texttospeech):

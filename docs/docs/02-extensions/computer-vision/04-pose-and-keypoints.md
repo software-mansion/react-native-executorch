@@ -113,9 +113,11 @@ Pass a [`DetectKeypointsOptions`](../../06-api-reference/type-aliases/DetectKeyp
 For background tasks, headless services, or manual lifecycle management outside React components, create the detector using [`createKeypointDetector`](../../06-api-reference/functions/createKeypointDetector.md):
 
 ```typescript
-import { createKeypointDetector, models } from 'react-native-executorch';
+import { createKeypointDetector, download, models } from 'react-native-executorch';
 
-const detector = await createKeypointDetector(models.keypointDetection.YOLO26_POSE.DEFAULT);
+// Download and cache model assets before creating the pipeline
+const model = await download(models.keypointDetection.YOLO26_POSE.DEFAULT);
+const detector = await createKeypointDetector(model);
 
 try {
   const poses = await detector.detectKeypoints(imageBuffer, {

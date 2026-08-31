@@ -108,9 +108,11 @@ Pass a [`SegmentInstancesOptions`](../../06-api-reference/type-aliases/SegmentIn
 For background processing, headless pipelines, or manual lifecycle management outside React components, create the segmenter pipeline using [`createInstanceSegmenter`](../../06-api-reference/functions/createInstanceSegmenter.md):
 
 ```typescript
-import { createInstanceSegmenter, models } from 'react-native-executorch';
+import { createInstanceSegmenter, download, models } from 'react-native-executorch';
 
-const segmenter = await createInstanceSegmenter(models.instanceSegmentation.FASTSAM.S.DEFAULT);
+// Download and cache model assets before creating the pipeline
+const model = await download(models.instanceSegmentation.FASTSAM.S.DEFAULT);
+const segmenter = await createInstanceSegmenter(model);
 
 try {
   const instances = await segmenter.segmentInstances(imageBuffer, {

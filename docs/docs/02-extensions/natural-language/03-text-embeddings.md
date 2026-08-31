@@ -103,9 +103,11 @@ You can pass a custom prefix string as the optional second argument to `embed(in
 For batch indexing, SQLite vector ingestion, or manual lifecycle management outside React components, create the embedder using [`createTextEmbedder`](../../06-api-reference/functions/createTextEmbedder.md):
 
 ```typescript
-import { createTextEmbedder, models } from 'react-native-executorch';
+import { createTextEmbedder, download, models } from 'react-native-executorch';
 
-const embedder = await createTextEmbedder(models.textEmbeddings.ALL_MINILM_L6_V2.DEFAULT);
+// Download and cache model assets before creating the imperative pipeline
+const model = await download(models.textEmbeddings.ALL_MINILM_L6_V2.DEFAULT);
+const embedder = await createTextEmbedder(model);
 
 try {
   const vector = await embedder.embed('Vector search index item');

@@ -96,11 +96,11 @@ When omitted, multi-class models automatically generate high-contrast distinct c
 For background processing, headless pipelines, or manual lifecycle management outside React components, create the segmenter using [`createSemanticSegmenter`](../../06-api-reference/functions/createSemanticSegmenter.md):
 
 ```typescript
-import { createSemanticSegmenter, models } from 'react-native-executorch';
+import { createSemanticSegmenter, download, models } from 'react-native-executorch';
 
-const segmenter = await createSemanticSegmenter(
-  models.semanticSegmentation.DEEPLAB_V3_RESNET50.DEFAULT
-);
+// Download and cache model assets before creating the pipeline
+const model = await download(models.semanticSegmentation.DEEPLAB_V3_RESNET50.DEFAULT);
+const segmenter = await createSemanticSegmenter(model);
 
 try {
   const result = await segmenter.segment(imageBuffer);

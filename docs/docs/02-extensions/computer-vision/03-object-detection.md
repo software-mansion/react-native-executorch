@@ -108,11 +108,11 @@ Pass a [`DetectObjectsOptions`](../../06-api-reference/type-aliases/DetectObject
 For background tasks or headless usage outside React components, create the detector using [`createObjectDetector`](../../06-api-reference/functions/createObjectDetector.md):
 
 ```typescript
-import { createObjectDetector, models } from 'react-native-executorch';
+import { createObjectDetector, download, models } from 'react-native-executorch';
 
-const detector = await createObjectDetector(
-  models.objectDetection.SSDLITE320_MOBILENET_V3_LARGE.DEFAULT
-);
+// Download and cache model assets before creating the pipeline
+const model = await download(models.objectDetection.SSDLITE320_MOBILENET_V3_LARGE.DEFAULT);
+const detector = await createObjectDetector(model);
 
 try {
   const detections = await detector.detectObjects(imageBuffer, {
