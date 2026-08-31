@@ -121,7 +121,8 @@ export function App() {
 
 ## Interactive Gallery App
 
-Explore interactive task examples in the [React Native ExecuTorch Gallery](https://github.com/software-mansion/react-native-executorch-gallery):
+<!-- TODO: Update gallery URL once repo is moved to software-mansion organization -->
+Explore interactive task examples in the [React Native ExecuTorch Gallery](https://github.com/barhanc/react-native-executorch-gallery):
 
 - **Large Language Models (LLMs)**: Streaming on-device chat with interactive prompt suggestions.
 - **Speech & Audio**: Streaming TTS with audio playback (`react-native-audio-api`), live Whisper microphone transcription, and real-time VAD.
