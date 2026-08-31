@@ -22,10 +22,10 @@ keywords:
 
 The Speech-to-Text extension transcribes spoken audio into text directly on-device using OpenAI's Whisper model paired with an integrated FSMN Voice Activity Detector (VAD).
 
-It supports both:
+The pipeline supports two primary workflows:
 
-1. **Live Microphone Streaming**: Real-time microphone audio transcription yielding committed finalized text alongside live in-progress draft text.
-2. **Pre-recorded Audio Transcription**: Batch transcription of full audio buffers or recorded files with optional token streaming callbacks.
+- **Live Microphone Streaming ([`stt.stream`](#output-format--live-streaming))**: Streams real-time audio straight from the microphone. As the user speaks, Whisper continuously returns draft transcripts and automatically commits finalized sentences upon pauses.
+- **Pre-recorded Audio Transcription ([`stt.transcribe`](#pre-recorded-audio-transcription))**: Transcribes pre-recorded audio buffers or audio files in a single pass, with optional token-by-token streaming callbacks.
 
 <!-- GIF DEMO PLACEHOLDER: Place STT demo gif here, e.g. ![Speech to Text Demo](./media/stt.gif) -->
 
