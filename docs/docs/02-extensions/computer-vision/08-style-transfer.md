@@ -80,9 +80,11 @@ The resulting buffer contains raw uncompressed RGBA pixel bytes that can be rend
 For background photo processing, headless workflows, or manual lifecycle management outside React components, create the pipeline using [`createStyleTransfer`](../../06-api-reference/functions/createStyleTransfer.md):
 
 ```typescript
-import { createStyleTransfer, models } from 'react-native-executorch';
+import { createStyleTransfer, download, models } from 'react-native-executorch';
 
-const styleTransfer = await createStyleTransfer(models.styleTransfer.CANDY.DEFAULT);
+// Download and cache model assets before creating the pipeline
+const model = await download(models.styleTransfer.CANDY.DEFAULT);
+const styleTransfer = await createStyleTransfer(model);
 
 try {
   const styledBuffer = await styleTransfer.transferStyle(imageBuffer);

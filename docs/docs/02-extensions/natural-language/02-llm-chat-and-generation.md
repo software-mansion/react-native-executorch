@@ -236,9 +236,11 @@ const session = useLLMChatSession(models.llm.LFM2_5_1_2B.DEFAULT, {
 For headless background services or non-React architectures, create a full chat session imperatively using [`createLLMChatSession`](../../06-api-reference/functions/createLLMChatSession.md):
 
 ```typescript
-import { createLLMChatSession, models } from 'react-native-executorch';
+import { createLLMChatSession, download, models } from 'react-native-executorch';
 
-const session = await createLLMChatSession(models.llm.LFM2_5_1_2B.DEFAULT, {
+// Download and cache LLM weights and tokenizer files
+const model = await download(models.llm.LFM2_5_1_2B.DEFAULT);
+const session = await createLLMChatSession(model, {
   initialMessages: [{ role: 'system', content: 'You are an offline assistant.' }],
   generationConfig: { temperature: 0.3, maxNewTokens: 256 },
 });

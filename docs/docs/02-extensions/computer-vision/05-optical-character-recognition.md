@@ -106,9 +106,11 @@ Pass a [`RecognizeCharactersOptions`](../../06-api-reference/type-aliases/Recogn
 For background processing, document scanners, or manual lifecycle management outside React components, create the pipeline using [`createPaddleOcr`](../../06-api-reference/functions/createPaddleOcr.md):
 
 ```typescript
-import { createPaddleOcr, models } from 'react-native-executorch';
+import { createPaddleOcr, download, models } from 'react-native-executorch';
 
-const ocr = await createPaddleOcr(models.ocr.PADDLE.PPOCRV6_SMALL.DEFAULT);
+// Download and cache model assets before creating the pipeline
+const model = await download(models.ocr.PADDLE.PPOCRV6_SMALL.DEFAULT);
+const ocr = await createPaddleOcr(model);
 
 try {
   const lines = await ocr.recognizeCharacters(imageBuffer, {

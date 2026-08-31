@@ -122,9 +122,11 @@ console.log(sanitized);
 For background workers, pre-request network interceptors, or manual lifecycle management outside React components, create the pipeline using [`createPrivacyFilter`](../../06-api-reference/functions/createPrivacyFilter.md):
 
 ```typescript
-import { createPrivacyFilter, models } from 'react-native-executorch';
+import { createPrivacyFilter, download, models } from 'react-native-executorch';
 
-const filter = await createPrivacyFilter(models.privacyFilter.OPENAI.DEFAULT);
+// Download and cache model assets before creating the imperative pipeline
+const model = await download(models.privacyFilter.OPENAI.DEFAULT);
+const filter = await createPrivacyFilter(model);
 
 try {
   const entities = await filter.detectPii('User prompt with secret credentials');

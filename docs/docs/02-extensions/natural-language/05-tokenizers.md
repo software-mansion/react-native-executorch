@@ -92,9 +92,11 @@ const id = tokenizer.tokenToId('[SEP]'); // 102
 If you want an asynchronous, Promise-based wrapper around `loadTokenizer` that dispatches execution to a background worklet thread, use [`createTokenizer`](../../06-api-reference/functions/createTokenizer.md):
 
 ```typescript
-import { createTokenizer, models } from 'react-native-executorch';
+import { createTokenizer, download, models } from 'react-native-executorch';
 
-const tokenizer = await createTokenizer(models.tokenizer.ALL_MINILM_L6_V2);
+// Download and cache tokenizer.json before creating the pipeline
+const tokenizerConfig = await download(models.tokenizer.ALL_MINILM_L6_V2);
+const tokenizer = await createTokenizer(tokenizerConfig);
 
 try {
   const ids = await tokenizer.encode('On-device tokenization with background execution');

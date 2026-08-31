@@ -85,9 +85,11 @@ You can render the output directly to screen using Skia (`Image`), convert it in
 For background generation jobs, headless services, or manual lifecycle management outside React components, create the generator using [`createSdxsTextToImage`](../../06-api-reference/functions/createSdxsTextToImage.md):
 
 ```typescript
-import { createSdxsTextToImage, models } from 'react-native-executorch';
+import { createSdxsTextToImage, download, models } from 'react-native-executorch';
 
-const generator = await createSdxsTextToImage(models.textToImage.SDXS_512_DREAMSHAPER.DEFAULT);
+// Download and cache model assets before creating the pipeline
+const model = await download(models.textToImage.SDXS_512_DREAMSHAPER.DEFAULT);
+const generator = await createSdxsTextToImage(model);
 
 try {
   const imageBuffer = await generator.generate(

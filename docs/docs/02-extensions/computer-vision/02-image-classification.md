@@ -97,9 +97,11 @@ Pass a [`ClassifyOptions`](../../06-api-reference/type-aliases/ClassifyOptions.m
 For background jobs, headless services, or manual lifecycle management outside React components, instantiate the pipeline directly with [`createClassifier`](../../06-api-reference/functions/createClassifier.md):
 
 ```typescript
-import { createClassifier, models } from 'react-native-executorch';
+import { createClassifier, download, models } from 'react-native-executorch';
 
-const classifier = await createClassifier(models.classification.EFFICIENTNET_V2_S.DEFAULT);
+// Download and cache model assets before creating the pipeline
+const model = await download(models.classification.EFFICIENTNET_V2_S.DEFAULT);
+const classifier = await createClassifier(model);
 
 try {
   const results = await classifier.classify(imageBuffer, { topk: 5 });

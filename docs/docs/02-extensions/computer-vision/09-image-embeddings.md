@@ -90,9 +90,11 @@ console.log('Match similarity score:', score);
 For background indexing, SQLite vector ingestion, or manual lifecycle management outside React components, create the embedder using [`createImageEmbedder`](../../06-api-reference/functions/createImageEmbedder.md):
 
 ```typescript
-import { createImageEmbedder, models } from 'react-native-executorch';
+import { createImageEmbedder, download, models } from 'react-native-executorch';
 
-const embedder = await createImageEmbedder(models.imageEmbeddings.CLIP_VIT_BASE_PATCH32.DEFAULT);
+// Download and cache model assets before creating the pipeline
+const model = await download(models.imageEmbeddings.CLIP_VIT_BASE_PATCH32.DEFAULT);
+const embedder = await createImageEmbedder(model);
 
 try {
   const vector = await embedder.embed(imageBuffer);
