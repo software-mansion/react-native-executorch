@@ -131,11 +131,9 @@ on dispatching tasks and sharing models across threads.
 
 The library provides ready-to-use models from the [Software Mansion HuggingFace Classification Collection](https://huggingface.co/collections/software-mansion/classification), pre-configured with ImageNet-1k vocabulary and normalization parameters in [`models.classification`](../../06-api-reference/variables/models.md#classification):
 
-| Model                | Variant                  | Size    | Platform / Acceleration   | Notes                                                               |
-| :------------------- | :----------------------- | :------ | :------------------------ | :------------------------------------------------------------------ |
-| **EfficientNetV2-S** | `XNNPACK_INT8` (default) | 22.9 MB | Universal (CPU)           | 8-bit quantized, low memory footprint, balanced speed and accuracy. |
-| EfficientNetV2-S     | `XNNPACK_FP32`           | 85.7 MB | Universal (CPU)           | Full-precision FP32 baseline for CPU.                               |
-| EfficientNetV2-S     | `COREML_FP16`            | 43.9 MB | iOS (Neural Engine / GPU) | Accelerated via Apple Core ML on iOS 17+.                           |
+| Model Family         | Variants                 | Size Range        | Supported Backends             | Dataset / Vocabulary        | Best For                                                           |
+| :------------------- | :----------------------- | :---------------- | :----------------------------- | :-------------------------- | :----------------------------------------------------------------- |
+| **EfficientNetV2-S** | `INT8`, `FP32`, `CoreML` | 21.9 MB – 81.7 MB | CPU (XNNPACK), Apple (Core ML) | ImageNet-1k (1,000 classes) | Fast, lightweight general image recognition and tagging on mobile. |
 
 :::tip Using Custom Models
 To use your own fine-tuned classification `.pte` model, pass a

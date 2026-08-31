@@ -147,11 +147,11 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides ready-to-use pose and landmark detectors from the [Software Mansion HuggingFace Pose Estimation Collection](https://huggingface.co/collections/software-mansion/keypoint-detection), available in [`models.keypointDetection`](../../06-api-reference/variables/models.md#keypointdetection):
 
-| Model                   | Variant                                     | Size          | Platform / Acceleration | Notes                                                                                             |
-| :---------------------- | :------------------------------------------ | :------------ | :---------------------- | :------------------------------------------------------------------------------------------------ |
-| **YOLO26 Pose**         | `XNNPACK_FP32` (default)                    | Multi-res     | Universal (CPU)         | Real-time human pose estimation (17 body keypoints) at 384x384, 512x512, and 640x640 resolutions. |
-| **MediaPipe BlazeFace** | `XNNPACK_FP32` (default)                    | 0.65 MB       | Universal (CPU)         | Ultra-lightweight face detection and 6-point facial landmark locator.                             |
-| **RF-DETR Keypoint**    | `XNNPACK_FP32` / `COREML_FP32` / `MLX_FP32` | Multi-backend | Universal / iOS / MLX   | DINOv2-based keypoint transformer with 17 body keypoints.                                         |
+| Model Family            | Keypoints Detected                | Size Range          | Supported Backends                          | Best For                                                                                      |
+| :---------------------- | :-------------------------------- | :------------------ | :------------------------------------------ | :-------------------------------------------------------------------------------------------- |
+| **MediaPipe BlazeFace** | 6 facial landmarks + bounding box | 0.6 MB              | CPU (XNNPACK)                               | Ultra-lightweight face bounding box & eye/ear/nose/mouth keypoint tracking (sub-millisecond). |
+| **YOLO26 Pose**         | 17 COCO body keypoints            | 11.4 MB             | CPU (XNNPACK)                               | Real-time multi-person full-body skeletal tracking across multiple input resolutions.         |
+| **RF-DETR Keypoint**    | 17 COCO body keypoints            | 138.6 MB – 140.9 MB | CPU (XNNPACK), Apple (Core ML), Apple (MLX) | High-accuracy body keypoint detection transformer for complex, occluded poses.                |
 
 :::tip Using Custom Models
 To use your own fine-tuned pose or landmark detection `.pte` model, pass a [`KeypointDetectorModel`](../../06-api-reference/type-aliases/KeypointDetectorModel.md) configuration object to `useKeypointDetector` or `createKeypointDetector`:

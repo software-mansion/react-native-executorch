@@ -270,21 +270,16 @@ While `useLLMChatSession` and `createLLMChatSession` handle chat formatting, mes
 
 The library provides ready-to-use models from the [Software Mansion HuggingFace LLM Collection](https://huggingface.co/collections/software-mansion/llm-multimodal), pre-packaged with their tokenizers and Jinja chat templates in [`models.llm`](../../06-api-reference/variables/models.md#llm):
 
-| Model                                 | Supported Variants                                    | Size (Default)  | Primary Architecture / Strengths                                                         |
-| :------------------------------------ | :---------------------------------------------------- | :-------------- | :--------------------------------------------------------------------------------------- |
-| **Liquid LFM 2.5 1.2B**               | `XNNPACK_8DA4W` (default), `XNNPACK_FP16`, `MLX_INT4` | 1.1 GB          | Liquid AI general-purpose hybrid language model for fast mobile chat.                    |
-| **Liquid LFM 2.5 350M**               | `XNNPACK_8DA4W` (default), `XNNPACK_FP16`, `MLX_INT4` | 454 MB          | Ultra-compact hybrid model with sub-second response times for light parsing.             |
-| **Liquid LFM 2.5 VL 450M**            | `XNNPACK_8DA4W` (default), `MLX_INT4`, `VULKAN_8DA4W` | 649 MB          | Multimodal vision-language model for image inspection & visual Q&A.                      |
-| **Liquid LFM 2.5 VL 1.6B**            | `XNNPACK_8DA4W` (default), `VULKAN_8DA4W`             | 2.4 GB          | High-capacity multimodal vision-language model with detailed visual reasoning.           |
-| **Bielik v3 1.5B**                    | `XNNPACK_8DA4W` (default), `XNNPACK_FP16`             | 923 MB          | SpeakLeash bilingual Polish & English instruction model.                                 |
-| **Meta Llama 3.2 1B**                 | `XNNPACK_SPINQUANT` (default), `XNNPACK_BF16`         | 1.1 GB          | Lightweight instruction-tuned model with SpinQuant quantization.                         |
-| **Meta Llama 3.2 3B**                 | `XNNPACK_SPINQUANT` (default), `XNNPACK_BF16`         | 2.6 GB          | High-capacity instruction model for complex reasoning and summarization.                 |
-| **SmolLM2 135M / 360M / 1.7B**        | `XNNPACK_8DA4W` (default), `XNNPACK_BF16`             | 561 MB – 1.4 GB | Hugging Face compact instruction models engineered for low-power devices.                |
-| **Hammer 2.1 0.5B / 1.5B / 3B**       | `XNNPACK_8DA4W` (default), `XNNPACK_BF16`             | 417 MB – 2.8 GB | Specialized function-calling models fine-tuned for structured tool execution.            |
-| **Microsoft Phi-4 Mini 3.8B**         | `XNNPACK_8DA4W` (default), `XNNPACK_BF16`             | 2.8 GB          | High-density reasoning model for math, coding, and STEM problem solving.                 |
-| **Alibaba Qwen 2.5 0.5B / 1.5B / 3B** | `XNNPACK_8DA4W` (default), `XNNPACK_BF16`             | 417 MB – 2.6 GB | Multilingual instruction models supporting 29+ languages.                                |
-| **Alibaba Qwen 3 0.6B / 1.7B / 4B**   | `XNNPACK_8DA4W` (default), `XNNPACK_BF16`             | 500 MB – 3.2 GB | Next-generation compact models with reduced latency and enhanced tokenization.           |
-| **Google Gemma 4 E2B**                | `XNNPACK_8DA4W` (default), `MLX_INT4`                 | 2.6 GB          | High-fidelity instruction following and creative generation from Google Gemini research. |
+| Model Family             | Variants                             | Size Range        | Supported Backends                           | Best For                                                                    |
+| :----------------------- | :----------------------------------- | :---------------- | :------------------------------------------- | :-------------------------------------------------------------------------- |
+| **Liquid LFM 2.5**       | `350M`, `1.2B`, `VL 450M`, `VL 1.6B` | 265 MB – 2.43 GB  | CPU (XNNPACK), Apple (MLX), Android (Vulkan) | Fast hybrid RNN/Transformer for low-latency chat & visual reasoning.        |
+| **Meta Llama 3.2**       | `1B`, `3B`                           | 1.06 GB – 5.99 GB | CPU (XNNPACK)                                | High-quality reasoning, summarization, and instruction following.           |
+| **Google Gemma 4**       | `E2B`                                | 2.45 GB – 2.70 GB | CPU (XNNPACK), Apple (MLX)                   | High-fidelity instruction following from Google DeepMind research.          |
+| **Alibaba Qwen 3**       | `0.6B`, `1.7B`, `4B`                 | 482 MB – 7.49 GB  | CPU (XNNPACK)                                | Next-gen compact multilingual models supporting 29+ languages.              |
+| **Alibaba Qwen 2.5**     | `0.5B`, `1.5B`, `3B`                 | 417 MB – 5.75 GB  | CPU (XNNPACK)                                | Proven multilingual instruction models across code, math, and chat.         |
+| **Hammer 2.1**           | `0.5B`, `1.5B`, `3B`                 | 398 MB – 5.75 GB  | CPU (XNNPACK)                                | Fine-tuned function calling for automated tool execution & structured JSON. |
+| **Microsoft Phi-4 Mini** | `3.8B`                               | 2.62 GB – 7.15 GB | CPU (XNNPACK)                                | High-density reasoning model for STEM problem solving & coding.             |
+| **SpeakLeash Bielik v3** | `1.5B`                               | 923 MB – 2.97 GB  | CPU (XNNPACK)                                | Bilingual Polish & English instruction model.                               |
 
 :::tip Using Custom Models
 To use your own fine-tuned LLM `.pte` model, pass an [`LLMModel`](../../06-api-reference/type-aliases/LLMModel.md) configuration object to `useLLMChatSession` or `createLLMChatSession`:

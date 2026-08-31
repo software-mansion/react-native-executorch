@@ -167,14 +167,11 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides pre-configured Whisper models in [`models.speechToText`](../../06-api-reference/variables/models.md#speechtotext):
 
-| Model                            | Variants                                              | Size (Default) | Supported Languages                                                    | Notes                                                                                    |
-| :------------------------------- | :---------------------------------------------------- | :------------- | :--------------------------------------------------------------------- | :--------------------------------------------------------------------------------------- |
-| **Whisper Tiny (EN)**            | `XNNPACK_FP32`, `COREML_FP16`, `MLX_BF16`, `MLX_INT8` | 151 MB         | English                                                                | Ultra-fast, lightweight model optimized specifically for English transcription.          |
-| **Whisper Tiny (Multilingual)**  | `XNNPACK_FP32`, `COREML_FP16`, `MLX_BF16`, `MLX_INT8` | 151 MB         | [99+ Languages](../../06-api-reference/variables/WHISPER_LANGUAGES.md) | Compact multilingual model for fast transcription across diverse languages.              |
-| **Whisper Base (EN)**            | `XNNPACK_FP32`, `COREML_FP16`, `MLX_BF16`, `MLX_INT8` | 290 MB         | English                                                                | Balanced model offering higher English transcription accuracy.                           |
-| **Whisper Base (Multilingual)**  | `XNNPACK_FP32`, `COREML_FP16`, `MLX_BF16`, `MLX_INT8` | 290 MB         | [99+ Languages](../../06-api-reference/variables/WHISPER_LANGUAGES.md) | High-accuracy multilingual model for multi-language transcription.                       |
-| **Whisper Small (EN)**           | `XNNPACK_FP32`, `COREML_FP16`, `MLX_INT8`             | 967 MB         | English                                                                | High-capacity English model with superior transcription quality and vocabulary handling. |
-| **Whisper Small (Multilingual)** | `XNNPACK_FP32`, `COREML_FP16`, `MLX_INT8`             | 967 MB         | [99+ Languages](../../06-api-reference/variables/WHISPER_LANGUAGES.md) | Best multilingual accuracy for complex, noisy, or domain-specific audio.                 |
+| Model Family      | Variants             | Size Range         | Supported Backends                          | Languages               | Best For                                                        |
+| :---------------- | :------------------- | :----------------- | :------------------------------------------ | :---------------------- | :-------------------------------------------------------------- |
+| **Whisper Tiny**  | `EN`, `Multilingual` | 57.1 MB – 221.8 MB | CPU (XNNPACK), Apple (Core ML), Apple (MLX) | English / 99+ Languages | Ultra-fast transcription with minimal RAM usage.                |
+| **Whisper Base**  | `EN`, `Multilingual` | 97.8 MB – 380.2 MB | CPU (XNNPACK), Apple (Core ML), Apple (MLX) | English / 99+ Languages | Balanced accuracy and speed for general voice dictation.        |
+| **Whisper Small** | `EN`, `Multilingual` | 276.0 MB – 1.05 GB | CPU (XNNPACK), Apple (Core ML), Apple (MLX) | English / 99+ Languages | High-capacity model for complex, noisy, or multi-speaker audio. |
 
 ## API Reference
 

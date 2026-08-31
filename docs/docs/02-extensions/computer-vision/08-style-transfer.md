@@ -110,13 +110,12 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides ready-to-use style transfer models from the [Software Mansion HuggingFace Style Transfer Collection](https://huggingface.co/collections/software-mansion/style-transfer), available in [`models.styleTransfer`](../../06-api-reference/variables/models.md#styletransfer):
 
-| Model             | Variant                                  | Size    | Platform / Acceleration   | Notes                                                 |
-| :---------------- | :--------------------------------------- | :------ | :------------------------ | :---------------------------------------------------- |
-| **Candy**         | `XNNPACK_INT8` (default)                 | 1.8 MB  | Universal (CPU)           | Vibrant, colorful candy aesthetic with bold outlines. |
-| Candy             | `COREML_FP16`                            | 3.8 MB  | iOS (Neural Engine / GPU) | Accelerated via Apple Core ML on iOS 17+.             |
-| **Mosaic**        | `XNNPACK_INT8` (default) / `COREML_FP16` | ~1.8 MB | Universal / iOS           | Classical geometric tile mosaic texture.              |
-| **Rain Princess** | `XNNPACK_INT8` (default) / `COREML_FP16` | ~1.8 MB | Universal / iOS           | Painterly expressionist oil painting style.           |
-| **Udnie**         | `XNNPACK_INT8` (default) / `COREML_FP16` | ~1.8 MB | Universal / iOS           | Francis Picabia abstract modernist art style.         |
+| Model Family      | Size Range      | Supported Backends             | Best For                                              |
+| :---------------- | :-------------- | :----------------------------- | :---------------------------------------------------- |
+| **Candy**         | 1.8 MB – 6.5 MB | CPU (XNNPACK), Apple (Core ML) | Vibrant, colorful candy aesthetic with bold outlines. |
+| **Mosaic**        | 1.8 MB – 6.5 MB | CPU (XNNPACK), Apple (Core ML) | Classical geometric tile mosaic texture.              |
+| **Rain Princess** | 1.8 MB – 6.5 MB | CPU (XNNPACK), Apple (Core ML) | Painterly expressionist oil painting style.           |
+| **Udnie**         | 1.8 MB – 6.5 MB | CPU (XNNPACK), Apple (Core ML) | Francis Picabia abstract modernist art style.         |
 
 :::tip Using Custom Models
 To use your own trained feed-forward style transfer `.pte` model, pass a [`StyleTransferModel`](../../06-api-reference/type-aliases/StyleTransferModel.md) configuration object to `useStyleTransfer` or `createStyleTransfer`:
