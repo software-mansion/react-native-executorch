@@ -61,7 +61,7 @@ See [`src/app/privacy-filter.tsx`](https://github.com/barhanc/react-native-execu
 
 ## Output Format
 
-`detectPii()` returns an array of [`PiiEntity`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/PiiEntity.md) objects representing detected spans:
+`detectPii()` returns an array of [`PiiEntity`](../../06-api-reference/react-native-executorch/namespaces/nlp/interfaces/PiiEntity.md) objects representing detected spans:
 
 ```typescript
 const entities = await filter.detectPii(
@@ -69,7 +69,7 @@ const entities = await filter.detectPii(
 );
 ```
 
-Each [`PiiEntity`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/PiiEntity.md) object contains:
+Each [`PiiEntity`](../../06-api-reference/react-native-executorch/namespaces/nlp/interfaces/PiiEntity.md) object contains:
 
 ```typescript
 interface PiiEntity<Label extends string = string> {
@@ -182,7 +182,7 @@ The pipeline automatically verifies that the model exports `forward(input_ids, a
 ### Types & Options
 
 - [`PrivacyFilter`](../../06-api-reference/type-aliases/PrivacyFilter.md) — Privacy filter runner interface (`detectPii`, `detectPiiWorklet`).
-- [`PiiEntity`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/PiiEntity.md) — Detected entity span object (`label`, `text`, `charStart`, `charEnd`, `startToken`, `endToken`).
+- [`PiiEntity`](../../06-api-reference/react-native-executorch/namespaces/nlp/interfaces/PiiEntity.md) — Detected entity span object (`label`, `text`, `charStart`, `charEnd`, `startToken`, `endToken`).
 - [`PrivacyFilterModel`](../../06-api-reference/type-aliases/PrivacyFilterModel.md) — Model configuration spec with model path, tokenizer path, and model options.
 - [`PrivacyFilterOptions`](../../06-api-reference/type-aliases/PrivacyFilterOptions.md) — Label space definitions and Viterbi biases.
 
