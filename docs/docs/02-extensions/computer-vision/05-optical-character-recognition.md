@@ -83,12 +83,12 @@ Example result:
   {
     "text": "RECEIPT TOTAL: $42.50",
     "confidence": 0.96,
-    "quad": {
-      "tl": { "x": 45.0, "y": 120.5 },
-      "tr": { "x": 380.2, "y": 122.0 },
-      "br": { "x": 380.0, "y": 155.4 },
-      "bl": { "x": 44.8, "y": 154.0 }
-    }
+    "quad": [
+      { "x": 45.0, "y": 120.5 },
+      { "x": 380.2, "y": 122.0 },
+      { "x": 380.0, "y": 155.4 },
+      { "x": 44.8, "y": 154.0 }
+    ]
   }
 ]
 ```
@@ -174,7 +174,7 @@ The pipeline automatically verifies that the model's exported input and output s
 - [`RecognizeCharactersOptions`](../../06-api-reference/type-aliases/RecognizeCharactersOptions.md) — Inference options (`confidenceThreshold`).
 - [`PaddleOcrModel`](../../06-api-reference/type-aliases/PaddleOcrModel.md) — Model configuration spec with `modelPath` and `charsetPath`.
 - [`PaddleOcrModelOptions`](../../06-api-reference/type-aliases/PaddleOcrModelOptions.md) — Model options (`defaultConfidenceThreshold`).
-- [`Quad`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/Quad.md) — Oriented quadrilateral corner coordinates (`tl`, `tr`, `br`, `bl`).
+- [`Quad`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/Quad.md) — Oriented 4-corner polygon tuple `[Point, Point, Point, Point]` in pixel coordinates (`top-left`, `top-right`, `bottom-right`, `bottom-left`).
 - [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) — Input image buffer structure.
 
 ### Model Presets
