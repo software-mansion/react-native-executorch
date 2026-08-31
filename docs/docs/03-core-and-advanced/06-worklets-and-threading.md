@@ -1,7 +1,7 @@
 ---
 title: Worklets & Threading
 slug: /core-and-advanced/worklets-and-threading
-description: 'Run synchronous native model loading and inference off the React Native JS thread using worklet runtimes, wrapAsync, and thread-safe tensors.'
+description: 'Execute native model loading and inference off the React Native JavaScript thread using worklet runtimes, wrapAsync, and thread-safe native tensors.'
 keywords:
   [
     react native executorch,
@@ -16,92 +16,55 @@ keywords:
 
 # Worklets & Threading
 
-Model loading and inference are synchronous, heavy native calls. Run them on the
-React Native JS thread and the UI freezes for their whole duration — hundreds of
-milliseconds for a load, tens per inference. React Native ExecuTorch avoids this by
-integrating with
-[`react-native-worklets`](https://www.npmjs.com/package/react-native-worklets)
-(installed [alongside the library](../01-fundamentals/01-getting-started.md)), so
-the same code can run on a separate thread.
+Model compilation, tensor allocation, and neural network inference are synchronous, compute-intensive native operations. Running them directly on the React Native JavaScript thread blocks UI rendering and touch handling.
 
-## The `'worklet'` directive
+To keep the UI responsive, React Native ExecuTorch integrates with [`react-native-worklets`](https://www.npmjs.com/package/react-native-worklets), allowing synchronous native code to execute across secondary threads and worklet runtimes.
 
-A worklet runtime is a separate JavaScript runtime running on its own thread. A
-function marked with the `'worklet'` directive can be shipped to one and run there.
+## The `'worklet'` Directive
 
-Every core function, method, and native operation in the library carries this
-directive — [`loadModel`](../06-api-reference/functions/loadModel.md),
-[`model.execute`](../06-api-reference/type-aliases/Model.md#execute),
-[`tensor`](../06-api-reference/functions/tensor.md), the
-[`math`](../06-api-reference/react-native-executorch/namespaces/math/index.md) and
-[`cv`](../06-api-reference/react-native-executorch/namespaces/cv/index.md)
-operations, and so on. That is what lets you run the entire lower-level API off the
-JS thread without any wrapping of your own; when you compose your own pipeline
-steps, mark them `'worklet'` too so they stay dispatchable.
+A worklet runtime is an isolated JavaScript environment running on a dedicated thread. Adding the `'worklet'` directive at the top of a function marks it as dispatchable to any worklet runtime.
 
-## Three execution contexts
+All core primitives, methods, and native operations in this library include the `'worklet'` directive out of the box — including [`loadModel`](../06-api-reference/functions/loadModel.md), [`model.execute`](../06-api-reference/type-aliases/Model.md#execute), [`tensor`](../06-api-reference/functions/tensor.md), and namespaces like [`math`](../06-api-reference/react-native-executorch/namespaces/math/index.md) and [`cv`](../06-api-reference/react-native-executorch/namespaces/cv/index.md). When creating custom preprocessing or pipeline helpers, add the `'worklet'` directive so they can run off-thread without additional wrappers.
 
-Code in a React Native ExecuTorch app runs in one of three places, and where a
-piece of work belongs determines how you call it.
+## Execution Contexts
 
-| Context                        | What runs here                                                              | How you call native work                                                                                                                   |
-| :----------------------------- | :-------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| **JS (main) thread**           | React rendering and app logic.                                              | Never run heavy synchronous ops here — offload them with [`wrapAsync`](#running-work-off-the-js-thread).                                   |
-| **Background worklet runtime** | Model loading and inference, off the UI path.                               | The default target of `wrapAsync`; the library provides [`defaultWorkletRuntime`](../06-api-reference/variables/defaultWorkletRuntime.md). |
-| **UI worklet runtime**         | Real-time, per-frame work (e.g. a camera frame processor) on the UI thread. | Call the synchronous `'worklet'` functions directly, no `await`.                                                                           |
+In a React Native app with ExecuTorch, code executes across three distinct environments:
 
-The distinction that matters: on the JS thread you must push synchronous native
-work onto another runtime, while inside a worklet runtime you call the same
-functions directly, synchronously, with no promises in the hot path.
+| Context                        | Role                                                                                             | How to Call ExecuTorch                                                                                                                                        |
+| :----------------------------- | :----------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Main JS Thread**             | React component rendering, state management, and business logic.                                 | Offload synchronous operations using [`wrapAsync`](#offloading-work-with-wrapasync).                                                                          |
+| **Background Worklet Runtime** | Asynchronous model loading and background inference.                                             | Targets the library's pre-configured [`defaultWorkletRuntime`](../06-api-reference/variables/defaultWorkletRuntime.md) (or a custom runtime) via `wrapAsync`. |
+| **UI Worklet Runtime**         | Per-frame video processing (e.g. VisionCamera frame processors) running on the UI/render thread. | Invoke synchronous `'worklet'` functions directly without `await` or promise overhead.                                                                        |
 
-## Running work off the JS thread
+## Offloading Work with `wrapAsync`
 
-[`wrapAsync(fn, runtime?)`](../06-api-reference/functions/wrapAsync.md) turns a
-synchronous worklet function into an async one: it dispatches `fn` to a background
-worklet runtime, awaits the result, and returns a `Promise`. This is how you keep
-model loading and inference from blocking the UI.
+[`wrapAsync(fn, runtime?)`](../06-api-reference/functions/wrapAsync.md) converts a synchronous worklet function into a Promise-based asynchronous function. Calling the wrapped function dispatches `fn` to the target runtime, executes it, and resolves on the JS thread with the returned value.
 
 ```typescript
 import { loadModel, wrapAsync } from 'react-native-executorch';
 
-// loadModel is synchronous; run it on the background runtime instead of the JS thread
+// loadModel is synchronous; wrapAsync dispatches it to a background thread
 const model = await wrapAsync(loadModel)('/path/to/model.pte');
 ```
 
-It defaults to
-[`defaultWorkletRuntime`](../06-api-reference/variables/defaultWorkletRuntime.md),
-a dedicated background thread the library creates for exactly this. Pass your own
-`WorkletRuntime` (from `createWorkletRuntime` in `react-native-worklets`) as the
-second argument to isolate work on a separate thread.
+If the `runtime` parameter is omitted, `wrapAsync` targets [`defaultWorkletRuntime`](../06-api-reference/variables/defaultWorkletRuntime.md) — a background thread created automatically by the library. You can also pass a custom runtime created with `createWorkletRuntime` from `react-native-worklets` for isolated workloads.
 
-`wrapAsync` also handles the error boundary: only plain data survives the hop back
-from a worklet runtime, so it rebuilds anything thrown inside `fn` as an
-[`RnExecuTorchError`](../06-api-reference/functions/RnExecuTorchError.md) on the JS
-side. This is why the library's errors are a factory over plain fields rather than
-a class — see [Error Handling](./05-error-handling.md).
+### Error Propagation Across Runtimes
 
-## Sharing tensors and models across threads
+When a function running inside a worklet throws an error, `wrapAsync` intercepts the serialized exception and reconstructs it on the JS thread as an [`RnExecuTorchError`](../06-api-reference/functions/RnExecuTorchError.md). This preserves the original error `code` and diagnostics across the thread boundary. See [Error Handling](./05-error-handling.md) for details on narrowing these errors.
 
-[`Tensor`](../06-api-reference/type-aliases/Tensor.md) and
-[`Model`](../06-api-reference/type-aliases/Model.md) are native host objects, not
-JavaScript-heap values, so they are safe to share across runtimes with no copying.
-You can load a model on the background runtime and then use it from the UI runtime,
-handing the same handle to both.
+## Sharing Models and Tensors Across Threads
 
-The native layer keeps this safe: a model serializes its own execution, and a
-concurrent [`execute`](../06-api-reference/type-aliases/Model.md#execute) from
-another thread fails fast with
-[`RESOURCE_BUSY`](./05-error-handling.md#the-code-set) rather than corrupting
-state. See [Thread safety](./02-models-and-tensors.md#thread-safety) in Models &
-Tensors for the full guarantees.
+[`Tensor`](../06-api-reference/type-aliases/Tensor.md) and [`Model`](../06-api-reference/type-aliases/Model.md) are JSI host objects holding pointers to native C++ allocations. Because their underlying data resides in native memory rather than the JS garbage collector heap, handles can be passed across runtimes with zero copying:
 
-## The dual-API pattern
+- You can load a model once on a background runtime via `wrapAsync(loadModel)`, and immediately pass the handle to a UI worklet.
+- Native mutexes ensure safety: executing a model from multiple threads concurrently fails immediately with `RESOURCE_BUSY` rather than corrupting memory.
 
-Because a pipeline step may be called from the JS thread (with `await`) or from
-inside another worklet (synchronously, in a frame processor), pipelines expose it
-both ways: a synchronous `'worklet'` function, and an async wrapper built with
-[`wrapAsync`](../06-api-reference/functions/wrapAsync.md). This is exactly how the
-built-in pipelines are structured.
+For complete guarantees, see [Thread Safety](./02-models-and-tensors.md#thread-safety).
+
+## The Dual-API Pattern
+
+High-level pipelines often need to support both async calls from React components (on the JS thread) and synchronous execution in high-throughput loops (like camera frame processors on a UI worklet). To accommodate both, pipelines expose dual interfaces:
 
 ```typescript
 import { loadModel, tensor, wrapAsync } from 'react-native-executorch';
@@ -113,7 +76,7 @@ export async function createClassifier(modelPath: string, runtime?: WorkletRunti
   const tInput = tensor('float32', [1, 3, 224, 224]);
   const tOutput = tensor('float32', [1, 1000]);
 
-  // The synchronous worklet function — call it directly inside a worklet runtime
+  // Synchronous worklet: call directly inside frame processors / worklet runtimes
   const classifyWorklet = (input: Float32Array) => {
     'worklet';
     tInput.setData(input);
@@ -122,8 +85,11 @@ export async function createClassifier(modelPath: string, runtime?: WorkletRunti
   };
 
   return {
-    classifyWorklet, // run synchronously on a UI/background runtime
-    classify: wrapAsync(classifyWorklet, runtime), // await from the JS thread
+    // 1. Synchronous execution for worklets (zero promise overhead)
+    classifyWorklet,
+    // 2. Async execution for the JS thread
+    classify: wrapAsync(classifyWorklet, runtime),
+    // Resource cleanup
     dispose: () => {
       tInput.dispose();
       tOutput.dispose();
@@ -133,17 +99,13 @@ export async function createClassifier(modelPath: string, runtime?: WorkletRunti
 }
 ```
 
-A caller on the JS thread `await`s `classify`; a real-time frame processor running
-on the UI runtime calls `classifyWorklet` directly, keeping per-frame latency free
-of promise scheduling.
+## Next Steps
 
-## Where to go next
+- [Models & Tensors](./02-models-and-tensors.md) — Memory model, lifecycle management, and native tensor operations.
+- [Operations & Utilities](./04-operations-and-utilities.md) — Native preprocessing (`cv`, `math`, `speech`) compatible with worklets.
+- [Error Handling](./05-error-handling.md) — Safe error handling across runtime boundaries.
 
-- [Models & Tensors](./02-models-and-tensors.md) — the primitives you dispatch to worklet runtimes, and their thread-safety guarantees.
-- [Operations & Utilities](./04-operations-and-utilities.md) — the `'worklet'`-marked operations you compose on any runtime.
-- [Error Handling](./05-error-handling.md) — why errors are built to survive the worklet boundary.
-
-### API reference
+### API Reference
 
 - [`wrapAsync()`](../06-api-reference/functions/wrapAsync.md) · [`defaultWorkletRuntime`](../06-api-reference/variables/defaultWorkletRuntime.md)
 - [`loadModel()`](../06-api-reference/functions/loadModel.md) · [`Model`](../06-api-reference/type-aliases/Model.md) · [`Tensor`](../06-api-reference/type-aliases/Tensor.md)
