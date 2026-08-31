@@ -165,7 +165,7 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 ## Available Models
 
-The library provides pre-configured Whisper models in [`models.speechToText`](../../06-api-reference/variables/models.md#speechtotext):
+The library provides pre-configured Whisper models from the [Software Mansion HuggingFace Speech to Text Collection](https://huggingface.co/collections/software-mansion/speech-to-text), available in [`models.speechToText`](../../06-api-reference/variables/models.md#speechtotext):
 
 | Model Family      | Variants             | Size Range         | Supported Backends                          | Languages               | Best For                                                        |
 | :---------------- | :------------------- | :----------------- | :------------------------------------------ | :---------------------- | :-------------------------------------------------------------- |

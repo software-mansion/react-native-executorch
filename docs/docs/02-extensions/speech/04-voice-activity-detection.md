@@ -172,7 +172,7 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 ## Available Models
 
-The library provides the optimized FSMN-VAD model in [`models.voiceActivityDetection`](../../06-api-reference/variables/models.md#voiceactivitydetection):
+The library provides the optimized FSMN-VAD model from the [Software Mansion HuggingFace Voice Activity Detection Collection](https://huggingface.co/collections/software-mansion/voice-activity-detection), available in [`models.voiceActivityDetection`](../../06-api-reference/variables/models.md#voiceactivitydetection):
 
 | Model        | Variants       | Size (Default) | Sample Rate | Notes                                                                                       |
 | :----------- | :------------- | :------------- | :---------- | :------------------------------------------------------------------------------------------ |

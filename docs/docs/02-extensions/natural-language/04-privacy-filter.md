@@ -150,7 +150,7 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 ## Available Models
 
-The library provides ready-to-use privacy filter models in [`models.privacyFilter`](../../06-api-reference/variables/models.md#privacyfilter):
+The library provides ready-to-use privacy filter models from the [Software Mansion HuggingFace Privacy Filter Collection](https://huggingface.co/collections/software-mansion/privacy-filter), available in [`models.privacyFilter`](../../06-api-reference/variables/models.md#privacyfilter):
 
 | Model Family                | Labels / Categories        | Size Range         | Supported Backends         | Best For                                                                    |
 | :-------------------------- | :------------------------- | :----------------- | :------------------------- | :-------------------------------------------------------------------------- |
