@@ -97,12 +97,12 @@ export function App() {
   const handleGenerate = async () => {
     if (!session.isReady || !session.sendMessage) return;
 
-    const result = await session.sendMessage(
+    const turn = await session.sendMessage(
       'Explain on-device AI in one sentence.',
       (token) => console.log(token)
     );
 
-    console.log('Result messages:', result.messages);
+    console.log('Result messages:', turn.messages);
   };
 
   return (
