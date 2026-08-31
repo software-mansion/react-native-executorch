@@ -23,20 +23,16 @@ keywords:
 
 # LLM Chat & Text Generation
 
-The LLM extension provides high-performance, on-device execution of generative Large Language Models (LLMs) and Vision-Language Models (VLMs). It is designed to handle the nuances of modern autoregressive models:
+The LLM extension lets you run generative Large Language Models (LLMs) and Vision-Language Models (VLMs) directly on user devices with real-time token streaming, complete privacy, and full offline support. Depending on what you are building, you can choose between two levels of control:
 
-- **Token Streaming**: Real-time per-token callbacks scheduled directly onto the React Native thread.
-- **Incremental KV Cache Management**: Retains previous conversation state in memory and prefills only newly appended tokens to avoid re-evaluating prompt history.
-- **Jinja2 Chat Templates**: Dynamically renders Hugging Face `tokenizer_config.json` templates with support for roles, special tokens, and generation headers.
-- **Multi-Turn Tool Calling (Function Calling)**: Automated execution loop where the model calls client-side TypeScript functions, processes their outputs, and generates follow-up responses.
-- **Multimodal (Vision-Language) Payloads**: Interleaved text and image inputs with automatic tensor preprocessing.
-- **Dual Architecture (High-Level Session vs Low-Level Runner)**: Use declarative chat sessions with conversational memory or drop down to raw prompt execution and manual KV cache slicing.
+- **Chat Sessions ([`useLLMChatSession`](#quick-start) / [`createLLMChatSession`](#imperative-session-api))**: The recommended API for conversational apps and AI assistants. It manages multi-turn conversation history, applies [Jinja2 chat templates](#chat-templates--incremental-kv-cache-diffing), supports [multimodal image inputs](#multimodal-inputs), and handles [automated tool calling](#automated-tool-calling).
+- **Low-Level Runner ([`LLMRunner`](#low-level-runner))**: A direct execution engine that operates on worklet threads. It processes raw text strings or media tensors without chat formatting, giving you manual control over KV cache prefilling, synchronous generation loops, and context rewinding.
 
 <!-- GIF DEMO PLACEHOLDER: Place LLM chat demo gif here, e.g. ![LLM Chat Demo](./media/llm-chat.gif) -->
 
 ## Quick Start
 
-The [`useLLMChatSession`](../../06-api-reference/functions/useLLMChatSession.md) hook manages the full lifecycle: downloading the `.pte` model and tokenizer files, prefilling initial system prompts, tracking message history, and disposing native memory on unmount:
+The [`useLLMChatSession`](../../06-api-reference/functions/useLLMChatSession.md) hook handles remote model downloading, caching, tokenizer setup, and conversational state in a single React hook:
 
 ```tsx
 import { useState } from 'react';
@@ -114,22 +110,19 @@ type LLMChatTurnResult = {
 
 ## Chat Templates & Incremental KV Cache Diffing
 
-Autoregressive transformer inference spends significant compute processing the input prompt (prefill phase) to generate the Key-Value (KV) cache. Re-encoding the entire conversation history on every turn would result in quadratic latency growth as the dialogue lengthens.
+Under the hood, [`createChatPreprocessor`](../../06-api-reference/react-native-executorch/namespaces/llm/functions/createChatPreprocessor.md) renders `ChatMessage[]` arrays using the model's official Jinja2 template from `tokenizer_config.json` (formatting special tokens, roles, and generation headers).
 
-### How Incremental Diffing Works
+To keep multi-turn chat responsive without re-encoding past history on every message, the preprocessor uses incremental prompt diffing:
 
-The library's [`ChatPreprocessor`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/ChatPreprocessor.md) implements an incremental monotonic prompt diffing algorithm:
-
-1. **Prefix Monotonicity**: When a turn begins, the preprocessor renders the conversation prefix `history[0 .. committed]` and the full updated conversation `history[0 .. current]`.
-2. It verifies that the rendered prefix is an exact substring match of the beginning of the full prompt string.
-3. **Diff Slicing**: Only the new slice `fullPrompt.slice(prefix.length)` is passed to `runner.prefill()`.
-4. **Cache Preservation**: The existing KV cache in native memory remains intact, and generation starts immediately after prefilling only the newly added tokens.
+1. It verifies that the rendered prefix of previously committed turns is an exact substring match of the newly updated conversation.
+2. It slices out only the newly appended tokens and passes them to `runner.prefill()`.
+3. The existing Key-Value (KV) cache in native memory is preserved, so generation starts immediately without recalculating prior turns.
 
 :::note Custom Model Compatibility
-If you use a custom model whose Jinja template dynamically modifies past turns based on subsequent messages (breaking monotonicity), set `resetOnTurn: true` in your session options. This forces the runner to reset and re-prefill the entire dialogue from token 0 on each turn.
+If you use a custom model whose Jinja template dynamically rewires earlier turns when new messages arrive (breaking monotonicity), pass `resetOnTurn: true` in your session options to force full re-encoding each turn.
 :::
 
-## Multimodal Inputs (Vision-Language Models)
+## Multimodal Inputs
 
 Vision-Language Models (such as Liquid AI's `LFM2_5_VL_450M` and `LFM2_5_VL_1_6B`) process interleaved text and visual payloads:
 
@@ -159,13 +152,7 @@ function VisionChat() {
 }
 ```
 
-### Multimodal Preprocessor Mechanics
-
-When images are passed into `sendMessage`:
-
-1. The [`ChatPreprocessor`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/ChatPreprocessor.md) embeds sentinel vision tokens (e.g. `<vision>`, `</vision>`) into the rendered Jinja template.
-2. It resizes and normalizes the image to the exact tensor shape expected by the model's visual encoder (e.g. `[1, 3, 384, 384]`).
-3. The resulting visual embeddings are passed directly to the native multimodal execution runner alongside text token IDs.
+The session automatically embeds the model's sentinel vision tokens, resizes and normalizes the image buffer to the vision encoder's target shape, and feeds the resulting image tensors into the multimodal execution runner alongside text tokens.
 
 ## Automated Tool Calling
 
@@ -264,13 +251,13 @@ try {
 }
 ```
 
-## Low-Level Runner (`LLMRunner`)
+## Low-Level Runner
 
 While `useLLMChatSession` and `createLLMChatSession` handle chat formatting, message histories, and automated tool calling loops, you can drop down directly to the native [`LLMRunner`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md) via [`llm.createLLMRunner()`](../../06-api-reference/react-native-executorch/namespaces/llm/functions/createLLMRunner.md).
 
 `LLMRunner` operates synchronously on a worklet runtime thread and provides low-level control:
 
-- **Raw Prompt Ingestion**: Pass raw prompt strings or pre-tokenized media payloads without role wrapping or Jinja chat template rendering.
+- **Raw Prompt Ingestion**: Pass raw prompt strings or preprocessed image tensors directly to the runner without role formatting or Jinja chat template rendering.
 - **Manual Prefill**: Execute `runner.prefill(prompt)` to populate the Key-Value (KV) cache with large background contexts, system prompts, or document chunks before starting interactive generation.
 - **Direct Synchronous Generation**: Call `runner.generate(prompt, config, onToken)` to generate text continuations with zero Promise scheduling overhead, executing the `onToken` callback directly on each generated token.
 - **KV Cache Inspection & Slicing**: Query `runner.getKVCacheState()` to check occupied tokens (`pos`), max context length (`maxSeqLen`), and context capacity ratio (`usageRatio`).
