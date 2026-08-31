@@ -727,8 +727,16 @@ const MULTI_QA_MINILM_L6_COS_V1_COREML_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${NEXT_VERSION_TAG}/coreml/multi_qa_minilm_l6_cos_v1_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
+const MULTI_QA_MINILM_L6_COS_V1_VULKAN_FP16: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${NEXT_VERSION_TAG}/vulkan/multi_qa_minilm_l6_cos_v1_vulkan_fp16.pte`,
+  tokenizerPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
 const MULTI_QA_MPNET_BASE_DOT_V1_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-multi-qa-mpnet-base-dot-v1/${NEXT_VERSION_TAG}/xnnpack/multi_qa_mpnet_base_dot_v1_xnnpack_fp32.pte`,
+  tokenizerPath: `${BASE_URL}-multi-qa-mpnet-base-dot-v1/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
+const MULTI_QA_MPNET_BASE_DOT_V1_VULKAN_FP16: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-multi-qa-mpnet-base-dot-v1/${NEXT_VERSION_TAG}/vulkan/multi_qa_mpnet_base_dot_v1_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}-multi-qa-mpnet-base-dot-v1/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
 const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_EMBEDDINGS: TextEmbedderModel = {
@@ -741,6 +749,10 @@ const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_XNNPACK_FP32: TextEmbedderModel = {
 };
 const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_COREML_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${NEXT_VERSION_TAG}/coreml/paraphrase_multilingual_minilm_l12_v2_coreml_fp16.pte`,
+  tokenizerPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
+const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_VULKAN_FP16: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${NEXT_VERSION_TAG}/vulkan/paraphrase_multilingual_minilm_l12_v2_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS: TextEmbedderModel = {
@@ -2471,6 +2483,7 @@ export const models = {
     MULTI_QA_MINILM_L6_COS_V1: variants({
       XNNPACK_FP32: MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS,
       COREML_FP16: MULTI_QA_MINILM_L6_COS_V1_COREML_FP16,
+      VULKAN_FP16: MULTI_QA_MINILM_L6_COS_V1_VULKAN_FP16,
     }),
     /**
      * 768-dimensional sentence transformer fine-tuned specifically for
@@ -2478,6 +2491,7 @@ export const models = {
      */
     MULTI_QA_MPNET_BASE_DOT_V1: variants({
       XNNPACK_FP32: MULTI_QA_MPNET_BASE_DOT_V1_EMBEDDINGS,
+      VULKAN_FP16: MULTI_QA_MPNET_BASE_DOT_V1_VULKAN_FP16,
     }),
     /**
      * 384-dimensional sentence transformer supporting 50+ languages for
@@ -2487,6 +2501,7 @@ export const models = {
       XNNPACK_8DA4W: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_EMBEDDINGS,
       XNNPACK_FP32: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_XNNPACK_FP32,
       COREML_FP16: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_COREML_FP16,
+      VULKAN_FP16: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_VULKAN_FP16,
     }),
     /**
      * Multilingual sentence transformer supporting 50+ languages, based on
