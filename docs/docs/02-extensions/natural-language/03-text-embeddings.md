@@ -22,7 +22,7 @@ keywords:
 
 Text embedding models convert sentences, paragraphs, or documents into dense numeric vectors (embeddings). Sentences with similar semantic meaning map to nearby points in the vector space, even when using completely different vocabulary.
 
-This enables on-device semantic search, offline Retrieval-Augmented Generation (RAG) against local SQLite vector stores, intent classification, and cross-modal text-to-image queries — entirely on the client without sending private text to cloud APIs.
+This enables on-device semantic search, offline Retrieval-Augmented Generation (RAG) against local SQLite vector stores, intent classification, and cross-modal text-to-image queries when paired with [Image Embeddings](../computer-vision/09-image-embeddings.md) — entirely on the client without sending private text to cloud APIs.
 
 <!-- GIF DEMO PLACEHOLDER: Place text embeddings demo gif here, e.g. ![Text Embeddings Demo](./media/text-embeddings.gif) -->
 

@@ -18,7 +18,7 @@ keywords:
 
 # Image Embeddings
 
-Image embedding models extract high-dimensional semantic feature vectors (embeddings) from raw images. When paired with multimodal models like OpenAI CLIP (Contrastive Language-Image Pretraining), image and text embeddings share the same joint vector space.
+Image embedding models extract high-dimensional semantic feature vectors (embeddings) from raw images. When paired with multimodal models like OpenAI CLIP (Contrastive Language-Image Pretraining) and [Text Embeddings](../../02-extensions/natural-language/03-text-embeddings.md), image and text embeddings share the same joint vector space.
 
 This enables on-device cross-modal photo search (finding pictures with natural language queries), zero-shot image classification, visual similarity clustering, and vector search against local SQLite vector stores — all computed entirely on-device without network latency or cloud costs.
 
