@@ -2,6 +2,11 @@
 import { Platform } from 'react-native';
 import RNBlobUtil from 'react-native-blob-util';
 import * as telemetry from './telemetry';
+import {
+  loadBackgroundDownloader,
+  type BackgroundDownloader,
+  type BackgroundDownloadTask,
+} from './backgroundDownloader';
 import { RnExecuTorchError } from '../core/error';
 
 const IS_ANDROID = Platform.OS === 'android';
@@ -25,8 +30,10 @@ export interface DownloadOptions {
   /** Called with overall progress in `[0, 1]` as bytes arrive. */
   onProgress?: (progress: number) => void;
   /**
-   * Aborts the download. On iOS the bytes fetched so far are kept on disk so a
-   * later {@link download} of the same source resumes instead of restarting.
+   * Aborts the download. The bytes fetched so far are kept so a later
+   * {@link download} of the same source resumes instead of restarting, except on
+   * Android without the optional background downloader, where the system
+   * DownloadManager discards a cancelled transfer.
    */
   signal?: AbortSignal;
   /**
@@ -64,24 +71,55 @@ async function fileSize(path: string): Promise<number> {
   }
 }
 
-// Best-effort remote content length via a HEAD request; 0 when unknown.
-async function remoteSize(url: string): Promise<number> {
+// How long a length lookup may take before it is treated as unknown. The HEAD
+// is never on the path to the first byte (see download()), so this is not a
+// latency budget: it only bounds how long a server that accepts the connection
+// and then answers nothing can hold a download that has otherwise finished.
+// React Native gives that no ceiling of its own — OkHttp is configured with
+// connect/read/write timeouts of 0 — so without this a black-holed HEAD would
+// leave the download promise pending forever.
+const HEAD_TIMEOUT_MS = 15_000;
+
+// Best-effort remote content length via a HEAD request; 0 when unknown, which
+// covers a refusal, a response without a Content-Length, the caller aborting,
+// and a server that simply never replies.
+async function remoteSize(url: string, signal?: AbortSignal): Promise<number> {
+  // AbortSignal.timeout()/any() don't exist here: React Native polyfills
+  // AbortSignal with abort-controller@3, which has neither.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HEAD_TIMEOUT_MS);
+  const onAbort = () => controller.abort();
+  if (signal?.aborted) controller.abort();
+  else signal?.addEventListener('abort', onAbort);
+
   try {
-    const res = await fetch(url, { method: 'HEAD' });
+    const res = await fetch(url, { method: 'HEAD', signal: controller.signal });
     const len = res.headers.get('content-length');
     return len ? Number(len) : 0;
   } catch {
     return 0;
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', onAbort);
   }
 }
 
 // The file's full length, or 0 when it can't be established. `remoteSize`
 // follows redirects (Hugging Face answers a model URL with a 302 to a CDN), so
-// it reports the length of the file itself. `download()` already computes this
-// for progress weighting and passes it in, so the HEAD is not repeated.
-async function expectedBytesFor(url: string, known: number | undefined): Promise<number> {
-  if (known && known > 0) return known;
-  return remoteSize(url);
+// it reports the length of the file itself.
+//
+// `download()` starts this lookup but does NOT wait for it, so what arrives
+// here is usually a promise still in flight. Awaiting it at the point of use
+// keeps the HEAD off the path to the first byte: by the time the length is
+// needed, to check the transfer arrived whole, it resolved long ago.
+async function expectedBytesFor(
+  url: string,
+  known: number | Promise<number> | undefined,
+  signal?: AbortSignal
+): Promise<number> {
+  const resolved = await known;
+  if (resolved && resolved > 0) return resolved;
+  return remoteSize(url, signal);
 }
 
 // Raised when a transfer reported success but the bytes on disk don't match
@@ -148,9 +186,11 @@ interface DownloadUrlCallbacks {
   onBytes?: OnBytes;
   signal?: AbortSignal;
   forceDownload?: boolean;
-  // The file's full length when the caller already knows it, so the completeness
-  // check doesn't repeat the HEAD. 0 / undefined means "look it up".
-  expectedBytes?: number;
+  // The file's full length, or a lookup already in flight for it, so the
+  // completeness check doesn't repeat the HEAD. 0 / undefined means "look it
+  // up". A promise here is deliberate: waiting for it before starting the
+  // transfer would put a round trip in front of every download.
+  expectedBytes?: number | Promise<number>;
 }
 
 // A download that is currently running, shared by every caller that asked for
@@ -162,8 +202,9 @@ interface InFlightDownload {
   // Drives the underlying request; aborted only once every caller has left.
   controller: AbortController;
   callers: number;
-  // Same URL, same length — shared by everyone who joins.
-  expectedBytes: number;
+  // Same URL, same length — shared by everyone who joins. Possibly still being
+  // looked up; see DownloadUrlCallbacks.expectedBytes.
+  expectedBytes: number | Promise<number>;
 }
 
 const inFlight = new Map<string, InFlightDownload>();
@@ -185,6 +226,13 @@ async function downloadUrl(url: string, cb: DownloadUrlCallbacks): Promise<strin
     // A download already in flight hasn't written `dest` yet, so joining it
     // still yields freshly fetched bytes.
     await RNBlobUtil.fs.unlink(dest).catch(() => {});
+    // An interrupted attempt also leaves state behind, and every bit of it is
+    // something a later download would CONTINUE from: the staged `.partial` and,
+    // with the background downloader in play, a paused task holding resume data.
+    // Clear it, or "download it again" quietly resumes the very attempt the
+    // caller is trying to replace. The DownloadManager backend needs nothing
+    // here — it unlinks its own staging file before every transfer.
+    await discardPartialDownload(dest);
   } else if (await RNBlobUtil.fs.exists(dest)) {
     // Cache hit — nothing to download.
     const size = await fileSize(dest);
@@ -228,9 +276,25 @@ async function startDownload(url: string, dest: string, entry: InFlightDownload)
     },
   };
 
-  const path = IS_ANDROID
-    ? await downloadUrlViaAndroidDownloadManager(url, dest, cb)
-    : await downloadUrlViaIosStream(url, dest, cb);
+  // The optional background downloader wins on BOTH platforms when the app has
+  // it, so a caller that installs it gets one transfer mechanism that behaves
+  // the same everywhere instead of a per-platform one it cannot see.
+  //
+  // Without it each platform falls back to the best it can do on its own, and
+  // only iOS loses background transfers by doing so — blob-util's in-process
+  // reader is broken on Android (RonRadtke/react-native-blob-util#475: it stops
+  // after 8 KB), so the system DownloadManager is not a preference there but the
+  // only backend that works at all.
+  const backgroundDownloader = loadBackgroundDownloader();
+
+  let path: string;
+  if (backgroundDownloader) {
+    path = await downloadUrlViaBackgroundSession(backgroundDownloader, url, dest, cb);
+  } else if (IS_ANDROID) {
+    path = await downloadUrlViaAndroidDownloadManager(url, dest, cb);
+  } else {
+    path = await downloadUrlViaIosStream(url, dest, cb);
+  }
 
   // Neither backend is guaranteed to emit a last sample at 100%: blob-util
   // throttles progress events, and DownloadManager is polled, so the final
@@ -264,10 +328,12 @@ function joinDownload(entry: InFlightDownload, cb: DownloadUrlCallbacks): Promis
   });
 }
 
-// Android backend: the system DownloadManager streams to app-private external
-// storage. Unlike blob-util's in-process reader it handles files larger than
-// 2 GB, keeps downloading while the app is in the background or killed, and
-// resumes across transient network drops on its own — so no manual Range logic.
+// Android fallback used when that optional dependency is absent: the system
+// DownloadManager streams to app-private external storage. blob-util's
+// in-process reader cannot stand in for it — upstream #475 makes that path stop
+// after 8 KB — and DownloadManager also handles files larger than 2 GB, keeps
+// downloading while the app is in the background or killed, and resumes across
+// transient network drops on its own, so no manual Range logic.
 async function downloadUrlViaAndroidDownloadManager(
   url: string,
   dest: string,
@@ -319,7 +385,7 @@ async function downloadUrlViaAndroidDownloadManager(
   // gives us no status to check. Promoting a short file would cache it under
   // its final name forever — the existence-only cache check can't tell the
   // difference, and a truncated .pte only fails much later, at load.
-  const expected = await expectedBytesFor(url, cb.expectedBytes);
+  const expected = await expectedBytesFor(url, cb.expectedBytes, cb.signal);
   if (expected > 0 && size !== expected) {
     await RNBlobUtil.fs.unlink(tmp).catch(() => {});
     throw incompleteError(url, size, expected);
@@ -328,7 +394,176 @@ async function downloadUrlViaAndroidDownloadManager(
   return dest;
 }
 
-// iOS backend: blob-util streams via the iOS URL session straight to disk.
+// One background task per destination file, under an id that stays the same
+// across app launches: that is what lets a later call adopt a transfer this
+// process never started.
+function backgroundTaskIdFor(dest: string): string {
+  return dest.split('/').pop()!;
+}
+
+// The task the session is still holding for `id`, when it is one worth
+// continuing — it may be running, paused with resume data, or already finished.
+// A failed or stopped leftover is cleared instead, so a fresh task can take the
+// id rather than colliding with a corpse.
+async function adoptableBackgroundTask(
+  downloader: BackgroundDownloader,
+  id: string
+): Promise<BackgroundDownloadTask | undefined> {
+  const tasks = await downloader.getExistingDownloadTasks().catch(() => []);
+  const task = tasks.find((candidate) => candidate.id === id);
+  if (!task) return undefined;
+  if (task.state === 'DOWNLOADING' || task.state === 'PAUSED' || task.state === 'DONE') {
+    return task;
+  }
+  await task.stop().catch(() => {});
+  return undefined;
+}
+
+// Clears what an interrupted attempt leaves behind, so the next download of this
+// file starts from zero instead of continuing it. Backs `forceDownload`.
+async function discardPartialDownload(dest: string): Promise<void> {
+  const downloader = loadBackgroundDownloader();
+  if (downloader) {
+    const id = backgroundTaskIdFor(dest);
+    const tasks = await downloader.getExistingDownloadTasks().catch(() => []);
+    // `stop`, not `pause`: the point is to throw the fetched bytes away.
+    await Promise.all(
+      tasks.filter((task) => task.id === id).map((task) => task.stop().catch(() => {}))
+    );
+  }
+  await RNBlobUtil.fs.unlink(`${dest}.partial`).catch(() => {});
+  await RNBlobUtil.fs.unlink(`${dest}.chunk`).catch(() => {});
+}
+
+// The backend used on either platform when the app installs the optional
+// background downloader (see ./backgroundDownloader). The transfer keeps going
+// while the app is in the background, and the library persists its task state,
+// so it survives the app being killed too.
+//
+// Resume does NOT go through the HTTP Range request the iOS in-process backend
+// uses. iOS only offers background transfers as DOWNLOAD tasks, which stage into
+// their own private file and hand it over whole at the end, so there is no
+// partially written file to append to: an interrupted transfer continues from
+// the resume data a PAUSED task holds. The Android side writes to `part` as the
+// body arrives and resumes from its own byte offset, which this code never has
+// to know about — either way, adopting the task is what continues the transfer.
+async function downloadUrlViaBackgroundSession(
+  downloader: BackgroundDownloader,
+  url: string,
+  dest: string,
+  cb: DownloadUrlCallbacks
+): Promise<string> {
+  const part = `${dest}.partial`;
+  const id = backgroundTaskIdFor(dest);
+
+  // A transfer that finished while the app was not running was moved here by the
+  // session, with no caller left to promote it. Finish that job rather than
+  // fetching the whole file again. Checking for the file first matters: the
+  // usual case has no staged file at all, and only this branch needs the length
+  // before the transfer rather than after it.
+  const staged = await fileSize(part);
+  if (staged > 0) {
+    const stagedExpected = await expectedBytesFor(url, cb.expectedBytes, cb.signal);
+    if (stagedExpected > 0 && staged === stagedExpected) {
+      await RNBlobUtil.fs.mv(part, dest);
+      cb.onBytes?.(stagedExpected, stagedExpected);
+      return dest;
+    }
+  }
+
+  if (cb.signal?.aborted) throw abortError();
+
+  const adopted = await adoptableBackgroundTask(downloader, id);
+  const task = adopted ?? downloader.createDownloadTask({ id, url, destination: part });
+
+  await new Promise<void>((resolve, reject) => {
+    let settled = false;
+    const settle = (finish: () => void) => {
+      if (settled) return;
+      settled = true;
+      cb.signal?.removeEventListener('abort', onAbort);
+      finish();
+    };
+
+    // Hands the OS's background-session completion handler back. iOS asks for it
+    // once per finished transfer and keeps waiting until it gets it.
+    const release = () => {
+      try {
+        // Nothing to release when the handler was never armed for this launch,
+        // and that is reported either way round, so ignore both.
+        Promise.resolve(downloader.completeHandler(id)).catch(() => {});
+      } catch {
+        // Ignored, as above.
+      }
+    };
+
+    const onAbort = () => {
+      // A pause keeps the fetched bytes as resume data, where `stop` would throw
+      // them away, and it settles only once that data has been written: a
+      // download started right after an abort would otherwise look for resume
+      // data that isn't there yet and start over from zero.
+      const rejectAborted = () => settle(() => reject(abortError()));
+      task.pause().then(rejectAborted, rejectAborted);
+    };
+    cb.signal?.addEventListener('abort', onAbort);
+
+    task
+      .begin(({ expectedBytes }) => {
+        // The length the transfer itself reports, before any of the body has
+        // landed — hence 0 received.
+        if (expectedBytes > 0) cb.onBytes?.(0, expectedBytes);
+      })
+      .progress(({ bytesDownloaded, bytesTotal }) => {
+        // A resumed task counts from the resume point up, so these are already
+        // absolute. A total of 0 means the length isn't known yet.
+        cb.onBytes?.(bytesDownloaded, bytesTotal > 0 ? bytesTotal : 0);
+      })
+      .done(() => {
+        release();
+        settle(resolve);
+      })
+      .error(({ error }) => {
+        release();
+        settle(() =>
+          reject(
+            cb.signal?.aborted
+              ? abortError()
+              : RnExecuTorchError('DOWNLOAD_FAILED', `Download of ${url} failed: ${error}`)
+          )
+        );
+      });
+
+    if (!adopted) {
+      task.start();
+    } else if (adopted.state === 'PAUSED') {
+      task.resume().catch((e) => settle(() => reject(e)));
+    } else if (adopted.state === 'DONE') {
+      // It finished with nobody listening, so no `done` event is coming: the
+      // file is already staged at `part`.
+      release();
+      settle(resolve);
+    }
+  });
+
+  // The session reports success once it has written A file, not once it has
+  // written the RIGHT one: a truncated body still completes. Checking here is
+  // what keeps a short file from being renamed into the cache, where the
+  // existence-only hit check would serve it forever and the truncated .pte would
+  // only fail much later, at load.
+  const expected = await expectedBytesFor(url, cb.expectedBytes, cb.signal);
+  const assembled = await fileSize(part);
+  if (expected > 0 && assembled !== expected) {
+    throw incompleteError(url, assembled, expected);
+  }
+
+  await RNBlobUtil.fs.mv(part, dest);
+  return dest;
+}
+
+// iOS fallback used when that optional dependency is absent: blob-util streams
+// via the iOS URL session straight to disk. It does NOT survive the app being
+// suspended — iOS tears the connection down about a second later — so an
+// interrupted transfer is picked up by the next `download` call instead.
 // Interrupted downloads resume from a `.partial` file via an HTTP Range request.
 // `canResume` is set to `false` on an internal retry to avoid recursing forever
 // if partial-file assembly ever fails.
@@ -371,8 +606,17 @@ async function downloadUrlViaIosStream(
   // A resume starts with `offset` bytes already on disk. Say so before the
   // first byte of the tail arrives, so continuing a 90%-complete download
   // doesn't show the bar restarting from zero.
-  if (offset > 0 && cb.expectedBytes && cb.expectedBytes > offset) {
-    cb.onBytes?.(offset, cb.expectedBytes);
+  //
+  // The length may still be resolving (see DownloadUrlCallbacks.expectedBytes),
+  // so this is deliberately not awaited: waiting on it here would put the HEAD
+  // back in front of the transfer. It primes progress if it wins the race, and
+  // drops out once the transfer reports bytes of its own, which are better:
+  // reporting after that would drag the bar BACKWARDS to the resume point.
+  let progressed = false;
+  if (offset > 0) {
+    Promise.resolve(cb.expectedBytes).then((total) => {
+      if (!progressed && total && total > offset) cb.onBytes?.(offset, total);
+    });
   }
 
   // Same granularity as Android. blob-util still floors the rate at one event
@@ -384,6 +628,7 @@ async function downloadUrlViaIosStream(
     // A response with no Content-Length reports `written: 0, total: -1` on a
     // timer; forwarding it would drag this file's progress back to zero.
     if (tot <= 0) return;
+    progressed = true;
     cb.onBytes?.(offset + recv, offset + tot);
   });
 
@@ -410,7 +655,7 @@ async function downloadUrlViaIosStream(
     throw abortError();
   }
 
-  const expected = await expectedBytesFor(url, cb.expectedBytes);
+  const expected = await expectedBytesFor(url, cb.expectedBytes, cb.signal);
 
   // Whether the response body is a tail or the whole file is decided by the
   // BYTE COUNTS rather than by `status` alone, so a range the server answers in
@@ -583,11 +828,20 @@ function substituteRemoteSources<T>(node: T, resolved: ReadonlyMap<string, strin
  * const { classify, dispose } = await createClassifier(model);
  * ```
  *
- * Downloads go to a persistent cache: on Android via the system DownloadManager
- * (handles multi-GB files and continues in the background), on iOS via a
- * streaming request that resumes an interrupted download from where it stopped.
- * When a config references several files, overall progress is weighted by their
- * byte sizes so a large model isn't reported the same as a tiny tokenizer.
+ * Downloads go to a persistent cache. When a config references several files,
+ * overall progress is weighted by their byte sizes so a large model isn't
+ * reported the same as a tiny tokenizer.
+ *
+ * Install
+ * [`@kesha-antonov/react-native-background-downloader`](https://github.com/kesha-antonov/react-native-background-downloader)
+ * (`>=4.4.0`) to have transfers keep running while the app is in the background,
+ * and survive it being killed. The fetcher uses it automatically on both platforms
+ * when it is present, so the behavior is the same on each; nothing else changes.
+ *
+ * Without it the fetcher falls back to what each platform can do on its own: the
+ * system DownloadManager on Android, which still continues in the background,
+ * and on iOS a streaming request that stops when the app is suspended and is
+ * resumed by the next `download` call.
  * @category Utils / Functions
  * @typeParam T The shape of the value being resolved.
  * @param source A URL, a local path, or any nested object/array holding them.
@@ -603,17 +857,20 @@ export async function download<T>(source: T, options: DownloadOptions = {}): Pro
     return source;
   }
 
-  // Measure every file up front so overall progress can be weighted by real
-  // byte sizes and a 1 GB model isn't treated like a 1 MB tokenizer. A file
-  // that is already cached is measured on disk: it needs no HEAD at all, which
-  // also keeps a warm start from paying a round trip per file.
+  // A cached file is measured on disk, which costs no network at all. Anything
+  // else needs a HEAD for its length, and that lookup is STARTED here but
+  // deliberately not awaited: waiting for it put a full round trip in front of
+  // the first byte of every download, and against Hugging Face that is two,
+  // since a model URL answers with a 302 to a CDN. The length is only actually
+  // needed once a transfer finishes, to check it arrived whole, so it is
+  // resolved alongside the download rather than ahead of it.
   const measured = await Promise.all(
     urls.map(async (url) => {
       if (!options.forceDownload) {
         const cached = await fileSize(cachePathFor(url));
-        if (cached > 0) return { size: cached, cached: true };
+        if (cached > 0) return { size: cached, pending: undefined, cached: true };
       }
-      return { size: await remoteSize(url), cached: false };
+      return { size: 0, pending: remoteSize(url, options.signal), cached: false };
     })
   );
 
@@ -647,6 +904,17 @@ export async function download<T>(source: T, options: DownloadOptions = {}): Pro
   };
   report();
 
+  // Whichever length arrives first wins: usually the transfer's own, sometimes
+  // the HEAD, for a file whose download has not started yet.
+  measured.forEach((m, i) => {
+    m.pending?.then((size) => {
+      if (size > 0 && weights[i] === 0) {
+        weights[i] = size;
+        report();
+      }
+    });
+  });
+
   const resolved = new Map<string, string>();
   await Promise.all(
     urls.map((url, i) =>
@@ -654,9 +922,10 @@ export async function download<T>(source: T, options: DownloadOptions = {}): Pro
       downloadUrl(url, {
         signal: options.signal,
         forceDownload: options.forceDownload,
-        // Already measured above — reuse it rather than asking again when the
-        // completeness check needs the length.
-        expectedBytes: weights[i],
+        // Either the cached file's size, or the HEAD started above and still in
+        // flight. Handing over the promise rather than its result is what keeps
+        // the lookup off the path to the first byte.
+        expectedBytes: measured[i]!.pending ?? weights[i],
         onBytes: (recv, tot) => {
           // The transfer's own length beats the HEAD's: it is what the bytes
           // are actually being counted against, and it is the only length

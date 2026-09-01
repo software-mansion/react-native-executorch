@@ -1462,33 +1462,18 @@ const LLAMA3_2_1B_BF16: LLMModel = {
 
 const SMOLLM2_BASE_URL = `${BASE_URL}-smolLm-2/${NEXT_VERSION_TAG}`;
 
-const SMOLLM2_135M_8DA4W: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/135m/xnnpack/smollm2_135m_xnnpack_8da4w.pte`,
+const SMOLLM2_135M_8DA8W: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/135m/xnnpack/smollm2_135m_xnnpack_8da8w.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
-const SMOLLM2_135M_BF16: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/135m/xnnpack/smollm2_135m_xnnpack_bf16.pte`,
+const SMOLLM2_360M_8DA8W: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/360m/xnnpack/smollm2_360m_xnnpack_8da8w.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
-const SMOLLM2_360M_8DA4W: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/360m/xnnpack/smollm2_360m_xnnpack_8da4w.pte`,
-  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
-};
-const SMOLLM2_360M_BF16: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/360m/xnnpack/smollm2_360m_xnnpack_bf16.pte`,
-  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
-};
-const SMOLLM2_1_7B_8DA4W: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/1_7b/xnnpack/smollm2_1_7b_xnnpack_8da4w.pte`,
-  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
-};
-const SMOLLM2_1_7B_BF16: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/1_7b/xnnpack/smollm2_1_7b_xnnpack_bf16.pte`,
+const SMOLLM2_1_7B_8DA8W: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/1_7b/xnnpack/smollm2_1_7b_xnnpack_8da8w.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
@@ -2197,8 +2182,8 @@ export const models = {
             COREML_FP16: WHISPER_TINY_EN_COREML_FP16,
             MLX_BF16: WHISPER_TINY_EN_MLX_BF16,
             MLX_INT8: WHISPER_TINY_EN_MLX_INT8,
-          VULKAN_FP16: WHISPER_TINY_EN_VULKAN_FP16,
-          VULKAN_INT8: WHISPER_TINY_EN_VULKAN_INT8,
+            VULKAN_FP16: WHISPER_TINY_EN_VULKAN_FP16,
+            VULKAN_INT8: WHISPER_TINY_EN_VULKAN_INT8,
           },
           // Core ML over MLX, see the note on WHISPER.
           { ios: 'COREML_FP16' }
@@ -2214,8 +2199,8 @@ export const models = {
             COREML_FP16: WHISPER_BASE_EN_COREML_FP16,
             MLX_BF16: WHISPER_BASE_EN_MLX_BF16,
             MLX_INT8: WHISPER_BASE_EN_MLX_INT8,
-          VULKAN_FP16: WHISPER_BASE_EN_VULKAN_FP16,
-          VULKAN_INT8: WHISPER_BASE_EN_VULKAN_INT8,
+            VULKAN_FP16: WHISPER_BASE_EN_VULKAN_FP16,
+            VULKAN_INT8: WHISPER_BASE_EN_VULKAN_INT8,
           },
           // Core ML over MLX, see the note on WHISPER.
           { ios: 'COREML_FP16' }
@@ -2230,8 +2215,8 @@ export const models = {
             XNNPACK_INT8: WHISPER_SMALL_EN_XNNPACK_INT8,
             COREML_FP16: WHISPER_SMALL_EN_COREML_FP16,
             MLX_INT8: WHISPER_SMALL_EN_MLX_INT8,
-          VULKAN_FP16: WHISPER_SMALL_EN_VULKAN_FP16,
-          VULKAN_INT8: WHISPER_SMALL_EN_VULKAN_INT8,
+            VULKAN_FP16: WHISPER_SMALL_EN_VULKAN_FP16,
+            VULKAN_INT8: WHISPER_SMALL_EN_VULKAN_INT8,
           },
           // Core ML over MLX, see the note on WHISPER.
           { ios: 'COREML_FP16' }
@@ -2336,8 +2321,7 @@ export const models = {
      * and background processing on low-power devices.
      */
     SMOLLM2_135M: variants({
-      XNNPACK_8DA4W: SMOLLM2_135M_8DA4W,
-      XNNPACK_BF16: SMOLLM2_135M_BF16,
+      XNNPACK_8DA8W: SMOLLM2_135M_8DA8W,
     }),
     /**
      * Hugging Face SmolLM2 360M compact instruction-tuned model. Provides a
@@ -2346,8 +2330,7 @@ export const models = {
      * simplification, and structured data extraction.
      */
     SMOLLM2_360M: variants({
-      XNNPACK_8DA4W: SMOLLM2_360M_8DA4W,
-      XNNPACK_BF16: SMOLLM2_360M_BF16,
+      XNNPACK_8DA8W: SMOLLM2_360M_8DA8W,
     }),
     /**
      * Hugging Face SmolLM2 1.7B language model trained on curated educational,
@@ -2356,8 +2339,7 @@ export const models = {
      * 2B-3B models while maintaining fast on-device inference.
      */
     SMOLLM2_1_7B: variants({
-      XNNPACK_8DA4W: SMOLLM2_1_7B_8DA4W,
-      XNNPACK_BF16: SMOLLM2_1_7B_BF16,
+      XNNPACK_8DA8W: SMOLLM2_1_7B_8DA8W,
     }),
     /**
      * Hammer 2.1 0.5B specialized function-calling model. Fine-tuned
