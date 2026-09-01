@@ -77,6 +77,25 @@ export type Model = {
 };
 
 /**
+ * Configuration options for loading an ExecuTorch model into native memory.
+ * @category Core / Types
+ */
+export type LoadModelOptions = {
+  /**
+   * Whether to eagerly load and compile all model methods and delegate subgraphs
+   * during initialization.
+   *
+   * When `true` (the default), all exported methods are fully loaded and backend
+   * delegates (such as CoreML or Vulkan) are compiled into memory upfront,
+   * guaranteeing instantaneous first-inference latency.
+   *
+   * Set to `false` to lazily load and compile methods on their first execution.
+   * @default true
+   */
+  readonly eagerLoadMethods?: boolean;
+};
+
+/**
  * Loads and compiles an ExecuTorch `.pte` model from the local filesystem.
  *
  * The model is loaded synchronously into native memory. Prefer calling this
@@ -84,6 +103,7 @@ export type Model = {
  * JS thread during compilation.
  * @category Core / Functions
  * @param modelPath The absolute local path to the `.pte` model file.
+ * @param options Optional loading configuration. See {@link LoadModelOptions}.
  * @returns The compiled {@link Model} instance, ready for execution.
  * @throws {RnExecuTorchError} Thrown with code `LOAD_FAILED` if the model file
  * cannot be opened, has an invalid format, or fails native initialization.
@@ -103,7 +123,7 @@ export type Model = {
  * }
  * ```
  */
-export function loadModel(modelPath: string): Model {
+export function loadModel(modelPath: string, options?: LoadModelOptions): Model {
   'worklet';
-  return rnexecutorchJsi.loadModel(modelPath) as Model;
+  return rnexecutorchJsi.loadModel(modelPath, options) as Model;
 }
