@@ -136,8 +136,8 @@ const FEATURE_MAP = {
   // FSMN VAD — xnnpack only.
   vad: { backends: ['xnnpack'], libs: [] },
   // The MiniLM/CLIP-text/distiluse family ships coreml alongside xnnpack,
-  // LFM2.5-Embedding and distiluse add MLX iOS exports, and all-MiniLM-L6-v2,
-  // CLIP-text and all-mpnet-base-v2 add vulkan Android exports.
+  // LFM2.5-Embedding and distiluse add MLX iOS exports, and every sentence
+  // transformer now ships a vulkan Android export.
   textEmbeddings: { backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'], libs: [] },
   // CLIP's vision encoder ships xnnpack, coreml and mlx, plus a vulkan Android
   // export.

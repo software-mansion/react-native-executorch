@@ -771,6 +771,10 @@ const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8: TextEmbedderModel = {
   modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/mlx/distiluse_base_multilingual_cased_v2_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
+const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_VULKAN_FP16: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/vulkan/distiluse_base_multilingual_cased_v2_vulkan_fp16.pte`,
+  tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
 const CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/tokenizer.json`,
@@ -2513,6 +2517,7 @@ export const models = {
         XNNPACK_FP32: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_XNNPACK_FP32,
         COREML_FP16: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16,
         MLX_INT8: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8,
+        VULKAN_FP16: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_VULKAN_FP16,
       },
       // The one Core ML/MLX pair that does not go Core ML's way. On an
       // iPhone 16, warm, over 150 embeds of five sentences in five languages:
