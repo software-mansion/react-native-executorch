@@ -1,6 +1,5 @@
 /**
  * Whisper Speech-to-Text (STT) transcription and live-streaming task pipeline.
- * @module Speech/Tasks/WhisperSpeechToText
  */
 
 import type { WorkletRuntime } from 'react-native-worklets';

@@ -1,7 +1,6 @@
 /**
  * Privacy Filter task pipeline for detecting personally identifiable
  * information (PII).
- * @module NLP/Tasks/PrivacyFilter
  */
 
 import type { WorkletRuntime } from 'react-native-worklets';

@@ -261,7 +261,7 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
 
     const detectKeypointsWorklet = (
       input: ImageBuffer,
-      options?: { confidenceThreshold?: number; iouThreshold?: number }
+      options?: DetectKeypointsOptions
     ): KeypointDetection<F, L>[] => {
       'worklet';
       const tInput = preprocessor.process(input);

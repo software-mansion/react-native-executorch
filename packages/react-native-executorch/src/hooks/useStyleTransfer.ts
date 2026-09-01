@@ -15,9 +15,9 @@ import { createStyleTransfer, type StyleTransferModel } from '../extensions/cv/t
  * @param config The style transfer model configuration.
  * See {@link StyleTransferModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns The same object as {@link createStyleTransfer} (without `dispose`),
+ * @returns The same object as {@link StyleTransfer} (without `dispose`),
  * combined with loading state and download progress.
- * @see {@link createStyleTransfer}
+ * @see {@link StyleTransfer}
  */
 export function useStyleTransfer(config: StyleTransferModel, options?: ResourceOptions) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);

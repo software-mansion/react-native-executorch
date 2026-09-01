@@ -21,9 +21,9 @@ import type { BoxFormat } from '../extensions/cv/ops/box';
  * @param config The keypoint detection model configuration.
  * See {@link KeypointDetectorModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns The same object as {@link createKeypointDetector} (without `dispose`),
+ * @returns The same object as {@link KeypointDetector} (without `dispose`),
  * combined with loading state, download progress, and landmarks.
- * @see {@link createKeypointDetector}
+ * @see {@link KeypointDetector}
  */
 export function useKeypointDetector<F extends BoxFormat, L extends PropertyKey>(
   config: KeypointDetectorModel<F, L>,

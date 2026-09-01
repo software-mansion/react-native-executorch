@@ -21,9 +21,9 @@ import type { BoxFormat } from '../extensions/cv/ops/box';
  * @param config The object detection model configuration.
  * See {@link ObjectDetectorModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns The same object as {@link createObjectDetector} (without `dispose`),
+ * @returns The same object as {@link ObjectDetector} (without `dispose`),
  * combined with loading state, download progress, and labels.
- * @see {@link createObjectDetector}
+ * @see {@link ObjectDetector}
  */
 export function useObjectDetector<F extends BoxFormat, L>(
   config: ObjectDetectorModel<F, L>,
