@@ -20,8 +20,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "typecheck": "tsc",
-    "lint": "eslint . --ext .ts,.tsx --fix",
-    "postinstall": "yarn run -T patch-package --patch-dir ../../patches"
+    "lint": "eslint . --ext .ts,.tsx --fix"
   },
   "dependencies": {
     "@react-navigation/drawer": "^7.9.4",
