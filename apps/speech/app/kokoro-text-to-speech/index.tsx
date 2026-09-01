@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Platform } from 'react-native';
 import {
   useTextToSpeech,
   models,
@@ -27,6 +27,17 @@ const LANGUAGE_OPTIONS = [
 ];
 
 type KokoroLanguage = (typeof LANGUAGE_OPTIONS)[number]['value'];
+
+// Every language ships both backends; Core ML runs on iOS only.
+const BACKEND_OPTIONS = [
+  { label: 'XNNPACK', value: 'XNNPACK_FP32' as const },
+  { label: 'Core ML', value: 'COREML_FP32' as const },
+];
+
+type KokoroBackend = (typeof BACKEND_OPTIONS)[number]['value'];
+
+const kokoroModel = (language: KokoroLanguage, backend: KokoroBackend) =>
+  models.textToSpeech.KOKORO[language][backend] as KokoroTtsModel<string>;
 
 // cspell:disable
 const SAMPLE_TEXTS: Record<KokoroLanguage, string> = {
@@ -65,7 +76,9 @@ function KokoroContent() {
   const [runError, setRunError] = useState<string | null>(null);
   const [totalDuration, setTotalDuration] = useState<number | null>(null);
 
-  const model = models.textToSpeech.KOKORO[language].XNNPACK_FP32 as KokoroTtsModel<string>;
+  const [backend, setBackend] = useState<KokoroBackend>('XNNPACK_FP32');
+
+  const model = kokoroModel(language, backend);
   const voiceNames = Object.keys(model.voices);
   const [voice, setVoice] = useState(voiceNames[0]!);
 
@@ -198,6 +211,14 @@ function KokoroContent() {
           selectedValue={language}
           onValueChange={setLanguage}
         />
+        {Platform.OS === 'ios' && (
+          <ModelPicker
+            label="Backend"
+            options={BACKEND_OPTIONS.map((b) => ({ ...b, disabled: isBusy }))}
+            selectedValue={backend}
+            onValueChange={setBackend}
+          />
+        )}
         <ModelPicker
           label="Voice"
           options={voiceNames.map((name) => ({ label: name, value: name, disabled: isBusy }))}

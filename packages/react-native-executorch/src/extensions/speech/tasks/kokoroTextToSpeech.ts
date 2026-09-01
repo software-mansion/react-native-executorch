@@ -16,6 +16,7 @@ import {
   bool,
   DynamicDim as Dyn,
   constraint,
+  type SpecMatch,
 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { createResourceScope } from '../../../core/lifetime';
@@ -51,6 +52,14 @@ const SILENCE_PADDING_MS = 50; // silence kept at both edges of a synthesized ch
 
 // Distinguishes spoken phonemes from punctuation and suprasegmental markers.
 const LETTER_PATTERN = /\p{L}/u;
+
+// Token counts a Kokoro sub-model accepts. A padded model takes one count and
+// one only, so its bounds collapse onto that single constant.
+const tokenBounds = (spec: SpecMatch<'dynamic' | 'padded'>) => {
+  if (spec.variant !== 'padded') return spec.dim('T', 'range');
+  const tokens = spec.dim('T', 'constant');
+  return { min: tokens, max: tokens };
+};
 
 /**
  * Model configuration required to instantiate the Kokoro Text-to-Speech pipeline.
@@ -164,7 +173,7 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
     const synthesizer = scope.track(await load(config.modelPaths.synthesizer));
     const models = { durationPredictor, synthesizer };
     const predictorSpec = validateSpec(models.durationPredictor.schema, {
-      default: method(
+      dynamic: method(
         'forward',
         [
           i64(1, Dyn('T')), // tokens
@@ -185,10 +194,25 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
           ),
         ]
       ),
+      // Core ML cannot express the token axis dynamically, so its export fixes
+      // it and every chunk is padded up to that length.
+      padded: method(
+        'forward',
+        [
+          i64(1, 'T'), // tokens
+          bool(1, 'T'), // textMask
+          f32(1, VOICE_REF_HALF_SIZE), // voiceRef
+          f32(1), // speed
+        ],
+        [
+          i64('T'), // predictedDurations
+          f32(1, 'T', DURATION_FEATURE_DIM), // durationFeatures
+        ]
+      ),
     });
 
     const synthesizerSpec = validateSpec(models.synthesizer.schema, {
-      default: method(
+      dynamic: method(
         'forward',
         [
           i64(1, Dyn('T')), // tokens
@@ -211,14 +235,44 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
           ),
         ]
       ),
+      padded: method(
+        'forward',
+        [
+          i64(1, 'T'), // tokens
+          bool(1, 'T'), // textMask
+          i64(Dyn('D')), // indices
+          f32(1, 'T', DURATION_FEATURE_DIM), // durationFeatures
+          f32(1, VOICE_REF_SIZE), // voiceRef
+        ],
+        [f32(1, 1, Dyn('AUDIO_LEN'))], // audio
+        [
+          constraint.linear(
+            { paramSide: 'output', tensorIdx: 0, dimIdx: 2 },
+            { paramSide: 'input', tensorIdx: 2, dimIdx: 0 },
+            TICKS_PER_DURATION
+          ),
+        ]
+      ),
     });
 
-    const [predictorTokens] = predictorSpec.dims.range('T');
-    const [synthesizerTokens, durations] = synthesizerSpec.dims.range('T', 'D');
-
-    const minTokens = Math.max(predictorTokens.min, synthesizerTokens.min);
-    const maxTokens = predictorTokens.max;
+    const [durations] = synthesizerSpec.dims.range('D');
     const maxDurationTicks = durations.max;
+
+    // Both sub-models see the same tokens, so only the counts they both accept
+    // are usable. A padded pair collapses this to its single fixed count.
+    const predictorTokens = tokenBounds(predictorSpec);
+    const synthesizerTokens = tokenBounds(synthesizerSpec);
+    const minTokens = Math.max(predictorTokens.min, synthesizerTokens.min);
+    const maxTokens = Math.min(predictorTokens.max, synthesizerTokens.max);
+
+    if (minTokens > maxTokens) {
+      throw RnExecuTorchError(
+        'SCHEMA_MISMATCH',
+        `The duration predictor and the synthesizer share no token count ` +
+          `(${predictorTokens.min}..${predictorTokens.max} and ` +
+          `${synthesizerTokens.min}..${synthesizerTokens.max}).`
+      );
+    }
 
     const phonemizer = await wrapAsync(createPhonemizer, runtime)(config.phonemizer);
     scope.track(phonemizer);

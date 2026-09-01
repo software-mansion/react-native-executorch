@@ -126,8 +126,8 @@ const FEATURE_MAP = {
   privacyFilter: { backends: ['xnnpack', 'mlx'], libs: [] },
   // Whisper ships xnnpack + coreml.
   speechToText: { backends: ['xnnpack', 'coreml'], libs: [] },
-  // Kokoro ships xnnpack only.
-  textToSpeech: { backends: ['xnnpack'], libs: ['phonemis'] },
+  // Kokoro ships xnnpack + coreml.
+  textToSpeech: { backends: ['xnnpack', 'coreml'], libs: ['phonemis'] },
   // FSMN VAD — xnnpack only.
   vad: { backends: ['xnnpack'], libs: [] },
   // LFM2.5-Embedding ships an MLX iOS export alongside xnnpack.
