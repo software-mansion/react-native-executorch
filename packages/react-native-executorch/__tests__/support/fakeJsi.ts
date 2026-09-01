@@ -321,7 +321,7 @@ const jsi = {
 
   createTensor: (shape: number[], dtype: DType) => new FakeTensor(dtype, shape),
 
-  loadModel: (path: string) => {
+  loadModel: (path: string, _options?: { eagerLoadMethods?: boolean }) => {
     const program = programs.get(path);
     if (!program) {
       throw new Error(`loadModel: no program registered at '${path}' (register one via fakeJsi)`);

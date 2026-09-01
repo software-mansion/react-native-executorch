@@ -35,6 +35,12 @@ T unwrap(RnExecuTorchErrorCode code, const std::string &ctx, executorch::runtime
     return std::move(result.get());
 }
 
+void unwrap(RnExecuTorchErrorCode code, const std::string &ctx, executorch::runtime::Error error) {
+    if (error != executorch::runtime::Error::Ok) {
+        throw RnExecuTorchException(code, std::format("{}: {}", ctx, executorch::runtime::to_string(error)), error);
+    }
+}
+
 } // namespace
 
 namespace rnexecutorch::core::model {
@@ -43,7 +49,7 @@ namespace conversions = rnexecutorch::core::conversions;
 
 using rnexecutorch::core::tensor::TensorHostObject;
 
-ModelHostObject::ModelHostObject(const std::string &modelPath)
+ModelHostObject::ModelHostObject(const std::string &modelPath, const bool eagerLoadMethods)
     : modelPath_(modelPath),
       etModule_(std::make_unique<executorch::extension::Module>(modelPath)) {
 
@@ -70,6 +76,11 @@ ModelHostObject::ModelHostObject(const std::string &modelPath)
     }
 
     for (const auto &methodName : methodNames) {
+        if (eagerLoadMethods && methodName != kGetModelSchemaMethod) {
+            auto ctx = std::format("Load method '{}'", methodName);
+            unwrap(RnExecuTorchErrorCode::LoadFailed, ctx, etModule_->load_method(methodName));
+        }
+
         auto ctx = std::format("Method '{}'", methodName);
         auto methodMeta = unwrap(RnExecuTorchErrorCode::LoadFailed, ctx, etModule_->method_meta(methodName));
 
@@ -308,14 +319,21 @@ std::vector<facebook::jsi::PropNameID> ModelHostObject::getPropertyNames(jsi::Ru
 void install_loadModel(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "loadModel";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
-        if (count != 1) {
-            throw error::InvalidArgument("loadModel: Usage: loadModel(path)");
+        if (count < 1 || count > 2) {
+            throw error::InvalidArgument("loadModel: Usage: loadModel(path, options?)");
         }
 
         auto modelPath = conversions::asType<std::string>(rt, "loadModel: path", args[0]);
-        return jsi::Object::createFromHostObject(rt, std::make_shared<ModelHostObject>(modelPath));
+        bool eagerLoadMethods = true;
+
+        if (count >= 2 && !args[1].isUndefined() && !args[1].isNull()) {
+            auto options = conversions::asType<jsi::Object>(rt, "loadModel: options", args[1]);
+            eagerLoadMethods = conversions::getOptionalProperty<bool>(rt, "loadModel: options", options, "eagerLoadMethods").value_or(true);
+        }
+
+        return jsi::Object::createFromHostObject(rt, std::make_shared<ModelHostObject>(modelPath, eagerLoadMethods));
     };
-    auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 1, error::guarded(fnBody));
+    auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 2, error::guarded(fnBody));
 
     module.setProperty(rt, name, fn);
 }

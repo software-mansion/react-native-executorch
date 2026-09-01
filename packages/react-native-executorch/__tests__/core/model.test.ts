@@ -29,6 +29,15 @@ describe('loadModel', () => {
     model.dispose();
   });
 
+  it('accepts optional eagerLoadMethods option', () => {
+    const schema = exported(method('forward', [f32(4)], [f32(4)]));
+    fakeJsi.registerModel(PATH, { schema });
+
+    const model = loadModel(PATH, { eagerLoadMethods: false });
+    expect(model.path).toBe(PATH);
+    model.dispose();
+  });
+
   it('propagates a load failure as a thrown error', () => {
     expect(() => loadModel('/models/missing.pte')).toThrow(/missing.pte/);
   });

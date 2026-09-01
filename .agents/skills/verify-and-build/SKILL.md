@@ -97,7 +97,7 @@ Compiles staged (or explicitly passed) `cpp/` sources with the same flags clangd
 ```bash
 # The script takes file paths as positional arguments and exits 0 immediately
 # with none — it has no built-in file discovery. Pass files explicitly:
-find cpp/ -name '*.cpp' -o -name '*.h' | \
+find cpp/ -path cpp/tests -prune -o \( -name '*.cpp' -o -name '*.h' \) -print | \
   xargs ./scripts/check-cpp-warnings.sh
 ```
 
