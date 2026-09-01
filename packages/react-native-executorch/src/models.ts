@@ -1116,6 +1116,18 @@ const SUPERTONIC_3_MLX_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
   voiceStyles: SUPERTONIC_DEFAULT_VOICE_STYLES,
 };
 
+const SUPERTONIC_3_VULKAN_FP16: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
+  name: 'supertonic',
+  modelPaths: {
+    durationPredictor: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/vulkan/duration_predictor_vulkan_fp16.pte`,
+    vectorEstimator: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/vulkan/vector_estimator_vulkan_fp16.pte`,
+    textEncoder: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/vulkan/text_encoder_vulkan_fp16.pte`,
+    vocoder: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/vulkan/vocoder_vulkan_fp16.pte`,
+  },
+  unicodeIndexerPath: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/unicode_indexer.json`,
+  voiceStyles: SUPERTONIC_DEFAULT_VOICE_STYLES,
+};
+
 const KOKORO_ROOT = `${BASE_URL}-kokoro/${NEXT_VERSION_TAG}`;
 const KOKORO_PHONEMIZER_ROOT = `${KOKORO_ROOT}/phonemizer`;
 
@@ -2624,6 +2636,7 @@ export const models = {
     SUPERTONIC: variants({
       XNNPACK_FP32: SUPERTONIC_3_XNNPACK_FP32,
       MLX_FP32: SUPERTONIC_3_MLX_FP32,
+      VULKAN_FP16: SUPERTONIC_3_VULKAN_FP16,
     }),
 
     /**
