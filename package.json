@@ -11,8 +11,7 @@
   "scripts": {
     "prepare": "yarn workspaces foreach --all --exclude react-native-executorch-webrtc --topological-dev run prepare",
     "lint": "yarn workspaces foreach --all --exclude react-native-executorch-webrtc --parallel run lint",
-    "typecheck": "yarn workspaces foreach --all --exclude react-native-executorch-webrtc --parallel run typecheck",
-    "postinstall": "patch-package"
+    "typecheck": "yarn workspaces foreach --all --exclude react-native-executorch-webrtc --parallel run typecheck"
   },
   "private": true,
   "devDependencies": {
@@ -29,7 +28,6 @@
     "eslint-plugin-markdown": "^5.1.0",
     "eslint-plugin-prettier": "^5.0.1",
     "expo-router": "~6.0.17",
-    "patch-package": "^8.0.0",
     "prettier": "^3.3.3",
     "prettier-plugin-jsdoc": "^1.3.0",
     "react-native-worklets": "0.10.3",

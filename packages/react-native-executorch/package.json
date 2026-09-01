@@ -51,7 +51,7 @@
     "android",
     "ios",
     "cpp",
-    "scripts",
+    "scripts/download-libs.js",
     "*.podspec",
     "third-party",
     "!third-party/include",
