@@ -71,24 +71,55 @@ async function fileSize(path: string): Promise<number> {
   }
 }
 
-// Best-effort remote content length via a HEAD request; 0 when unknown.
-async function remoteSize(url: string): Promise<number> {
+// How long a length lookup may take before it is treated as unknown. The HEAD
+// is never on the path to the first byte (see download()), so this is not a
+// latency budget: it only bounds how long a server that accepts the connection
+// and then answers nothing can hold a download that has otherwise finished.
+// React Native gives that no ceiling of its own — OkHttp is configured with
+// connect/read/write timeouts of 0 — so without this a black-holed HEAD would
+// leave the download promise pending forever.
+const HEAD_TIMEOUT_MS = 15_000;
+
+// Best-effort remote content length via a HEAD request; 0 when unknown, which
+// covers a refusal, a response without a Content-Length, the caller aborting,
+// and a server that simply never replies.
+async function remoteSize(url: string, signal?: AbortSignal): Promise<number> {
+  // AbortSignal.timeout()/any() don't exist here: React Native polyfills
+  // AbortSignal with abort-controller@3, which has neither.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HEAD_TIMEOUT_MS);
+  const onAbort = () => controller.abort();
+  if (signal?.aborted) controller.abort();
+  else signal?.addEventListener('abort', onAbort);
+
   try {
-    const res = await fetch(url, { method: 'HEAD' });
+    const res = await fetch(url, { method: 'HEAD', signal: controller.signal });
     const len = res.headers.get('content-length');
     return len ? Number(len) : 0;
   } catch {
     return 0;
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', onAbort);
   }
 }
 
 // The file's full length, or 0 when it can't be established. `remoteSize`
 // follows redirects (Hugging Face answers a model URL with a 302 to a CDN), so
-// it reports the length of the file itself. `download()` already computes this
-// for progress weighting and passes it in, so the HEAD is not repeated.
-async function expectedBytesFor(url: string, known: number | undefined): Promise<number> {
-  if (known && known > 0) return known;
-  return remoteSize(url);
+// it reports the length of the file itself.
+//
+// `download()` starts this lookup but does NOT wait for it, so what arrives
+// here is usually a promise still in flight. Awaiting it at the point of use
+// keeps the HEAD off the path to the first byte: by the time the length is
+// needed, to check the transfer arrived whole, it resolved long ago.
+async function expectedBytesFor(
+  url: string,
+  known: number | Promise<number> | undefined,
+  signal?: AbortSignal
+): Promise<number> {
+  const resolved = await known;
+  if (resolved && resolved > 0) return resolved;
+  return remoteSize(url, signal);
 }
 
 // Raised when a transfer reported success but the bytes on disk don't match
@@ -155,9 +186,11 @@ interface DownloadUrlCallbacks {
   onBytes?: OnBytes;
   signal?: AbortSignal;
   forceDownload?: boolean;
-  // The file's full length when the caller already knows it, so the completeness
-  // check doesn't repeat the HEAD. 0 / undefined means "look it up".
-  expectedBytes?: number;
+  // The file's full length, or a lookup already in flight for it, so the
+  // completeness check doesn't repeat the HEAD. 0 / undefined means "look it
+  // up". A promise here is deliberate: waiting for it before starting the
+  // transfer would put a round trip in front of every download.
+  expectedBytes?: number | Promise<number>;
 }
 
 // A download that is currently running, shared by every caller that asked for
@@ -169,8 +202,9 @@ interface InFlightDownload {
   // Drives the underlying request; aborted only once every caller has left.
   controller: AbortController;
   callers: number;
-  // Same URL, same length — shared by everyone who joins.
-  expectedBytes: number;
+  // Same URL, same length — shared by everyone who joins. Possibly still being
+  // looked up; see DownloadUrlCallbacks.expectedBytes.
+  expectedBytes: number | Promise<number>;
 }
 
 const inFlight = new Map<string, InFlightDownload>();
@@ -351,7 +385,7 @@ async function downloadUrlViaAndroidDownloadManager(
   // gives us no status to check. Promoting a short file would cache it under
   // its final name forever — the existence-only cache check can't tell the
   // difference, and a truncated .pte only fails much later, at load.
-  const expected = await expectedBytesFor(url, cb.expectedBytes);
+  const expected = await expectedBytesFor(url, cb.expectedBytes, cb.signal);
   if (expected > 0 && size !== expected) {
     await RNBlobUtil.fs.unlink(tmp).catch(() => {});
     throw incompleteError(url, size, expected);
@@ -421,15 +455,20 @@ async function downloadUrlViaBackgroundSession(
 ): Promise<string> {
   const part = `${dest}.partial`;
   const id = backgroundTaskIdFor(dest);
-  const expected = await expectedBytesFor(url, cb.expectedBytes);
 
   // A transfer that finished while the app was not running was moved here by the
   // session, with no caller left to promote it. Finish that job rather than
-  // fetching the whole file again.
-  if (expected > 0 && (await fileSize(part)) === expected) {
-    await RNBlobUtil.fs.mv(part, dest);
-    cb.onBytes?.(expected, expected);
-    return dest;
+  // fetching the whole file again. Checking for the file first matters: the
+  // usual case has no staged file at all, and only this branch needs the length
+  // before the transfer rather than after it.
+  const staged = await fileSize(part);
+  if (staged > 0) {
+    const stagedExpected = await expectedBytesFor(url, cb.expectedBytes, cb.signal);
+    if (stagedExpected > 0 && staged === stagedExpected) {
+      await RNBlobUtil.fs.mv(part, dest);
+      cb.onBytes?.(stagedExpected, stagedExpected);
+      return dest;
+    }
   }
 
   if (cb.signal?.aborted) throw abortError();
@@ -511,6 +550,7 @@ async function downloadUrlViaBackgroundSession(
   // what keeps a short file from being renamed into the cache, where the
   // existence-only hit check would serve it forever and the truncated .pte would
   // only fail much later, at load.
+  const expected = await expectedBytesFor(url, cb.expectedBytes, cb.signal);
   const assembled = await fileSize(part);
   if (expected > 0 && assembled !== expected) {
     throw incompleteError(url, assembled, expected);
@@ -566,8 +606,17 @@ async function downloadUrlViaIosStream(
   // A resume starts with `offset` bytes already on disk. Say so before the
   // first byte of the tail arrives, so continuing a 90%-complete download
   // doesn't show the bar restarting from zero.
-  if (offset > 0 && cb.expectedBytes && cb.expectedBytes > offset) {
-    cb.onBytes?.(offset, cb.expectedBytes);
+  //
+  // The length may still be resolving (see DownloadUrlCallbacks.expectedBytes),
+  // so this is deliberately not awaited: waiting on it here would put the HEAD
+  // back in front of the transfer. It primes progress if it wins the race, and
+  // drops out once the transfer reports bytes of its own, which are better:
+  // reporting after that would drag the bar BACKWARDS to the resume point.
+  let progressed = false;
+  if (offset > 0) {
+    Promise.resolve(cb.expectedBytes).then((total) => {
+      if (!progressed && total && total > offset) cb.onBytes?.(offset, total);
+    });
   }
 
   // Same granularity as Android. blob-util still floors the rate at one event
@@ -579,6 +628,7 @@ async function downloadUrlViaIosStream(
     // A response with no Content-Length reports `written: 0, total: -1` on a
     // timer; forwarding it would drag this file's progress back to zero.
     if (tot <= 0) return;
+    progressed = true;
     cb.onBytes?.(offset + recv, offset + tot);
   });
 
@@ -605,7 +655,7 @@ async function downloadUrlViaIosStream(
     throw abortError();
   }
 
-  const expected = await expectedBytesFor(url, cb.expectedBytes);
+  const expected = await expectedBytesFor(url, cb.expectedBytes, cb.signal);
 
   // Whether the response body is a tail or the whole file is decided by the
   // BYTE COUNTS rather than by `status` alone, so a range the server answers in
@@ -807,17 +857,20 @@ export async function download<T>(source: T, options: DownloadOptions = {}): Pro
     return source;
   }
 
-  // Measure every file up front so overall progress can be weighted by real
-  // byte sizes and a 1 GB model isn't treated like a 1 MB tokenizer. A file
-  // that is already cached is measured on disk: it needs no HEAD at all, which
-  // also keeps a warm start from paying a round trip per file.
+  // A cached file is measured on disk, which costs no network at all. Anything
+  // else needs a HEAD for its length, and that lookup is STARTED here but
+  // deliberately not awaited: waiting for it put a full round trip in front of
+  // the first byte of every download, and against Hugging Face that is two,
+  // since a model URL answers with a 302 to a CDN. The length is only actually
+  // needed once a transfer finishes, to check it arrived whole, so it is
+  // resolved alongside the download rather than ahead of it.
   const measured = await Promise.all(
     urls.map(async (url) => {
       if (!options.forceDownload) {
         const cached = await fileSize(cachePathFor(url));
-        if (cached > 0) return { size: cached, cached: true };
+        if (cached > 0) return { size: cached, pending: undefined, cached: true };
       }
-      return { size: await remoteSize(url), cached: false };
+      return { size: 0, pending: remoteSize(url, options.signal), cached: false };
     })
   );
 
@@ -851,6 +904,17 @@ export async function download<T>(source: T, options: DownloadOptions = {}): Pro
   };
   report();
 
+  // Whichever length arrives first wins: usually the transfer's own, sometimes
+  // the HEAD, for a file whose download has not started yet.
+  measured.forEach((m, i) => {
+    m.pending?.then((size) => {
+      if (size > 0 && weights[i] === 0) {
+        weights[i] = size;
+        report();
+      }
+    });
+  });
+
   const resolved = new Map<string, string>();
   await Promise.all(
     urls.map((url, i) =>
@@ -858,9 +922,10 @@ export async function download<T>(source: T, options: DownloadOptions = {}): Pro
       downloadUrl(url, {
         signal: options.signal,
         forceDownload: options.forceDownload,
-        // Already measured above — reuse it rather than asking again when the
-        // completeness check needs the length.
-        expectedBytes: weights[i],
+        // Either the cached file's size, or the HEAD started above and still in
+        // flight. Handing over the promise rather than its result is what keeps
+        // the lookup off the path to the first byte.
+        expectedBytes: measured[i]!.pending ?? weights[i],
         onBytes: (recv, tot) => {
           // The transfer's own length beats the HEAD's: it is what the bytes
           // are actually being counted against, and it is the only length
