@@ -69,6 +69,10 @@
     "!**/__tests__",
     "!**/__fixtures__",
     "!**/__mocks__",
+    "!third-party/**/test",
+    "!third-party/**/tests",
+    "!third-party/common/phonemis/data",
+    "!cpp/tests",
     "!**/.*"
   ],
   "scripts": {
@@ -80,7 +84,7 @@
     "lint:cpp": "./scripts/clang-tidy.sh",
     "prepack": "cp ../../README.md ./README.md",
     "postpack": "rm ./README.md",
-    "postinstall": "node scripts/download-libs.js && yarn run -T patch-package --patch-dir ../../patches"
+    "postinstall": "node scripts/download-libs.js"
   },
   "keywords": [
     "text-to-speech",
