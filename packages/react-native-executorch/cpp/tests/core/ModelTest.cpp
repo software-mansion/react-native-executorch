@@ -31,7 +31,7 @@ using ::testing::HasSubstr;
 constexpr const char *kFixture = RNE_MODEL_FIXTURE;
 
 std::string loadFixtureJs() {
-    return std::format("const model = __rnexecutorch_jsi__.loadModel('{}');", kFixture);
+    return std::format("const model = __rnexecutorch_jsi__.loadModel('{}', {{ eagerLoadMethods: false }});", kFixture);
 }
 
 // --- Metadata reflection, exercised directly ---------------------------------
@@ -189,7 +189,7 @@ TEST_F(ModelTest, ReportsAMissingFileAsLoadFailed) {
 
 TEST_F(ModelTest, RejectsWrongArgumentCount) {
     EXPECT_THAT(evalThrowingMessage("__rnexecutorch_jsi__.loadModel();"),
-                HasSubstr("Usage: loadModel(path)"));
+                HasSubstr("Usage: loadModel(path, options?)"));
 }
 
 TEST_F(ModelTest, RejectsANonStringPath) {
