@@ -21,9 +21,9 @@ import type { BoxFormat } from '../extensions/cv/ops/box';
  * @param config The instance segmentation model configuration.
  * See {@link InstanceSegmenterModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns The same object as {@link createInstanceSegmenter} (without `dispose`),
+ * @returns The same object as {@link InstanceSegmenter} (without `dispose`),
  * combined with loading state, download progress, and labels.
- * @see {@link createInstanceSegmenter}
+ * @see {@link InstanceSegmenter}
  */
 export function useInstanceSegmenter<F extends BoxFormat, L>(
   config: InstanceSegmenterModel<F, L>,

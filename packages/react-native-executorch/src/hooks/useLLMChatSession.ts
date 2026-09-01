@@ -19,9 +19,9 @@ import {
  * @param config The LLM model configuration. See {@link LLMModel}.
  * @param options Chat session options and load/caching options.
  * See {@link LLMChatSessionOptions} & {@link ResourceOptions}.
- * @returns The same object as {@link createLLMChatSession} (without `dispose`),
+ * @returns The same object as {@link LLMChatSession} (without `dispose`),
  * combined with loading state and download progress.
- * @see {@link createLLMChatSession}
+ * @see {@link LLMChatSession}
  */
 export function useLLMChatSession(
   config: LLMModel,

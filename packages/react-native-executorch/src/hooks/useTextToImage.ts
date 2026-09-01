@@ -17,9 +17,9 @@ import {
  * @category Hooks
  * @param config The SDXS model configuration. See {@link SdxsTextToImageModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns The same object as {@link createSdxsTextToImage} (without `dispose`),
+ * @returns The same object as {@link SdxsTextToImage} (without `dispose`),
  * combined with loading state and download progress.
- * @see {@link createSdxsTextToImage}
+ * @see {@link SdxsTextToImage}
  */
 export function useTextToImage(config: SdxsTextToImageModel, options?: ResourceOptions) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);

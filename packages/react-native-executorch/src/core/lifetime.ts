@@ -27,6 +27,9 @@ export type ResourceScope = {
   /**
    * Takes ownership of a resource and returns it unchanged, so it can wrap an
    * allocation in place.
+   * @typeParam R The concrete {@link NativeResource} type being tracked.
+   * @param resource The resource to take ownership of.
+   * @returns The same `resource`, unchanged.
    */
   readonly track: <R extends NativeResource>(resource: R) => R;
 

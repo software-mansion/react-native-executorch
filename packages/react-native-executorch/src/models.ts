@@ -5,7 +5,6 @@
  * vision, speech synthesis/recognition, natural language processing, and large
  * language models (LLMs). Each entry includes verified remote `.pte` download
  * URLs, tokenizer/phonemizer files, preprocessing parameters, and label maps.
- * @module Models
  */
 
 import type { ClassifierModel } from './extensions/cv/tasks/classification';

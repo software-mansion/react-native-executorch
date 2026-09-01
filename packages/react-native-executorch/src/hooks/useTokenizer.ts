@@ -14,9 +14,9 @@ import { createTokenizer } from '../extensions/nlp/tasks/tokenization';
  * @category Hooks
  * @param tokenizerPath A remote URL or local path to a `tokenizer.json` file.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns The same object as {@link createTokenizer} (without `dispose`),
+ * @returns The same object as {@link Tokenizer} (without `dispose`),
  * combined with loading state and download progress.
- * @see {@link createTokenizer}
+ * @see {@link Tokenizer}
  */
 export function useTokenizer(tokenizerPath: string, options?: ResourceOptions) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(tokenizerPath, options);
