@@ -164,4 +164,3 @@ React Native ExecuTorch is licensed under the [MIT License](./LICENSE). It inclu
 Since 2012, [Software Mansion](https://swmansion.com) has been building mobile and web apps, contributing to open-source software, and dealing with all kinds of React Native challenges. We are Core React Native Contributors. We can help you build your next AI product – [Hire us](https://swmansion.com/contact?utm_source=react-native-executorch&utm_medium=readme).
 
 [![swm](https://logo.swmansion.com/logo?color=white&variant=desktop&width=150&tag=react-native-executorch-github 'Software Mansion')](https://swmansion.com)
-
