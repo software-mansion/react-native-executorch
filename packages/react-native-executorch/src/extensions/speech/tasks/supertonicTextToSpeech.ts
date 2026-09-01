@@ -1,6 +1,5 @@
 /**
  * Supertonic Text-to-Speech (TTS) synthesis task pipeline.
- * @module Speech/Tasks/SupertonicTextToSpeech
  */
 
 import type { WorkletRuntime } from 'react-native-worklets';

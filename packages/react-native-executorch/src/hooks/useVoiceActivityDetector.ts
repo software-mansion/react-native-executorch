@@ -17,9 +17,9 @@ import {
  * @category Hooks
  * @param config The VAD model configuration. See {@link FsmnVadModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns The same object as {@link createFsmnVoiceActivityDetector} (without `dispose`),
+ * @returns The same object as {@link FsmnVoiceActivityDetector} (without `dispose`),
  * combined with loading state and download progress.
- * @see {@link createFsmnVoiceActivityDetector}
+ * @see {@link FsmnVoiceActivityDetector}
  */
 export function useVoiceActivityDetector(config: FsmnVadModel, options?: ResourceOptions) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);

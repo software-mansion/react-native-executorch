@@ -24,9 +24,9 @@ import {
  * @typeParam K Voice keys record constraint.
  * @param config The Kokoro TTS model configuration. See {@link KokoroTtsModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns The same object as {@link createKokoroTextToSpeech} (without `dispose`),
+ * @returns The same object as {@link KokoroTextToSpeech} (without `dispose`),
  * combined with loading state and download progress.
- * @see {@link createKokoroTextToSpeech}
+ * @see {@link KokoroTextToSpeech}
  */
 export function useTextToSpeech<K extends PropertyKey>(
   config: KokoroTtsModel<K>,
@@ -60,9 +60,9 @@ export function useTextToSpeech<K extends PropertyKey>(
  * @param config The Supertonic TTS model configuration.
  * See {@link SupertonicTtsModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns The same object as {@link createSupertonicTextToSpeech} (without `dispose`),
+ * @returns The same object as {@link SupertonicTextToSpeech} (without `dispose`),
  * combined with loading state and download progress.
- * @see {@link createSupertonicTextToSpeech}
+ * @see {@link SupertonicTextToSpeech}
  */
 export function useTextToSpeech<K extends PropertyKey>(
   config: SupertonicTtsModel<K>,

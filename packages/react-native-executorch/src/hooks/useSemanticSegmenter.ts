@@ -19,9 +19,9 @@ import {
  * @param config The semantic segmentation model configuration.
  * See {@link SemanticSegmenterModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns The same object as {@link createSemanticSegmenter} (without `dispose`),
+ * @returns The same object as {@link SemanticSegmenter} (without `dispose`),
  * combined with loading state, download progress, and labels.
- * @see {@link createSemanticSegmenter}
+ * @see {@link SemanticSegmenter}
  */
 export function useSemanticSegmenter<L extends PropertyKey = string>(
   config: SemanticSegmenterModel<L>,

@@ -1,7 +1,6 @@
 /**
  * Multi-turn LLM chat session with history management, tool calling, and KV
  * cache prefilling.
- * @module LLM/Tasks/LLMChatSession
  */
 
 import { scheduleOnRN, type WorkletRuntime } from 'react-native-worklets';

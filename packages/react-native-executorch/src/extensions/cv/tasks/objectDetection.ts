@@ -181,7 +181,7 @@ export async function createObjectDetector<F extends BoxFormat, L>(
 
     const detectObjectsWorklet = (
       input: ImageBuffer,
-      options?: { confidenceThreshold?: number; iouThreshold?: number }
+      options?: DetectObjectsOptions
     ): ObjectDetection<F, L>[] => {
       'worklet';
       const tInput = preprocessor.process(input);

@@ -14,9 +14,9 @@ import { useModel } from './useModel';
  * @category Hooks
  * @param config OCR model configuration. Use a preset from `models.ocr.*`.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns The same object as {@link createPaddleOcr} (without `dispose`),
+ * @returns The same object as {@link PaddleOcr} (without `dispose`),
  * combined with loading state, download progress, and resource info.
- * @see {@link createPaddleOcr}
+ * @see {@link PaddleOcr}
  */
 export function useOpticalCharacterRecognizer(config: PaddleOcrModel, options?: ResourceOptions) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);

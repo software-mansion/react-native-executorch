@@ -207,7 +207,7 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
 
     const segmentInstancesWorklet = (
       input: ImageBuffer,
-      options?: { confidenceThreshold?: number; iouThreshold?: number; maskThreshold?: number }
+      options?: SegmentInstancesOptions
     ): InstanceSegmentationResult<F, L>[] => {
       'worklet';
       const tInput = preprocessor.process(input);
