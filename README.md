@@ -1,9 +1,8 @@
 <div align="center">
-  <img src="https://github.com/software-mansion/react-native-executorch/blob/main/docs/static/img/logo-hero.svg" alt="React Native ExecuTorch Logo" width="25%">
-</div>
-
-<div align="center">
-  <h1 align="center" style="display:inline-block">React Native ExecuTorch</h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/software-mansion/react-native-executorch/raw/main/docs/static/img/logo-vertical-dark.svg">
+    <img src="https://github.com/software-mansion/react-native-executorch/raw/main/docs/static/img/logo-vertical.svg" alt="React Native ExecuTorch Logo" width="260">
+  </picture>
 </div>
 
 <div align="center">
