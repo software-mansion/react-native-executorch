@@ -30,8 +30,10 @@ export interface DownloadOptions {
   /** Called with overall progress in `[0, 1]` as bytes arrive. */
   onProgress?: (progress: number) => void;
   /**
-   * Aborts the download. On iOS the bytes fetched so far are kept so a later
-   * {@link download} of the same source resumes instead of restarting.
+   * Aborts the download. The bytes fetched so far are kept so a later
+   * {@link download} of the same source resumes instead of restarting, except on
+   * Android without the optional background downloader, where the system
+   * DownloadManager discards a cancelled transfer.
    */
   signal?: AbortSignal;
   /**
@@ -190,12 +192,13 @@ async function downloadUrl(url: string, cb: DownloadUrlCallbacks): Promise<strin
     // A download already in flight hasn't written `dest` yet, so joining it
     // still yields freshly fetched bytes.
     await RNBlobUtil.fs.unlink(dest).catch(() => {});
-    // An interrupted iOS attempt also leaves state behind, and every bit of it
-    // is something a later download would CONTINUE from: the staged `.partial`
-    // and, with the background downloader in play, a paused task holding resume
-    // data. Clear it, or "download it again" quietly resumes the very attempt
-    // the caller is trying to replace.
-    if (!IS_ANDROID) await discardIosPartialDownload(dest);
+    // An interrupted attempt also leaves state behind, and every bit of it is
+    // something a later download would CONTINUE from: the staged `.partial` and,
+    // with the background downloader in play, a paused task holding resume data.
+    // Clear it, or "download it again" quietly resumes the very attempt the
+    // caller is trying to replace. The DownloadManager backend needs nothing
+    // here — it unlinks its own staging file before every transfer.
+    await discardPartialDownload(dest);
   } else if (await RNBlobUtil.fs.exists(dest)) {
     // Cache hit — nothing to download.
     const size = await fileSize(dest);
@@ -239,15 +242,22 @@ async function startDownload(url: string, dest: string, entry: InFlightDownload)
     },
   };
 
-  // On iOS the optional background downloader is preferred when the app has it:
-  // it is the only one of the two that keeps running once the app is suspended.
-  const backgroundDownloader = IS_ANDROID ? null : loadBackgroundDownloader();
+  // The optional background downloader wins on BOTH platforms when the app has
+  // it, so a caller that installs it gets one transfer mechanism that behaves
+  // the same everywhere instead of a per-platform one it cannot see.
+  //
+  // Without it each platform falls back to the best it can do on its own, and
+  // only iOS loses background transfers by doing so — blob-util's in-process
+  // reader is broken on Android (RonRadtke/react-native-blob-util#475: it stops
+  // after 8 KB), so the system DownloadManager is not a preference there but the
+  // only backend that works at all.
+  const backgroundDownloader = loadBackgroundDownloader();
 
   let path: string;
-  if (IS_ANDROID) {
-    path = await downloadUrlViaAndroidDownloadManager(url, dest, cb);
-  } else if (backgroundDownloader) {
+  if (backgroundDownloader) {
     path = await downloadUrlViaBackgroundSession(backgroundDownloader, url, dest, cb);
+  } else if (IS_ANDROID) {
+    path = await downloadUrlViaAndroidDownloadManager(url, dest, cb);
   } else {
     path = await downloadUrlViaIosStream(url, dest, cb);
   }
@@ -284,10 +294,12 @@ function joinDownload(entry: InFlightDownload, cb: DownloadUrlCallbacks): Promis
   });
 }
 
-// Android backend: the system DownloadManager streams to app-private external
-// storage. Unlike blob-util's in-process reader it handles files larger than
-// 2 GB, keeps downloading while the app is in the background or killed, and
-// resumes across transient network drops on its own — so no manual Range logic.
+// Android fallback used when that optional dependency is absent: the system
+// DownloadManager streams to app-private external storage. blob-util's
+// in-process reader cannot stand in for it — upstream #475 makes that path stop
+// after 8 KB — and DownloadManager also handles files larger than 2 GB, keeps
+// downloading while the app is in the background or killed, and resumes across
+// transient network drops on its own, so no manual Range logic.
 async function downloadUrlViaAndroidDownloadManager(
   url: string,
   dest: string,
@@ -373,9 +385,9 @@ async function adoptableBackgroundTask(
   return undefined;
 }
 
-// Clears what an interrupted iOS attempt leaves behind, so the next download of
-// this file starts from zero instead of continuing it. Backs `forceDownload`.
-async function discardIosPartialDownload(dest: string): Promise<void> {
+// Clears what an interrupted attempt leaves behind, so the next download of this
+// file starts from zero instead of continuing it. Backs `forceDownload`.
+async function discardPartialDownload(dest: string): Promise<void> {
   const downloader = loadBackgroundDownloader();
   if (downloader) {
     const id = backgroundTaskIdFor(dest);
@@ -389,16 +401,18 @@ async function discardIosPartialDownload(dest: string): Promise<void> {
   await RNBlobUtil.fs.unlink(`${dest}.chunk`).catch(() => {});
 }
 
-// iOS backend used when the app installs the optional background downloader (see
-// ./backgroundDownloader). The transfer runs on a background NSURLSession, so it
-// keeps going while the app is suspended, and the library persists its task
-// state, so it survives the app being killed too.
+// The backend used on either platform when the app installs the optional
+// background downloader (see ./backgroundDownloader). The transfer keeps going
+// while the app is in the background, and the library persists its task state,
+// so it survives the app being killed too.
 //
-// iOS only offers background transfers as DOWNLOAD tasks, which stage into their
-// own private file and hand it over whole at the end. There is no partially
-// written file to append to, so this backend cannot resume through the HTTP
-// Range request the in-process one uses: an interrupted transfer continues from
-// NSURLSession's resume data, which is what a PAUSED task holds.
+// Resume does NOT go through the HTTP Range request the iOS in-process backend
+// uses. iOS only offers background transfers as DOWNLOAD tasks, which stage into
+// their own private file and hand it over whole at the end, so there is no
+// partially written file to append to: an interrupted transfer continues from
+// the resume data a PAUSED task holds. The Android side writes to `part` as the
+// body arrives and resumes from its own byte offset, which this code never has
+// to know about — either way, adopting the task is what continues the transfer.
 async function downloadUrlViaBackgroundSession(
   downloader: BackgroundDownloader,
   url: string,
@@ -506,7 +520,7 @@ async function downloadUrlViaBackgroundSession(
   return dest;
 }
 
-// iOS backend used when that optional dependency is absent: blob-util streams
+// iOS fallback used when that optional dependency is absent: blob-util streams
 // via the iOS URL session straight to disk. It does NOT survive the app being
 // suspended — iOS tears the connection down about a second later — so an
 // interrupted transfer is picked up by the next `download` call instead.
@@ -764,18 +778,20 @@ function substituteRemoteSources<T>(node: T, resolved: ReadonlyMap<string, strin
  * const { classify, dispose } = await createClassifier(model);
  * ```
  *
- * Downloads go to a persistent cache: on Android via the system DownloadManager
- * (handles multi-GB files and continues in the background), on iOS via a
- * streaming request that resumes an interrupted download from where it stopped.
- * When a config references several files, overall progress is weighted by their
- * byte sizes so a large model isn't reported the same as a tiny tokenizer.
+ * Downloads go to a persistent cache. When a config references several files,
+ * overall progress is weighted by their byte sizes so a large model isn't
+ * reported the same as a tiny tokenizer.
  *
- * An iOS download stops when the app is suspended, and resumes when the next
- * `download` call picks it up. To have it keep running instead, install
+ * Install
  * [`@kesha-antonov/react-native-background-downloader`](https://github.com/kesha-antonov/react-native-background-downloader)
- * (`>=4.4.0`): the fetcher uses it automatically when it is present, moving
- * transfers onto a background `NSURLSession` that survives suspension and an app
- * kill. Nothing else changes, and nothing is needed on Android.
+ * (`>=4.4.0`) to have transfers keep running while the app is in the background,
+ * and survive it being killed. The fetcher uses it automatically on both platforms
+ * when it is present, so the behavior is the same on each; nothing else changes.
+ *
+ * Without it the fetcher falls back to what each platform can do on its own: the
+ * system DownloadManager on Android, which still continues in the background,
+ * and on iOS a streaming request that stops when the app is suspended and is
+ * resumed by the next `download` call.
  * @category Utils / Functions
  * @typeParam T The shape of the value being resolved.
  * @param source A URL, a local path, or any nested object/array holding them.

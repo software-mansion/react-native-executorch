@@ -1,4 +1,4 @@
-import { NativeModules, Platform, TurboModuleRegistry } from 'react-native';
+import { NativeModules, TurboModuleRegistry } from 'react-native';
 
 // Optional integration with `@kesha-antonov/react-native-background-downloader`.
 //
@@ -10,8 +10,14 @@ import { NativeModules, Platform, TurboModuleRegistry } from 'react-native';
 //
 // So the fetcher uses one WHEN THE APP HAPPENS TO HAVE IT INSTALLED. It is an
 // optional peer dependency: apps that install it get transfers that survive
-// backgrounding (and an app kill), apps that don't keep the in-process path and
-// pull in nothing.
+// backgrounding (and an app kill), apps that don't keep the platform's own
+// backend and pull in nothing.
+//
+// It backs BOTH platforms, so an app that installs it gets one download
+// mechanism behaving the same way everywhere rather than a per-platform one the
+// caller cannot see. The library covers both natively — a background
+// `NSURLSession` on iOS, a foreground service on Android — and exposes the same
+// task API for each, which is why the backend below needs no platform split.
 
 // The slice of the library's API the fetcher uses, declared structurally so this
 // file typechecks with the dependency absent.
@@ -59,10 +65,6 @@ export function loadBackgroundDownloader(): BackgroundDownloader | null {
   if (cached !== undefined) return cached;
   cached = null;
 
-  // Android transfers already run on the system DownloadManager, which survives
-  // backgrounding and an app kill on its own, so nothing here applies.
-  if (Platform.OS !== 'ios') return cached;
-
   try {
     // A `require` inside a try/catch is Metro's own escape hatch for optional
     // dependencies (`resolver.allowOptionalDependencies`, which React Native's
@@ -73,9 +75,10 @@ export function loadBackgroundDownloader(): BackgroundDownloader | null {
     const required = require('@kesha-antonov/react-native-background-downloader');
     const candidate = (required?.default ?? required) as Partial<BackgroundDownloader>;
 
-    // Having the JS is not the same as having the native module: without a
-    // `pod install` (or in Expo Go) every call would throw, so fall back to the
-    // in-process path instead.
+    // Having the JS is not the same as having the native module: without the
+    // native build step (or in Expo Go) every call would throw, so fall back to
+    // the platform's own backend instead. The module name is the same on both
+    // platforms.
     const isLinked =
       TurboModuleRegistry.get('RNBackgroundDownloader') != null ||
       NativeModules.RNBackgroundDownloader != null;
@@ -90,7 +93,7 @@ export function loadBackgroundDownloader(): BackgroundDownloader | null {
 
     if (isLinked && hasApi) cached = candidate as BackgroundDownloader;
   } catch {
-    // Not installed — the fetcher stays on its in-process backend.
+    // Not installed — the fetcher stays on its per-platform fallback.
   }
 
   return cached;

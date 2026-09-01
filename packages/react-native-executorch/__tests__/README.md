@@ -72,7 +72,7 @@ misleading leak error. A test that means to leak calls `allowNativeLeaks()`.
 | Path | Contents |
 | --- | --- |
 | `core/` | `tensor`, `model`, `runtime`, the coded `error` type, and the `schema` spec matcher |
-| `fetcher/` | `download` (caching, resume, cancellation, shared requests), telemetry, the Android backend |
+| `fetcher/` | `download` (caching, resume, cancellation, shared requests), telemetry, the Android backend, the optional background downloader |
 | `tasks/` | One suite per task pipeline, plus the shared construction-failure behavior. `remainingTasks.ts` holds the pipelines that only get schema acceptance and disposal |
 | `hooks/` | `useModel`, `useResourceDownload`, and the task hooks end to end |
 | `extensions/` | The pure-TypeScript helpers: box/point scaling, seeded generators |
