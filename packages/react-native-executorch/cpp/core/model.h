@@ -38,8 +38,9 @@ public:
      * method metadata, parses schemas, and populates backend delegates.
      *
      * @param modelPath Absolute file system path to the `.pte` model binary.
+     * @param eagerLoadMethods Whether to eagerly load and compile all model methods.
      */
-    explicit ModelHostObject(const std::string &modelPath);
+    explicit ModelHostObject(const std::string &modelPath, bool eagerLoadMethods);
 
     jsi::Value get(jsi::Runtime &rt, const jsi::PropNameID &name) override;
     std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime &rt) override;
