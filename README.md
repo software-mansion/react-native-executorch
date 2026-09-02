@@ -33,19 +33,16 @@ To explore all on-device capabilities in an interactive showcase app, check out 
 [![npm nightly](https://img.shields.io/npm/v/react-native-executorch/executorch-nightly?label=nightly&color=00008B)](https://www.npmjs.com/package/react-native-executorch)
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
 
-<details>
-<summary><strong>Table of Contents</strong></summary>
+## Table of Contents
 
 - [Key Features](#key-features)
 - [Supported Capabilities](#supported-capabilities)
 - [Quickstart](#quickstart)
   - [1. Installation](#1-installation)
-  - [2. Run an LLM Chat Session](#2-run-an-llm-chat-session)
+  - [2. Run the Model](#2-run-the-model)
 - [Documentation](#documentation)
 - [Powered by React Native ExecuTorch](#powered-by-react-native-executorch)
 - [Created by Software Mansion](#created-by-software-mansion)
-
-</details>
 
 ## Key Features
 
