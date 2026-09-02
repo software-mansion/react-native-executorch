@@ -89,12 +89,12 @@ console.log('Similarity (unrelated):', cosineSimilarity(v1, v3)); // ~0.15
 
 ## Asymmetric Retrieval & Prompt Prefixes
 
-Some embedding models (like `LFM2_5_EMBEDDING_350M`) are trained asymmetrically where search queries and indexed passages use different prompt prefixes:
+Some embedding models (like [`LFM2_5_EMBEDDING_350M`](../../06-api-reference/variables/models.md#textembeddingslfm2_5_embedding_350m)) are trained asymmetrically where search queries and indexed passages use different prompt prefixes:
 
-- **Indexing documents**: `embed(documentText, 'document: ')`
-- **Searching queries**: `embed(queryText, 'query: ')` (default)
+- **Indexing documents**: [`embed(documentText, 'document: ')`](../../06-api-reference/type-aliases/TextEmbedder.md#embed)
+- **Searching queries**: [`embed(queryText, 'query: ')`](../../06-api-reference/type-aliases/TextEmbedder.md#embed) (default)
 
-You can pass a custom prefix string as the optional second argument to `embed(input, prompt)`.
+You can pass a custom prefix string as the optional second [`prompt`](../../06-api-reference/type-aliases/TextEmbedder.md#prompt) argument to [`embed(input, prompt)`](../../06-api-reference/type-aliases/TextEmbedder.md#embed).
 
 ## Imperative API
 
@@ -118,7 +118,7 @@ try {
 
 ## Synchronous Execution
 
-For synchronous worklet execution contexts or high-throughput indexing workers, [`createTextEmbedder`](../../06-api-reference/functions/createTextEmbedder.md) exposes a synchronous `embedWorklet` function:
+For synchronous worklet execution contexts or high-throughput indexing workers, [`createTextEmbedder`](../../06-api-reference/functions/createTextEmbedder.md) exposes a synchronous [`embedWorklet`](../../06-api-reference/type-aliases/TextEmbedder.md#embedworklet) function:
 
 ```typescript
 // Called synchronously inside a worklet runtime without Promise scheduling overhead
@@ -165,7 +165,7 @@ The pipeline automatically verifies that the model's exported input and output s
 
 ### Types & Options
 
-- [`TextEmbedder`](../../06-api-reference/type-aliases/TextEmbedder.md) — Text embedder runner interface (`embed`, `embedWorklet`).
+- [`TextEmbedder`](../../06-api-reference/type-aliases/TextEmbedder.md) — Text embedder runner interface ([`embed`](../../06-api-reference/type-aliases/TextEmbedder.md#embed), [`embedWorklet`](../../06-api-reference/type-aliases/TextEmbedder.md#embedworklet)).
 - [`TextEmbedderModel`](../../06-api-reference/type-aliases/TextEmbedderModel.md) — Model configuration spec with `modelPath`, `tokenizerPath`, and `defaultPrompt`.
 
 ### Model Presets

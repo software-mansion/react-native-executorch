@@ -55,7 +55,7 @@ try {
 
 The [`Tokenizer`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md) interface provides the following synchronous methods:
 
-### 1. `encode(text)`
+### 1. [`encode(text)`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md#encode)
 
 Converts a string into an [`Int32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array) of token IDs. Special tokens are automatically appended/prepended according to the `tokenizer.json` post-processor configuration (e.g. `[CLS]` and `[SEP]` for BERT/WordPiece):
 
@@ -64,9 +64,9 @@ const ids: Int32Array = tokenizer.encode('ExecuTorch on React Native');
 // e.g. Int32Array([101, 10769, 2178, 2006, 2690, 3110, 102])
 ```
 
-### 2. `decode(tokens, skipSpecialTokens?)`
+### 2. [`decode(tokens, skipSpecialTokens?)`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md#decode)
 
-Decodes an [`Int32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array) of token IDs back into a reconstructed UTF-8 string. The optional `skipSpecialTokens` boolean parameter defaults to `true`:
+Decodes an [`Int32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array) of token IDs back into a reconstructed UTF-8 string. The optional [`skipSpecialTokens`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md#decode) boolean parameter defaults to `true`:
 
 ```typescript
 const cleanText = tokenizer.decode(ids); // "ExecuTorch on React Native"
@@ -90,7 +90,7 @@ const id = tokenizer.tokenToId('[SEP]'); // 102
 
 ## Imperative Task Pipeline ([`createTokenizer`](../../06-api-reference/functions/createTokenizer.md))
 
-If you want an asynchronous, Promise-based wrapper around `loadTokenizer` that dispatches execution to a background worklet thread, use [`createTokenizer`](../../06-api-reference/functions/createTokenizer.md):
+If you want an asynchronous, Promise-based wrapper around [`nlp.loadTokenizer`](../../06-api-reference/react-native-executorch/namespaces/nlp/functions/loadTokenizer.md) that dispatches execution to a background worklet thread, use [`createTokenizer`](../../06-api-reference/functions/createTokenizer.md):
 
 ```typescript
 import { createTokenizer, download, models } from 'react-native-executorch';

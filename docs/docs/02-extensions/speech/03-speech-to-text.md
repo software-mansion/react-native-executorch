@@ -115,7 +115,7 @@ const transcript = await stt.transcribe(audioData, {
 console.log('Full transcript:', transcript);
 ```
 
-You can also pass an optional `onToken` callback to receive decoded word/subword tokens in real time as Whisper generates them:
+You can also pass an optional [`onToken`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#transcribe) callback to receive decoded word/subword tokens in real time as Whisper generates them:
 
 ```typescript
 const transcript = await stt.transcribe(audioData, { language: 'en' }, (token) => {
@@ -123,7 +123,7 @@ const transcript = await stt.transcribe(audioData, { language: 'en' }, (token) =
 });
 ```
 
-To abort an in-flight transcription prematurely, call `stt.transcribeStop()`:
+To abort an in-flight transcription prematurely, call [`stt.transcribeStop()`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#transcribestop):
 
 ```typescript
 // Cancels active transcribe() execution and rejects the pending promise
@@ -138,15 +138,15 @@ For background services, offline audio processors, or non-React component logic,
 import { createWhisperSpeechToText, download, models } from 'react-native-executorch';
 
 // Download and cache Whisper weights, tokenizer, and bundled VAD
-const model = await download(models.speechToText.WHISPER.EN.TINY.DEFAULT);
-const whisper = await createWhisperSpeechToText(model);
+const model = await download(models.speechToText.WHISPER.EN.BASE.DEFAULT);
+const stt = await createWhisperSpeechToText(model);
 
 try {
-  const transcript = await whisper.transcribe(audioData, { language: 'en' });
-  console.log('Transcribed:', transcript);
+  const transcript = await stt.transcribe(audioData, { language: 'en' });
+  console.log('Transcript:', transcript);
 } finally {
   // Always release native resources when finished
-  whisper.dispose();
+  stt.dispose();
 }
 ```
 
@@ -156,14 +156,14 @@ For synchronous worklet execution contexts or frame-by-frame audio processors, [
 
 ```typescript
 // Called synchronously inside a worklet runtime without Promise scheduling overhead
-const transcript = whisper.transcribeWorklet(audioData, { language: 'en' });
+const transcript = stt.transcribeWorklet(audioData, { language: 'en' });
 ```
 
 See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.md) for details on worklet execution contexts and zero-copy host objects.
 
 ## Available Models
 
-The library provides pre-configured Whisper models from the [Software Mansion HuggingFace Speech to Text Collection](https://huggingface.co/collections/software-mansion/speech-to-text), available in [`models.speechToText`](../../06-api-reference/variables/models.md#speechtotext):
+The library provides ready-to-use Whisper models from the [Software Mansion HuggingFace Whisper Collection](https://huggingface.co/collections/software-mansion/whisper), available in [`models.speechToText`](../../06-api-reference/variables/models.md#speechtotext):
 
 | Model Family      | Variants                                                                                                                                                                  | Size Range         | Supported Backends                                            | Languages                                                                                              | Notes                                                           |
 | :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :----------------- | :------------------------------------------------------------ | :----------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------- |
@@ -180,7 +180,7 @@ The library provides pre-configured Whisper models from the [Software Mansion Hu
 
 ### Types & Options
 
-- [`WhisperSpeechToText`](../../06-api-reference/type-aliases/WhisperSpeechToText.md) — Whisper runner interface (`transcribe`, [`transcribeWorklet`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#transcribeworklet), `transcribeStop`, `stream`, `streamInsert`, `streamStop`, `dispose`).
+- [`WhisperSpeechToText`](../../06-api-reference/type-aliases/WhisperSpeechToText.md) — Whisper runner interface ([`transcribe`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#transcribe), [`transcribeWorklet`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#transcribeworklet), [`transcribeStop`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#transcribestop), [`stream`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#stream), [`streamInsert`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#streaminsert), [`streamStop`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#streamstop), `dispose`).
 - [`WhisperSttModel`](../../06-api-reference/type-aliases/WhisperSttModel.md) — Whisper model spec including model path, tokenizer path, and bundled VAD model.
 - [`WhisperSttOptions`](../../06-api-reference/type-aliases/WhisperSttOptions.md) — Per-call transcription options (`language`).
 - [`WhisperStreamOptions`](../../06-api-reference/type-aliases/WhisperStreamOptions.md) — Live microphone streaming options (`language`, `vadOptions`).

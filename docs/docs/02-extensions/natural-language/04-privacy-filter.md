@@ -59,7 +59,7 @@ See [`src/app/(screens)/privacy-filter.tsx`](<https://github.com/software-mansio
 
 ## Output Format
 
-`detectPii()` returns an array of [`PiiEntity`](../../06-api-reference/react-native-executorch/namespaces/nlp/interfaces/PiiEntity.md) objects representing detected spans:
+[`detectPii()`](../../06-api-reference/type-aliases/PrivacyFilter.md#detectpii) returns an array of [`PiiEntity`](../../06-api-reference/react-native-executorch/namespaces/nlp/interfaces/PiiEntity.md) objects representing detected spans:
 
 ```typescript
 const entities = await filter.detectPii(
@@ -88,7 +88,7 @@ interface PiiEntity<Label extends string = string> {
 
 ### Redacting & Masking Text
 
-Using the exact character indices `charStart` and `charEnd`, you can sanitize or mask private information before logging or sending text to third-party endpoints:
+Using the exact character indices [`charStart`](../../06-api-reference/react-native-executorch/namespaces/nlp/interfaces/PiiEntity.md#charstart) and [`charEnd`](../../06-api-reference/react-native-executorch/namespaces/nlp/interfaces/PiiEntity.md#charend), you can sanitize or mask private information before logging or sending text to third-party endpoints:
 
 ```typescript
 function redactText(text: string, entities: readonly PiiEntity[]): string {
@@ -137,7 +137,7 @@ try {
 
 ## Synchronous Execution
 
-For synchronous execution on worklet runtimes or frame processors without Promise scheduling overhead, [`createPrivacyFilter`](../../06-api-reference/functions/createPrivacyFilter.md) exposes `detectPiiWorklet`:
+For synchronous execution on worklet runtimes or frame processors without Promise scheduling overhead, [`createPrivacyFilter`](../../06-api-reference/functions/createPrivacyFilter.md) exposes [`detectPiiWorklet`](../../06-api-reference/type-aliases/PrivacyFilter.md#detectpiiworklet):
 
 ```typescript
 // Called synchronously inside a worklet runtime
@@ -181,8 +181,8 @@ The pipeline automatically verifies that the model exports `forward(input_ids, a
 
 ### Types & Options
 
-- [`PrivacyFilter`](../../06-api-reference/type-aliases/PrivacyFilter.md) — Privacy filter runner interface (`detectPii`, `detectPiiWorklet`).
-- [`PiiEntity`](../../06-api-reference/react-native-executorch/namespaces/nlp/interfaces/PiiEntity.md) — Detected entity span object (`label`, `text`, `charStart`, `charEnd`, `startToken`, `endToken`).
+- [`PrivacyFilter`](../../06-api-reference/type-aliases/PrivacyFilter.md) — Privacy filter runner interface ([`detectPii`](../../06-api-reference/type-aliases/PrivacyFilter.md#detectpii), [`detectPiiWorklet`](../../06-api-reference/type-aliases/PrivacyFilter.md#detectpiiworklet)).
+- [`PiiEntity`](../../06-api-reference/react-native-executorch/namespaces/nlp/interfaces/PiiEntity.md) — Detected entity span object ([`label`](../../06-api-reference/react-native-executorch/namespaces/nlp/interfaces/PiiEntity.md#label), [`text`](../../06-api-reference/react-native-executorch/namespaces/nlp/interfaces/PiiEntity.md#text), [`charStart`](../../06-api-reference/react-native-executorch/namespaces/nlp/interfaces/PiiEntity.md#charstart), [`charEnd`](../../06-api-reference/react-native-executorch/namespaces/nlp/interfaces/PiiEntity.md#charend), [`startToken`](../../06-api-reference/react-native-executorch/namespaces/nlp/interfaces/PiiEntity.md#starttoken), [`endToken`](../../06-api-reference/react-native-executorch/namespaces/nlp/interfaces/PiiEntity.md#endtoken)).
 - [`PrivacyFilterModel`](../../06-api-reference/type-aliases/PrivacyFilterModel.md) — Model configuration spec with model path, tokenizer path, and model options.
 - [`PrivacyFilterOptions`](../../06-api-reference/type-aliases/PrivacyFilterOptions.md) — Label space definitions and Viterbi biases.
 
