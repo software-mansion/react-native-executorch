@@ -54,7 +54,7 @@ function MyComponent() {
 ```
 
 :::tip Full Interactive Example in Gallery App
-See [`src/app/(screens)/image-embeddings.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/image-embeddings.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for an interactive example combining [`useTextEmbedder`](../../06-api-reference/functions/useTextEmbedder.md) and [`useImageEmbedder`](../../06-api-reference/functions/useImageEmbedder.md) for real-time cross-modal image retrieval.
+See [`src/app/(screens)/image-embeddings.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/image-embeddings.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen combining text and image embeddings for real-time cross-modal search.
 :::
 
 ## Output Format

@@ -69,7 +69,7 @@ type ImageBuffer = {
 };
 ```
 
-You can render the output directly to screen using [React Native Skia](https://shopify.github.io/react-native-skia/) ([`Image`](https://shopify.github.io/react-native-skia/docs/skia-api/images)), convert it into canvas textures, or pipe it into subsequent visual processing pipelines.
+You can render the output directly to screen using [React Native Skia](https://shopify.github.io/react-native-skia/), convert it into canvas textures, or pipe it into subsequent visual processing pipelines.
 
 ## Determinism & Seeds
 

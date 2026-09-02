@@ -108,7 +108,7 @@ type LLMChatTurnResult = {
 
 ## Chat Templates & Incremental KV Cache Diffing
 
-Under the hood, [`createChatPreprocessor`](../../06-api-reference/react-native-executorch/namespaces/llm/functions/createChatPreprocessor.md) renders `ChatMessage[]` arrays using the model's official Jinja2 template from `tokenizer_config.json` (formatting special tokens, roles, and generation headers).
+Under the hood, [`createChatPreprocessor`](../../06-api-reference/react-native-executorch/namespaces/llm/functions/createChatPreprocessor.md) renders [`ChatMessage[]`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/ChatMessage.md) arrays using the model's official Jinja2 template from `tokenizer_config.json` (formatting special tokens, roles, and generation headers).
 
 To keep multi-turn chat responsive without re-encoding past history on every message, the preprocessor uses incremental prompt diffing:
 
