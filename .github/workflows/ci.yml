@@ -89,6 +89,34 @@ jobs:
       - name: Provision third-party headers
         run: RNET_HEADERS_ONLY=1 node scripts/download-libs.js
 
+      # third-party/include and the ExecuTorch built below must come from the
+      # same release. When they drifted, `make_tensor_ptr` gaining a trailing
+      # `Device` parameter surfaced as an undefined reference nine minutes into
+      # the dependency build, blamed on whichever code happened to call it.
+      # Comparing the two up front fails in seconds and names both values.
+      # Note this only spans releases: ET_VERSION comes from the source tree's
+      # version.txt, so it cannot tell the fork's patches apart from upstream,
+      # and it says nothing about TOKENIZERS_COMMIT.
+      - name: Check the header and test-dependency ExecuTorch versions agree
+        run: |
+          headers=$(sed -n 's/^#define ET_VERSION "\(.*\)"$/\1/p' \
+            third-party/include/executorch/runtime/core/version.h)
+          pinned=$(sed -n 's/^EXECUTORCH_VERSION="v\(.*\)"$/\1/p' \
+            scripts/build-native-test-deps.sh)
+          if [ -z "$headers" ] || [ -z "$pinned" ]; then
+            echo "::error::could not read the ExecuTorch versions" \
+                 "(headers='$headers' pinned='$pinned')"
+            exit 1
+          fi
+          if [ "$headers" != "$pinned" ]; then
+            echo "::error::third-party/include is ExecuTorch $headers but" \
+                 "scripts/build-native-test-deps.sh pins v$pinned." \
+                 "Bump EXECUTORCH_VERSION (and TOKENIZERS_COMMIT) to match" \
+                 "the artifacts release."
+            exit 1
+          fi
+          echo "ExecuTorch $headers on both sides"
+
       # Hermes and ExecuTorch are pinned to exact tags, so the cache only misses
       # when scripts/build-native-test-deps.sh changes those pins.
       #
