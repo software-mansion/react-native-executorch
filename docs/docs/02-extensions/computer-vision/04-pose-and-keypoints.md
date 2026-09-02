@@ -75,7 +75,7 @@ type KeypointDetection<F extends BoxFormat = 'xyxy', L extends PropertyKey = str
 };
 ```
 
-For human pose models (`YOLO26_POSE`), `landmarks` includes 17 COCO body points:
+For human pose models ([`YOLO26_POSE`](../../06-api-reference/variables/models.md#keypointdetectionyolo26_pose)), [`landmarks`](../../06-api-reference/type-aliases/KeypointDetection.md#landmarks) includes 17 [`COCO_LANDMARKS`](../../06-api-reference/variables/COCO_LANDMARKS.md) body points:
 
 ```json
 [
@@ -95,7 +95,7 @@ For human pose models (`YOLO26_POSE`), `landmarks` includes 17 COCO body points:
 ]
 ```
 
-For face models (`BLAZEFACE`), `landmarks` includes 6 facial points: `leftEye`, `rightEye`, `noseTip`, `mouthCenter`, `leftEar`, `rightEar`.
+For face models ([`BLAZEFACE`](../../06-api-reference/variables/models.md#keypointdetectionblazeface)), [`landmarks`](../../06-api-reference/type-aliases/KeypointDetection.md#landmarks) includes 6 facial points from [`BLAZEFACE_LANDMARKS`](../../06-api-reference/variables/BLAZEFACE_LANDMARKS.md): `leftEye`, `rightEye`, `noseTip`, `mouthCenter`, `leftEar`, `rightEar`.
 
 ## Configuration & Options
 
