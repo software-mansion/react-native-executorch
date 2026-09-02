@@ -53,10 +53,8 @@ function MyComponent() {
 }
 ```
 
-<!-- TODO: Update gallery URL once repo is moved to software-mansion organization -->
-
 :::tip Full Interactive Example in Gallery App
-See [`src/app/semantic-segmentation.tsx`](https://github.com/barhanc/react-native-executorch-gallery/blob/main/src/app/semantic-segmentation.tsx) in the [React Native ExecuTorch Gallery](https://github.com/barhanc/react-native-executorch-gallery) for a complete, runnable screen with photo picker, custom colormap blending, and latency tracking.
+See [`src/app/semantic-segmentation.tsx`](https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/semantic-segmentation.tsx) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen with photo picker, custom colormap blending, and latency tracking.
 :::
 
 ## Output Format

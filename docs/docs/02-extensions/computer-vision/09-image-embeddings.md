@@ -52,10 +52,8 @@ function MyComponent() {
 }
 ```
 
-<!-- TODO: Update gallery URL once repo is moved to software-mansion organization -->
-
 :::tip Full Interactive Example in Gallery App
-See [`src/app/image-embeddings.tsx`](https://github.com/barhanc/react-native-executorch-gallery/blob/main/src/app/image-embeddings.tsx) in the [React Native ExecuTorch Gallery](https://github.com/barhanc/react-native-executorch-gallery) for a complete, runnable screen combining image and text embeddings for real-time zero-shot photo ranking.
+See [`src/app/image-embeddings.tsx`](https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/image-embeddings.tsx) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen combining image and text embeddings for real-time zero-shot photo ranking.
 :::
 
 ## Output Format

@@ -77,10 +77,8 @@ function VadComponent() {
 }
 ```
 
-<!-- TODO: Update gallery URL once repo is moved to software-mansion organization -->
-
 :::tip Full Interactive Example in Gallery App
-See [`src/app/voice-activity-detection.tsx`](https://github.com/barhanc/react-native-executorch-gallery/blob/main/src/app/voice-activity-detection.tsx) and [`src/hooks/useAudioRecorder.ts`](https://github.com/barhanc/react-native-executorch-gallery/blob/main/src/hooks/useAudioRecorder.ts) in the [React Native ExecuTorch Gallery](https://github.com/barhanc/react-native-executorch-gallery) for a complete example featuring microphone controls, real-time speech indicators, and live audio streaming.
+See [`src/app/voice-activity-detection.tsx`](https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/voice-activity-detection.tsx) and [`src/hooks/useAudioRecorder.ts`](https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/hooks/useAudioRecorder.ts) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete example featuring microphone controls, real-time speech indicators, and live audio streaming.
 :::
 
 ## Live Microphone Streaming

@@ -52,10 +52,8 @@ function MyComponent() {
 }
 ```
 
-<!-- TODO: Update gallery URL once repo is moved to software-mansion organization -->
-
 :::tip Full Interactive Example in Gallery App
-See [`src/app/text-to-image.tsx`](https://github.com/barhanc/react-native-executorch-gallery/blob/main/src/app/text-to-image.tsx) in the [React Native ExecuTorch Gallery](https://github.com/barhanc/react-native-executorch-gallery) for a complete, runnable screen with prompt suggestions, generation progress, and Skia canvas rendering.
+See [`src/app/text-to-image.tsx`](https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/text-to-image.tsx) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen with prompt suggestions, generation progress, and Skia canvas rendering.
 :::
 
 ## Output Format
