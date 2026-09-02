@@ -22,7 +22,47 @@ Text-to-image diffusion models generate photorealistic and artistic images direc
 
 The library ships with SDXS-512 (Stable Diffusion eXtreme Speed) based on DreamShaper. Through architectural distillation, SDXS collapses multi-step denoising into a fast, single-step latent diffusion pipeline capable of generating 512x512 images completely on-device without cloud GPUs.
 
-<!-- GIF DEMO PLACEHOLDER: Place text to image generation demo gif here, e.g. ![Text to Image Demo](./media/text-to-image.gif) -->
+<table className="showcase-table">
+  <thead>
+    <tr>
+      <th>iOS</th>
+      <th>Android</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div className="device-phone iphone-chassis">
+          <div className="device-screen iphone-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/text-to-image-ios.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+      <td>
+        <div className="device-phone s24-chassis">
+          <div className="s24-camera-hole"></div>
+          <div className="device-screen s24-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/text-to-image-android.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## Quick Start
 

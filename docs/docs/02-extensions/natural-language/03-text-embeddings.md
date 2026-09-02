@@ -24,7 +24,47 @@ Text embedding models convert sentences, paragraphs, or documents into dense num
 
 This enables on-device semantic search, offline Retrieval-Augmented Generation (RAG) against local SQLite vector stores, intent classification, and cross-modal text-to-image queries when paired with [Image Embeddings](../computer-vision/09-image-embeddings.md) — entirely on the client without sending private text to cloud APIs.
 
-<!-- GIF DEMO PLACEHOLDER: Place text embeddings demo gif here, e.g. ![Text Embeddings Demo](./media/text-embeddings.gif) -->
+<table className="showcase-table">
+  <thead>
+    <tr>
+      <th>iOS</th>
+      <th>Android</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div className="device-phone iphone-chassis">
+          <div className="device-screen iphone-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/image-embeddings-ios.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+      <td>
+        <div className="device-phone s24-chassis">
+          <div className="s24-camera-hole"></div>
+          <div className="device-screen s24-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/image-embeddings-android.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## Quick Start
 

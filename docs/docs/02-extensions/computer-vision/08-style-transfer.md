@@ -24,7 +24,47 @@ Neural style transfer renders an input image in the artistic style of another im
 
 Because the models run locally in real time on mobile hardware accelerators, you can apply artistic filters to live camera frames or photos without uploading user media to external servers.
 
-<!-- GIF DEMO PLACEHOLDER: Place style transfer demo gif here, e.g. ![Style Transfer Demo](./media/style-transfer.gif) -->
+<table className="showcase-table">
+  <thead>
+    <tr>
+      <th>iOS</th>
+      <th>Android</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div className="device-phone iphone-chassis">
+          <div className="device-screen iphone-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/style-transfer-ios.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+      <td>
+        <div className="device-phone s24-chassis">
+          <div className="s24-camera-hole"></div>
+          <div className="device-screen s24-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/style-transfer-android.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## Quick Start
 

@@ -23,7 +23,47 @@ Pose estimation and keypoint detection locate specific anatomical landmarks on d
 
 Unlike basic object detection (which only returns box boundaries), keypoint detection tracks body posture, movement, and facial alignment. Common use cases include fitness/workout tracking, gesture controls, motion analysis, face alignment, and AR filters.
 
-<!-- GIF DEMO PLACEHOLDER: Place pose & keypoint demo gif here, e.g. ![Pose Estimation Demo](./media/pose-and-keypoints.gif) -->
+<table className="showcase-table">
+  <thead>
+    <tr>
+      <th>iOS</th>
+      <th>Android</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div className="device-phone iphone-chassis">
+          <div className="device-screen iphone-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/pose-and-keypoints-ios.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+      <td>
+        <div className="device-phone s24-chassis">
+          <div className="s24-camera-hole"></div>
+          <div className="device-screen s24-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/pose-and-keypoints-android.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## Quick Start
 

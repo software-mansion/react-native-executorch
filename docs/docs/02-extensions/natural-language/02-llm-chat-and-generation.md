@@ -28,7 +28,47 @@ The LLM extension lets you run generative Large Language Models (LLMs) and Visio
 - **Chat Sessions ([`useLLMChatSession`](#quick-start) / [`createLLMChatSession`](#imperative-session-api))**: The recommended API for conversational apps and AI assistants. It manages multi-turn conversation history, applies [Jinja2 chat templates](#chat-templates--incremental-kv-cache-diffing), supports [multimodal image inputs](#multimodal-inputs), and handles [automated tool calling](#automated-tool-calling).
 - **Low-Level Runner ([`LLMRunner`](#low-level-runner))**: A direct execution engine that operates on worklet threads. It processes raw text strings or media tensors without chat formatting, giving you manual control over KV cache prefilling, synchronous generation loops, and context rewinding.
 
-<!-- GIF DEMO PLACEHOLDER: Place LLM chat demo gif here, e.g. ![LLM Chat Demo](./media/llm-chat.gif) -->
+<table className="showcase-table">
+  <thead>
+    <tr>
+      <th>iOS</th>
+      <th>Android</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div className="device-phone iphone-chassis">
+          <div className="device-screen iphone-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/llm-chat-ios.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+      <td>
+        <div className="device-phone s24-chassis">
+          <div className="s24-camera-hole"></div>
+          <div className="device-screen s24-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/llm-chat-android.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## Quick Start
 

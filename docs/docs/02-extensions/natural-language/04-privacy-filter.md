@@ -24,7 +24,47 @@ Privacy Filter models detect Personally Identifiable Information (PII) — such 
 
 By scanning text entirely on-device before sending prompts to cloud APIs, logging systems, or analytics backends, you can automatically redact or mask sensitive user data without exposing personal details over the network.
 
-<!-- GIF DEMO PLACEHOLDER: Place privacy filter demo gif here, e.g. ![Privacy Filter Demo](./media/privacy-filter.gif) -->
+<table className="showcase-table">
+  <thead>
+    <tr>
+      <th>iOS</th>
+      <th>Android</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div className="device-phone iphone-chassis">
+          <div className="device-screen iphone-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/privacy-filter-ios.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+      <td>
+        <div className="device-phone s24-chassis">
+          <div className="s24-camera-hole"></div>
+          <div className="device-screen s24-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/privacy-filter-android.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## Quick Start
 

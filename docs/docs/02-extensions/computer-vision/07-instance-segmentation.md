@@ -23,7 +23,47 @@ Instance segmentation combines object detection and semantic segmentation. For e
 
 Unlike semantic segmentation (which groups all pixels of the same category into a single collective mask), instance segmentation distinguishes between separate instances of the same class (e.g. `person #1`, `person #2`). It powers interactive photo cutouts, object isolation, background effects, AR occlusions, and automated video editing.
 
-<!-- GIF DEMO PLACEHOLDER: Place instance segmentation demo gif here, e.g. ![Instance Segmentation Demo](./media/instance-segmentation.gif) -->
+<table className="showcase-table">
+  <thead>
+    <tr>
+      <th>iOS</th>
+      <th>Android</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div className="device-phone iphone-chassis">
+          <div className="device-screen iphone-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/instance-segmentation-ios.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+      <td>
+        <div className="device-phone s24-chassis">
+          <div className="s24-camera-hole"></div>
+          <div className="device-screen s24-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/instance-segmentation-android.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## Quick Start
 

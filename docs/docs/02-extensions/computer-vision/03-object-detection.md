@@ -23,7 +23,47 @@ Object detection locates and classifies multiple objects within an image. For ev
 
 Unlike image classification (which predicts a single label for the entire scene), object detection tells you both **what** objects are present and **where** they are located. It is used for real-time camera tracking, retail item recognition, document scanning, robotics, and augmented reality.
 
-<!-- GIF DEMO PLACEHOLDER: Place object detection demo gif here, e.g. ![Object Detection Demo](./media/object-detection.gif) -->
+<table className="showcase-table">
+  <thead>
+    <tr>
+      <th>iOS</th>
+      <th>Android</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div className="device-phone iphone-chassis">
+          <div className="device-screen iphone-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/object-detection-ios.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+      <td>
+        <div className="device-phone s24-chassis">
+          <div className="s24-camera-hole"></div>
+          <div className="device-screen s24-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/object-detection-android.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## Quick Start
 

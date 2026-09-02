@@ -29,7 +29,47 @@ Speech synthesis operates through multi-stage neural pipelines that combine phon
 
 Both pipelines are wrapped uniformly by the [`useTextToSpeech`](../../06-api-reference/functions/useTextToSpeech.md) React hook.
 
-<!-- GIF DEMO PLACEHOLDER: Place TTS demo gif here, e.g. ![Text to Speech Demo](./media/tts.gif) -->
+<table className="showcase-table">
+  <thead>
+    <tr>
+      <th>iOS</th>
+      <th>Android</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div className="device-phone iphone-chassis">
+          <div className="device-screen iphone-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/text-to-speech-ios.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+      <td>
+        <div className="device-phone s24-chassis">
+          <div className="s24-camera-hole"></div>
+          <div className="device-screen s24-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/text-to-speech-android.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## Quick Start
 

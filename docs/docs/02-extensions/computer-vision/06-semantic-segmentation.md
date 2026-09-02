@@ -23,7 +23,47 @@ Semantic segmentation classifies every individual pixel of an input image into a
 
 Unlike object detection (which outputs rectangular bounding boxes), semantic segmentation delivers precise pixel boundaries. It powers photo portrait effects, background blur/replacement, scene parsing, medical imaging, and autonomous navigation.
 
-<!-- GIF DEMO PLACEHOLDER: Place semantic segmentation demo gif here, e.g. ![Semantic Segmentation Demo](./media/semantic-segmentation.gif) -->
+<table className="showcase-table">
+  <thead>
+    <tr>
+      <th>iOS</th>
+      <th>Android</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div className="device-phone iphone-chassis">
+          <div className="device-screen iphone-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/semantic-segmentation-ios.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+      <td>
+        <div className="device-phone s24-chassis">
+          <div className="s24-camera-hole"></div>
+          <div className="device-screen s24-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/semantic-segmentation-android.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## Quick Start
 
