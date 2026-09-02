@@ -27,7 +27,7 @@ The library embeds PyTorch's native C++ tokenizer engine, providing high-perform
 
 <!-- GIF DEMO PLACEHOLDER: Place tokenizer demo gif here, e.g. ![Tokenizer Demo](./media/tokenizers.gif) -->
 
-## Native Tokenizer (`loadTokenizer`)
+## Native Tokenizer (loadTokenizer)
 
 The core tokenizer primitive is [`nlp.loadTokenizer`](../../06-api-reference/react-native-executorch/namespaces/nlp/functions/loadTokenizer.md). It synchronously loads a local `tokenizer.json` file into a native C++ JSI host object ([`Tokenizer`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md)) that can be called directly on the JavaScript thread or inside [Worklet runtimes](../../03-core-and-advanced/06-worklets-and-threading.md) with zero serialization overhead:
 
@@ -55,7 +55,7 @@ try {
 
 The [`Tokenizer`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md) interface provides the following synchronous methods:
 
-### 1. [`encode(text)`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md#encode)
+### 1. encode(text)
 
 Converts a string into an [`Int32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array) of token IDs. Special tokens are automatically appended/prepended according to the `tokenizer.json` post-processor configuration (e.g. `[CLS]` and `[SEP]` for BERT/WordPiece):
 
@@ -64,7 +64,7 @@ const ids: Int32Array = tokenizer.encode('ExecuTorch on React Native');
 // e.g. Int32Array([101, 10769, 2178, 2006, 2690, 3110, 102])
 ```
 
-### 2. [`decode(tokens, skipSpecialTokens?)`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md#decode)
+### 2. decode(tokens, skipSpecialTokens?)
 
 Decodes an [`Int32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array) of token IDs back into a reconstructed UTF-8 string. The optional [`skipSpecialTokens`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md#decode) boolean parameter defaults to `true`:
 
@@ -88,7 +88,7 @@ const piece = tokenizer.idToToken(101); // "[CLS]"
 const id = tokenizer.tokenToId('[SEP]'); // 102
 ```
 
-## Imperative Task Pipeline ([`createTokenizer`](../../06-api-reference/functions/createTokenizer.md))
+## Imperative Task Pipeline
 
 If you want an asynchronous, Promise-based wrapper around [`nlp.loadTokenizer`](../../06-api-reference/react-native-executorch/namespaces/nlp/functions/loadTokenizer.md) that dispatches execution to a background worklet thread, use [`createTokenizer`](../../06-api-reference/functions/createTokenizer.md):
 
@@ -107,7 +107,7 @@ try {
 }
 ```
 
-## React Hook ([`useTokenizer`](../../06-api-reference/functions/useTokenizer.md))
+## React Hook
 
 If you are using tokenizers directly inside a React component, [`useTokenizer`](../../06-api-reference/functions/useTokenizer.md) downloads remote `tokenizer.json` files, tracks loading progress, and automatically cleans up native memory on unmount:
 
