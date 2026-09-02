@@ -108,12 +108,12 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides ready-to-use style transfer models from the [Software Mansion HuggingFace Style Transfer Collection](https://huggingface.co/collections/software-mansion/style-transfer), available in [`models.styleTransfer`](../../06-api-reference/variables/models.md#styletransfer):
 
-| Model Family      | Size Range      | Supported Backends             | Best For                                              |
-| :---------------- | :-------------- | :----------------------------- | :---------------------------------------------------- |
-| **Candy**         | 1.8 MB – 6.5 MB | CPU (XNNPACK), Apple (Core ML) | Vibrant, colorful candy aesthetic with bold outlines. |
-| **Mosaic**        | 1.8 MB – 6.5 MB | CPU (XNNPACK), Apple (Core ML) | Classical geometric tile mosaic texture.              |
-| **Rain Princess** | 1.8 MB – 6.5 MB | CPU (XNNPACK), Apple (Core ML) | Painterly expressionist oil painting style.           |
-| **Udnie**         | 1.8 MB – 6.5 MB | CPU (XNNPACK), Apple (Core ML) | Francis Picabia abstract modernist art style.         |
+| Model Family      | Variants                                                                                                      | Size Range      | Supported Backends             | Notes                                                 |
+| :---------------- | :------------------------------------------------------------------------------------------------------------ | :-------------- | :----------------------------- | :---------------------------------------------------- |
+| **Candy**         | [`models.styleTransfer.CANDY`](../../06-api-reference/variables/models.md#styletransfercandy)                 | 1.8 MB – 6.5 MB | XNNPACK (CPU), Core ML (Apple) | Vibrant, colorful candy aesthetic with bold outlines. |
+| **Mosaic**        | [`models.styleTransfer.MOSAIC`](../../06-api-reference/variables/models.md#styletransfermosaic)               | 1.8 MB – 6.5 MB | XNNPACK (CPU), Core ML (Apple) | Classical geometric tile mosaic texture.              |
+| **Rain Princess** | [`models.styleTransfer.RAIN_PRINCESS`](../../06-api-reference/variables/models.md#styletransferrain_princess) | 1.8 MB – 6.5 MB | XNNPACK (CPU), Core ML (Apple) | Painterly expressionist oil painting style.           |
+| **Udnie**         | [`models.styleTransfer.UDNIE`](../../06-api-reference/variables/models.md#styletransferudnie)                 | 1.8 MB – 6.5 MB | XNNPACK (CPU), Core ML (Apple) | Francis Picabia abstract modernist art style.         |
 
 :::tip Using Custom Models
 To use your own trained feed-forward style transfer `.pte` model, pass a [`StyleTransferModel`](../../06-api-reference/type-aliases/StyleTransferModel.md) configuration object to `useStyleTransfer` or `createStyleTransfer`:

@@ -172,9 +172,9 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides the optimized FSMN-VAD model from the [Software Mansion HuggingFace Voice Activity Detection Collection](https://huggingface.co/collections/software-mansion/voice-activity-detection), available in [`models.voiceActivityDetection`](../../06-api-reference/variables/models.md#voiceactivitydetection):
 
-| Model        | Variants       | Size (Default) | Sample Rate | Notes                                                                                       |
-| :----------- | :------------- | :------------- | :---------- | :------------------------------------------------------------------------------------------ |
-| **FSMN-VAD** | `XNNPACK_FP32` | 1.8 MB         | 16000 Hz    | Compact, low-latency Feedforward Sequential Memory Network for continuous speech detection. |
+| Model        | Variants                                                                                                              | Size (Default) | Sample Rate | Supported Backends | Notes                                                                                       |
+| :----------- | :-------------------------------------------------------------------------------------------------------------------- | :------------- | :---------- | :----------------- | :------------------------------------------------------------------------------------------ |
+| **FSMN-VAD** | [`models.voiceActivityDetection.FSMN_VAD`](../../06-api-reference/variables/models.md#voiceactivitydetectionfsmn_vad) | 1.8 MB         | 16000 Hz    | XNNPACK (CPU)      | Compact, low-latency Feedforward Sequential Memory Network for continuous speech detection. |
 
 ## API Reference
 

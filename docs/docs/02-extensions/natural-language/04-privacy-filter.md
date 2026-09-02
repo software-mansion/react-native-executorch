@@ -150,10 +150,10 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides ready-to-use privacy filter models from the [Software Mansion HuggingFace Privacy Filter Collection](https://huggingface.co/collections/software-mansion/privacy-filter), available in [`models.privacyFilter`](../../06-api-reference/variables/models.md#privacyfilter):
 
-| Model Family                | Labels / Categories        | Size Range         | Supported Backends         | Best For                                                                    |
-| :-------------------------- | :------------------------- | :----------------- | :------------------------- | :-------------------------------------------------------------------------- |
-| **OpenAI Privacy Filter**   | 8 common categories        | 834.5 MB – 1.16 GB | CPU (XNNPACK), Apple (MLX) | General user data redaction and pre-LLM prompt sanitization.                |
-| **Nemotron Privacy Filter** | 55 fine-grained categories | 1.16 GB – 1.47 GB  | CPU (XNNPACK), Apple (MLX) | Strict compliance, tax IDs, credentials, and enterprise security redaction. |
+| Model Family                | Variants                                                                                            | Labels / Categories        | Size Range         | Supported Backends         | Notes                                                                       |
+| :-------------------------- | :-------------------------------------------------------------------------------------------------- | :------------------------- | :----------------- | :------------------------- | :-------------------------------------------------------------------------- |
+| **OpenAI Privacy Filter**   | [`models.privacyFilter.OPENAI`](../../06-api-reference/variables/models.md#privacyfilteropenai)     | 8 common categories        | 834.5 MB – 1.16 GB | XNNPACK (CPU), MLX (Apple) | General user data redaction and pre-LLM prompt sanitization.                |
+| **Nemotron Privacy Filter** | [`models.privacyFilter.NEMOTRON`](../../06-api-reference/variables/models.md#privacyfilternemotron) | 55 fine-grained categories | 1.16 GB – 1.47 GB  | XNNPACK (CPU), MLX (Apple) | Strict compliance, tax IDs, credentials, and enterprise security redaction. |
 
 :::tip Using Custom Models
 To use your own fine-tuned token classification `.pte` model, pass a [`PrivacyFilterModel`](../../06-api-reference/type-aliases/PrivacyFilterModel.md) configuration object to `usePrivacyFilter` or `createPrivacyFilter`:
