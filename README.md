@@ -27,6 +27,8 @@
 
 The library ships with a curated set of pre-exported models covering object detection, language models, text-to-speech, transcription, and more — all available in our [Hugging Face collection](https://huggingface.co/software-mansion/collections) and ready to use out of the box. You can also bring your own `.pte` models and plug them into existing pipelines or build entirely custom ones from scratch.
 
+To explore all on-device capabilities in an interactive showcase app, check out the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery).
+
 [![npm version](https://img.shields.io/npm/v/react-native-executorch?color=00008B)](https://www.npmjs.com/package/react-native-executorch)
 [![npm nightly](https://img.shields.io/npm/v/react-native-executorch/executorch-nightly?label=nightly&color=00008B)](https://www.npmjs.com/package/react-native-executorch)
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
@@ -39,10 +41,8 @@ The library ships with a curated set of pre-exported models covering object dete
 - [Quickstart](#quickstart)
   - [1. Installation](#1-installation)
   - [2. Run an LLM Chat Session](#2-run-an-llm-chat-session)
-- [Interactive Gallery App](#interactive-gallery-app)
 - [Documentation](#documentation)
 - [Powered by React Native ExecuTorch](#powered-by-react-native-executorch)
-- [License](#license)
 - [Created by Software Mansion](#created-by-software-mansion)
 
 </details>
@@ -120,16 +120,6 @@ export function App() {
 ```
 
 ---
-
-## Interactive Gallery App
-
-Explore interactive task examples in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery):
-
-- **Large Language Models (LLMs)**: Streaming on-device chat with interactive prompt suggestions.
-- **Speech & Audio**: Streaming TTS with audio playback (`react-native-audio-api`), live Whisper microphone transcription, and real-time VAD.
-- **Computer Vision**: Object detection, pose estimation, OCR, semantic & instance segmentation, style transfer, and text-to-image.
-
-<!-- GALLERY DEMOS PLACEHOLDER: Insert gallery task GIFs/video showcase here -->
 
 ## Documentation
 
