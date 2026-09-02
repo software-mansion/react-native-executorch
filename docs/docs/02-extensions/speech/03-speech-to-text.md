@@ -98,7 +98,7 @@ type WhisperStreamUpdate = {
 
 ### How Live Streaming Works
 
-- **Committed vs Non-Committed Text**: As the user speaks, Whisper continuously transcribes the active speech window into [`nonCommitted`](../../06-api-reference/type-aliases/WhisperStreamUpdate.md#noncommitted) text. Once the speaker pauses or completes a clause (detected by the integrated Voice Activity Detector), that segment is finalized and appended to [`committed`](../../06-api-reference/type-aliases/WhisperStreamUpdate.md#committed) text.
+- **Committed vs Non-Committed Text**: As the user speaks, Whisper continuously transcribes the active speech window into `nonCommitted` text. Once the speaker pauses or completes a clause (detected by the integrated Voice Activity Detector), that segment is finalized and appended to `committed` text.
 - **Background Audio Buffer**: Audio chunks fed via [`streamInsert(pcmSamples)`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#streaminsert) are accumulated in an internal audio ring buffer on a background thread without blocking the JavaScript UI.
 - **Graceful Termination**: Calling [`streamStop()`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#streamstop) signals the stream to process any remaining speech in the buffer, commit the final clause, and close the generator.
 
