@@ -165,11 +165,11 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides pre-configured Whisper models from the [Software Mansion HuggingFace Speech to Text Collection](https://huggingface.co/collections/software-mansion/speech-to-text), available in [`models.speechToText`](../../06-api-reference/variables/models.md#speechtotext):
 
-| Model Family      | Variants                                                                                                                                                                                                | Size Range         | Supported Backends                                            | Languages               | Notes                                                           |
-| :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :----------------- | :------------------------------------------------------------ | :---------------------- | :-------------------------------------------------------------- |
-| **Whisper Tiny**  | [`models.speechToText.WHISPER.TINY`](../../06-api-reference/variables/models.md#speechtotextwhispertiny), [`WHISPER.EN.TINY`](../../06-api-reference/variables/models.md#speechtotextwhisperentiny)     | 57.1 MB – 221.8 MB | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | English / 99+ Languages | Ultra-fast transcription with minimal RAM usage.                |
-| **Whisper Base**  | [`models.speechToText.WHISPER.BASE`](../../06-api-reference/variables/models.md#speechtotextwhisperbase), [`WHISPER.EN.BASE`](../../06-api-reference/variables/models.md#speechtotextwhisperenbase)     | 97.8 MB – 380.2 MB | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | English / 99+ Languages | Balanced accuracy and speed for general voice dictation.        |
-| **Whisper Small** | [`models.speechToText.WHISPER.SMALL`](../../06-api-reference/variables/models.md#speechtotextwhispersmall), [`WHISPER.EN.SMALL`](../../06-api-reference/variables/models.md#speechtotextwhisperensmall) | 276.0 MB – 1.05 GB | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | English / 99+ Languages | High-capacity model for complex, noisy, or multi-speaker audio. |
+| Model Family      | Variants                                                                                                                                                 | Size Range         | Supported Backends                                            | Languages               | Notes                                                           |
+| :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------- | :------------------------------------------------------------ | :---------------------- | :-------------------------------------------------------------- |
+| **Whisper Tiny**  | [See](../../06-api-reference/variables/models.md#speechtotextwhispertiny), [See](../../06-api-reference/variables/models.md#speechtotextwhisperentiny)   | 57.1 MB – 221.8 MB | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | English / 99+ Languages | Ultra-fast transcription with minimal RAM usage.                |
+| **Whisper Base**  | [See](../../06-api-reference/variables/models.md#speechtotextwhisperbase), [See](../../06-api-reference/variables/models.md#speechtotextwhisperenbase)   | 97.8 MB – 380.2 MB | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | English / 99+ Languages | Balanced accuracy and speed for general voice dictation.        |
+| **Whisper Small** | [See](../../06-api-reference/variables/models.md#speechtotextwhispersmall), [See](../../06-api-reference/variables/models.md#speechtotextwhisperensmall) | 276.0 MB – 1.05 GB | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | English / 99+ Languages | High-capacity model for complex, noisy, or multi-speaker audio. |
 
 ## API Reference
 
@@ -188,6 +188,6 @@ The library provides pre-configured Whisper models from the [Software Mansion Hu
 
 ### Constants & Model Presets
 
-- [`WHISPER_SAMPLE_RATE_HZ`](../../06-api-reference/variables/WHISPER_SAMPLE_RATE_HZ.md) — Target audio sample rate expected by Whisper models (16000 Hz).
-- [`WHISPER_LANGUAGES`](../../06-api-reference/variables/WHISPER_LANGUAGES.md) — Array of 99+ supported language codes.
+- [See](../../06-api-reference/variables/WHISPER_SAMPLE_RATE_HZ.md) — Target audio sample rate expected by Whisper models (16000 Hz).
+- [See](../../06-api-reference/variables/WHISPER_LANGUAGES.md) — Array of 99+ supported language codes.
 - [`models.speechToText`](../../06-api-reference/variables/models.md#speechtotext) — Pre-configured Whisper models registry.
