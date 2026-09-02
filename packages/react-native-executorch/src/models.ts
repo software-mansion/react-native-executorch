@@ -836,6 +836,10 @@ const ALL_MPNET_BASE_V2_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/xnnpack/all_mpnet_base_v2_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
+const ALL_MPNET_BASE_V2_VULKAN_INT8: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/vulkan/all_mpnet_base_v2_vulkan_int8.pte`,
+  tokenizerPath: `${BASE_URL}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
 const ALL_MPNET_BASE_V2_VULKAN_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/vulkan/all_mpnet_base_v2_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
@@ -854,6 +858,10 @@ const MULTI_QA_MINILM_L6_COS_V1_VULKAN_FP16: TextEmbedderModel = {
 };
 const MULTI_QA_MPNET_BASE_DOT_V1_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-multi-qa-mpnet-base-dot-v1/${NEXT_VERSION_TAG}/xnnpack/multi_qa_mpnet_base_dot_v1_xnnpack_fp32.pte`,
+  tokenizerPath: `${BASE_URL}-multi-qa-mpnet-base-dot-v1/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
+const MULTI_QA_MPNET_BASE_DOT_V1_VULKAN_INT8: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-multi-qa-mpnet-base-dot-v1/${NEXT_VERSION_TAG}/vulkan/multi_qa_mpnet_base_dot_v1_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}-multi-qa-mpnet-base-dot-v1/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
 const MULTI_QA_MPNET_BASE_DOT_V1_VULKAN_FP16: TextEmbedderModel = {
@@ -2611,6 +2619,7 @@ export const models = {
      */
     ALL_MPNET_BASE_V2: variants({
       XNNPACK_FP32: ALL_MPNET_BASE_V2_EMBEDDINGS,
+      VULKAN_INT8: ALL_MPNET_BASE_V2_VULKAN_INT8,
       VULKAN_FP16: ALL_MPNET_BASE_V2_VULKAN_FP16,
     }),
     /**
@@ -2629,6 +2638,7 @@ export const models = {
     MULTI_QA_MPNET_BASE_DOT_V1: variants({
       XNNPACK_FP32: MULTI_QA_MPNET_BASE_DOT_V1_EMBEDDINGS,
       VULKAN_FP16: MULTI_QA_MPNET_BASE_DOT_V1_VULKAN_FP16,
+      VULKAN_INT8: MULTI_QA_MPNET_BASE_DOT_V1_VULKAN_INT8,
     }),
     /**
      * 384-dimensional sentence transformer supporting 50+ languages for
