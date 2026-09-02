@@ -145,11 +145,11 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides ready-to-use pose and landmark detectors from the [Software Mansion HuggingFace Pose Estimation Collection](https://huggingface.co/collections/software-mansion/keypoint-detection), available in [`models.keypointDetection`](../../06-api-reference/variables/models.md#keypointdetection):
 
-| Model Family            | Variants                                                                                                                  | Keypoints Detected                | Size Range          | Supported Backends                          | Notes                                                                                         |
-| :---------------------- | :------------------------------------------------------------------------------------------------------------------------ | :-------------------------------- | :------------------ | :------------------------------------------ | :-------------------------------------------------------------------------------------------- |
-| **MediaPipe BlazeFace** | [`models.keypointDetection.BLAZEFACE`](../../06-api-reference/variables/models.md#keypointdetectionblazeface)             | 6 facial landmarks + bounding box | 0.6 MB              | XNNPACK (CPU)                               | Ultra-lightweight face bounding box & eye/ear/nose/mouth keypoint tracking (sub-millisecond). |
-| **YOLO26 Pose**         | [`models.keypointDetection.YOLO26_POSE`](../../06-api-reference/variables/models.md#keypointdetectionyolo26_pose)         | 17 COCO body keypoints            | 11.4 MB             | XNNPACK (CPU), Core ML (Apple)              | Real-time multi-person full-body skeletal tracking across multiple input resolutions.         |
-| **RF-DETR Keypoint**    | [`models.keypointDetection.RFDETR_KEYPOINT`](../../06-api-reference/variables/models.md#keypointdetectionrfdetr_keypoint) | 17 COCO body keypoints            | 138.6 MB – 140.9 MB | XNNPACK (CPU), Core ML (Apple), MLX (Apple) | High-accuracy body keypoint detection transformer for complex, occluded poses.                |
+| Model Family            | Variants                                                                           | Keypoints Detected                | Size Range          | Supported Backends                          | Notes                                                                                         |
+| :---------------------- | :--------------------------------------------------------------------------------- | :-------------------------------- | :------------------ | :------------------------------------------ | :-------------------------------------------------------------------------------------------- |
+| **MediaPipe BlazeFace** | [See](../../06-api-reference/variables/models.md#keypointdetectionblazeface)       | 6 facial landmarks + bounding box | 0.6 MB              | XNNPACK (CPU)                               | Ultra-lightweight face bounding box & eye/ear/nose/mouth keypoint tracking (sub-millisecond). |
+| **YOLO26 Pose**         | [See](../../06-api-reference/variables/models.md#keypointdetectionyolo26_pose)     | 17 COCO body keypoints            | 11.4 MB             | XNNPACK (CPU), Core ML (Apple)              | Real-time multi-person full-body skeletal tracking across multiple input resolutions.         |
+| **RF-DETR Keypoint**    | [See](../../06-api-reference/variables/models.md#keypointdetectionrfdetr_keypoint) | 17 COCO body keypoints            | 138.6 MB – 140.9 MB | XNNPACK (CPU), Core ML (Apple), MLX (Apple) | High-accuracy body keypoint detection transformer for complex, occluded poses.                |
 
 :::tip Using Custom Models
 To use your own fine-tuned pose or landmark detection `.pte` model, pass a [`KeypointDetectorModel`](../../06-api-reference/type-aliases/KeypointDetectorModel.md) configuration object to `useKeypointDetector` or `createKeypointDetector`:
@@ -193,5 +193,5 @@ The pipeline automatically verifies that the model's exported input and output s
 ### Model Presets & Constants
 
 - [`models.keypointDetection`](../../06-api-reference/variables/models.md#keypointdetection) — Pre-configured keypoint and pose models registry.
-- [`COCO_LANDMARKS`](../../06-api-reference/variables/COCO_LANDMARKS.md) — List of 17 standard COCO skeletal body keypoints.
-- [`BLAZEFACE_LANDMARKS`](../../06-api-reference/variables/BLAZEFACE_LANDMARKS.md) — List of 6 standard BlazeFace facial landmarks.
+- [See](../../06-api-reference/variables/COCO_LANDMARKS.md) — List of 17 standard COCO skeletal body keypoints.
+- [See](../../06-api-reference/variables/BLAZEFACE_LANDMARKS.md) — List of 6 standard BlazeFace facial landmarks.
