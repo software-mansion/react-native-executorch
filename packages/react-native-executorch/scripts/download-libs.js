@@ -390,9 +390,20 @@ function sha256(filePath) {
   return result.toString().split(' ')[0].trim();
 }
 
-function isCacheValid(artifact) {
+async function isCacheValid(artifact) {
   if (!fs.existsSync(artifact.cacheFile)) return false;
-  if (!fs.existsSync(artifact.cacheChecksumFile)) return false;
+  // Refresh the checksum from the release before trusting the cache. Comparing
+  // a cached tarball against a CACHED checksum lets a stale cache validate
+  // itself: the cache directory is keyed on the libs version, so a release
+  // re-cut at the same version is never picked up -- every artifact reports a
+  // cache hit and the old files are reused indefinitely.
+  try {
+    await download(artifact.checksumUrl, artifact.cacheChecksumFile);
+  } catch {
+    // Unreachable checksum (offline, rate limited): fall back to the cached
+    // one so an already-populated cache still builds without a network.
+    if (!fs.existsSync(artifact.cacheChecksumFile)) return false;
+  }
   const expectedChecksum = fs.readFileSync(artifact.cacheChecksumFile, 'utf8').trim();
   const actualChecksum = sha256(artifact.cacheFile);
   return expectedChecksum === actualChecksum;
@@ -400,7 +411,15 @@ function isCacheValid(artifact) {
 
 function extract(tarball, destDir) {
   ensureDir(destDir);
-  execSync(`tar -xzf "${tarball}" -C "${destDir}"`);
+  // `-m` stamps extracted files with the extraction time instead of the mtime
+  // recorded in the archive. Without it, headers keep the timestamp they had
+  // when the release was cut, so upgrading to a NEWER artifacts release can
+  // hand ninja headers that look OLDER than object files from a previous build.
+  // Ninja then treats those objects as up to date and never recompiles them,
+  // and they get archived and linked against the new libraries -- which shows
+  // up as an undefined symbol for whatever API changed between the two
+  // releases, far away from the actual cause.
+  execSync(`tar -xzmf "${tarball}" -C "${destDir}"`);
 }
 
 // ---- Main ------------------------------------------------------------------
@@ -432,7 +451,7 @@ async function main() {
   for (const artifact of artifacts) {
     console.log(`[react-native-executorch] Preparing ${artifact.name}...`);
 
-    if (isCacheValid(artifact)) {
+    if (await isCacheValid(artifact)) {
       console.log(`  ✓ Cache hit, skipping download`);
     } else {
       console.log(`  ↓ Downloading ${artifact.url}`);

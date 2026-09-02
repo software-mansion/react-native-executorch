@@ -32,11 +32,11 @@ HERMES_REPO="https://github.com/facebook/hermes.git"
 # errors or, worse, ABI drift at runtime. cpp/extensions/llm additionally reads
 # private members of TextLLMRunner/MultimodalRunner, so a version skew there
 # fails to compile rather than silently misbehaving.
-EXECUTORCH_VERSION="v1.3.1"
+EXECUTORCH_VERSION="v1.4.1"
 EXECUTORCH_REPO="https://github.com/pytorch/executorch.git"
 
 # The shipped native libraries are built from software-mansion-labs/executorch
-# @rne-split-build, which is ExecuTorch 1.3.1 with the tokenizers submodule
+# @ms/separate-backends-1.4.1, which is ExecuTorch 1.4.1 with the tokenizers submodule
 # swapped for the fork below (it adds the WordPiece/Unigram models and the NFC
 # normalizer that upstream has not taken). third-party/include carries that
 # fork's headers, so linking upstream's libtokenizers.a here would compile
@@ -47,7 +47,7 @@ EXECUTORCH_REPO="https://github.com/pytorch/executorch.git"
 # Keep this commit in sync with the tokenizers submodule of the fork commit that
 # produced the current headers.tar.gz.
 TOKENIZERS_REPO="https://github.com/software-mansion-labs/pytorch-tokenizers.git"
-TOKENIZERS_COMMIT="56a30afbe2e6b4ca881d0fb7b961b9f9da156be4"
+TOKENIZERS_COMMIT="a03231a20a72036bf9a8e4a3b1d63494b90da1a6"
 
 cd "$(dirname "$0")/.."
 PACKAGE_DIR="$(pwd)"
