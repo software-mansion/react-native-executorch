@@ -131,8 +131,6 @@ Explore interactive task examples in the [React Native ExecuTorch Gallery](https
 
 <!-- GALLERY DEMOS PLACEHOLDER: Insert gallery task GIFs/video showcase here -->
 
----
-
 ## Documentation
 
 Full documentation, guides, architecture deep dives, and API references are available at:
@@ -144,24 +142,15 @@ Full documentation, guides, architecture deep dives, and API references are avai
 - [Core Primitives & Custom Pipelines](https://docs.swmansion.com/react-native-executorch/docs/category/core--advanced)
 - [Exporting Custom `.pte` Models](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/exporting-custom-models)
 
----
-
 ## Powered by React Native ExecuTorch
 
 React Native ExecuTorch powers [Private Mind](https://privatemind.swmansion.com/), a privacy-first mobile AI application available on [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) and [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
 
 <img width="2720" height="1085" alt="Private Mind promo" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
 
----
-
-## License
-
-React Native ExecuTorch is licensed under the [MIT License](./LICENSE). It includes components from Meta's ExecuTorch library, which is licensed under the [BSD 3-Clause License](./LICENSE).
-
----
-
 ## Created by Software Mansion
 
 Since 2012, [Software Mansion](https://swmansion.com) has been building mobile and web apps, contributing to open-source software, and dealing with all kinds of React Native challenges. We are Core React Native Contributors. We can help you build your next AI product – [Hire us](https://swmansion.com/contact?utm_source=react-native-executorch&utm_medium=readme).
 
 [![swm](https://logo.swmansion.com/logo?color=white&variant=desktop&width=150&tag=react-native-executorch-github 'Software Mansion')](https://swmansion.com)
+
