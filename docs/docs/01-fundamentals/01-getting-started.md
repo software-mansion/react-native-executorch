@@ -87,7 +87,8 @@ React Native ExecuTorch requires:
 - **React Native 0.81+** (or compatible Expo SDK using development builds)
 - **iOS 17.0+** / **Android 13+ (API 33)**
 
-For supported React Native versions, see the [Compatibility table](../07-other/01-compatibility.mdx).
+For supported React Native versions, see the [Compatibility
+table](../07-other/01-compatibility.mdx).
 :::
 
 ### Selecting native libraries
@@ -97,7 +98,8 @@ Vulkan), and third-party binaries — are downloaded on demand at install time. 
 default, **everything is downloaded and enabled**, so no configuration is
 required to get started.
 
-If you want a smaller app or faster installs, declare what you use in a `react-native-executorch` block in your `package.json`, e.g.:
+If you want a smaller app or faster installs, declare what you use in a
+`react-native-executorch` block in your `package.json`, e.g.:
 
 ```json
 {
@@ -109,11 +111,17 @@ If you want a smaller app or faster installs, declare what you use in a `react-n
 
 The available options are:
 
-- **`features`** — high-level task names. Each one expands to the backends and native libs it needs.
-- **`backends`** — hardware backends directly, e.g. `xnnpack`, `coreml`, `vulkan`.
-- **`libs`** — extra native libraries.
+- **`features`** — high-level task names. Each one expands to the backends and
+  native libs it needs.
+- **`backends`** — hardware backends directly, e.g. `xnnpack`, `coreml`,
+  `vulkan`.
+- **`libs`** — extra native libraries, see
+  [options](../03-core-and-advanced/08-native-libraries.md#options).
 
-The three lists are merged, so you can pair a `features` set with extra `backends` / `libs` entries. Re-run your package manager's install after editing. See [Native Libraries](../03-core-and-advanced/08-native-libraries.md) for details.
+The three lists are merged, so you can pair a `features` set with extra
+`backends` / `libs` entries. Re-run your package manager's install after
+editing. See [Native Libraries](../03-core-and-advanced/08-native-libraries.md)
+for details.
 
 ## Choose Your Path
 
@@ -130,14 +138,14 @@ around a clean **two-layer architecture** where the higher-level layer is
 implemented entirely on top of the lower-level one — not as separate C++ code
 hidden behind abstractions. This means:
 
-- **Pipelines are transparent.** Every task pipeline (classification, object
-  detection, LLM chat, speech synthesis, etc.) is written in a few hundred lines
-  of TypeScript — often less. You can read the full input/output contracts,
-  preprocessing, and postprocessing logic in one place — no native code required.
+- **Pipelines are transparent.** Every task pipeline (computer vision,
+  LLM chat, etc.) is written in a few hundred lines of TypeScript — often
+  less. You can read the full input/output contracts, preprocessing, and
+  postprocessing logic in one place — no native code required.
 
 - **Custom models just work.** Plug your own `.pte` into any existing pipeline —
-  classification, detection, LLM, whatever. The schema DSL declares exactly what
-  each pipeline expects (tensor shapes, data types, preprocessing), so there's no
+  computer vision, LLM, whatever. The schema DSL declares exactly what each
+  pipeline expects (tensor shapes, data types, preprocessing), so there's no
   guessing. Everything is in one place, readable in TypeScript.
 
 - **You can always drop down.** When built-in pipelines don't fit your use
@@ -149,11 +157,10 @@ hidden behind abstractions. This means:
 
 ### High-Level Task Pipelines
 
-Have a specific problem to solve — text-to-speech, LLM chat, object detection,
-image generation? Each task has a ready-made pipeline you can drop into your
-app. Hooks handle downloading, caching, and memory disposal automatically.
-Imperative APIs give you manual control. Both work with pre-exported models from
-our [HuggingFace
+Have a specific problem to solve — computer vision, LLM chat, etc.?
+Each task has a ready-made pipeline you can drop into your app. Hooks handle
+downloading, caching, and memory disposal automatically. Imperative APIs give
+you manual control. Both work with pre-exported models from our [HuggingFace
 collection](https://huggingface.co/software-mansion/collections) or your own
 `.pte` files — as long as they match the pipeline's schema.
 
