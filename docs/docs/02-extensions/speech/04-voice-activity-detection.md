@@ -194,5 +194,5 @@ The library provides the optimized FSMN-VAD model from the [Software Mansion Hug
 
 ### Constants & Model Presets
 
-- [See](../../06-api-reference/variables/FSMN_VAD_SAMPLE_RATE_HZ.md) — Expected audio input sample rate constant (16000 Hz).
+- [`FSMN_VAD_SAMPLE_RATE_HZ`](../../06-api-reference/variables/FSMN_VAD_SAMPLE_RATE_HZ.md) — Expected audio input sample rate constant (16000 Hz).
 - [`models.voiceActivityDetection`](../../06-api-reference/variables/models.md#voiceactivitydetection) — Pre-configured VAD models registry.

@@ -129,9 +129,9 @@ on dispatching tasks and sharing models across threads.
 
 The library provides ready-to-use models from the [Software Mansion HuggingFace Classification Collection](https://huggingface.co/collections/software-mansion/classification), pre-configured with ImageNet-1k vocabulary and normalization parameters in [`models.classification`](../../06-api-reference/variables/models.md#classification):
 
-| Model Family         | Variants                                                                          | Size Range        | Supported Backends             | Dataset / Vocabulary        | Notes                                                              |
-| :------------------- | :-------------------------------------------------------------------------------- | :---------------- | :----------------------------- | :-------------------------- | :----------------------------------------------------------------- |
-| **EfficientNetV2-S** | [See](../../06-api-reference/variables/models.md#classificationefficientnet_v2_s) | 21.9 MB – 81.7 MB | XNNPACK (CPU), Core ML (Apple) | ImageNet-1k (1,000 classes) | Fast, lightweight general image recognition and tagging on mobile. |
+| Model Family         | Variants                                                                          | Size Range        | Supported Backends             | Dataset / Vocabulary                                                                         | Notes                                                              |
+| :------------------- | :-------------------------------------------------------------------------------- | :---------------- | :----------------------------- | :------------------------------------------------------------------------------------------- | :----------------------------------------------------------------- |
+| **EfficientNetV2-S** | [See](../../06-api-reference/variables/models.md#classificationefficientnet_v2_s) | 21.9 MB – 81.7 MB | XNNPACK (CPU), Core ML (Apple) | [`IMAGENET1K_LABELS`](../../06-api-reference/variables/IMAGENET1K_LABELS.md) (1,000 classes) | Fast, lightweight general image recognition and tagging on mobile. |
 
 :::tip Using Custom Models
 To use your own fine-tuned classification `.pte` model, pass a
