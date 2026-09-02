@@ -47,8 +47,6 @@ To explore all on-device capabilities in an interactive showcase app, check out 
 
 </details>
 
----
-
 ## Key Features
 
 - **Native Hardware Acceleration**: Optimized execution delegates across backends: **XNNPACK** (CPU), **Core ML** & **MLX** (Apple Silicon), and **Vulkan** (Android GPU).
@@ -58,8 +56,6 @@ To explore all on-device capabilities in an interactive showcase app, check out 
   - **Lower-level Runtime & Custom Orchestration**: Build custom pipelines entirely in TypeScript using low-level tensor operations, fast native operators, schema validation, and worklet threading.
 - **Pre-Exported Model Catalog**: Access verified models directly via the `models` registry and the [Software Mansion Hugging Face Collections](https://huggingface.co/software-mansion/collections).
 
----
-
 ## Supported Capabilities
 
 | Domain | Task Pipelines | Featured Models |
@@ -67,8 +63,6 @@ To explore all on-device capabilities in an interactive showcase app, check out 
 | **Natural Language** | [LLM Chat & Generation](https://docs.swmansion.com/react-native-executorch/docs/extensions/llm-chat-and-generation), [Text Embeddings](https://docs.swmansion.com/react-native-executorch/docs/extensions/text-embeddings), [Privacy Filter (PII)](https://docs.swmansion.com/react-native-executorch/docs/extensions/privacy-filter), [Tokenizers](https://docs.swmansion.com/react-native-executorch/docs/extensions/tokenizers) | LFM 2.5, Gemma 4, Qwen 3, MiniLM, Nemotron PII |
 | **Speech & Audio** | [Text-to-Speech](https://docs.swmansion.com/react-native-executorch/docs/extensions/text-to-speech), [Speech-to-Text](https://docs.swmansion.com/react-native-executorch/docs/extensions/speech-to-text), [Voice Activity Detection](https://docs.swmansion.com/react-native-executorch/docs/extensions/voice-activity-detection) | Supertonic 3, Kokoro, Whisper, FSMN-VAD |
 | **Computer Vision** | [Image Classification](https://docs.swmansion.com/react-native-executorch/docs/extensions/image-classification), [Object Detection](https://docs.swmansion.com/react-native-executorch/docs/extensions/object-detection), [Pose & Keypoints](https://docs.swmansion.com/react-native-executorch/docs/extensions/pose-and-keypoints), [OCR](https://docs.swmansion.com/react-native-executorch/docs/extensions/optical-character-recognition), [Segmentation](https://docs.swmansion.com/react-native-executorch/docs/extensions/semantic-segmentation), [Style Transfer](https://docs.swmansion.com/react-native-executorch/docs/extensions/style-transfer), [Image Embeddings](https://docs.swmansion.com/react-native-executorch/docs/extensions/image-embeddings), [Text-to-Image](https://docs.swmansion.com/react-native-executorch/docs/extensions/text-to-image) | YOLO26, RF-DETR, SSDLite, FastSAM, PP-OCRv6, CLIP, SDXS DreamShaper |
-
----
 
 ## Quickstart
 
@@ -118,8 +112,6 @@ export function App() {
   );
 }
 ```
-
----
 
 ## Documentation
 
