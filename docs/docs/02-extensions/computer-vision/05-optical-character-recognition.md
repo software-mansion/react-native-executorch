@@ -53,7 +53,7 @@ function MyComponent() {
 ```
 
 :::tip Full Interactive Example in Gallery App
-See [`src/app/ocr.tsx`](https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/ocr.tsx) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen with photo picker, oriented text bounding boxes, and latency tracking.
+See [`src/app/(screens)/ocr.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/ocr.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen with photo picker, oriented text bounding boxes, and latency tracking.
 :::
 
 ## Output Format

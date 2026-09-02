@@ -57,7 +57,7 @@ function MyComponent() {
 ```
 
 :::tip Full Interactive Example in Gallery App
-See [`src/app/keypoint-detection.tsx`](https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/keypoint-detection.tsx) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen with photo picker, skeleton keypoint overlays, and latency tracking.
+See [`src/app/(screens)/keypoint-detection.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/keypoint-detection.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen with photo picker, skeleton keypoint overlays, and latency tracking.
 :::
 
 ## Output Format
