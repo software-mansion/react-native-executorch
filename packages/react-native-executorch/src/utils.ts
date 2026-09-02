@@ -9,18 +9,6 @@ import type { ModelSpec, ConcreteDim } from './core/schema';
 import RNBlobUtil from 'react-native-blob-util';
 
 /**
- * Retrieves the names of all ExecuTorch backends compiled and registered in the
- * native binary.
- * @category Utils / Functions
- * @returns An array of registered backend name strings (e.g. 'XnnpackBackend',
- * 'CoreMLBackend').
- */
-export function getRegisteredBackends(): readonly string[] {
-  'worklet';
-  return rnexecutorchJsi.getExecuTorchRegisteredBackends();
-}
-
-/**
  * Options accepted by {@link useResourceDownload} and by every `use<Task>` hook
  * built on top of it.
  * @category Utils / Types
@@ -48,6 +36,18 @@ export type ModelInspection = {
   /** Map of method names to the backends each method was compiled for. */
   readonly backends: Record<string, readonly string[]>;
 };
+
+/**
+ * Retrieves the names of all ExecuTorch backends compiled and registered in the
+ * native binary.
+ * @category Utils / Functions
+ * @returns An array of registered backend name strings (e.g. 'XnnpackBackend',
+ * 'CoreMLBackend').
+ */
+export function getRegisteredBackends(): readonly string[] {
+  'worklet';
+  return rnexecutorchJsi.getExecuTorchRegisteredBackends();
+}
 
 /**
  * Inspects an ExecuTorch model file to fetch its metadata and signature info

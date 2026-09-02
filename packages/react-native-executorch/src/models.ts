@@ -10,7 +10,6 @@
  * wraps the group in `variants`, which adds the `DEFAULT` alias resolving to
  * the fastest export the current platform can run. Within one backend the
  * first variant declared wins, so keep the group ordered best-first.
- * @module Models
  */
 
 import { Platform } from 'react-native';

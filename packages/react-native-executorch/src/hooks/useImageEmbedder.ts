@@ -18,9 +18,9 @@ import {
  * @param config The image embedder model configuration.
  * See {@link ImageEmbedderModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns The same object as {@link createImageEmbedder} (without `dispose`),
+ * @returns The same object as {@link ImageEmbedder} (without `dispose`),
  * combined with loading state and download progress.
- * @see {@link createImageEmbedder}
+ * @see {@link ImageEmbedder}
  */
 export function useImageEmbedder(config: ImageEmbedderModel, options?: ResourceOptions) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
