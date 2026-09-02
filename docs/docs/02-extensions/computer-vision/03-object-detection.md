@@ -62,7 +62,7 @@ See [`src/app/(screens)/object-detection.tsx`](<https://github.com/software-mans
 
 ## Output Format
 
-`detectObjects()` returns an array of [`ObjectDetection`](../../06-api-reference/type-aliases/ObjectDetection.md) objects:
+[`detectObjects()`](../../06-api-reference/type-aliases/ObjectDetector.md#detectobjects) returns an array of [`ObjectDetection`](../../06-api-reference/type-aliases/ObjectDetection.md) objects:
 
 ```typescript
 type ObjectDetection<F extends BoxFormat = 'xyxy', L = string> = {
@@ -75,7 +75,7 @@ type ObjectDetection<F extends BoxFormat = 'xyxy', L = string> = {
 };
 ```
 
-For `'xyxy'` format (default), `box` contains pixel coordinates:
+For `'xyxy'` format (default), [`box`](../../06-api-reference/type-aliases/ObjectDetection.md#box) contains pixel coordinates:
 
 ```json
 [
@@ -94,12 +94,12 @@ For `'xyxy'` format (default), `box` contains pixel coordinates:
 
 ## Configuration & Options
 
-Pass a [`DetectObjectsOptions`](../../06-api-reference/type-aliases/DetectObjectsOptions.md) object to `detectObjects()` to override model defaults:
+Pass a [`DetectObjectsOptions`](../../06-api-reference/type-aliases/DetectObjectsOptions.md) object to [`detectObjects()`](../../06-api-reference/type-aliases/ObjectDetector.md#detectobjects) to override model defaults:
 
-| Option                | Type     | Default                     | Description                                                                                                              |
-| :-------------------- | :------- | :-------------------------- | :----------------------------------------------------------------------------------------------------------------------- |
-| `confidenceThreshold` | `number` | Model default (e.g. `0.5`)  | Minimum confidence score for a box to be retained (0.0 to 1.0).                                                          |
-| `iouThreshold`        | `number` | Model default (e.g. `0.55`) | Intersection over Union (IoU) threshold for Non-Maximum Suppression (NMS). Lower values suppress more overlapping boxes. |
+| Option                                                                                                   | Type     | Default                     | Description                                                                                                              |
+| :------------------------------------------------------------------------------------------------------- | :------- | :-------------------------- | :----------------------------------------------------------------------------------------------------------------------- |
+| [`confidenceThreshold`](../../06-api-reference/type-aliases/DetectObjectsOptions.md#confidencethreshold) | `number` | Model default (e.g. `0.5`)  | Minimum confidence score for a box to be retained (0.0 to 1.0).                                                          |
+| [`iouThreshold`](../../06-api-reference/type-aliases/DetectObjectsOptions.md#iouthreshold)               | `number` | Model default (e.g. `0.55`) | Intersection over Union (IoU) threshold for Non-Maximum Suppression (NMS). Lower values suppress more overlapping boxes. |
 
 ## Imperative API
 
@@ -125,7 +125,7 @@ try {
 
 ## Synchronous Execution
 
-For high-throughput loops like camera frame processors, `createObjectDetector` exposes a synchronous `detectObjectsWorklet` function. This runs directly on the worklet thread with zero Promise scheduling overhead:
+For high-throughput loops like camera frame processors, [`createObjectDetector`](../../06-api-reference/functions/createObjectDetector.md) exposes a synchronous [`detectObjectsWorklet`](../../06-api-reference/type-aliases/ObjectDetector.md#detectobjectsworklet) function. This runs directly on the worklet thread with zero Promise scheduling overhead:
 
 ```typescript
 // Called synchronously inside a VisionCamera frame processor on the UI worklet thread
@@ -147,7 +147,7 @@ The library provides ready-to-use detectors from the [Software Mansion HuggingFa
 | **YOLO26**                 | [See](../../06-api-reference/variables/models.md#objectdetectionyolo26)                        | 5.4 MB – 212.9 MB  | XNNPACK (CPU), Core ML (Apple) | [`COCO_CLASSES_YOLO`](../../06-api-reference/variables/COCO_CLASSES_YOLO.md) (80 classes) | Scalable real-time detection family across 384x384, 512x512, and 640x640 resolutions. |
 
 :::tip Using Custom Models
-To use your own fine-tuned object detection `.pte` model, pass an [`ObjectDetectorModel`](../../06-api-reference/type-aliases/ObjectDetectorModel.md) configuration object to `useObjectDetector` or `createObjectDetector`:
+To use your own fine-tuned object detection `.pte` model, pass an [`ObjectDetectorModel`](../../06-api-reference/type-aliases/ObjectDetectorModel.md) configuration object to [`useObjectDetector`](../../06-api-reference/functions/useObjectDetector.md) or [`createObjectDetector`](../../06-api-reference/functions/createObjectDetector.md):
 
 ```typescript
 const customDetector = await createObjectDetector({
@@ -176,7 +176,7 @@ The pipeline automatically verifies that the model's exported input and output s
 
 ### Types & Options
 
-- [`ObjectDetector`](../../06-api-reference/type-aliases/ObjectDetector.md) — Object detector instance interface (`detectObjects`, `detectObjectsWorklet`).
+- [`ObjectDetector`](../../06-api-reference/type-aliases/ObjectDetector.md) — Object detector instance interface (`detectObjects`, [`detectObjectsWorklet`](../../06-api-reference/type-aliases/ObjectDetector.md#detectobjectsworklet)).
 - [`ObjectDetection`](../../06-api-reference/type-aliases/ObjectDetection.md) — Single detection result with `box`, `label`, and `confidence`.
 - [`DetectObjectsOptions`](../../06-api-reference/type-aliases/DetectObjectsOptions.md) — Inference options (`confidenceThreshold`, `iouThreshold`).
 - [`ObjectDetectorModel`](../../06-api-reference/type-aliases/ObjectDetectorModel.md) — Object detector configuration spec.

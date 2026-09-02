@@ -98,13 +98,13 @@ type WhisperStreamUpdate = {
 
 ### How Live Streaming Works
 
-- **Committed vs Non-Committed Text**: As the user speaks, Whisper continuously transcribes the active speech window into `nonCommitted` text. Once the speaker pauses or completes a clause (detected by the integrated Voice Activity Detector), that segment is finalized and appended to `committed` text.
-- **Background Audio Buffer**: Audio chunks fed via `streamInsert(pcmSamples)` are accumulated in an internal audio ring buffer on a background thread without blocking the JavaScript UI.
-- **Graceful Termination**: Calling `streamStop()` signals the stream to process any remaining speech in the buffer, commit the final clause, and close the generator.
+- **Committed vs Non-Committed Text**: As the user speaks, Whisper continuously transcribes the active speech window into [`nonCommitted`](../../06-api-reference/type-aliases/WhisperStreamUpdate.md#noncommitted) text. Once the speaker pauses or completes a clause (detected by the integrated Voice Activity Detector), that segment is finalized and appended to [`committed`](../../06-api-reference/type-aliases/WhisperStreamUpdate.md#committed) text.
+- **Background Audio Buffer**: Audio chunks fed via [`streamInsert(pcmSamples)`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#streaminsert) are accumulated in an internal audio ring buffer on a background thread without blocking the JavaScript UI.
+- **Graceful Termination**: Calling [`streamStop()`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#streamstop) signals the stream to process any remaining speech in the buffer, commit the final clause, and close the generator.
 
 ## Pre-Recorded Audio Transcription
 
-To transcribe an existing audio recording or batch audio buffer all at once, use `transcribe()`:
+To transcribe an existing audio recording or batch audio buffer all at once, use [`transcribe()`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#transcribe):
 
 ```typescript
 // audioData: Float32Array PCM samples at 16000 Hz
@@ -152,7 +152,7 @@ try {
 
 ## Synchronous Execution
 
-For synchronous worklet execution contexts or frame-by-frame audio processors, `createWhisperSpeechToText` exposes a synchronous `transcribeWorklet` function:
+For synchronous worklet execution contexts or frame-by-frame audio processors, [`createWhisperSpeechToText`](../../06-api-reference/functions/createWhisperSpeechToText.md) exposes a synchronous [`transcribeWorklet`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#transcribeworklet) function:
 
 ```typescript
 // Called synchronously inside a worklet runtime without Promise scheduling overhead
@@ -180,7 +180,7 @@ The library provides pre-configured Whisper models from the [Software Mansion Hu
 
 ### Types & Options
 
-- [`WhisperSpeechToText`](../../06-api-reference/type-aliases/WhisperSpeechToText.md) — Whisper runner interface (`transcribe`, `transcribeWorklet`, `transcribeStop`, `stream`, `streamInsert`, `streamStop`, `dispose`).
+- [`WhisperSpeechToText`](../../06-api-reference/type-aliases/WhisperSpeechToText.md) — Whisper runner interface (`transcribe`, [`transcribeWorklet`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#transcribeworklet), `transcribeStop`, `stream`, `streamInsert`, `streamStop`, `dispose`).
 - [`WhisperSttModel`](../../06-api-reference/type-aliases/WhisperSttModel.md) — Whisper model spec including model path, tokenizer path, and bundled VAD model.
 - [`WhisperSttOptions`](../../06-api-reference/type-aliases/WhisperSttOptions.md) — Per-call transcription options (`language`).
 - [`WhisperStreamOptions`](../../06-api-reference/type-aliases/WhisperStreamOptions.md) — Live microphone streaming options (`language`, `vadOptions`).

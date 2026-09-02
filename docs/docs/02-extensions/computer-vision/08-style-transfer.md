@@ -60,7 +60,7 @@ See [`src/app/(screens)/style-transfer.tsx`](<https://github.com/software-mansio
 
 ## Output Format
 
-`transferStyle()` returns an [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) object containing the styled RGBA image rendered at the input dimensions:
+[`transferStyle()`](../../06-api-reference/type-aliases/StyleTransfer.md#transferstyle) returns an [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) object containing the styled RGBA image rendered at the input dimensions:
 
 ```typescript
 type ImageBuffer = {
@@ -95,7 +95,7 @@ try {
 
 ## Synchronous Execution
 
-For high-throughput loops like live viewfinder styling or video recording, `createStyleTransfer` exposes a synchronous `transferStyleWorklet` function. This runs directly on the worklet thread with zero Promise scheduling overhead:
+For high-throughput loops like live viewfinder styling or video recording, [`createStyleTransfer`](../../06-api-reference/functions/createStyleTransfer.md) exposes a synchronous [`transferStyleWorklet`](../../06-api-reference/type-aliases/StyleTransfer.md#transferstyleworklet) function. This runs directly on the worklet thread with zero Promise scheduling overhead:
 
 ```typescript
 // Called synchronously inside a VisionCamera frame processor on the UI worklet thread
@@ -116,7 +116,7 @@ The library provides ready-to-use style transfer models from the [Software Mansi
 | **Udnie**         | [See](../../06-api-reference/variables/models.md#styletransferudnie)         | 1.8 MB – 6.5 MB | XNNPACK (CPU), Core ML (Apple) | Francis Picabia abstract modernist art style.         |
 
 :::tip Using Custom Models
-To use your own trained feed-forward style transfer `.pte` model, pass a [`StyleTransferModel`](../../06-api-reference/type-aliases/StyleTransferModel.md) configuration object to `useStyleTransfer` or `createStyleTransfer`:
+To use your own trained feed-forward style transfer `.pte` model, pass a [`StyleTransferModel`](../../06-api-reference/type-aliases/StyleTransferModel.md) configuration object to [`useStyleTransfer`](../../06-api-reference/functions/useStyleTransfer.md) or [`createStyleTransfer`](../../06-api-reference/functions/createStyleTransfer.md):
 
 ```typescript
 const customStyleTransfer = await createStyleTransfer({
@@ -143,7 +143,7 @@ The pipeline automatically verifies that the model's exported input and output s
 
 ### Types & Options
 
-- [`StyleTransfer`](../../06-api-reference/type-aliases/StyleTransfer.md) — Style transfer runner interface (`transferStyle`, `transferStyleWorklet`).
+- [`StyleTransfer`](../../06-api-reference/type-aliases/StyleTransfer.md) — Style transfer runner interface (`transferStyle`, [`transferStyleWorklet`](../../06-api-reference/type-aliases/StyleTransfer.md#transferstyleworklet)).
 - [`StyleTransferModel`](../../06-api-reference/type-aliases/StyleTransferModel.md) — Model configuration spec for style transfer models.
 - [`StyleTransferOptions`](../../06-api-reference/type-aliases/StyleTransferOptions.md) — Options defining normalization, interpolation, and resize modes.
 - [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) — Input and output image buffer structure.

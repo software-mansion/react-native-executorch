@@ -61,7 +61,7 @@ See [`src/app/(screens)/image-classification.tsx`](<https://github.com/software-
 
 ## Output Format
 
-`classify()` returns an array of [`Classification`](../../06-api-reference/type-aliases/Classification.md) objects sorted from highest to lowest confidence:
+[`classify()`](../../06-api-reference/type-aliases/Classifier.md#classify) returns an array of [`Classification`](../../06-api-reference/type-aliases/Classification.md) objects sorted from highest to lowest confidence:
 
 ```typescript
 type Classification<L = string> = {
@@ -84,11 +84,11 @@ Example result:
 
 ## Configuration & Options
 
-Pass a [`ClassifyOptions`](../../06-api-reference/type-aliases/ClassifyOptions.md) object to `classify()`:
+Pass a [`ClassifyOptions`](../../06-api-reference/type-aliases/ClassifyOptions.md) object to [`classify()`](../../06-api-reference/type-aliases/Classifier.md#classify):
 
-| Option | Type     | Default     | Description                                                                                               |
-| :----- | :------- | :---------- | :-------------------------------------------------------------------------------------------------------- |
-| `topk` | `number` | `undefined` | Maximum number of top-scoring predictions to return. When omitted, returns all classes in the vocabulary. |
+| Option                                                                | Type     | Default     | Description                                                                                               |
+| :-------------------------------------------------------------------- | :------- | :---------- | :-------------------------------------------------------------------------------------------------------- |
+| [`topk`](../../06-api-reference/type-aliases/ClassifyOptions.md#topk) | `number` | `undefined` | Maximum number of top-scoring predictions to return. When omitted, returns all classes in the vocabulary. |
 
 ## Imperative API
 
@@ -112,8 +112,8 @@ try {
 
 ## Synchronous Execution
 
-For high-throughput loops like camera frame processors, `createClassifier`
-exposes a synchronous `classifyWorklet` function. This executes directly inside
+For high-throughput loops like camera frame processors, [`createClassifier`](../../06-api-reference/functions/createClassifier.md)
+exposes a synchronous [`classifyWorklet`](../../06-api-reference/type-aliases/Classifier.md#classifyworklet) function. This executes directly inside
 a worklet runtime without Promise scheduling overhead:
 
 ```typescript
@@ -136,7 +136,7 @@ The library provides ready-to-use models from the [Software Mansion HuggingFace 
 :::tip Using Custom Models
 To use your own fine-tuned classification `.pte` model, pass a
 [`ClassifierModel`](../../06-api-reference/type-aliases/ClassifierModel.md)
-configuration object to `useClassifier` or `createClassifier`:
+configuration object to [`useClassifier`](../../06-api-reference/functions/useClassifier.md) or [`createClassifier`](../../06-api-reference/functions/createClassifier.md):
 
 ```typescript
 const customClassifier = await createClassifier({
@@ -165,8 +165,8 @@ Models](../../03-core-and-advanced/07-exporting-custom-models.md#using-a-built-i
 
 ### Types & Options
 
-- [`Classifier`](../../06-api-reference/type-aliases/Classifier.md) — Classifier task runner interface with `classify` and `classifyWorklet`.
-- [`Classification`](../../06-api-reference/type-aliases/Classification.md) — Result prediction object with `label` and `confidence`.
+- [`Classifier`](../../06-api-reference/type-aliases/Classifier.md) — Classifier task runner interface with `classify` and [`classifyWorklet`](../../06-api-reference/type-aliases/Classifier.md#classifyworklet).
+- [`Classification`](../../06-api-reference/type-aliases/Classification.md) — Result prediction object with [`label`](../../06-api-reference/type-aliases/Classification.md#label) and [`confidence`](../../06-api-reference/type-aliases/Classification.md#confidence).
 - [`ClassifyOptions`](../../06-api-reference/type-aliases/ClassifyOptions.md) — Configuration options for the `classify` call (`topk`).
 - [`ClassifierModel`](../../06-api-reference/type-aliases/ClassifierModel.md) — Model configuration spec for custom and preset models.
 - [`ClassifierOptions`](../../06-api-reference/type-aliases/ClassifierOptions.md) — Preprocessing and label vocabulary configuration.

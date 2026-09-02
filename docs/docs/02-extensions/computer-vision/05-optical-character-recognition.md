@@ -58,7 +58,7 @@ See [`src/app/(screens)/ocr.tsx`](<https://github.com/software-mansion-labs/reac
 
 ## Output Format
 
-`recognizeCharacters()` returns an array of [`OcrDetection`](../../06-api-reference/type-aliases/OcrDetection.md) objects in natural reading order:
+[`recognizeCharacters()`](../../06-api-reference/type-aliases/PaddleOcr.md#recognizecharacters) returns an array of [`OcrDetection`](../../06-api-reference/type-aliases/OcrDetection.md) objects in natural reading order:
 
 ```typescript
 type OcrDetection = {
@@ -93,11 +93,11 @@ Example result:
 
 ## Configuration & Options
 
-Pass a [`RecognizeCharactersOptions`](../../06-api-reference/type-aliases/RecognizeCharactersOptions.md) object to `recognizeCharacters()`:
+Pass a [`RecognizeCharactersOptions`](../../06-api-reference/type-aliases/RecognizeCharactersOptions.md) object to [`recognizeCharacters()`](../../06-api-reference/type-aliases/PaddleOcr.md#recognizecharacters):
 
-| Option                | Type     | Default | Description                                                     |
-| :-------------------- | :------- | :------ | :-------------------------------------------------------------- |
-| `confidenceThreshold` | `number` | `0.5`   | Minimum mean confidence score for a text region to be returned. |
+| Option                                                                                                         | Type     | Default | Description                                                     |
+| :------------------------------------------------------------------------------------------------------------- | :------- | :------ | :-------------------------------------------------------------- |
+| [`confidenceThreshold`](../../06-api-reference/type-aliases/RecognizeCharactersOptions.md#confidencethreshold) | `number` | `0.5`   | Minimum mean confidence score for a text region to be returned. |
 
 ## Imperative API
 
@@ -123,7 +123,7 @@ try {
 
 ## Synchronous Execution
 
-For high-throughput loops or live camera text detection, `createPaddleOcr` exposes a synchronous `recognizeCharactersWorklet` function. This runs directly on the worklet thread with zero Promise scheduling overhead:
+For high-throughput loops or live camera text detection, [`createPaddleOcr`](../../06-api-reference/functions/createPaddleOcr.md) exposes a synchronous [`recognizeCharactersWorklet`](../../06-api-reference/type-aliases/PaddleOcr.md#recognizecharactersworklet) function. This runs directly on the worklet thread with zero Promise scheduling overhead:
 
 ```typescript
 // Called synchronously inside a worklet runtime
@@ -147,7 +147,7 @@ The HuggingFace OCR collection may also list legacy **CRAFT** text detector mode
 :::
 
 :::tip Using Custom Models
-To use your own custom-trained PaddleOCR `.pte` model and character set, pass a [`PaddleOcrModel`](../../06-api-reference/type-aliases/PaddleOcrModel.md) configuration object to `useOpticalCharacterRecognizer` or `createPaddleOcr`:
+To use your own custom-trained PaddleOCR `.pte` model and character set, pass a [`PaddleOcrModel`](../../06-api-reference/type-aliases/PaddleOcrModel.md) configuration object to [`useOpticalCharacterRecognizer`](../../06-api-reference/functions/useOpticalCharacterRecognizer.md) or [`createPaddleOcr`](../../06-api-reference/functions/createPaddleOcr.md):
 
 ```typescript
 const customOcr = await createPaddleOcr({
@@ -171,7 +171,7 @@ The pipeline automatically verifies that the model's exported input and output s
 
 ### Types & Options
 
-- [`PaddleOcr`](../../06-api-reference/type-aliases/PaddleOcr.md) — OCR runner interface (`recognizeCharacters`, `recognizeCharactersWorklet`).
+- [`PaddleOcr`](../../06-api-reference/type-aliases/PaddleOcr.md) — OCR runner interface (`recognizeCharacters`, [`recognizeCharactersWorklet`](../../06-api-reference/type-aliases/PaddleOcr.md#recognizecharactersworklet)).
 - [`OcrDetection`](../../06-api-reference/type-aliases/OcrDetection.md) — Single recognized text line with `text`, `confidence`, and `quad`.
 - [`RecognizeCharactersOptions`](../../06-api-reference/type-aliases/RecognizeCharactersOptions.md) — Inference options (`confidenceThreshold`).
 - [`PaddleOcrModel`](../../06-api-reference/type-aliases/PaddleOcrModel.md) — Model configuration spec with `modelPath` and `charsetPath`.

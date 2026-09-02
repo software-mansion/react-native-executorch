@@ -137,7 +137,7 @@ try {
 
 ## Synchronous Execution
 
-For synchronous execution on worklet runtimes or frame processors without Promise scheduling overhead, `createPrivacyFilter` exposes `detectPiiWorklet`:
+For synchronous execution on worklet runtimes or frame processors without Promise scheduling overhead, [`createPrivacyFilter`](../../06-api-reference/functions/createPrivacyFilter.md) exposes `detectPiiWorklet`:
 
 ```typescript
 // Called synchronously inside a worklet runtime
@@ -156,7 +156,7 @@ The library provides ready-to-use privacy filter models from the [Software Mansi
 | **Nemotron Privacy Filter** | [See](../../06-api-reference/variables/models.md#privacyfilternemotron) | [`PRIVACY_FILTER_NEMOTRON_LABELS`](../../06-api-reference/variables/PRIVACY_FILTER_NEMOTRON_LABELS.md) (55 fine-grained categories) | 1.16 GB – 1.47 GB  | XNNPACK (CPU), MLX (Apple) | Strict compliance, tax IDs, credentials, and enterprise security redaction. |
 
 :::tip Using Custom Models
-To use your own fine-tuned token classification `.pte` model, pass a [`PrivacyFilterModel`](../../06-api-reference/type-aliases/PrivacyFilterModel.md) configuration object to `usePrivacyFilter` or `createPrivacyFilter`:
+To use your own fine-tuned token classification `.pte` model, pass a [`PrivacyFilterModel`](../../06-api-reference/type-aliases/PrivacyFilterModel.md) configuration object to [`usePrivacyFilter`](../../06-api-reference/functions/usePrivacyFilter.md) or [`createPrivacyFilter`](../../06-api-reference/functions/createPrivacyFilter.md):
 
 ```typescript
 const customFilter = await createPrivacyFilter({

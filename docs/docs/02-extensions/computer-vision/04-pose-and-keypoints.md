@@ -62,7 +62,7 @@ See [`src/app/(screens)/keypoint-detection.tsx`](<https://github.com/software-ma
 
 ## Output Format
 
-`detectKeypoints()` returns an array of [`KeypointDetection`](../../06-api-reference/type-aliases/KeypointDetection.md) objects:
+[`detectKeypoints()`](../../06-api-reference/type-aliases/KeypointDetector.md#detectkeypoints) returns an array of [`KeypointDetection`](../../06-api-reference/type-aliases/KeypointDetection.md) objects:
 
 ```typescript
 type KeypointDetection<F extends BoxFormat = 'xyxy', L extends PropertyKey = string> = {
@@ -99,12 +99,12 @@ For face models (`BLAZEFACE`), `landmarks` includes 6 facial points: `leftEye`, 
 
 ## Configuration & Options
 
-Pass a [`DetectKeypointsOptions`](../../06-api-reference/type-aliases/DetectKeypointsOptions.md) object to `detectKeypoints()` to override model defaults:
+Pass a [`DetectKeypointsOptions`](../../06-api-reference/type-aliases/DetectKeypointsOptions.md) object to [`detectKeypoints()`](../../06-api-reference/type-aliases/KeypointDetector.md#detectkeypoints) to override model defaults:
 
-| Option                | Type     | Default                     | Description                                                     |
-| :-------------------- | :------- | :-------------------------- | :-------------------------------------------------------------- |
-| `confidenceThreshold` | `number` | Model default (e.g. `0.25`) | Minimum confidence score for a detected subject to be retained. |
-| `iouThreshold`        | `number` | Model default (e.g. `0.7`)  | Non-Maximum Suppression (NMS) IoU overlap threshold.            |
+| Option                                                                                                     | Type     | Default                     | Description                                                     |
+| :--------------------------------------------------------------------------------------------------------- | :------- | :-------------------------- | :-------------------------------------------------------------- |
+| [`confidenceThreshold`](../../06-api-reference/type-aliases/DetectKeypointsOptions.md#confidencethreshold) | `number` | Model default (e.g. `0.25`) | Minimum confidence score for a detected subject to be retained. |
+| [`iouThreshold`](../../06-api-reference/type-aliases/DetectKeypointsOptions.md#iouthreshold)               | `number` | Model default (e.g. `0.7`)  | Non-Maximum Suppression (NMS) IoU overlap threshold.            |
 
 ## Imperative API
 
@@ -130,7 +130,7 @@ try {
 
 ## Synchronous Execution
 
-For real-time camera tracking and live fitness apps, `createKeypointDetector` exposes a synchronous `detectKeypointsWorklet` function. This runs directly on the worklet thread with zero Promise scheduling overhead:
+For real-time camera tracking and live fitness apps, [`createKeypointDetector`](../../06-api-reference/functions/createKeypointDetector.md) exposes a synchronous [`detectKeypointsWorklet`](../../06-api-reference/type-aliases/KeypointDetector.md#detectkeypointsworklet) function. This runs directly on the worklet thread with zero Promise scheduling overhead:
 
 ```typescript
 // Called synchronously inside a VisionCamera frame processor on the UI worklet thread
@@ -152,7 +152,7 @@ The library provides ready-to-use pose and landmark detectors from the [Software
 | **RF-DETR Keypoint**    | [See](../../06-api-reference/variables/models.md#keypointdetectionrfdetr_keypoint) | [`COCO_LANDMARKS`](../../06-api-reference/variables/COCO_LANDMARKS.md) (17 body keypoints)                  | 138.6 MB – 140.9 MB | XNNPACK (CPU), Core ML (Apple), MLX (Apple) | High-accuracy body keypoint detection transformer for complex, occluded poses.                |
 
 :::tip Using Custom Models
-To use your own fine-tuned pose or landmark detection `.pte` model, pass a [`KeypointDetectorModel`](../../06-api-reference/type-aliases/KeypointDetectorModel.md) configuration object to `useKeypointDetector` or `createKeypointDetector`:
+To use your own fine-tuned pose or landmark detection `.pte` model, pass a [`KeypointDetectorModel`](../../06-api-reference/type-aliases/KeypointDetectorModel.md) configuration object to [`useKeypointDetector`](../../06-api-reference/functions/useKeypointDetector.md) or [`createKeypointDetector`](../../06-api-reference/functions/createKeypointDetector.md):
 
 ```typescript
 const customDetector = await createKeypointDetector({
@@ -181,7 +181,7 @@ The pipeline automatically verifies that the model's exported input and output s
 
 ### Types & Options
 
-- [`KeypointDetector`](../../06-api-reference/type-aliases/KeypointDetector.md) — Keypoint detector runner interface (`detectKeypoints`, `detectKeypointsWorklet`).
+- [`KeypointDetector`](../../06-api-reference/type-aliases/KeypointDetector.md) — Keypoint detector runner interface (`detectKeypoints`, [`detectKeypointsWorklet`](../../06-api-reference/type-aliases/KeypointDetector.md#detectkeypointsworklet)).
 - [`KeypointDetection`](../../06-api-reference/type-aliases/KeypointDetection.md) — Detection result structure containing `box`, `confidence`, and `landmarks`.
 - [`DetectKeypointsOptions`](../../06-api-reference/type-aliases/DetectKeypointsOptions.md) — Detection options (`confidenceThreshold`, `iouThreshold`).
 - [`KeypointDetectorModel`](../../06-api-reference/type-aliases/KeypointDetectorModel.md) — Model configuration spec for pose and landmark models.
