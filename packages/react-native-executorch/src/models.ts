@@ -7,13 +7,15 @@
  * URLs, tokenizer/phonemizer files, preprocessing parameters, and label maps.
  *
  * A model that ships several exports lists them under backend-tagged keys and
- * wraps the group in `variants`, which adds the `DEFAULT` alias that resolves
- * to the fastest export the current platform can run — see `modelVariants.ts`.
- * Within one backend the first variant declared wins, so keep the group
- * ordered best-first.
+ * wraps the group in `variants`, which adds the `DEFAULT` alias resolving to
+ * the fastest export the current platform can run. Within one backend the
+ * first variant declared wins, so keep the group ordered best-first.
  * @module Models
  */
 
+import { Platform } from 'react-native';
+
+import { rnexecutorchJsi } from './native/bridge';
 import type { ClassifierModel } from './extensions/cv/tasks/classification';
 import type { ObjectDetectorModel } from './extensions/cv/tasks/objectDetection';
 import type { StyleTransferModel } from './extensions/cv/tasks/styleTransfer';
@@ -34,7 +36,6 @@ import {
 } from './extensions/speech/tasks/whisperSpeechToText';
 import type { PaddleOcrModel } from './extensions/cv/tasks/paddleOcr';
 import type { LLMModel } from './extensions/llm/tasks/llmChatSession';
-import { variants, family } from './modelVariants';
 import {
   IMAGENET_NORM,
   IMAGENET1K_LABELS,
@@ -56,6 +57,127 @@ import {
   type CocoLandmark,
   type SupertonicDefaultVoiceName,
 } from './constants';
+
+// =============================================================================
+// DEFAULT variant resolution
+// =============================================================================
+// `DEFAULT` is resolved once, when this module is first imported, from the
+// platform, the backends the binary was linked with, and the order the
+// variants are declared in. A group whose best export does not follow from
+// that order pins one per platform — see the second argument of `variants`.
+
+/** The backend prefix a variant key starts with. */
+type BackendTag = 'XNNPACK' | 'COREML' | 'MLX' | 'VULKAN';
+
+/** The platforms the registry resolves defaults for. */
+type TargetPlatform = 'ios' | 'android';
+
+const ALL_BACKENDS: readonly BackendTag[] = ['XNNPACK', 'COREML', 'MLX', 'VULKAN'];
+
+// Accelerators lead and XNNPACK trails: a model is only exported to Core ML,
+// MLX or Vulkan once it has been shown to run better there, and XNNPACK is the
+// one backend every model exports to. Core ML sits above MLX only to make the
+// order deterministic; every group publishing both pins its winner explicitly.
+const BACKEND_ORDER: Record<TargetPlatform, readonly BackendTag[]> = {
+  ios: ['COREML', 'MLX', 'XNNPACK'],
+  android: ['VULKAN', 'XNNPACK'],
+};
+
+const PLATFORM: TargetPlatform = Platform.OS === 'ios' ? 'ios' : 'android';
+
+/**
+ * Backends linked into this binary and usable on this device.
+ * @returns The usable tags — every one of them when the native runtime cannot
+ * be asked, so that a missing answer widens the choice rather than emptying it.
+ */
+function usableBackends(): ReadonlySet<BackendTag> {
+  let registered: readonly string[] = [];
+  try {
+    registered = rnexecutorchJsi.getExecuTorchRegisteredBackends();
+  } catch {
+    registered = [];
+  }
+  if (registered.length === 0) return new Set(ALL_BACKENDS);
+
+  const names = registered.map((name) => name.toLowerCase());
+  const usable = ALL_BACKENDS.filter((tag) =>
+    names.some((name) => name.startsWith(tag.toLowerCase()))
+  );
+
+  // The simulator links the Core ML backend but cannot run it: no Neural
+  // Engine, and MPSGraph refuses the compiled models. MLX only ever ships a
+  // device slice, so it drops out of `registered` on its own.
+  const onSimulator = PLATFORM === 'ios' && rnexecutorchJsi.isEmulator === true;
+  return new Set(onSimulator ? usable.filter((tag) => tag !== 'COREML' && tag !== 'MLX') : usable);
+}
+
+const USABLE_BACKENDS = usableBackends();
+
+/**
+ * Reads the backend out of a variant key.
+ * @param key The variant key, e.g. `COREML_FP16`.
+ * @returns The backend the key names, or `undefined` when it names none.
+ */
+const backendOf = (key: string): BackendTag | undefined =>
+  ALL_BACKENDS.find((tag) => key === tag || key.startsWith(`${tag}_`));
+
+/**
+ * Picks the variant key this platform should default to.
+ * @param keys The group's variant keys, in declaration order.
+ * @param pin The key pinned for this platform, if any.
+ * @returns The chosen key.
+ */
+function pickVariant(keys: readonly string[], pin?: string): string {
+  const pinned = pin === undefined ? undefined : backendOf(pin);
+  if (pin !== undefined && keys.includes(pin) && pinned && USABLE_BACKENDS.has(pinned)) return pin;
+
+  for (const tag of BACKEND_ORDER[PLATFORM]) {
+    if (!USABLE_BACKENDS.has(tag)) continue;
+    const match = keys.find((key) => backendOf(key) === tag);
+    if (match !== undefined) return match;
+  }
+
+  // No preferred backend is both published for this model and linked into the
+  // build — an app that opted out of the backends its models need. Hand back
+  // the first variant so the registry still names a model and the failure
+  // surfaces at load, where the error says which backend is missing.
+  return keys[0]!;
+}
+
+/**
+ * Adds a platform-resolved `DEFAULT` to a group of backend variants.
+ *
+ * Declare the variants best-first within each backend: with several exports
+ * from the same backend, the earliest one wins.
+ * @typeParam V The variant map.
+ * @param map The group's variants, keyed by backend and precision.
+ * @param pinned Variant keys to prefer on a given platform, for groups whose
+ * best export does not follow from the declaration order. Ignored when the
+ * pinned variant's backend is not linked into the build.
+ * @returns The variants, plus the `DEFAULT` alias for this platform.
+ */
+function variants<V extends Record<string, object>>(
+  map: V,
+  pinned?: Partial<Record<TargetPlatform, Extract<keyof V, string>>>
+): V & { readonly DEFAULT: V[keyof V] } {
+  const key = pickVariant(Object.keys(map), pinned?.[PLATFORM]);
+  return { ...map, DEFAULT: map[key] as V[keyof V] };
+}
+
+/**
+ * Adds a `DEFAULT` to a group of sub-groups — a model family split by scale or
+ * input size — mirroring the `DEFAULT` of the first sub-group declared, which
+ * resolved itself per platform.
+ * @typeParam V The sub-group map.
+ * @param map The family's sub-groups, most representative first.
+ * @returns The sub-groups, plus the inherited `DEFAULT`.
+ */
+function family<V extends Record<string, { readonly DEFAULT: unknown }>>(
+  map: V
+): V & { readonly DEFAULT: V[keyof V]['DEFAULT'] } {
+  const first = Object.keys(map)[0]!;
+  return { ...map, DEFAULT: map[first]!.DEFAULT as V[keyof V]['DEFAULT'] };
+}
 
 const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorch';
 const VERSION_TAG = 'resolve/v0.9.0';
@@ -1131,29 +1253,14 @@ const SUPERTONIC_3_VULKAN_FP16: SupertonicTtsModel<SupertonicDefaultVoiceName> =
 const KOKORO_ROOT = `${BASE_URL}-kokoro/${NEXT_VERSION_TAG}`;
 const KOKORO_PHONEMIZER_ROOT = `${KOKORO_ROOT}/phonemizer`;
 
-// Both backends export at fp32, so the precision is not a parameter here.
 const kokoroModelPaths = (
+  backend: 'xnnpack' | 'coreml',
   variant: 'std' | 'pl' | 'de',
-  dir: string,
-  backend: 'xnnpack' | 'coreml' = 'xnnpack'
+  dir: string
 ) => ({
   durationPredictor: `${KOKORO_ROOT}/${backend}/${dir}/duration_predictor_${variant}_${backend}_fp32.pte`,
   synthesizer: `${KOKORO_ROOT}/${backend}/${dir}/synthesizer_${variant}_${backend}_fp32.pte`,
 });
-
-const KOKORO_STANDARD_PATHS = kokoroModelPaths('std', 'standard');
-const KOKORO_POLISH_PATHS = kokoroModelPaths('pl', 'polish');
-const KOKORO_GERMAN_PATHS = kokoroModelPaths('de', 'german');
-const KOKORO_STANDARD_COREML_PATHS = kokoroModelPaths('std', 'standard', 'coreml');
-const KOKORO_POLISH_COREML_PATHS = kokoroModelPaths('pl', 'polish', 'coreml');
-const KOKORO_GERMAN_COREML_PATHS = kokoroModelPaths('de', 'german', 'coreml');
-
-// A language differs from its Core ML twin only in which pair of .pte files it
-// loads: the voices, the phonemizer and the voice union are all backend-free.
-const kokoroCoreMl = <V extends string>(
-  model: KokoroTtsModel<V>,
-  modelPaths: KokoroTtsModel<V>['modelPaths']
-): KokoroTtsModel<V> => ({ ...model, modelPaths });
 
 const kokoroVoices = <const N extends string>(names: readonly N[]) =>
   names.reduce(
@@ -1181,74 +1288,119 @@ const KOKORO_EN_US_XNNPACK_FP32: KokoroTtsModel<
   'af_heart' | 'af_river' | 'af_sarah' | 'am_adam' | 'am_michael' | 'am_santa'
 > = {
   name: 'kokoro',
-  modelPaths: KOKORO_STANDARD_PATHS,
+  modelPaths: kokoroModelPaths('xnnpack', 'std', 'standard'),
   phonemizer: kokoroEnglishPhonemizer('en-us'),
   voices: kokoroVoices(['af_heart', 'af_river', 'af_sarah', 'am_adam', 'am_michael', 'am_santa']),
 };
 const KOKORO_EN_GB_XNNPACK_FP32: KokoroTtsModel<'bf_emma' | 'bm_daniel'> = {
   name: 'kokoro',
-  modelPaths: KOKORO_STANDARD_PATHS,
+  modelPaths: kokoroModelPaths('xnnpack', 'std', 'standard'),
   phonemizer: kokoroEnglishPhonemizer('en-gb'),
   voices: kokoroVoices(['bf_emma', 'bm_daniel']),
 };
 const KOKORO_ES_XNNPACK_FP32: KokoroTtsModel<'ef_dora' | 'em_alex'> = {
   name: 'kokoro',
-  modelPaths: KOKORO_STANDARD_PATHS,
+  modelPaths: kokoroModelPaths('xnnpack', 'std', 'standard'),
   phonemizer: kokoroNeuralPhonemizer('es'),
   voices: kokoroVoices(['ef_dora', 'em_alex']),
 };
 const KOKORO_FR_XNNPACK_FP32: KokoroTtsModel<'ff_siwis'> = {
   name: 'kokoro',
-  modelPaths: KOKORO_STANDARD_PATHS,
+  modelPaths: kokoroModelPaths('xnnpack', 'std', 'standard'),
   phonemizer: kokoroNeuralPhonemizer('fr'),
   voices: kokoroVoices(['ff_siwis']),
 };
 const KOKORO_IT_XNNPACK_FP32: KokoroTtsModel<'if_sara' | 'im_nicola'> = {
   name: 'kokoro',
-  modelPaths: KOKORO_STANDARD_PATHS,
+  modelPaths: kokoroModelPaths('xnnpack', 'std', 'standard'),
   phonemizer: kokoroNeuralPhonemizer('it'),
   voices: kokoroVoices(['if_sara', 'im_nicola']),
 };
 const KOKORO_PT_XNNPACK_FP32: KokoroTtsModel<'pf_dora' | 'pm_santa'> = {
   name: 'kokoro',
-  modelPaths: KOKORO_STANDARD_PATHS,
+  modelPaths: kokoroModelPaths('xnnpack', 'std', 'standard'),
   phonemizer: kokoroNeuralPhonemizer('pt'),
   voices: kokoroVoices(['pf_dora', 'pm_santa']),
 };
 const KOKORO_HI_XNNPACK_FP32: KokoroTtsModel<'hf_alpha' | 'hm_omega' | 'hm_psi'> = {
   name: 'kokoro',
-  modelPaths: KOKORO_STANDARD_PATHS,
+  modelPaths: kokoroModelPaths('xnnpack', 'std', 'standard'),
   phonemizer: kokoroNeuralPhonemizer('hi'),
   voices: kokoroVoices(['hf_alpha', 'hm_omega', 'hm_psi']),
 };
 const KOKORO_PL_XNNPACK_FP32: KokoroTtsModel<'pm_mateusz'> = {
   name: 'kokoro',
-  modelPaths: KOKORO_POLISH_PATHS,
+  modelPaths: kokoroModelPaths('xnnpack', 'pl', 'polish'),
   phonemizer: kokoroNeuralPhonemizer('pl'),
   voices: kokoroVoices(['pm_mateusz']),
 };
 const KOKORO_DE_XNNPACK_FP32: KokoroTtsModel<'df_anna'> = {
   name: 'kokoro',
-  modelPaths: KOKORO_GERMAN_PATHS,
+  modelPaths: kokoroModelPaths('xnnpack', 'de', 'german'),
   phonemizer: kokoroNeuralPhonemizer('de'),
   voices: kokoroVoices(['df_anna']),
 };
 
-const KOKORO_EN_US_COREML_FP32 = kokoroCoreMl(
-  KOKORO_EN_US_XNNPACK_FP32,
-  KOKORO_STANDARD_COREML_PATHS
-);
-const KOKORO_EN_GB_COREML_FP32 = kokoroCoreMl(
-  KOKORO_EN_GB_XNNPACK_FP32,
-  KOKORO_STANDARD_COREML_PATHS
-);
-const KOKORO_ES_COREML_FP32 = kokoroCoreMl(KOKORO_ES_XNNPACK_FP32, KOKORO_STANDARD_COREML_PATHS);
-const KOKORO_FR_COREML_FP32 = kokoroCoreMl(KOKORO_FR_XNNPACK_FP32, KOKORO_STANDARD_COREML_PATHS);
-const KOKORO_IT_COREML_FP32 = kokoroCoreMl(KOKORO_IT_XNNPACK_FP32, KOKORO_STANDARD_COREML_PATHS);
-const KOKORO_PT_COREML_FP32 = kokoroCoreMl(KOKORO_PT_XNNPACK_FP32, KOKORO_STANDARD_COREML_PATHS);
-const KOKORO_HI_COREML_FP32 = kokoroCoreMl(KOKORO_HI_XNNPACK_FP32, KOKORO_STANDARD_COREML_PATHS);
-const KOKORO_PL_COREML_FP32 = kokoroCoreMl(KOKORO_PL_XNNPACK_FP32, KOKORO_POLISH_COREML_PATHS);
-const KOKORO_DE_COREML_FP32 = kokoroCoreMl(KOKORO_DE_XNNPACK_FP32, KOKORO_GERMAN_COREML_PATHS);
+// Core ML counterparts: the same weights, phonemizer and voices as the XNNPACK
+// presets, only the `.pte` files differ. Their token axis is fixed at 128, so
+// the pipeline pads every chunk up to it. iOS only.
+const KOKORO_EN_US_COREML_FP32: KokoroTtsModel<
+  'af_heart' | 'af_river' | 'af_sarah' | 'am_adam' | 'am_michael' | 'am_santa'
+> = {
+  name: 'kokoro',
+  modelPaths: kokoroModelPaths('coreml', 'std', 'standard'),
+  phonemizer: kokoroEnglishPhonemizer('en-us'),
+  voices: kokoroVoices(['af_heart', 'af_river', 'af_sarah', 'am_adam', 'am_michael', 'am_santa']),
+};
+const KOKORO_EN_GB_COREML_FP32: KokoroTtsModel<'bf_emma' | 'bm_daniel'> = {
+  name: 'kokoro',
+  modelPaths: kokoroModelPaths('coreml', 'std', 'standard'),
+  phonemizer: kokoroEnglishPhonemizer('en-gb'),
+  voices: kokoroVoices(['bf_emma', 'bm_daniel']),
+};
+const KOKORO_ES_COREML_FP32: KokoroTtsModel<'ef_dora' | 'em_alex'> = {
+  name: 'kokoro',
+  modelPaths: kokoroModelPaths('coreml', 'std', 'standard'),
+  phonemizer: kokoroNeuralPhonemizer('es'),
+  voices: kokoroVoices(['ef_dora', 'em_alex']),
+};
+const KOKORO_FR_COREML_FP32: KokoroTtsModel<'ff_siwis'> = {
+  name: 'kokoro',
+  modelPaths: kokoroModelPaths('coreml', 'std', 'standard'),
+  phonemizer: kokoroNeuralPhonemizer('fr'),
+  voices: kokoroVoices(['ff_siwis']),
+};
+const KOKORO_IT_COREML_FP32: KokoroTtsModel<'if_sara' | 'im_nicola'> = {
+  name: 'kokoro',
+  modelPaths: kokoroModelPaths('coreml', 'std', 'standard'),
+  phonemizer: kokoroNeuralPhonemizer('it'),
+  voices: kokoroVoices(['if_sara', 'im_nicola']),
+};
+const KOKORO_PT_COREML_FP32: KokoroTtsModel<'pf_dora' | 'pm_santa'> = {
+  name: 'kokoro',
+  modelPaths: kokoroModelPaths('coreml', 'std', 'standard'),
+  phonemizer: kokoroNeuralPhonemizer('pt'),
+  voices: kokoroVoices(['pf_dora', 'pm_santa']),
+};
+const KOKORO_HI_COREML_FP32: KokoroTtsModel<'hf_alpha' | 'hm_omega' | 'hm_psi'> = {
+  name: 'kokoro',
+  modelPaths: kokoroModelPaths('coreml', 'std', 'standard'),
+  phonemizer: kokoroNeuralPhonemizer('hi'),
+  voices: kokoroVoices(['hf_alpha', 'hm_omega', 'hm_psi']),
+};
+
+const KOKORO_PL_COREML_FP32: KokoroTtsModel<'pm_mateusz'> = {
+  name: 'kokoro',
+  modelPaths: kokoroModelPaths('coreml', 'pl', 'polish'),
+  phonemizer: kokoroNeuralPhonemizer('pl'),
+  voices: kokoroVoices(['pm_mateusz']),
+};
+const KOKORO_DE_COREML_FP32: KokoroTtsModel<'df_anna'> = {
+  name: 'kokoro',
+  modelPaths: kokoroModelPaths('coreml', 'de', 'german'),
+  phonemizer: kokoroNeuralPhonemizer('de'),
+  voices: kokoroVoices(['df_anna']),
+};
 
 // =============================================================================
 // Privacy Filter
@@ -1931,24 +2083,11 @@ export const models = {
         MLX_FP32: RFDETR_KEYPOINT_MLX_FP32,
       },
       // Core ML over MLX: 144.0 ms against 272.3 on an iPhone 16, at 263 MB
-      // against 1304 MB.
-      //
-      // fp16 is the only Core ML build published for this model. It replaced an
-      // fp32 one that was 165.1 ms, 389 MB peak and twice the download, after
-      // fp16 was checked against it across 13 real photos and 40 detections:
-      // visible landmarks agreed to 1.04 px, boxes to 0.653 px and scores to
-      // 0.072, with no detection crossing the threshold. (Landmarks the model
-      // marks invisible drift further, up to 15.7 px, but their coordinates are
-      // undefined when `vis` is 0.)
-      //
-      // That fp16 build took a while to exist and is fragile in a specific way,
-      // so do not "simplify" it. It is correct on device only with both the CPU
-      // and the Neural Engine excluded — measured against fp32's 0.863, `all`
-      // gives 0.421, `cpu_only` 0.411, `cpu_and_ne` 0.422 and `cpu_and_gpu`
-      // 0.862 — and on macOS only the CPU path is wrong, so a host check passes
-      // a build the device gets wrong. It also needs an iOS17 deployment target;
-      // iOS18 degrades every build of this model at either precision. Both
-      // constraints live in export-scripts (MR !18).
+      // against 1304 MB. fp16 matches the fp32 build it replaced (landmarks to
+      // 1.04 px over 13 photos) but only under the GPU-only compute unit and an
+      // iOS17 deployment target — every other combination degrades it, and a
+      // macOS check passes builds the device gets wrong. See export-scripts
+      // MR !18 before re-exporting.
       { ios: 'COREML_FP16' }
     ),
   },
@@ -2112,16 +2251,10 @@ export const models = {
      * Voice Activity Detection. Includes multilingual and English-only (`EN`)
      * variants across model sizes (`TINY`, `BASE`, `SMALL`).
      */
-    // Every size defaults to Core ML over MLX on iOS, which wins on all three
-    // axes. Speed: 2.5-3.1x faster end to end on 14.5s of real speech, once the
-    // Core ML builds stopped dispatching their single-token `decode` to the
-    // Neural Engine (export-scripts MR !18 — decode is dispatch-bound, so
-    // CPU_ONLY runs it at 6.7 ms/step against 20.0). Memory: base peaks at
-    // 532 MB against 1834 MB for MLX bf16, which is jetsam territory on an
-    // iPhone 16 — MLX bf16 at small does not load at all. Accuracy: on the same
-    // clip MLX bf16 misheard "brown fox" as "round box" and "compute unit" as
-    // "computer unit", where Core ML matched the reference exactly.
-    // Reach for MLX_INT8 explicitly if you want the GPU path.
+    // Every size defaults to Core ML over MLX on iOS: 2.5-3.1x faster end to
+    // end on an iPhone 16, a third of the peak memory (MLX bf16 at `SMALL` does
+    // not load at all), and more accurate on the same clip. Reach for MLX_INT8
+    // explicitly if you want the GPU path.
     WHISPER: {
       /**
        * Multilingual Whisper Tiny model. Supporting 99+ languages. High speed
@@ -2171,6 +2304,13 @@ export const models = {
         { ios: 'COREML_FP16' }
       ),
       /** English-only optimized Whisper models (`TINY`, `BASE`, `SMALL`). */
+      // The only sizes with an XNNPACK int8 export, and int8 leads fp32 for all
+      // but `TINY`. Greedy-decoding 250 LibriSpeech test-clean clips (31 min,
+      // ~4600 words) through this pipeline, int8 moves base.en 4.84% -> 5.20%
+      // WER and small.en 3.42% -> 3.38%: too little to outweigh halving the
+      // download (247 MB against 399, 448 against 1129). `TINY` keeps fp32
+      // first because there int8 costs 6.08% -> 7.77%, a quarter of the
+      // accuracy the smallest model has left.
       EN: {
         /**
          * English-only Whisper Tiny model. Fast and compact for English STT.
@@ -2194,8 +2334,8 @@ export const models = {
          */
         BASE: variants(
           {
-            XNNPACK_FP32: WHISPER_BASE_EN_XNNPACK_FP32,
             XNNPACK_INT8: WHISPER_BASE_EN_XNNPACK_INT8,
+            XNNPACK_FP32: WHISPER_BASE_EN_XNNPACK_FP32,
             COREML_FP16: WHISPER_BASE_EN_COREML_FP16,
             MLX_BF16: WHISPER_BASE_EN_MLX_BF16,
             MLX_INT8: WHISPER_BASE_EN_MLX_INT8,
@@ -2211,8 +2351,8 @@ export const models = {
          */
         SMALL: variants(
           {
-            XNNPACK_FP32: WHISPER_SMALL_EN_XNNPACK_FP32,
             XNNPACK_INT8: WHISPER_SMALL_EN_XNNPACK_INT8,
+            XNNPACK_FP32: WHISPER_SMALL_EN_XNNPACK_FP32,
             COREML_FP16: WHISPER_SMALL_EN_COREML_FP16,
             MLX_INT8: WHISPER_SMALL_EN_MLX_INT8,
             VULKAN_FP16: WHISPER_SMALL_EN_VULKAN_FP16,
@@ -2513,13 +2653,10 @@ export const models = {
         MLX_INT8: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8,
         VULKAN_FP16: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_VULKAN_FP16,
       },
-      // The one Core ML/MLX pair that does not go Core ML's way. On an
-      // iPhone 16, warm, over 150 embeds of five sentences in five languages:
-      // MLX int8 3.46 ms, Core ML fp16 3.96 ms, XNNPACK 8da4w 5.86 ms, stable
-      // when the arms are run in reverse. MLX is also half the download
-      // (140 MB against 271 MB) and skips Core ML's 786 ms first-use compile.
-      // Fidelity does not break the tie: against the XNNPACK reference both
-      // sit at 0.973 worst-case cosine.
+      // The one Core ML/MLX pair that does not go Core ML's way: on an
+      // iPhone 16, warm, MLX int8 embeds in 3.46 ms against Core ML fp16's
+      // 3.96, at half the download and no first-use compile, and the two match
+      // the XNNPACK reference equally well.
       { ios: 'MLX_INT8' }
     ),
     /**
@@ -2625,14 +2762,12 @@ export const models = {
      * Kokoro — a lightweight phoneme-driven Text-to-Speech model. Each language
      * entry bundles the matching model weights, grapheme-to-phoneme assets and
      * the voices available for that language, nested per backend.
-     *
-     * The Core ML builds are the registry's only fp32 Core ML exports — that is
-     * what is published, and fp32 keeps them off the Neural Engine, which is
-     * fp16-only. They still default on iOS because the duration predictor runs
-     * 14-21x faster warm there than the XNNPACK one on an iPhone 16. The cost
-     * is a one-time per-method Core ML compile on first use (~13s), cached
-     * across launches; reach for `XNNPACK_FP32` explicitly to avoid it.
      */
+    // The Core ML builds are the registry's only fp32 Core ML exports, which
+    // keeps them off the fp16-only Neural Engine, and they still default on
+    // iOS: the duration predictor runs 14-21x faster warm than the XNNPACK one
+    // on an iPhone 16. The cost is a one-time ~13s compile on first use, cached
+    // across launches; reach for `XNNPACK_FP32` explicitly to avoid it.
     KOKORO: {
       EN_US: variants({
         XNNPACK_FP32: KOKORO_EN_US_XNNPACK_FP32,

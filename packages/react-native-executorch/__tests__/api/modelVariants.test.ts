@@ -294,57 +294,35 @@ describe('DEFAULT variant resolution', () => {
   });
 });
 
-describe('variants()', () => {
-  const A = { modelPath: 'a.pte' };
-  const B = { modelPath: 'b.pte' };
-  const C = { modelPath: 'c.pte' };
-
-  /**
-   * Reloads the helper module for a given device.
-   * @param os The platform to resolve for.
-   * @param backends The backends the binary reports as linked.
-   * @returns The freshly loaded `modelVariants` module.
-   */
-  function load(os: 'ios' | 'android', backends?: string[]) {
-    fakeJsi.setRegisteredBackends(backends ?? ['XnnpackBackend', 'CoreMLBackend']);
-    jest.resetModules();
-    setPlatform(os);
-    return require('../../src/modelVariants') as typeof import('../../src/modelVariants');
-  }
+describe('variant selection rules', () => {
+  /** The distiluse group, the one place a pin overrides the backend order. */
+  const distiluse = (registry: Node): Node =>
+    (registry.textEmbeddings as Node).DISTILUSE_BASE_MULTILINGUAL_CASED_V2 as Node;
 
   it('breaks a tie within one backend by declaration order', () => {
-    const { variants } = load('android');
-    expect(variants({ XNNPACK_INT8: A, XNNPACK_FP32: B }).DEFAULT).toBe(A);
-    expect(variants({ XNNPACK_FP32: B, XNNPACK_INT8: A }).DEFAULT).toBe(B);
+    // With XNNPACK the only linked backend, every group has to land on the
+    // first XNNPACK variant it declares, whatever else it publishes.
+    const offenders = defaultsOf(registryFor({ os: 'ios', backends: ['XnnpackBackend'] }))
+      .filter(({ offers }) => offers.some((key) => key.startsWith('XNNPACK')))
+      .filter(({ key, offers }) => key !== offers.find((entry) => entry.startsWith('XNNPACK')))
+      .map(({ label, key, offers }) => `${label}: ${key} of ${offers.join(', ')}`);
+
+    expect(offenders).toEqual([]);
   });
 
   it('honours a pinned variant over the backend order', () => {
-    const { variants } = load('ios');
-    const group = variants({ XNNPACK_FP32: A, COREML_FP16: B }, { ios: 'XNNPACK_FP32' });
-    expect(group.DEFAULT).toBe(A);
+    // Core ML leads the iOS order, so MLX here is the pin and nothing else.
+    expect(defaultKeyOf(distiluse(registryFor({ os: 'ios' })))).toBe('MLX_INT8');
   });
 
   it('ignores a pin whose backend the app did not link in', () => {
-    const { variants } = load('ios', ['XnnpackBackend']);
-    const group = variants({ XNNPACK_FP32: A, COREML_FP16: B }, { ios: 'COREML_FP16' });
-    expect(group.DEFAULT).toBe(A);
+    const registry = registryFor({ os: 'ios', backends: ['XnnpackBackend'] });
+    expect(defaultKeyOf(distiluse(registry))).toBe('XNNPACK_8DA4W');
   });
 
   it('applies a pin only on the platform it names', () => {
-    const pinned = { android: 'XNNPACK_INT8' } as const;
-    expect(load('android').variants({ XNNPACK_FP32: A, XNNPACK_INT8: B }, pinned).DEFAULT).toBe(B);
-    expect(load('ios').variants({ XNNPACK_FP32: A, XNNPACK_INT8: B }, pinned).DEFAULT).toBe(A);
-  });
-
-  it('falls back to the first variant when no preferred backend is linked in', () => {
-    const { variants } = load('android', ['CoreMLBackend']);
-    expect(variants({ COREML_FP16: C, XNNPACK_FP32: A }).DEFAULT).toBe(C);
-  });
-
-  it('keeps every named variant alongside the default', () => {
-    const { variants } = load('ios');
-    const group = variants({ XNNPACK_FP32: A, COREML_FP16: B });
-    expect(group).toEqual({ XNNPACK_FP32: A, COREML_FP16: B, DEFAULT: B });
+    // The same group pins MLX for iOS only; Android resolves by its own order.
+    expect(defaultKeyOf(distiluse(registryFor({ os: 'android' })))).toBe('VULKAN_FP16');
   });
 });
 
