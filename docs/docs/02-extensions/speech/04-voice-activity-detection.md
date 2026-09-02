@@ -22,14 +22,14 @@ The Voice Activity Detection extension detects speech presence and segments audi
 
 The pipeline supports two primary workflows:
 
-- **Live Microphone Event Stream ([`vad.detectVoiceOnStream`](#live-microphone-streaming))**: Processes incoming audio chunks from a microphone recorder in real time, firing `'speechStart'` and `'speechEnd'` transitions.
-- **Batch Audio Segmentation ([`vad.detectVoice`](#batch-audio-segmentation))**: Analyzes an entire recorded audio buffer and returns an array of timestamped speech segments in seconds.
+- [**Live Microphone Event Stream**](#live-microphone-streaming): Processes incoming audio chunks from a microphone recorder in real time, firing `'speechStart'` and `'speechEnd'` transitions.
+- [**Batch Audio Segmentation**](#batch-audio-segmentation): Analyzes an entire recorded audio buffer and returns an array of timestamped speech segments in seconds.
 
 <!-- GIF DEMO PLACEHOLDER: Place VAD demo gif here, e.g. ![Voice Activity Detection Demo](./media/vad.gif) -->
 
 ## Quick Start
 
-The [`useVoiceActivityDetector`](../../06-api-reference/functions/useVoiceActivityDetector.md) hook manages downloading the model weights and provides live streaming methods. To capture live audio, stream PCM chunks from a microphone recorder such as [`react-native-audio-api`](https://github.com/software-mansion/react-native-audio-api) directly into `vad.detectVoiceOnStream()`:
+The [`useVoiceActivityDetector`](../../06-api-reference/functions/useVoiceActivityDetector.md) hook manages downloading the model weights and provides live streaming methods. To capture live audio, stream PCM chunks from a microphone recorder such as [`react-native-audio-api`](https://github.com/software-mansion/react-native-audio-api) directly into [`detectVoiceOnStream()`](../../06-api-reference/type-aliases/FsmnVoiceActivityDetector.md#detectvoiceonstream):
 
 ```tsx
 import { useState } from 'react';
@@ -93,11 +93,11 @@ See [`src/app/(screens)/voice-activity-detection.tsx`](<https://github.com/softw
 type VadEvent = 'speechStart' | 'speechEnd' | undefined;
 ```
 
-- **`'speechStart'`**: Fired when speech probability stays above `speechThreshold` for at least `minSpeechDurationMs` (default: 250 ms).
-- **`'speechEnd'`**: Fired when speech ceases and remains silent for at least `minSilenceDurationMs` (default: 220 ms).
+- **`'speechStart'`**: Fired when speech probability stays above [`speechThreshold`](../../06-api-reference/type-aliases/VadOptions.md#speechthreshold) for at least [`minSpeechDurationMs`](../../06-api-reference/type-aliases/VadOptions.md#minspeechdurationms) (default: 250 ms).
+- **`'speechEnd'`**: Fired when speech ceases and remains silent for at least [`minSilenceDurationMs`](../../06-api-reference/type-aliases/VadOptions.md#minsilencedurationms) (default: 220 ms).
 - **`undefined`**: Fired on regular frames when no transition boundary has occurred.
 
-Before starting a new recording stream, call `vad.resetStream()` to clear past audio history from the rolling buffer.
+Before starting a new recording stream, call [`resetStream()`](../../06-api-reference/type-aliases/FsmnVoiceActivityDetector.md#resetstream) to clear past audio history from the rolling buffer.
 
 ## Batch Audio Segmentation
 
@@ -185,7 +185,7 @@ The library provides the optimized FSMN-VAD model from the [Software Mansion Hug
 
 ### Types & Options
 
-- [`FsmnVoiceActivityDetector`](../../06-api-reference/type-aliases/FsmnVoiceActivityDetector.md) — VAD runner interface (`detectVoice`, [`detectVoiceWorklet`](../../06-api-reference/type-aliases/FsmnVoiceActivityDetector.md#detectvoiceworklet), `detectVoiceOnStream`, `resetStream`, `dispose`).
+- [`FsmnVoiceActivityDetector`](../../06-api-reference/type-aliases/FsmnVoiceActivityDetector.md) — VAD runner interface ([`detectVoice`](../../06-api-reference/type-aliases/FsmnVoiceActivityDetector.md#detectvoice), [`detectVoiceWorklet`](../../06-api-reference/type-aliases/FsmnVoiceActivityDetector.md#detectvoiceworklet), [`detectVoiceOnStream`](../../06-api-reference/type-aliases/FsmnVoiceActivityDetector.md#detectvoiceonstream), [`resetStream`](../../06-api-reference/type-aliases/FsmnVoiceActivityDetector.md#resetstream), `dispose`).
 - [`VadSegment`](../../06-api-reference/type-aliases/VadSegment.md) — Speech interval with start and end times in seconds.
 - [`VadEvent`](../../06-api-reference/type-aliases/VadEvent.md) — Stream transition event union (`'speechStart'`, `'speechEnd'`).
 - [`VadOptions`](../../06-api-reference/type-aliases/VadOptions.md) — Tunable threshold parameters (`speechThreshold`, `minSpeechDurationMs`, `minSilenceDurationMs`, `speechPadMs`, `mergeGapMs`).
