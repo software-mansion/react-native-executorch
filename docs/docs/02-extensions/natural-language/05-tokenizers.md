@@ -1,12 +1,13 @@
 ---
 title: Tokenizers
 slug: /extensions/tokenizers
-description: 'Fast, native on-device Hugging Face tokenizer bindings for BPE, WordPiece, Unigram, and Byte-level text tokenization in React Native.'
+description: 'Fast, native on-device PyTorch C++ tokenizer bindings with Hugging Face tokenizer.json compatibility for BPE, WordPiece, Unigram, and Byte-level text tokenization in React Native.'
 keywords:
   [
     react native,
     tokenizer,
     tokenization,
+    pytorch tokenizers,
     hugging face,
     bpe,
     wordpiece,
@@ -22,7 +23,7 @@ keywords:
 
 Tokenizers translate human-readable natural language text into numeric token ID arrays (and decode token ID sequences back into text).
 
-The library embeds a fast, native C++ Hugging Face tokenizer engine that directly loads standard `tokenizer.json` files. It supports Byte-Pair Encoding (BPE), WordPiece, Unigram, and Byte-level tokenizers with full support for normalizers, pre-tokenizers, truncation, padding, and post-processors (such as adding special `[CLS]` and `[SEP]` tokens automatically).
+The library embeds PyTorch's native C++ tokenizer engine, providing high-performance Hugging Face `tokenizer.json` compatibility directly on-device without Python or Rust runtimes. It supports Byte-Pair Encoding (BPE), WordPiece, Unigram, and Byte-level tokenizers with full support for normalizers, pre-tokenizers, truncation, padding, and post-processors (such as adding special `[CLS]` and `[SEP]` tokens automatically).
 
 <!-- GIF DEMO PLACEHOLDER: Place tokenizer demo gif here, e.g. ![Tokenizer Demo](./media/tokenizers.gif) -->
 
