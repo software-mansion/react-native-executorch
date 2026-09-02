@@ -400,7 +400,15 @@ function isCacheValid(artifact) {
 
 function extract(tarball, destDir) {
   ensureDir(destDir);
-  execSync(`tar -xzf "${tarball}" -C "${destDir}"`);
+  // `-m` stamps extracted files with the extraction time instead of the mtime
+  // recorded in the archive. Without it, headers keep the timestamp they had
+  // when the release was cut, so upgrading to a NEWER artifacts release can
+  // hand ninja headers that look OLDER than object files from a previous build.
+  // Ninja then treats those objects as up to date and never recompiles them,
+  // and they get archived and linked against the new libraries -- which shows
+  // up as an undefined symbol for whatever API changed between the two
+  // releases, far away from the actual cause.
+  execSync(`tar -xzmf "${tarball}" -C "${destDir}"`);
 }
 
 // ---- Main ------------------------------------------------------------------
