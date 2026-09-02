@@ -24,8 +24,8 @@ The Speech-to-Text extension transcribes spoken audio into text directly on-devi
 
 The pipeline supports two primary workflows:
 
-- **Live Microphone Streaming ([`stt.stream`](#output-format--live-streaming))**: Streams real-time audio straight from the microphone. As the user speaks, Whisper continuously returns draft transcripts and automatically commits finalized sentences upon pauses.
-- **Pre-recorded Audio Transcription ([`stt.transcribe`](#pre-recorded-audio-transcription))**: Transcribes pre-recorded audio buffers or audio files in a single pass, with optional token-by-token streaming callbacks.
+- [**Live Microphone Streaming**](#output-format--live-streaming): Streams real-time audio straight from the microphone. As the user speaks, Whisper continuously returns draft transcripts and automatically commits finalized sentences upon pauses.
+- [**Pre-recorded Audio Transcription**](#pre-recorded-audio-transcription): Transcribes pre-recorded audio buffers or audio files in a single pass, with optional token-by-token streaming callbacks.
 
 <!-- GIF DEMO PLACEHOLDER: Place STT demo gif here, e.g. ![Speech to Text Demo](./media/stt.gif) -->
 
@@ -85,7 +85,7 @@ See [`src/app/(screens)/speech-to-text.tsx`](<https://github.com/software-mansio
 
 ## Output Format & Live Streaming
 
-When streaming live microphone audio with `stt.stream()`, the generator yields transcription updates on every voice activity event:
+When streaming live microphone audio with [`stream()`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#stream), the generator yields transcription updates on every voice activity event:
 
 ```typescript
 type WhisperStreamUpdate = {
