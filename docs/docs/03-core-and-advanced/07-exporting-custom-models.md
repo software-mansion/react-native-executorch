@@ -36,7 +36,7 @@ library-specific work lives.
 Producing the `.pte` is the standard PyTorch → ExecuTorch path: `torch.export`,
 then lowering to a backend (XNNPACK, Core ML, Vulkan, …) with
 `to_edge_transform_and_lower`. It is not specific to this library, so follow the
-official [ExecuTorch documentation](https://pytorch.org/executorch/main/) for the
+official [ExecuTorch documentation](https://docs.pytorch.org/executorch/stable/index.html) for the
 details, including which backend to target for your model and platform.
 
 What matters here is the **contract** the resulting `.pte` exposes: the input and
