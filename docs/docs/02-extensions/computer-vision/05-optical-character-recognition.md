@@ -16,7 +16,7 @@ keywords:
 
 # Optical Character Recognition (OCR)
 
-Optical Character Recognition (OCR) detects and extracts text from images. The pipeline identifies text regions with oriented quadrilateral boundaries (`Quad`) and transcribes their characters in reading order (top-to-bottom, left-to-right columns).
+Optical Character Recognition (OCR) detects and extracts text from images. The pipeline identifies text regions with oriented quadrilateral boundaries ([`Quad`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/Quad.md)) and transcribes their characters in reading order (top-to-bottom, left-to-right columns).
 
 It is used for document digitizing, receipt scanning, license plate reading, sign translation, and invoice processing. Because inference runs entirely on-device with zero network latency, sensitive documents never leave the phone.
 
@@ -171,8 +171,8 @@ The pipeline automatically verifies that the model's exported input and output s
 
 ### Types & Options
 
-- [`PaddleOcr`](../../06-api-reference/type-aliases/PaddleOcr.md) — OCR runner interface (`recognizeCharacters`, [`recognizeCharactersWorklet`](../../06-api-reference/type-aliases/PaddleOcr.md#recognizecharactersworklet)).
-- [`OcrDetection`](../../06-api-reference/type-aliases/OcrDetection.md) — Single recognized text line with `text`, `confidence`, and `quad`.
+- [`PaddleOcr`](../../06-api-reference/type-aliases/PaddleOcr.md) — OCR runner interface ([`recognizeCharacters`](../../06-api-reference/type-aliases/PaddleOcr.md#recognizecharacters), [`recognizeCharactersWorklet`](../../06-api-reference/type-aliases/PaddleOcr.md#recognizecharactersworklet), `dispose`).
+- [`OcrDetection`](../../06-api-reference/type-aliases/OcrDetection.md) — Single recognized text line with [`text`](../../06-api-reference/type-aliases/OcrDetection.md#text), [`confidence`](../../06-api-reference/type-aliases/OcrDetection.md#confidence), and [`quad`](../../06-api-reference/type-aliases/OcrDetection.md#quad).
 - [`RecognizeCharactersOptions`](../../06-api-reference/type-aliases/RecognizeCharactersOptions.md) — Inference options (`confidenceThreshold`).
 - [`PaddleOcrModel`](../../06-api-reference/type-aliases/PaddleOcrModel.md) — Model configuration spec with `modelPath` and `charsetPath`.
 - [`PaddleOcrModelOptions`](../../06-api-reference/type-aliases/PaddleOcrModelOptions.md) — Model options (`defaultConfidenceThreshold`).
