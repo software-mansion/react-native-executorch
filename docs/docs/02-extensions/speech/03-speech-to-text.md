@@ -31,7 +31,7 @@ The pipeline supports two primary workflows:
 
 ## Quick Start
 
-The [`useSpeechToText`](../../06-api-reference/functions/useSpeechToText.md) hook manages downloading model weights, the tokenizer, and the bundled VAD model. To capture live audio from the microphone, feed PCM chunks into `stt.streamInsert()` using a microphone recorder such as [`react-native-audio-api`](https://github.com/software-mansion/react-native-audio-api):
+The [`useSpeechToText`](../../06-api-reference/functions/useSpeechToText.md) hook manages downloading model weights, the tokenizer, and the bundled VAD model. To capture live audio from the microphone, feed PCM chunks into [`streamInsert()`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#streaminsert) using a microphone recorder such as [`react-native-audio-api`](https://github.com/software-mansion/react-native-audio-api):
 
 ```tsx
 import { useState } from 'react';
@@ -123,7 +123,7 @@ const transcript = await stt.transcribe(audioData, { language: 'en' }, (token) =
 });
 ```
 
-To abort an in-flight transcription prematurely, call [`stt.transcribeStop()`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#transcribestop):
+To abort an in-flight transcription prematurely, call [`transcribeStop()`](../../06-api-reference/type-aliases/WhisperSpeechToText.md#transcribestop):
 
 ```typescript
 // Cancels active transcribe() execution and rejects the pending promise
