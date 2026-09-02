@@ -15,6 +15,7 @@
 import { Platform } from 'react-native';
 
 import { rnexecutorchJsi } from './native/bridge';
+import { getRegisteredBackends } from './utils';
 import type { ClassifierModel } from './extensions/cv/tasks/classification';
 import type { ObjectDetectorModel } from './extensions/cv/tasks/objectDetection';
 import type { StyleTransferModel } from './extensions/cv/tasks/styleTransfer';
@@ -65,60 +66,50 @@ import {
 // variants are declared in. A group whose best export does not follow from
 // that order pins one per platform — see the second argument of `variants`.
 
+/** Every backend the registry publishes for, spelled as the variant keys spell it. */
+const ALL_BACKENDS = ['xnnpack', 'coreml', 'mlx', 'vulkan'] as const;
+
 /** The backend prefix a variant key starts with. */
-type BackendTag = 'XNNPACK' | 'COREML' | 'MLX' | 'VULKAN';
+type BackendTag = (typeof ALL_BACKENDS)[number];
 
 /** The platforms the registry resolves defaults for. */
 type TargetPlatform = 'ios' | 'android';
 
-const ALL_BACKENDS: readonly BackendTag[] = ['XNNPACK', 'COREML', 'MLX', 'VULKAN'];
+const PLATFORM: TargetPlatform = Platform.OS === 'ios' ? 'ios' : 'android';
 
 // Accelerators lead and XNNPACK trails: a model is only exported to Core ML,
 // MLX or Vulkan once it has been shown to run better there, and XNNPACK is the
 // one backend every model exports to. Core ML sits above MLX only to make the
 // order deterministic; every group publishing both pins its winner explicitly.
+//
+// The iOS simulator links the Core ML backend but cannot run it: no Neural
+// Engine, and MPSGraph refuses the compiled models. MLX only ever ships a
+// device slice, so it has nothing to run there either.
 const BACKEND_ORDER: Record<TargetPlatform, readonly BackendTag[]> = {
-  ios: ['COREML', 'MLX', 'XNNPACK'],
-  android: ['VULKAN', 'XNNPACK'],
+  ios: rnexecutorchJsi.isEmulator === true ? ['xnnpack'] : ['coreml', 'mlx', 'xnnpack'],
+  android: ['vulkan', 'xnnpack'],
 };
 
-const PLATFORM: TargetPlatform = Platform.OS === 'ios' ? 'ios' : 'android';
-
 /**
- * Backends linked into this binary and usable on this device.
- * @returns The usable tags — every one of them when the native runtime cannot
- * be asked, so that a missing answer widens the choice rather than emptying it.
+ * The backends this platform may default to, best first.
+ * @returns This platform's order, less every backend the binary was not linked
+ * with — or the order untouched when the native runtime cannot be asked, so
+ * that a missing answer widens the choice rather than emptying it.
  */
-function usableBackends(): ReadonlySet<BackendTag> {
+function getCandidateBackends(): readonly BackendTag[] {
   let registered: readonly string[] = [];
   try {
-    registered = rnexecutorchJsi.getExecuTorchRegisteredBackends();
+    registered = getRegisteredBackends();
   } catch {
     registered = [];
   }
-  if (registered.length === 0) return new Set(ALL_BACKENDS);
+  if (registered.length === 0) return BACKEND_ORDER[PLATFORM];
 
   const names = registered.map((name) => name.toLowerCase());
-  const usable = ALL_BACKENDS.filter((tag) =>
-    names.some((name) => name.startsWith(tag.toLowerCase()))
-  );
-
-  // The simulator links the Core ML backend but cannot run it: no Neural
-  // Engine, and MPSGraph refuses the compiled models. MLX only ever ships a
-  // device slice, so it drops out of `registered` on its own.
-  const onSimulator = PLATFORM === 'ios' && rnexecutorchJsi.isEmulator === true;
-  return new Set(onSimulator ? usable.filter((tag) => tag !== 'COREML' && tag !== 'MLX') : usable);
+  return BACKEND_ORDER[PLATFORM].filter((tag) => names.some((name) => name.startsWith(tag)));
 }
 
-const USABLE_BACKENDS = usableBackends();
-
-/**
- * Reads the backend out of a variant key.
- * @param key The variant key, e.g. `COREML_FP16`.
- * @returns The backend the key names, or `undefined` when it names none.
- */
-const backendOf = (key: string): BackendTag | undefined =>
-  ALL_BACKENDS.find((tag) => key === tag || key.startsWith(`${tag}_`));
+const CANDIDATE_BACKENDS = getCandidateBackends();
 
 /**
  * Picks the variant key this platform should default to.
@@ -127,11 +118,13 @@ const backendOf = (key: string): BackendTag | undefined =>
  * @returns The chosen key.
  */
 function pickVariant(keys: readonly string[], pin?: string): string {
-  const pinned = pin === undefined ? undefined : backendOf(pin);
-  if (pin !== undefined && keys.includes(pin) && pinned && USABLE_BACKENDS.has(pinned)) return pin;
+  const backendOf = (key: string) => key.toLowerCase().split('_')[0] as BackendTag;
 
-  for (const tag of BACKEND_ORDER[PLATFORM]) {
-    if (!USABLE_BACKENDS.has(tag)) continue;
+  if (pin !== undefined && keys.includes(pin) && CANDIDATE_BACKENDS.includes(backendOf(pin))) {
+    return pin;
+  }
+
+  for (const tag of CANDIDATE_BACKENDS) {
     const match = keys.find((key) => backendOf(key) === tag);
     if (match !== undefined) return match;
   }
