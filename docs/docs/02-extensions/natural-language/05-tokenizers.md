@@ -57,7 +57,7 @@ The [`Tokenizer`](../../06-api-reference/react-native-executorch/namespaces/nlp/
 
 ### 1. `encode(text)`
 
-Converts a string into an `Int32Array` of token IDs. Special tokens are automatically appended/prepended according to the `tokenizer.json` post-processor configuration (e.g. `[CLS]` and `[SEP]` for BERT/WordPiece):
+Converts a string into an [`Int32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array) of token IDs. Special tokens are automatically appended/prepended according to the `tokenizer.json` post-processor configuration (e.g. `[CLS]` and `[SEP]` for BERT/WordPiece):
 
 ```typescript
 const ids: Int32Array = tokenizer.encode('ExecuTorch on React Native');
@@ -66,7 +66,7 @@ const ids: Int32Array = tokenizer.encode('ExecuTorch on React Native');
 
 ### 2. `decode(tokens, skipSpecialTokens?)`
 
-Decodes an `Int32Array` of token IDs back into a reconstructed UTF-8 string. The optional `skipSpecialTokens` boolean parameter defaults to `true`:
+Decodes an [`Int32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array) of token IDs back into a reconstructed UTF-8 string. The optional `skipSpecialTokens` boolean parameter defaults to `true`:
 
 ```typescript
 const cleanText = tokenizer.decode(ids); // "ExecuTorch on React Native"
@@ -88,7 +88,7 @@ const piece = tokenizer.idToToken(101); // "[CLS]"
 const id = tokenizer.tokenToId('[SEP]'); // 102
 ```
 
-## Imperative Task Pipeline (`createTokenizer`)
+## Imperative Task Pipeline ([`createTokenizer`](../../06-api-reference/functions/createTokenizer.md))
 
 If you want an asynchronous, Promise-based wrapper around `loadTokenizer` that dispatches execution to a background worklet thread, use [`createTokenizer`](../../06-api-reference/functions/createTokenizer.md):
 
@@ -107,7 +107,7 @@ try {
 }
 ```
 
-## React Hook (`useTokenizer`)
+## React Hook ([`useTokenizer`](../../06-api-reference/functions/useTokenizer.md))
 
 If you are using tokenizers directly inside a React component, [`useTokenizer`](../../06-api-reference/functions/useTokenizer.md) downloads remote `tokenizer.json` files, tracks loading progress, and automatically cleans up native memory on unmount:
 
@@ -146,7 +146,7 @@ The native tokenizer automatically handles the model type, vocabulary tables, re
 
 ### Types
 
-- [`Tokenizer`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md) — Native tokenizer host object interface (`encode`, `decode`, `getVocabSize`, `idToToken`, `tokenToId`, `dispose`).
+- [`Tokenizer`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md) — Native tokenizer host object interface ([`encode`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md#encode), [`decode`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md#decode), [`getVocabSize`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md#getvocabsize), [`idToToken`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md#idtotoken), [`tokenToId`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md#tokentoid), `dispose`).
 
 ### Model Presets
 

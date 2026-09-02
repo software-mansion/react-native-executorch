@@ -58,7 +58,7 @@ See [`src/app/(screens)/image-embeddings.tsx`](<https://github.com/software-mans
 
 ## Output Format
 
-`embed()` returns a 1D [`Float32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array) containing the normalized feature vector:
+[`embed()`](../../06-api-reference/type-aliases/ImageEmbedder.md#embed) returns a 1D [`Float32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array) containing the normalized feature vector:
 
 ```typescript
 // Float32Array of length D (e.g. 512 for CLIP ViT-B/32)
@@ -105,7 +105,7 @@ try {
 
 ## Synchronous Execution
 
-For high-throughput loops or real-time camera feature extraction, `createImageEmbedder` exposes a synchronous `embedWorklet` function. This runs directly on the worklet thread with zero Promise scheduling overhead:
+For high-throughput loops or real-time camera feature extraction, [`createImageEmbedder`](../../06-api-reference/functions/createImageEmbedder.md) exposes a synchronous `embedWorklet` function. This runs directly on the worklet thread with zero Promise scheduling overhead:
 
 ```typescript
 // Called synchronously inside a worklet runtime on the UI thread
@@ -123,7 +123,7 @@ The library provides ready-to-use vision encoders from the [Software Mansion Hug
 | **CLIP ViT-B/32 Vision** | [See](../../06-api-reference/variables/models.md#imageembeddingsclip_vit_base_patch32) | 512        | 93.7 MB – 335.3 MB | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | Joint image-text semantic search, image clustering, and zero-shot categorization. |
 
 :::tip Using Custom Models
-To use your own fine-tuned vision encoder `.pte` model, pass an [`ImageEmbedderModel`](../../06-api-reference/type-aliases/ImageEmbedderModel.md) configuration object to `useImageEmbedder` or `createImageEmbedder`:
+To use your own fine-tuned vision encoder `.pte` model, pass an [`ImageEmbedderModel`](../../06-api-reference/type-aliases/ImageEmbedderModel.md) configuration object to [`useImageEmbedder`](../../06-api-reference/functions/useImageEmbedder.md) or [`createImageEmbedder`](../../06-api-reference/functions/createImageEmbedder.md):
 
 ```typescript
 const customEmbedder = await createImageEmbedder({

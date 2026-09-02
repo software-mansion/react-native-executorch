@@ -59,7 +59,7 @@ See [`src/app/(screens)/semantic-segmentation.tsx`](<https://github.com/software
 
 ## Output Format
 
-`segment()` returns a [`SemanticSegmentationResult`](../../06-api-reference/type-aliases/SemanticSegmentationResult.md) object:
+[`segment()`](../../06-api-reference/type-aliases/SemanticSegmenter.md#segment) returns a [`SemanticSegmentationResult`](../../06-api-reference/type-aliases/SemanticSegmentationResult.md) object:
 
 ```typescript
 type SemanticSegmentationResult<L extends PropertyKey = string> = {
@@ -72,12 +72,12 @@ type SemanticSegmentationResult<L extends PropertyKey = string> = {
 
 ### Color Mapping Behavior
 
-- **Multi-class models** (e.g. `DEEPLAB_V3`, `LRASPP`): Performs an `argmax` over the class logits per pixel, then maps each class index to its corresponding `[R, G, B, A]` color tuple. The returned `colormap` contains the full active label-to-color mapping.
-- **Single-class / binary models** (e.g. `SELFIE_SEGMENTATION`): Applies a `sigmoid` activation to the single output channel, scales probabilities to pixel intensity values (0–255), and returns an RGBA mask. No color map is applied, and `colormap` is `undefined`.
+- **Multi-class models** (e.g. [`DEEPLAB_V3`](../../06-api-reference/variables/models.md#semanticsegmentationdeeplab_v3_resnet50), [`LRASPP`](../../06-api-reference/variables/models.md#semanticsegmentationlraspp_mobilenet_v3_large)): Performs an [`argmax`](../../06-api-reference/react-native-executorch/namespaces/math/functions/argmax.md) over the class logits per pixel, then maps each class index to its corresponding `[R, G, B, A]` color tuple. The returned [`colormap`](../../06-api-reference/type-aliases/SemanticSegmentationResult.md#colormap) contains the full active label-to-color mapping.
+- **Single-class / binary models** (e.g. [`SELFIE_SEGMENTATION`](../../06-api-reference/variables/models.md#semanticsegmentationselfie_segmentation)): Applies a [`sigmoid`](../../06-api-reference/react-native-executorch/namespaces/math/functions/sigmoid.md) activation to the single output channel, scales probabilities to pixel intensity values (0–255), and returns an RGBA mask. No color map is applied, and [`colormap`](../../06-api-reference/type-aliases/SemanticSegmentationResult.md#colormap) is `undefined`.
 
 ## Configuration & Color Maps
 
-Pass an optional partial `colormap` object to `segment()` to customize how categories are colored:
+Pass an optional partial [`ColorMap`](../../06-api-reference/type-aliases/ColorMap.md) object to [`segment()`](../../06-api-reference/type-aliases/SemanticSegmenter.md#segment) to customize how categories are colored:
 
 ```typescript
 // Custom RGBA colors: [R, G, B, A] (values 0 - 255)
@@ -111,7 +111,7 @@ try {
 
 ## Synchronous Execution
 
-For high-throughput loops like live camera background removal or portrait mode effects, `createSemanticSegmenter` exposes a synchronous `segmentWorklet` function. This runs directly on the worklet thread with zero Promise scheduling overhead:
+For high-throughput loops like live camera background removal or portrait mode effects, [`createSemanticSegmenter`](../../06-api-reference/functions/createSemanticSegmenter.md) exposes a synchronous [`segmentWorklet`](../../06-api-reference/type-aliases/SemanticSegmenter.md#segmentworklet) function. This runs directly on the worklet thread with zero Promise scheduling overhead:
 
 ```typescript
 // Called synchronously inside a VisionCamera frame processor on the UI worklet thread
@@ -132,7 +132,7 @@ The library provides ready-to-use segmentation models from the [Software Mansion
 | **FCN**                 | [`ResNet50`](../../06-api-reference/variables/models.md#semanticsegmentationfcn_resnet50), [`ResNet101`](../../06-api-reference/variables/models.md#semanticsegmentationfcn_resnet101)                                                                                                                              | [`PASCAL_VOC_LABELS`](../../06-api-reference/variables/PASCAL_VOC_LABELS.md) (21 classes) | 34.0 MB – 198.1 MB | XNNPACK (CPU), Core ML (Apple) | Fully Convolutional Networks baseline for dense multi-class parsing.     |
 
 :::tip Using Custom Models
-To use your own fine-tuned semantic segmentation `.pte` model, pass a [`SemanticSegmenterModel`](../../06-api-reference/type-aliases/SemanticSegmenterModel.md) configuration object to `useSemanticSegmenter` or `createSemanticSegmenter`:
+To use your own fine-tuned semantic segmentation `.pte` model, pass a [`SemanticSegmenterModel`](../../06-api-reference/type-aliases/SemanticSegmenterModel.md) configuration object to [`useSemanticSegmenter`](../../06-api-reference/functions/useSemanticSegmenter.md) or [`createSemanticSegmenter`](../../06-api-reference/functions/createSemanticSegmenter.md):
 
 ```typescript
 const customSegmenter = await createSemanticSegmenter({
@@ -159,7 +159,7 @@ The pipeline automatically verifies that the model's exported input and output s
 
 ### Types & Options
 
-- [`SemanticSegmenter`](../../06-api-reference/type-aliases/SemanticSegmenter.md) — Semantic segmenter runner interface (`segment`, `segmentWorklet`).
+- [`SemanticSegmenter`](../../06-api-reference/type-aliases/SemanticSegmenter.md) — Semantic segmenter runner interface (`segment`, [`segmentWorklet`](../../06-api-reference/type-aliases/SemanticSegmenter.md#segmentworklet)).
 - [`SemanticSegmentationResult`](../../06-api-reference/type-aliases/SemanticSegmentationResult.md) — Output structure containing `buffer` and `colormap`.
 - [`ColorMap`](../../06-api-reference/type-aliases/ColorMap.md) — Map of label names to `[R, G, B, A]` tuples.
 - [`SemanticSegmenterModel`](../../06-api-reference/type-aliases/SemanticSegmenterModel.md) — Model configuration spec for semantic segmenter pipelines.

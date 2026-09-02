@@ -54,12 +54,12 @@ function MyComponent() {
 ```
 
 :::tip Full Interactive Example in Gallery App
-See [`src/app/(screens)/image-embeddings.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/image-embeddings.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for an interactive example combining `useTextEmbedder` and `useImageEmbedder` for real-time cross-modal image retrieval.
+See [`src/app/(screens)/image-embeddings.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/image-embeddings.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for an interactive example combining [`useTextEmbedder`](../../06-api-reference/functions/useTextEmbedder.md) and [`useImageEmbedder`](../../06-api-reference/functions/useImageEmbedder.md) for real-time cross-modal image retrieval.
 :::
 
 ## Output Format
 
-`embed()` returns a 1D [`Float32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array) containing the normalized feature vector:
+[`embed()`](../../06-api-reference/type-aliases/TextEmbedder.md#embed) returns a 1D [`Float32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array) containing the normalized feature vector:
 
 ```typescript
 // Float32Array of length D (e.g. 384 for all-MiniLM-L6-v2, 768 for all-mpnet-base-v2)
@@ -118,7 +118,7 @@ try {
 
 ## Synchronous Execution
 
-For synchronous worklet execution contexts or high-throughput indexing workers, `createTextEmbedder` exposes a synchronous `embedWorklet` function:
+For synchronous worklet execution contexts or high-throughput indexing workers, [`createTextEmbedder`](../../06-api-reference/functions/createTextEmbedder.md) exposes a synchronous `embedWorklet` function:
 
 ```typescript
 // Called synchronously inside a worklet runtime without Promise scheduling overhead
@@ -142,7 +142,7 @@ The library provides ready-to-use text embedding models from the [Software Mansi
 | **CLIP ViT-B/32 Text**                    | [See](../../06-api-reference/variables/models.md#textembeddingsclip_vit_base_patch32_text)                                                                                                     | 512        | English       | 242.2 MB            | XNNPACK (CPU), Core ML (Apple), Vulkan (Android)              | Text encoder for joint cross-modal text-to-image search.          |
 
 :::tip Using Custom Models
-To use your own fine-tuned sentence transformer `.pte` model, pass a [`TextEmbedderModel`](../../06-api-reference/type-aliases/TextEmbedderModel.md) configuration object to `useTextEmbedder` or `createTextEmbedder`:
+To use your own fine-tuned sentence transformer `.pte` model, pass a [`TextEmbedderModel`](../../06-api-reference/type-aliases/TextEmbedderModel.md) configuration object to [`useTextEmbedder`](../../06-api-reference/functions/useTextEmbedder.md) or [`createTextEmbedder`](../../06-api-reference/functions/createTextEmbedder.md):
 
 ```typescript
 const customEmbedder = await createTextEmbedder({

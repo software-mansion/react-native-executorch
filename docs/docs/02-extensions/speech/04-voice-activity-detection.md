@@ -83,11 +83,11 @@ See [`src/app/(screens)/voice-activity-detection.tsx`](<https://github.com/softw
 
 ## Live Microphone Streaming
 
-`detectVoiceOnStream()` appends incoming audio samples to an internal 2.5-second bounded rolling window and runs fast inference (taking ~2–5 ms).
+[`detectVoiceOnStream()`](../../06-api-reference/type-aliases/FsmnVoiceActivityDetector.md#detectvoiceonstream) appends incoming audio samples to an internal 2.5-second bounded rolling window and runs fast inference (taking ~2–5 ms).
 
 ### Output Event Type
 
-`detectVoiceOnStream()` returns a [`VadEvent`](../../06-api-reference/type-aliases/VadEvent.md) on transition states, or `undefined` when the voice activity state hasn't changed:
+[`detectVoiceOnStream()`](../../06-api-reference/type-aliases/FsmnVoiceActivityDetector.md#detectvoiceonstream) returns a [`VadEvent`](../../06-api-reference/type-aliases/VadEvent.md) on transition states, or `undefined` when the voice activity state hasn't changed:
 
 ```typescript
 type VadEvent = 'speechStart' | 'speechEnd' | undefined;
@@ -101,7 +101,7 @@ Before starting a new recording stream, call `vad.resetStream()` to clear past a
 
 ## Batch Audio Segmentation
 
-To process a pre-recorded audio buffer all at once, call `detectVoice()`:
+To process a pre-recorded audio buffer all at once, call [`detectVoice()`](../../06-api-reference/type-aliases/FsmnVoiceActivityDetector.md#detectvoice):
 
 ```typescript
 // audioData: Float32Array PCM samples at 16000 Hz
@@ -159,7 +159,7 @@ try {
 
 ## Synchronous Execution
 
-For synchronous worklet execution contexts or frame-by-frame audio processors, `createFsmnVoiceActivityDetector` exposes a synchronous `detectVoiceWorklet` function:
+For synchronous worklet execution contexts or frame-by-frame audio processors, [`createFsmnVoiceActivityDetector`](../../06-api-reference/functions/createFsmnVoiceActivityDetector.md) exposes a synchronous [`detectVoiceWorklet`](../../06-api-reference/type-aliases/FsmnVoiceActivityDetector.md#detectvoiceworklet) function:
 
 ```typescript
 // Called synchronously inside a worklet runtime without Promise scheduling overhead
@@ -185,7 +185,7 @@ The library provides the optimized FSMN-VAD model from the [Software Mansion Hug
 
 ### Types & Options
 
-- [`FsmnVoiceActivityDetector`](../../06-api-reference/type-aliases/FsmnVoiceActivityDetector.md) — VAD runner interface (`detectVoice`, `detectVoiceWorklet`, `detectVoiceOnStream`, `resetStream`, `dispose`).
+- [`FsmnVoiceActivityDetector`](../../06-api-reference/type-aliases/FsmnVoiceActivityDetector.md) — VAD runner interface (`detectVoice`, [`detectVoiceWorklet`](../../06-api-reference/type-aliases/FsmnVoiceActivityDetector.md#detectvoiceworklet), `detectVoiceOnStream`, `resetStream`, `dispose`).
 - [`VadSegment`](../../06-api-reference/type-aliases/VadSegment.md) — Speech interval with start and end times in seconds.
 - [`VadEvent`](../../06-api-reference/type-aliases/VadEvent.md) — Stream transition event union (`'speechStart'`, `'speechEnd'`).
 - [`VadOptions`](../../06-api-reference/type-aliases/VadOptions.md) — Tunable threshold parameters (`speechThreshold`, `minSpeechDurationMs`, `minSilenceDurationMs`, `speechPadMs`, `mergeGapMs`).

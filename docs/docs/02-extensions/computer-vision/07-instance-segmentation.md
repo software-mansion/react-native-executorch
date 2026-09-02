@@ -63,7 +63,7 @@ See [`src/app/(screens)/instance-segmentation.tsx`](<https://github.com/software
 
 ## Output Format
 
-`segmentInstances()` returns an array of [`InstanceSegmentationResult`](../../06-api-reference/type-aliases/InstanceSegmentationResult.md) objects:
+[`segmentInstances()`](../../06-api-reference/type-aliases/InstanceSegmenter.md#segmentinstances) returns an array of [`InstanceSegmentationResult`](../../06-api-reference/type-aliases/InstanceSegmentationResult.md) objects:
 
 ```typescript
 type InstanceSegmentationResult<F extends BoxFormat = 'xyxy', L = string> = {
@@ -93,13 +93,13 @@ Example result:
 
 ## Configuration & Options
 
-Pass a [`SegmentInstancesOptions`](../../06-api-reference/type-aliases/SegmentInstancesOptions.md) object to `segmentInstances()` to override model defaults:
+Pass a [`SegmentInstancesOptions`](../../06-api-reference/type-aliases/SegmentInstancesOptions.md) object to [`segmentInstances()`](../../06-api-reference/type-aliases/InstanceSegmenter.md#segmentinstances) to override model defaults:
 
-| Option                | Type     | Default                    | Description                                              |
-| :-------------------- | :------- | :------------------------- | :------------------------------------------------------- |
-| `confidenceThreshold` | `number` | Model default (e.g. `0.5`) | Minimum confidence score for an instance to be retained. |
-| `iouThreshold`        | `number` | Model default (e.g. `0.9`) | Non-Maximum Suppression (NMS) IoU overlap threshold.     |
-| `maskThreshold`       | `number` | Model default (e.g. `0.5`) | Probability threshold for binary mask creation.          |
+| Option                                                                                                      | Type     | Default                    | Description                                              |
+| :---------------------------------------------------------------------------------------------------------- | :------- | :------------------------- | :------------------------------------------------------- |
+| [`confidenceThreshold`](../../06-api-reference/type-aliases/SegmentInstancesOptions.md#confidencethreshold) | `number` | Model default (e.g. `0.5`) | Minimum confidence score for an instance to be retained. |
+| [`iouThreshold`](../../06-api-reference/type-aliases/SegmentInstancesOptions.md#iouthreshold)               | `number` | Model default (e.g. `0.9`) | Non-Maximum Suppression (NMS) IoU overlap threshold.     |
+| [`maskThreshold`](../../06-api-reference/type-aliases/SegmentInstancesOptions.md#maskthreshold)             | `number` | Model default (e.g. `0.5`) | Probability threshold for binary mask creation.          |
 
 ## Imperative API
 
@@ -125,7 +125,7 @@ try {
 
 ## Synchronous Execution
 
-For real-time camera tracking or live object cutouts, `createInstanceSegmenter` exposes a synchronous `segmentInstancesWorklet` function. This runs directly on the worklet thread with zero Promise scheduling overhead:
+For real-time camera tracking or live object cutouts, [`createInstanceSegmenter`](../../06-api-reference/functions/createInstanceSegmenter.md) exposes a synchronous [`segmentInstancesWorklet`](../../06-api-reference/type-aliases/InstanceSegmenter.md#segmentinstancesworklet) function. This runs directly on the worklet thread with zero Promise scheduling overhead:
 
 ```typescript
 // Called synchronously inside a VisionCamera frame processor on the UI worklet thread
@@ -147,7 +147,7 @@ The library provides ready-to-use instance segmentation models from the [Softwar
 | **YOLO26 Seg**       | [See](../../06-api-reference/variables/models.md#instancesegmentationyolo26)                                                                                            | [`COCO_CLASSES_YOLO`](../../06-api-reference/variables/COCO_CLASSES_YOLO.md) (80 classes) | 10.6 MB – 240.0 MB | XNNPACK (CPU), Core ML (Apple) | Real-time simultaneous object detection and polygon instance mask extraction. |
 
 :::tip Using Custom Models
-To use your own fine-tuned instance segmentation `.pte` model, pass an [`InstanceSegmenterModel`](../../06-api-reference/type-aliases/InstanceSegmenterModel.md) configuration object to `useInstanceSegmenter` or `createInstanceSegmenter`:
+To use your own fine-tuned instance segmentation `.pte` model, pass an [`InstanceSegmenterModel`](../../06-api-reference/type-aliases/InstanceSegmenterModel.md) configuration object to [`useInstanceSegmenter`](../../06-api-reference/functions/useInstanceSegmenter.md) or [`createInstanceSegmenter`](../../06-api-reference/functions/createInstanceSegmenter.md):
 
 ```typescript
 const customSegmenter = await createInstanceSegmenter({
@@ -177,7 +177,7 @@ The pipeline automatically verifies that the model's exported input and output s
 
 ### Types & Options
 
-- [`InstanceSegmenter`](../../06-api-reference/type-aliases/InstanceSegmenter.md) — Instance segmenter runner interface (`segmentInstances`, `segmentInstancesWorklet`).
+- [`InstanceSegmenter`](../../06-api-reference/type-aliases/InstanceSegmenter.md) — Instance segmenter runner interface (`segmentInstances`, [`segmentInstancesWorklet`](../../06-api-reference/type-aliases/InstanceSegmenter.md#segmentinstancesworklet)).
 - [`InstanceSegmentationResult`](../../06-api-reference/type-aliases/InstanceSegmentationResult.md) — Result structure with `box`, `mask`, `label`, and `confidence`.
 - [`SegmentInstancesOptions`](../../06-api-reference/type-aliases/SegmentInstancesOptions.md) — Inference options (`confidenceThreshold`, `iouThreshold`, `maskThreshold`).
 - [`InstanceSegmenterModel`](../../06-api-reference/type-aliases/InstanceSegmenterModel.md) — Model configuration spec for instance segmenter pipelines.

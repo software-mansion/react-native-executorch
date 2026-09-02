@@ -253,7 +253,7 @@ try {
 
 ## Low-Level Runner
 
-While `useLLMChatSession` and `createLLMChatSession` handle chat formatting, message histories, and automated tool calling loops, you can drop down directly to the native [`LLMRunner`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md) via [`llm.createLLMRunner()`](../../06-api-reference/react-native-executorch/namespaces/llm/functions/createLLMRunner.md).
+While [`useLLMChatSession`](../../06-api-reference/functions/useLLMChatSession.md) and [`createLLMChatSession`](../../06-api-reference/functions/createLLMChatSession.md) handle chat formatting, message histories, and automated tool calling loops, you can drop down directly to the native [`LLMRunner`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md) via [`llm.createLLMRunner()`](../../06-api-reference/react-native-executorch/namespaces/llm/functions/createLLMRunner.md).
 
 `LLMRunner` operates synchronously on a worklet runtime thread and provides low-level control:
 
@@ -280,7 +280,7 @@ The library provides ready-to-use models from the [Software Mansion HuggingFace 
 | **SpeakLeash Bielik v3** | [`1.5B`](../../06-api-reference/variables/models.md#llmbielik_v3_1_5b)                                                                                                                                                                                                                         | 923 MB – 2.97 GB  | XNNPACK (CPU)                                | Bilingual Polish & English instruction model.                               |
 
 :::tip Using Custom Models
-To use your own fine-tuned LLM `.pte` model, pass an [`LLMModel`](../../06-api-reference/type-aliases/LLMModel.md) configuration object to `useLLMChatSession` or `createLLMChatSession`:
+To use your own fine-tuned LLM `.pte` model, pass an [`LLMModel`](../../06-api-reference/type-aliases/LLMModel.md) configuration object to [`useLLMChatSession`](../../06-api-reference/functions/useLLMChatSession.md) or [`createLLMChatSession`](../../06-api-reference/functions/createLLMChatSession.md):
 
 ```typescript
 const customSession = await createLLMChatSession({

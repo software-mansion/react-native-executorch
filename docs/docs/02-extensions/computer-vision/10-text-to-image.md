@@ -103,7 +103,7 @@ try {
 
 ## Synchronous Execution
 
-For synchronous worklet execution contexts, `createSdxsTextToImage` exposes a `generateWorklet` function that executes directly inside a worklet runtime without Promise scheduling overhead:
+For synchronous worklet execution contexts, [`createSdxsTextToImage`](../../06-api-reference/functions/createSdxsTextToImage.md) exposes a `generateWorklet` function that executes directly inside a worklet runtime without Promise scheduling overhead:
 
 ```typescript
 // Called synchronously inside a worklet runtime
@@ -121,7 +121,7 @@ The library provides ready-to-use text-to-image models from the [Software Mansio
 | **SDXS 512 DreamShaper** | [See](../../06-api-reference/variables/models.md#texttoimagesdxs_512_dreamshaper) | 512x512    | 839.9 MB – 1.64 GB | XNNPACK (CPU), Core ML (Apple) | Single-step distilled latent diffusion for ultra-fast on-device image synthesis. |
 
 :::tip Using Custom Models
-To use your own fine-tuned SDXS `.pte` model and CLIP tokenizer, pass a [`SdxsTextToImageModel`](../../06-api-reference/type-aliases/SdxsTextToImageModel.md) configuration object to `useTextToImage` or `createSdxsTextToImage`:
+To use your own fine-tuned SDXS `.pte` model and CLIP tokenizer, pass a [`SdxsTextToImageModel`](../../06-api-reference/type-aliases/SdxsTextToImageModel.md) configuration object to [`useTextToImage`](../../06-api-reference/functions/useTextToImage.md) or [`createSdxsTextToImage`](../../06-api-reference/functions/createSdxsTextToImage.md):
 
 ```typescript
 const customGenerator = await createSdxsTextToImage({
