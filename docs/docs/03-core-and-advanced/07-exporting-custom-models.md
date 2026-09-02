@@ -68,7 +68,7 @@ practical ways to learn the contract:
 
 - **Read the mismatch.** Point the pipeline at your model; if it doesn't fit,
   [`validateSpec`](./03-schema-validation.md) throws
-  [`SCHEMA_MISMATCH`](./05-error-handling.md#the-code-set) with a per-variant
+  [`SCHEMA_MISMATCH`](./05-error-handling.md#error-codes-reference) with a per-variant
   explanation of exactly which shape, dtype, or dimension didn't line up. The
   error message _is_ the spec.
 - **Inspect a reference model.** Run
@@ -352,7 +352,7 @@ Before wiring a custom model into a screen, confirm two things on the device:
   [`getRegisteredBackends`](../06-api-reference/functions/getRegisteredBackends.md)
   lists the backends compiled into the app. If the backend your model was lowered
   to is missing, execution fails with
-  [`EXECUTION_FAILED`](./05-error-handling.md#the-code-set); enable it via the
+  [`EXECUTION_FAILED`](./05-error-handling.md#error-codes-reference); enable it via the
   [native library configuration](./08-native-libraries.md).
 
 Once both check out, load the model into the target pipeline and run it.
