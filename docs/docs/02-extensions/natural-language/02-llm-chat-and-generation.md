@@ -78,7 +78,7 @@ See [`src/app/(screens)/llm-chat.tsx`](<https://github.com/software-mansion-labs
 
 ## Understanding the Output & Turn Result
 
-When you call `sendMessage()`, the promise resolves to an [`LLMChatTurnResult`](../../06-api-reference/type-aliases/LLMChatTurnResult.md) describing what happened during that turn:
+When you call [`sendMessage()`](../../06-api-reference/type-aliases/LLMChatSession.md#sendmessage), the promise resolves to an [`LLMChatTurnResult`](../../06-api-reference/type-aliases/LLMChatTurnResult.md) describing what happened during that turn:
 
 ```typescript
 type LLMChatTurnResult = {
@@ -104,7 +104,7 @@ type LLMChatTurnResult = {
 };
 ```
 
-`stats` is an array because tool calling can trigger multiple consecutive generation steps in a single turn (e.g. `stats[0]` for the model generating the tool call, and `stats[1]` for generating the final answer after tool execution). Each entry provides `numPromptTokens`, `numGeneratedTokens`, `prefillDurationMs`, and start/end timestamps to compute tokens per second (`tok/s`).
+[`stats`](../../06-api-reference/type-aliases/LLMChatTurnResult.md#stats) is an array of [`LLMGenerationStats`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats.md) because tool calling can trigger multiple consecutive generation steps in a single turn (e.g. `stats[0]` for the model generating the tool call, and `stats[1]` for generating the final answer after tool execution). Each entry provides [`numPromptTokens`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats.md#numprompttokens), [`numGeneratedTokens`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats.md#numgeneratedtokens), [`prefillDurationMs`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats.md#prefilldurationms), and start/end timestamps ([`inferenceStartMs`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats.md#inferencestartms) / [`inferenceEndMs`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats.md#inferenceendms)) to compute tokens per second (`tok/s`).
 
 ## Chat Templates & Incremental KV Cache Diffing
 
@@ -113,16 +113,16 @@ Under the hood, [`createChatPreprocessor`](../../06-api-reference/react-native-e
 To keep multi-turn chat responsive without re-encoding past history on every message, the preprocessor uses incremental prompt diffing:
 
 1. It verifies that the rendered prefix of previously committed turns is an exact substring match of the newly updated conversation.
-2. It slices out only the newly appended tokens and passes them to `runner.prefill()`.
+2. It slices out only the newly appended tokens and passes them to [`runner.prefill()`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#prefill).
 3. The existing Key-Value (KV) cache in native memory is preserved, so generation starts immediately without recalculating prior turns.
 
 :::note Custom Model Compatibility
-If you use a custom model whose Jinja template dynamically rewires earlier turns when new messages arrive (breaking monotonicity), pass `resetOnTurn: true` in your session options to force full re-encoding each turn.
+If you use a custom model whose Jinja template dynamically rewires earlier turns when new messages arrive (breaking monotonicity), pass [`resetOnTurn: true`](../../06-api-reference/type-aliases/LLMChatSessionOptions.md#resetonturn) in your session options to force full re-encoding each turn.
 :::
 
 ## Multimodal Inputs
 
-Vision-Language Models (such as Liquid AI's `LFM2_5_VL_450M` and `LFM2_5_VL_1_6B`) process interleaved text and visual payloads:
+Vision-Language Models (such as Liquid AI's [`LFM2_5_VL_450M`](../../06-api-reference/variables/models.md#llmlfm2_5_vl_450m) and [`LFM2_5_VL_1_6B`](../../06-api-reference/variables/models.md#llmlfm2_5_vl_1_6b)) process interleaved text and visual payloads:
 
 ```typescript
 import { models, useLLMChatSession } from 'react-native-executorch';
@@ -255,14 +255,14 @@ try {
 
 While [`useLLMChatSession`](../../06-api-reference/functions/useLLMChatSession.md) and [`createLLMChatSession`](../../06-api-reference/functions/createLLMChatSession.md) handle chat formatting, message histories, and automated tool calling loops, you can drop down directly to the native [`LLMRunner`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md) via [`llm.createLLMRunner()`](../../06-api-reference/react-native-executorch/namespaces/llm/functions/createLLMRunner.md).
 
-`LLMRunner` operates synchronously on a worklet runtime thread and provides low-level control:
+[`LLMRunner`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md) operates synchronously on a worklet runtime thread and provides low-level control:
 
 - **Raw Prompt Ingestion**: Pass raw prompt strings or preprocessed image tensors directly to the runner without role formatting or Jinja chat template rendering.
-- **Manual Prefill**: Execute `runner.prefill(prompt)` to populate the Key-Value (KV) cache with large background contexts, system prompts, or document chunks before starting interactive generation.
-- **Direct Synchronous Generation**: Call `runner.generate(prompt, config, onToken)` to generate text continuations with zero Promise scheduling overhead, executing the `onToken` callback directly on each generated token.
-- **KV Cache Inspection & Slicing**: Query `runner.getKVCacheState()` to check occupied tokens (`pos`), max context length (`maxSeqLen`), and context capacity ratio (`usageRatio`).
-- **KV Cache Rewind & Branching**: Call `runner.reset(targetPos)` to rewind the KV cache back to an exact token position. This enables speculative branching, sampling multiple divergent continuations from a shared prompt prefix without re-encoding, or manual conversation tree management.
-- **Cancellation**: Call `runner.stop()` from any thread to abort active autoregressive generation immediately.
+- **Manual Prefill**: Execute [`runner.prefill(prompt)`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#prefill) to populate the Key-Value (KV) cache with large background contexts, system prompts, or document chunks before starting interactive generation.
+- **Direct Synchronous Generation**: Call [`runner.generate(prompt, config, onToken)`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#generate) to generate text continuations with zero Promise scheduling overhead, executing the `onToken` callback directly on each generated token.
+- **KV Cache Inspection & Slicing**: Query [`runner.getKVCacheState()`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#getkvcachestate) to check occupied tokens ([`pos`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState.md#pos)), max context length ([`maxSeqLen`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState.md#maxseqlen)), and context capacity ratio ([`usageRatio`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState.md#usageratio)).
+- **KV Cache Rewind & Branching**: Call [`runner.reset(targetPos)`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#reset) to rewind the KV cache back to an exact token position. This enables speculative branching, sampling multiple divergent continuations from a shared prompt prefix without re-encoding, or manual conversation tree management.
+- **Cancellation**: Call [`runner.stop()`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#stop) from any thread to abort active autoregressive generation immediately.
 
 ## Available Models
 

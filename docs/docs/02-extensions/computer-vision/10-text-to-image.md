@@ -58,7 +58,7 @@ See [`src/app/(screens)/text-to-image.tsx`](<https://github.com/software-mansion
 
 ## Output Format
 
-`generate()` returns an [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) object with uncompressed 512x512 RGBA pixel bytes:
+[`generate()`](../../06-api-reference/type-aliases/SdxsTextToImage.md#generate) returns an [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) object with uncompressed 512x512 RGBA pixel bytes:
 
 ```typescript
 type ImageBuffer = {
@@ -69,11 +69,11 @@ type ImageBuffer = {
 };
 ```
 
-You can render the output directly to screen using Skia (`Image`), convert it into canvas textures, or pipe it into subsequent visual processing pipelines.
+You can render the output directly to screen using [React Native Skia](https://shopify.github.io/react-native-skia/) ([`Image`](https://shopify.github.io/react-native-skia/docs/skia-api/images)), convert it into canvas textures, or pipe it into subsequent visual processing pipelines.
 
 ## Determinism & Seeds
 
-`generate(prompt, seed)` accepts an optional integer `seed` parameter:
+[`generate(prompt, seed)`](../../06-api-reference/type-aliases/SdxsTextToImage.md#generate) accepts an optional integer [`seed`](../../06-api-reference/type-aliases/SdxsTextToImage.md#seed) parameter:
 
 - **With a seed** (e.g. `generate("sunset over ocean", 123)`): Reproduces the exact same image output deterministically.
 - **Without a seed** (e.g. `generate("sunset over ocean")`): Uses a time-based random seed to produce a fresh variation on each execution.
@@ -103,7 +103,7 @@ try {
 
 ## Synchronous Execution
 
-For synchronous worklet execution contexts, [`createSdxsTextToImage`](../../06-api-reference/functions/createSdxsTextToImage.md) exposes a `generateWorklet` function that executes directly inside a worklet runtime without Promise scheduling overhead:
+For synchronous worklet execution contexts, [`createSdxsTextToImage`](../../06-api-reference/functions/createSdxsTextToImage.md) exposes a [`generateWorklet`](../../06-api-reference/type-aliases/SdxsTextToImage.md#generateworklet) function that executes directly inside a worklet runtime without Promise scheduling overhead:
 
 ```typescript
 // Called synchronously inside a worklet runtime
@@ -142,7 +142,7 @@ The pipeline automatically verifies that the model's exported methods (`encode`,
 
 ### Types & Options
 
-- [`SdxsTextToImage`](../../06-api-reference/type-aliases/SdxsTextToImage.md) — Text-to-image generator runner interface (`generate`, `generateWorklet`).
+- [`SdxsTextToImage`](../../06-api-reference/type-aliases/SdxsTextToImage.md) — Text-to-image generator runner interface ([`generate`](../../06-api-reference/type-aliases/SdxsTextToImage.md#generate), [`generateWorklet`](../../06-api-reference/type-aliases/SdxsTextToImage.md#generateworklet)).
 - [`SdxsTextToImageModel`](../../06-api-reference/type-aliases/SdxsTextToImageModel.md) — Model configuration spec with `modelPath` and `tokenizerPath`.
 - [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) — Generated RGBA output image buffer structure.
 

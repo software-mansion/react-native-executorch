@@ -105,7 +105,7 @@ try {
 
 ## Synchronous Execution
 
-For high-throughput loops or real-time camera feature extraction, [`createImageEmbedder`](../../06-api-reference/functions/createImageEmbedder.md) exposes a synchronous `embedWorklet` function. This runs directly on the worklet thread with zero Promise scheduling overhead:
+For high-throughput loops or real-time camera feature extraction, [`createImageEmbedder`](../../06-api-reference/functions/createImageEmbedder.md) exposes a synchronous [`embedWorklet`](../../06-api-reference/type-aliases/ImageEmbedder.md#embedworklet) function. This runs directly on the worklet thread with zero Promise scheduling overhead:
 
 ```typescript
 // Called synchronously inside a worklet runtime on the UI thread
