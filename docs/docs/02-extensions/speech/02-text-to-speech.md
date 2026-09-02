@@ -67,10 +67,8 @@ function SpeechComponent() {
 }
 ```
 
-<!-- TODO: Update gallery URL once repo is moved to software-mansion organization -->
-
 :::tip Full Interactive Example in Gallery App
-See [`src/app/text-to-speech.tsx`](https://github.com/barhanc/react-native-executorch-gallery/blob/main/src/app/text-to-speech.tsx) and [`src/hooks/useAudioPlayer.ts`](https://github.com/barhanc/react-native-executorch-gallery/blob/main/src/hooks/useAudioPlayer.ts) in the [React Native ExecuTorch Gallery](https://github.com/barhanc/react-native-executorch-gallery) for a complete example featuring voice selection, `react-native-audio-api` buffer queue streaming, Time-to-First-Audio (TTFA) benchmarking, and live waveform visualization.
+See [`src/app/text-to-speech.tsx`](https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/text-to-speech.tsx) and [`src/hooks/useAudioPlayer.ts`](https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/hooks/useAudioPlayer.ts) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete example featuring voice selection, `react-native-audio-api` buffer queue streaming, Time-to-First-Audio (TTFA) benchmarking, and live waveform visualization.
 :::
 
 ## Output Format

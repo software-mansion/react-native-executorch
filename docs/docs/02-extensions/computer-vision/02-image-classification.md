@@ -55,10 +55,8 @@ function MyComponent() {
 }
 ```
 
-<!-- TODO: Update gallery URL once repo is moved to software-mansion organization -->
-
 :::tip Full Interactive Example in Gallery App
-See [`src/app/image-classification.tsx`](https://github.com/barhanc/react-native-executorch-gallery/blob/main/src/app/image-classification.tsx) in the [React Native ExecuTorch Gallery](https://github.com/barhanc/react-native-executorch-gallery) for a complete, runnable screen with photo picker, result overlays, and latency tracking.
+See [`src/app/image-classification.tsx`](https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/image-classification.tsx) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen with photo picker, result overlays, and latency tracking.
 :::
 
 ## Output Format

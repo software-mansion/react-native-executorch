@@ -53,10 +53,8 @@ function MyComponent() {
 }
 ```
 
-<!-- TODO: Update gallery URL once repo is moved to software-mansion organization -->
-
 :::tip Full Interactive Example in Gallery App
-See [`src/app/privacy-filter.tsx`](https://github.com/barhanc/react-native-executorch-gallery/blob/main/src/app/privacy-filter.tsx) in the [React Native ExecuTorch Gallery](https://github.com/barhanc/react-native-executorch-gallery) for an interactive redaction demo with highlighted spans and entity replacement.
+See [`src/app/privacy-filter.tsx`](https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/privacy-filter.tsx) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for an interactive redaction demo with highlighted spans and entity replacement.
 :::
 
 ## Output Format
