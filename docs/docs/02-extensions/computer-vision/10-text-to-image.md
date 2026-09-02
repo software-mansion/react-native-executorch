@@ -116,9 +116,9 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides ready-to-use text-to-image models from the [Software Mansion HuggingFace Text to Image Collection](https://huggingface.co/collections/software-mansion/text-to-image), available in [`models.textToImage`](../../06-api-reference/variables/models.md#texttoimage):
 
-| Model Family             | Resolution | Size Range         | Supported Backends             | Best For                                                                         |
-| :----------------------- | :--------- | :----------------- | :----------------------------- | :------------------------------------------------------------------------------- |
-| **SDXS 512 DreamShaper** | 512x512    | 839.9 MB – 1.64 GB | CPU (XNNPACK), Apple (Core ML) | Single-step distilled latent diffusion for ultra-fast on-device image synthesis. |
+| Model Family             | Variants                                                                                                                | Resolution | Size Range         | Supported Backends             | Notes                                                                            |
+| :----------------------- | :---------------------------------------------------------------------------------------------------------------------- | :--------- | :----------------- | :----------------------------- | :------------------------------------------------------------------------------- |
+| **SDXS 512 DreamShaper** | [`models.textToImage.SDXS_512_DREAMSHAPER`](../../06-api-reference/variables/models.md#texttoimagesdxs_512_dreamshaper) | 512x512    | 839.9 MB – 1.64 GB | XNNPACK (CPU), Core ML (Apple) | Single-step distilled latent diffusion for ultra-fast on-device image synthesis. |
 
 :::tip Using Custom Models
 To use your own fine-tuned SDXS `.pte` model and CLIP tokenizer, pass a [`SdxsTextToImageModel`](../../06-api-reference/type-aliases/SdxsTextToImageModel.md) configuration object to `useTextToImage` or `createSdxsTextToImage`:

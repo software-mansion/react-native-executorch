@@ -118,9 +118,9 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides ready-to-use vision encoders from the [Software Mansion HuggingFace Image Embeddings Collection](https://huggingface.co/collections/software-mansion/image-embeddings), available in [`models.imageEmbeddings`](../../06-api-reference/variables/models.md#imageembeddings):
 
-| Model Family             | Output Dim | Size Range         | Supported Backends                          | Best For                                                                          |
-| :----------------------- | :--------- | :----------------- | :------------------------------------------ | :-------------------------------------------------------------------------------- |
-| **CLIP ViT-B/32 Vision** | 512        | 93.7 MB – 335.3 MB | CPU (XNNPACK), Apple (Core ML), Apple (MLX) | Joint image-text semantic search, image clustering, and zero-shot categorization. |
+| Model Family             | Variants                                                                                                                          | Output Dim | Size Range         | Supported Backends                                            | Notes                                                                             |
+| :----------------------- | :-------------------------------------------------------------------------------------------------------------------------------- | :--------- | :----------------- | :------------------------------------------------------------ | :-------------------------------------------------------------------------------- |
+| **CLIP ViT-B/32 Vision** | [`models.imageEmbeddings.CLIP_VIT_BASE_PATCH32`](../../06-api-reference/variables/models.md#imageembeddingsclip_vit_base_patch32) | 512        | 93.7 MB – 335.3 MB | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | Joint image-text semantic search, image clustering, and zero-shot categorization. |
 
 :::tip Using Custom Models
 To use your own fine-tuned vision encoder `.pte` model, pass an [`ImageEmbedderModel`](../../06-api-reference/type-aliases/ImageEmbedderModel.md) configuration object to `useImageEmbedder` or `createImageEmbedder`:
