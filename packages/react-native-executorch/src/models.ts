@@ -2619,8 +2619,8 @@ export const models = {
      */
     ALL_MPNET_BASE_V2: variants({
       XNNPACK_FP32: ALL_MPNET_BASE_V2_EMBEDDINGS,
-      VULKAN_INT8: ALL_MPNET_BASE_V2_VULKAN_INT8,
       VULKAN_FP16: ALL_MPNET_BASE_V2_VULKAN_FP16,
+      VULKAN_INT8: ALL_MPNET_BASE_V2_VULKAN_INT8,
     }),
     /**
      * 384-dimensional sentence transformer fine-tuned specifically for semantic
