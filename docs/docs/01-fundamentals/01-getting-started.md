@@ -28,7 +28,7 @@ learning models directly on the user's phone with zero network calls, full offli
 capability, and guaranteed privacy. No data ever leaves the device.
 
 The library ships with a curated set of pre-exported models covering
-object detection, language models, text-to-speech, transcription, and more — all available in our
+computer vision, language models, text-to-speech, transcription, and more — all available in our
 [HuggingFace collection](https://huggingface.co/software-mansion/collections)
 and ready to use out of the box. You can also bring your own `.pte` models and
 plug them into existing pipelines or build entirely custom ones from scratch.
@@ -49,7 +49,7 @@ with full support for the standard PyTorch model export workflow.
 ExecuTorch handles the hard parts: memory planning, operator dispatch, and
 hardware delegate selection — so you don't have to. To learn more about the
 underlying runtime, check out the
-[ExecuTorch documentation](https://pytorch.org/executorch/main/).
+[ExecuTorch documentation](https://docs.pytorch.org/executorch/stable/index.html).
 
 ## Installation
 
