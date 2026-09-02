@@ -25,7 +25,7 @@
 
 **React Native ExecuTorch** is an on-device AI inference library for React Native, powered by [ExecuTorch](https://executorch.ai) — Meta's on-device inference runtime. It lets you run machine learning models directly on the user's phone with zero network calls, full offline capability, and guaranteed privacy. No data ever leaves the device.
 
-The library ships with a curated set of pre-exported models covering object detection, language models, text-to-speech, transcription, and more — all available in our [Hugging Face collection](https://huggingface.co/software-mansion/collections) and ready to use out of the box. You can also bring your own `.pte` models and plug them into existing pipelines or build entirely custom ones from scratch.
+The library ships with a curated set of pre-exported models covering computer vision, language models, text-to-speech, transcription, and more — all available in our [Hugging Face collection](https://huggingface.co/software-mansion/collections) and ready to use out of the box. You can also bring your own `.pte` models and plug them into existing pipelines or build entirely custom ones from scratch.
 
 To explore all on-device capabilities in an interactive showcase app, check out the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery).
 
