@@ -161,9 +161,9 @@ Because Text-to-Speech architectures require distinct multi-model orchestration 
 
 ### Constants & Model Presets
 
-- [See](../../06-api-reference/variables/KOKORO_SAMPLE_RATE.md) — Kokoro output sample rate constant (24000 Hz).
-- [See](../../06-api-reference/variables/SUPERTONIC_SAMPLE_RATE.md) — Supertonic output sample rate constant (44100 Hz).
-- [See](../../06-api-reference/variables/SUPERTONIC_DEFAULT_VOICE_NAMES.md) — Default bundled voice style names for Supertonic.
+- [`KOKORO_SAMPLE_RATE`](../../06-api-reference/variables/KOKORO_SAMPLE_RATE.md) — Kokoro output sample rate constant (24000 Hz).
+- [`SUPERTONIC_SAMPLE_RATE`](../../06-api-reference/variables/SUPERTONIC_SAMPLE_RATE.md) — Supertonic output sample rate constant (44100 Hz).
+- [`SUPERTONIC_DEFAULT_VOICE_NAMES`](../../06-api-reference/variables/SUPERTONIC_DEFAULT_VOICE_NAMES.md) — Default bundled voice style names for Supertonic.
 - [`speech.SUPERTONIC_SUPPORTED_LANGUAGES`](../../06-api-reference/react-native-executorch/namespaces/speech/variables/SUPERTONIC_SUPPORTED_LANGUAGES.md) — Supported language codes for Supertonic.
 - [`speech.KOKORO_PAUSE_MS`](../../06-api-reference/react-native-executorch/namespaces/speech/variables/KOKORO_PAUSE_MS.md) — Pause duration in milliseconds inserted between clauses.
 - [`models.textToSpeech`](../../06-api-reference/variables/models.md#texttospeech) — Pre-configured TTS models registry.
