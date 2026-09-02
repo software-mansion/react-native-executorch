@@ -141,7 +141,7 @@ const outShape = { batched: [1, N], unbatched: [N] }[variant];
 
 This is the standard opening of a pipeline: validate first, then use the bound
 symbols to allocate the exact tensors the model needs. If nothing matches,
-`validateSpec` throws [`SCHEMA_MISMATCH`](./05-error-handling.md#the-code-set) with
+`validateSpec` throws [`SCHEMA_MISMATCH`](./05-error-handling.md#error-codes-reference) with
 a per-variant explanation of why each one failed — so validation doubles as the
 pipeline's precondition check.
 

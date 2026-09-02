@@ -231,6 +231,19 @@ const model = await wrapAsync(loadModel)('/path/to/model.pte');
 const model = loadModel('/path/to/model.pte');
 ```
 
+By default, `loadModel()` eagerly loads and compiles all exported methods and
+backend delegates (such as CoreML or Vulkan) into memory upfront. This
+guarantees instantaneous first-inference latency without cold-start warmup spikes.
+To lazily compile methods on their first execution instead, pass
+[`LoadModelOptions`](../06-api-reference/type-aliases/LoadModelOptions.md) with
+`eagerLoadMethods: false`:
+
+```typescript
+const model = await wrapAsync(loadModel)('/path/to/model.pte', {
+  eagerLoadMethods: false,
+});
+```
+
 See [Worklets & Threading](./06-worklets-and-threading.md) for how `wrapAsync`
 and worklet runtimes fit together.
 
@@ -291,7 +304,7 @@ tOutput.dispose();
 
 Using an object after disposal throws an
 [`RnExecuTorchError`](../06-api-reference/functions/RnExecuTorchError.md) with
-code [`RESOURCE_DISPOSED`](./05-error-handling.md#the-code-set). A few patterns
+code [`RESOURCE_DISPOSED`](./05-error-handling.md#error-codes-reference). A few patterns
 cover the common cases.
 
 ### Static pre-allocation for repeated runs
@@ -406,14 +419,14 @@ layer guards every operation:
 - **One execution at a time** — a model runs a single `execute` at a time. If you
   call `execute` while that model is already running on another thread, the
   second call fails immediately with
-  [`RESOURCE_BUSY`](./05-error-handling.md#the-code-set) instead of waiting or
+  [`RESOURCE_BUSY`](./05-error-handling.md#error-codes-reference) instead of waiting or
   corrupting state.
 - **Tensor locking** — while `execute` runs, it holds an exclusive lock on every
   tensor it reads or writes. If another thread tries to touch one of those
   tensors at the same time, that call fails with `RESOURCE_BUSY`.
 - **Aliasing detection** — passing the same tensor more than once within a single
   `execute` call (across its inputs and outputs) throws
-  [`INVALID_ARGUMENT`](./05-error-handling.md#the-code-set), since
+  [`INVALID_ARGUMENT`](./05-error-handling.md#error-codes-reference), since
   writing a result into a tensor that is also an input would corrupt the data
   mid-run.
 
@@ -483,7 +496,7 @@ single `setData` at the top and the single `getData` at the end.
 
 ### API reference
 
-- [`Model`](../06-api-reference/type-aliases/Model.md) · [`Tensor`](../06-api-reference/type-aliases/Tensor.md) · [`DType`](../06-api-reference/type-aliases/DType.md)
+- [`Model`](../06-api-reference/type-aliases/Model.md) · [`LoadModelOptions`](../06-api-reference/type-aliases/LoadModelOptions.md) · [`Tensor`](../06-api-reference/type-aliases/Tensor.md) · [`DType`](../06-api-reference/type-aliases/DType.md)
 - [`loadModel()`](../06-api-reference/functions/loadModel.md) · [`tensor()`](../06-api-reference/functions/tensor.md) · [`wrapAsync()`](../06-api-reference/functions/wrapAsync.md)
 - [`createResourceScope()`](../06-api-reference/functions/createResourceScope.md) · [`ResourceScope`](../06-api-reference/type-aliases/ResourceScope.md) · [`NativeResource`](../06-api-reference/type-aliases/NativeResource.md)
 - Namespaces: [`math`](../06-api-reference/react-native-executorch/namespaces/math/index.md) · [`cv`](../06-api-reference/react-native-executorch/namespaces/cv/index.md) · [`speech`](../06-api-reference/react-native-executorch/namespaces/speech/index.md)

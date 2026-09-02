@@ -3,6 +3,10 @@
   "skipErrorChecking": true,
   "compilerOptions": { "skipLibCheck": true },
   "excludeExternals": true,
+  "validation": {
+    "invalidLink": true,
+    "notExported": true
+  },
   "categoryOrder": [
     "Hooks",
     "Models",
