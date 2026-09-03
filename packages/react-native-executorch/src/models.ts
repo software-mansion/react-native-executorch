@@ -613,15 +613,15 @@ const RFDETR_KEYPOINT_OPTS = {
   landmarks: COCO_LANDMARKS,
 };
 const RFDETR_KEYPOINT_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}-rfdetr-keypoint/${NEXT_VERSION_TAG}/preview/xnnpack/rfdetr_keypoint_preview_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-rfdetr-keypoint/${NEXT_VERSION_TAG}/xnnpack/rfdetr_keypoint_preview_xnnpack_fp32.pte`,
   modelOpts: RFDETR_KEYPOINT_OPTS,
 };
 const RFDETR_KEYPOINT_COREML_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}-rfdetr-keypoint/${NEXT_VERSION_TAG}/preview/coreml/rfdetr_keypoint_preview_coreml_fp16.pte`,
+  modelPath: `${BASE_URL}-rfdetr-keypoint/${NEXT_VERSION_TAG}/coreml/rfdetr_keypoint_preview_coreml_fp16.pte`,
   modelOpts: RFDETR_KEYPOINT_OPTS,
 };
 const RFDETR_KEYPOINT_MLX_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}-rfdetr-keypoint/${NEXT_VERSION_TAG}/preview/mlx/rfdetr_keypoint_preview_mlx_fp32.pte`,
+  modelPath: `${BASE_URL}-rfdetr-keypoint/${NEXT_VERSION_TAG}/mlx/rfdetr_keypoint_preview_mlx_fp32.pte`,
   modelOpts: RFDETR_KEYPOINT_OPTS,
 };
 
