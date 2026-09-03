@@ -80,6 +80,7 @@ function MyComponent() {
   // embedder.isReady          — true once model and tokenizer are downloaded and loaded in memory
   // embedder.downloadProgress — 0 to 100 download progress
   // embedder.error            — Error instance if download or load failed
+  // embedder.resource         — resolved config with all URLs replaced by local file paths
 
   const handleEmbed = async (inputText: string) => {
     if (!embedder.isReady || !embedder.embed) return;

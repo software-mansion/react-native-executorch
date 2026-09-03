@@ -89,6 +89,7 @@ function SpeechComponent() {
   // tts.isReady          — true once all sub-models and voice assets are loaded
   // tts.downloadProgress — 0 to 100 download progress across all files
   // tts.error            — Error instance if download or load failed
+  // tts.resource         — resolved config with all URLs replaced by local file paths
 
   const handleSpeak = async () => {
     if (!tts.isReady || !tts.synthesize || !prompt.trim()) return;

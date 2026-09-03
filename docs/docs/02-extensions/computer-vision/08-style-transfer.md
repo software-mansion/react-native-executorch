@@ -81,6 +81,7 @@ function MyComponent() {
   // styleTransfer.isReady          — true once model is downloaded and loaded in memory
   // styleTransfer.downloadProgress — 0 to 100 download progress
   // styleTransfer.error            — Error instance if download or load failed
+  // styleTransfer.resource         — resolved config with all URLs replaced by local file paths
 
   const handleTransfer = async (imageBuffer: ImageBuffer) => {
     if (!styleTransfer.isReady || !styleTransfer.transferStyle) return;

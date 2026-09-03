@@ -79,6 +79,7 @@ function MyComponent() {
   // generator.isReady          — true once model and tokenizer are downloaded and loaded
   // generator.downloadProgress — 0 to 100 download progress
   // generator.error            — Error instance if download or load failed
+  // generator.resource         — resolved config with all URLs replaced by local file paths
 
   const handleGenerate = async (prompt: string) => {
     if (!generator.isReady || !generator.generate) return;

@@ -86,6 +86,7 @@ function VadComponent() {
   // vad.isReady          — true once FSMN-VAD model is loaded in memory
   // vad.downloadProgress — 0 to 100 download progress
   // vad.error            — Error instance if download or load failed
+  // vad.resource         — resolved config with all URLs replaced by local file paths
 
   const handleToggleStreaming = async () => {
     if (recorder.isRecording) {

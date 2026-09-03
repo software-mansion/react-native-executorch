@@ -93,6 +93,7 @@ function MyChatComponent() {
   // session.isReady          — true once model weights and tokenizer are loaded in memory
   // session.downloadProgress — 0 to 100 download progress
   // session.error            — Error instance if download or load failed
+  // session.resource         — resolved config with all URLs replaced by local file paths
 
   const handleSend = async (userPrompt: string) => {
     if (!session.isReady || !session.sendMessage) return;

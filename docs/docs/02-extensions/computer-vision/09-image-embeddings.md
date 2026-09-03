@@ -79,6 +79,7 @@ function MyComponent() {
   // imageEmbedder.isReady          — true once model is downloaded and loaded in memory
   // imageEmbedder.downloadProgress — 0 to 100 download progress
   // imageEmbedder.error            — Error instance if download or load failed
+  // imageEmbedder.resource         — resolved config with all URLs replaced by local file paths
 
   const handleEmbed = async (imageBuffer: ImageBuffer) => {
     if (!imageEmbedder.isReady || !imageEmbedder.embed) return;

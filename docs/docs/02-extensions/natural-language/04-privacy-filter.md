@@ -80,6 +80,7 @@ function MyComponent() {
   // filter.isReady          — true once model and tokenizer are downloaded and loaded in memory
   // filter.downloadProgress — 0 to 100 download progress
   // filter.error            — Error instance if download or load failed
+  // filter.resource         — resolved config with all URLs replaced by local file paths
 
   const handleScan = async (rawText: string) => {
     if (!filter.isReady || !filter.detectPii) return;

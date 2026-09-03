@@ -80,6 +80,7 @@ function MyComponent() {
   // detector.isReady          — true once model is downloaded and loaded in memory
   // detector.downloadProgress — 0 to 100 download progress
   // detector.error            — Error instance if download or load failed
+  // detector.resource         — resolved config with all URLs replaced by local file paths
 
   const handleDetect = async (imageBuffer: ImageBuffer) => {
     if (!detector.isReady || !detector.detectObjects) return;

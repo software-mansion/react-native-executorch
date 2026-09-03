@@ -89,6 +89,7 @@ function TranscriptionComponent() {
   // stt.isReady          — true once Whisper model, tokenizer, and VAD are loaded
   // stt.downloadProgress — 0 to 100 download progress across all files
   // stt.error            — Error instance if download or load failed
+  // stt.resource         — resolved config with all URLs replaced by local file paths
 
   const handleToggleRecording = async () => {
     if (recorder.isRecording) {

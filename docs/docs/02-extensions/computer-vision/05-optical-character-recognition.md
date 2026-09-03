@@ -77,6 +77,7 @@ function MyComponent() {
   // ocr.isReady          — true once model and charset are downloaded and loaded
   // ocr.downloadProgress — 0 to 100 download progress
   // ocr.error            — Error instance if download or load failed
+  // ocr.resource         — resolved config with all URLs replaced by local file paths
 
   const handleRecognize = async (imageBuffer: ImageBuffer) => {
     if (!ocr.isReady || !ocr.recognizeCharacters) return;

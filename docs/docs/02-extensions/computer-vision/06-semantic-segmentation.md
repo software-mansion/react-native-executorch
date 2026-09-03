@@ -80,6 +80,7 @@ function MyComponent() {
   // segmenter.isReady          — true once model is downloaded and loaded in memory
   // segmenter.downloadProgress — 0 to 100 download progress
   // segmenter.error            — Error instance if download or load failed
+  // segmenter.resource         — resolved config with all URLs replaced by local file paths
 
   const handleSegment = async (imageBuffer: ImageBuffer) => {
     if (!segmenter.isReady || !segmenter.segment) return;

@@ -82,6 +82,7 @@ function MyComponent() {
   // classifier.isReady          — true once model is downloaded and loaded in memory
   // classifier.downloadProgress — 0 to 100 download progress
   // classifier.error            — Error instance if download or load failed
+  // classifier.resource         — resolved config with all URLs replaced by local file paths
 
   const handleClassify = async (imageBuffer: ImageBuffer) => {
     if (!classifier.isReady || !classifier.classify) return;
