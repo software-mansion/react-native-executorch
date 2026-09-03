@@ -77,7 +77,7 @@ pnpm add react-native-executorch react-native-worklets react-native-blob-util
 ```
 
 > [!IMPORTANT]
-> React Native ExecuTorch requires the **New React Native Architecture**, **React Native 0.81+**, **iOS 17.0+**, and **Android 13+ (API 33)**.
+> React Native ExecuTorch requires the **New React Native Architecture**, **React Native 0.81+** or **Expo SDK 54+** (using development builds), **iOS 17.0+**, and **Android 13+**.
 
 ### 2. Run the Model
 
