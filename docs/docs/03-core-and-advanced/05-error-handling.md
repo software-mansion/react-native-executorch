@@ -88,7 +88,7 @@ Error messages are meant for human debugging and may change across releases. Alw
 
 ## Throwing Errors in Custom Pipelines
 
-When writing custom pipelines or task helpers, use the [`RnExecuTorchError`](../06-api-reference/functions/RnExecuTorchError.md) factory function. Do **not** use `new RnExecuTorchError()`, as plain object factories can be safely passed across worklet boundaries:
+When writing custom pipelines or task helpers, call the [`RnExecuTorchError`](../06-api-reference/functions/RnExecuTorchError.md) factory function (without `new`). Because `RnExecuTorchError` is a worklet-compatible factory function rather than an ES6 class, it constructs a standard `Error` with `name`, `code`, and stack trace attached, which can be safely thrown and caught across worklet runtimes and JSI boundaries:
 
 ```typescript
 import { RnExecuTorchError } from 'react-native-executorch';
