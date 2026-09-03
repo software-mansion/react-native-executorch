@@ -1,6 +1,6 @@
 ---
 title: Native Libraries
-slug: /fundamentals/native-libraries
+slug: /core-and-advanced/native-libraries
 description: 'How React Native ExecuTorch downloads, ships, and links native binaries on demand.'
 keywords:
   [react native executorch, executorch, native libraries, backends, xnnpack, coreml, mlx, vulkan]
