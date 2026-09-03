@@ -33,11 +33,13 @@ library-specific work lives.
 
 ## Exporting to `.pte`
 
-Producing the `.pte` is the standard PyTorch → ExecuTorch path: `torch.export`,
+Producing the `.pte` is the standard PyTorch → ExecuTorch path:
+[`torch.export`](https://docs.pytorch.org/docs/2.14/user_guide/torch_compiler/export.html),
 then lowering to a backend (XNNPACK, Core ML, Vulkan, …) with
-`to_edge_transform_and_lower`. It is not specific to this library, so follow the
-official [ExecuTorch documentation](https://docs.pytorch.org/executorch/stable/index.html) for the
-details, including which backend to target for your model and platform.
+[`to_edge_transform_and_lower`](https://docs.pytorch.org/executorch/stable/export-to-executorch-api-reference.html#executorch.exir.to_edge_transform_and_lower).
+It is not specific to this library, so follow the official
+[ExecuTorch documentation](https://docs.pytorch.org/executorch/stable/index.html)
+for the details, including which backend to target for your model and platform.
 
 What matters here is the **contract** the resulting `.pte` exposes: the input and
 output shapes, data types, and any dynamic dimensions or dimension relationships.
