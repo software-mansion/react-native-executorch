@@ -25,8 +25,6 @@ Tokenizers translate human-readable natural language text into numeric token ID 
 
 The library embeds PyTorch's native C++ tokenizer engine, providing high-performance Hugging Face `tokenizer.json` compatibility directly on-device without Python or Rust runtimes. It supports Byte-Pair Encoding (BPE), WordPiece, Unigram, and Byte-level tokenizers with full support for normalizers, pre-tokenizers, truncation, padding, and post-processors (such as adding special `[CLS]` and `[SEP]` tokens automatically).
 
-<!-- GIF DEMO PLACEHOLDER: Place tokenizer demo gif here, e.g. ![Tokenizer Demo](./media/tokenizers.gif) -->
-
 ## Native Tokenizer (loadTokenizer)
 
 The core tokenizer primitive is [`nlp.loadTokenizer`](../../06-api-reference/react-native-executorch/namespaces/nlp/functions/loadTokenizer.md). It synchronously loads a local `tokenizer.json` file into a native C++ JSI host object ([`Tokenizer`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Tokenizer.md)) that can be called directly on the JavaScript thread or inside [Worklet runtimes](../../03-core-and-advanced/06-worklets-and-threading.md) with zero serialization overhead:
