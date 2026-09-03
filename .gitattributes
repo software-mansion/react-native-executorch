@@ -1,8 +1,3 @@
 *.pbxproj -text
 # specific for windows script files
 *.bat text eol=crlf
-
-# Linguist vendoring for accurate language statistics and cloc
-third-party/** linguist-vendored
-**/third-party/** linguist-vendored
-packages/react-native-executorch/third-party/** linguist-vendored
