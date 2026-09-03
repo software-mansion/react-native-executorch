@@ -86,9 +86,10 @@ across runs instead of allocating on every iteration.
 
 A [`Tensor`](../06-api-reference/type-aliases/Tensor.md) is a multidimensional
 typed array in native memory. Two immutable properties define it: its element
-data type ([`DType`](../06-api-reference/type-aliases/DType.md)) and its `shape`.
-A read-only `numel` property reports the total element count, derived from the
-shape.
+data type ([`DType`](../06-api-reference/type-aliases/DType.md)) and its
+[`shape`](../06-api-reference/type-aliases/Tensor.md#shape).
+A read-only [`numel`](../06-api-reference/type-aliases/Tensor.md#numel) property
+reports the total element count, derived from the shape.
 
 ### Data types
 
@@ -141,7 +142,7 @@ try {
 
 To move data between two native buffers without a round trip through JavaScript,
 use [`copyTo`](../06-api-reference/type-aliases/Tensor.md#copyto), a direct C++
-`memcpy` that returns the destination.
+memcpy that returns the destination.
 
 ```typescript
 tSource.copyTo(tDest);
@@ -164,9 +165,11 @@ a readable left-to-right pipeline:
   applies `fn` only when `pred` is `true`, otherwise passes `this` through
   unchanged.
 
-Because operations return their destination and `through` forwards that return
-value, the destination of one step becomes the source of the next. You pass the
-operation itself, with its destination and options as trailing arguments:
+Because operations return their destination and
+[`through`](../06-api-reference/type-aliases/Tensor.md#through) forwards that
+return value, the destination of one step becomes the source of the next. You
+pass the operation itself, with its destination and options as trailing
+arguments:
 
 ```typescript
 import { tensor, cv } from 'react-native-executorch';
@@ -198,10 +201,11 @@ namespace. They, and the full set of
 operations you can compose the same way, are documented in
 [Operations & Utilities](./04-operations-and-utilities.md).
 
-`throughIf` applies a step only when a condition holds and passes the tensor
-through untouched otherwise. Since both branches feed whatever comes next, use it
-for transforms that leave shape and dtype unchanged — for example, reordering to
-BGR only when the model expects it:
+[`throughIf`](../06-api-reference/type-aliases/Tensor.md#throughif) applies a
+step only when a condition holds and passes the tensor through untouched
+otherwise. Since both branches feed whatever comes next, use it for transforms
+that leave shape and dtype unchanged — for example, reordering to BGR only when
+the model expects it:
 
 ```typescript
 // tResized and tBgr are both uint8 [224, 224, 3], so either branch is valid input downstream
@@ -231,12 +235,13 @@ const model = await wrapAsync(loadModel)('/path/to/model.pte');
 const model = loadModel('/path/to/model.pte');
 ```
 
-By default, `loadModel()` eagerly loads and compiles all exported methods and
-backend delegates (such as CoreML or Vulkan) into memory upfront. This
-guarantees instantaneous first-inference latency without cold-start warmup spikes.
-To lazily compile methods on their first execution instead, pass
+By default, [`loadModel()`](../06-api-reference/functions/loadModel.md) eagerly
+loads and compiles all exported methods and backend delegates (such as CoreML or
+Vulkan) into memory upfront. This guarantees instantaneous first-inference
+latency without cold-start warmup spikes. To lazily compile methods on their
+first execution instead, pass
 [`LoadModelOptions`](../06-api-reference/type-aliases/LoadModelOptions.md) with
-`eagerLoadMethods: false`:
+[`eagerLoadMethods: false`](../06-api-reference/type-aliases/LoadModelOptions.md#eagerloadmethods):
 
 ```typescript
 const model = await wrapAsync(loadModel)('/path/to/model.pte', {
@@ -244,8 +249,9 @@ const model = await wrapAsync(loadModel)('/path/to/model.pte', {
 });
 ```
 
-See [Worklets & Threading](./06-worklets-and-threading.md) for how `wrapAsync`
-and worklet runtimes fit together.
+See [Worklets & Threading](./06-worklets-and-threading.md) for how
+[`wrapAsync`](../06-api-reference/functions/wrapAsync.md) and worklet runtimes
+fit together.
 
 ### Inspecting metadata
 
@@ -294,7 +300,7 @@ any primitive values the method returns.
 ## Lifecycle and disposal
 
 Because native memory is invisible to the garbage collector, every tensor and
-model must be explicitly released with `dispose()` once you are done with it:
+model must be explicitly released with dispose once you are done with it:
 
 ```typescript
 model.dispose();
@@ -310,7 +316,7 @@ cover the common cases.
 ### Static pre-allocation for repeated runs
 
 For a pipeline that runs many times over the same shapes, allocate everything
-once at construction, capture it in a closure, and expose a single `dispose` that
+once at construction, capture it in a closure, and expose a single dispose that
 tears it all down. The tensors are reused on every run rather than reallocated.
 
 ```typescript
@@ -342,8 +348,9 @@ export async function createSimpleClassifier(modelPath: string) {
 }
 ```
 
-This closure-bundle shape — a factory returning the operations plus a `dispose` —
-is how the library's own task pipelines encapsulate their internal tensors.
+This closure-bundle shape — a factory returning the operations plus a
+dispose — is how the library's own task pipelines encapsulate their internal
+tensors.
 
 ### Dynamic allocation with `try / finally`
 
@@ -368,14 +375,17 @@ function processImage(model: Model, width: number, height: number, pixels: Uint8
 ### Failure-safe construction with a resource scope
 
 The static pattern has a gap: if construction throws _after_ some resources are
-allocated — a failed [`validateSpec`](./03-schema-validation.md), a second model
-that won't load — the caller never receives a `dispose`, and the memory allocated
-so far leaks for the rest of the process.
-[`createResourceScope`](../06-api-reference/functions/createResourceScope.md) closes
-that window.
-Track each resource as you allocate it, wrap the body in `try` / `catch`, and reuse
-the scope's `dispose` as the pipeline's own, so one teardown path covers both a
-mid-construction failure and normal disposal:
+allocated — a failed
+[`validateSpec`](../06-api-reference/react-native-executorch/namespaces/schema/functions/validateSpec.md)
+(see [Schema Validation](./03-schema-validation.md)), a second model that won't
+load — the caller never receives a dispose, and the memory allocated so far
+leaks for the rest of the process.
+[`createResourceScope`](../06-api-reference/functions/createResourceScope.md)
+closes that window. Track each resource as you allocate it, wrap the body in
+`try` / `catch`, and reuse the scope's
+[`dispose`](../06-api-reference/type-aliases/ResourceScope.md#dispose) as the
+pipeline's own, so one teardown path covers both a mid-construction failure and
+normal disposal:
 
 ```typescript
 import { createResourceScope, loadModel, tensor, wrapAsync } from 'react-native-executorch';
@@ -404,10 +414,11 @@ export async function createClassifier(modelPath: string) {
 }
 ```
 
-`scope.track(resource)` returns the resource unchanged, so you wrap it in place.
-`dispose` releases everything tracked so far, most-recently-allocated first, and is
-safe to call more than once. This is how the library's own pipelines manage their
-resources.
+[`scope.track(resource)`](../06-api-reference/type-aliases/ResourceScope.md#track)
+returns the resource unchanged, so you wrap it in place.
+[`dispose`](../06-api-reference/type-aliases/ResourceScope.md#dispose) releases
+everything tracked so far, most-recently-allocated first, and is safe to call
+more than once. This is how the library's own pipelines manage their resources.
 
 ## Thread safety
 
@@ -416,16 +427,21 @@ thread and use it on another — for example, load a model on the JS thread and 
 inference from a worklet — without adding any locking of your own. The native
 layer guards every operation:
 
-- **One execution at a time** — a model runs a single `execute` at a time. If you
-  call `execute` while that model is already running on another thread, the
-  second call fails immediately with
-  [`RESOURCE_BUSY`](./05-error-handling.md#error-codes-reference) instead of waiting or
-  corrupting state.
-- **Tensor locking** — while `execute` runs, it holds an exclusive lock on every
-  tensor it reads or writes. If another thread tries to touch one of those
-  tensors at the same time, that call fails with `RESOURCE_BUSY`.
+- **One execution at a time** — a model runs a single
+  [`execute`](../06-api-reference/type-aliases/Model.md#execute) at a time. If
+  you call [`execute`](../06-api-reference/type-aliases/Model.md#execute) while
+  that model is already running on another thread, the second call fails
+  immediately with
+  [`RESOURCE_BUSY`](./05-error-handling.md#error-codes-reference) instead of
+  waiting or corrupting state.
+- **Tensor locking** — while
+  [`execute`](../06-api-reference/type-aliases/Model.md#execute) runs, it holds
+  an exclusive lock on every tensor it reads or writes. If another thread tries
+  to touch one of those tensors at the same time, that call fails with
+  [`RESOURCE_BUSY`](./05-error-handling.md#error-codes-reference).
 - **Aliasing detection** — passing the same tensor more than once within a single
-  `execute` call (across its inputs and outputs) throws
+  [`execute`](../06-api-reference/type-aliases/Model.md#execute) call (across
+  its inputs and outputs) throws
   [`INVALID_ARGUMENT`](./05-error-handling.md#error-codes-reference), since
   writing a result into a tensor that is also an input would corrupt the data
   mid-run.
@@ -485,7 +501,9 @@ export async function createTwoStagePipeline(backbonePath: string, headPath: str
 
 The intermediate `tEmbedding` is written by the backbone and read by the head
 without crossing back into JavaScript. The only JS and native transfers are the
-single `setData` at the top and the single `getData` at the end.
+single [`setData`](../06-api-reference/type-aliases/Tensor.md#setdata) at the top
+and the single [`getData`](../06-api-reference/type-aliases/Tensor.md#getdata) at
+the end.
 
 ## Where to go next
 
