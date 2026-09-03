@@ -118,19 +118,19 @@ type ObjectDetection<F extends BoxFormat = 'xyxy', L = string> = {
 
 For `'xyxy'` format (default), [`box`](../../06-api-reference/type-aliases/ObjectDetection.md#box) contains pixel coordinates:
 
-```json
+```typescript
 [
   {
-    "box": { "format": "xyxy", "xmin": 34.5, "ymin": 112.0, "xmax": 240.2, "ymax": 380.7 },
-    "label": "dog",
-    "confidence": 0.89
+    box: { format: 'xyxy', xmin: 34.5, ymin: 112.0, xmax: 240.2, ymax: 380.7 },
+    label: 'dog',
+    confidence: 0.89,
   },
   {
-    "box": { "format": "xyxy", "xmin": 310.0, "ymin": 85.3, "xmax": 520.1, "ymax": 410.0 },
-    "label": "person",
-    "confidence": 0.94
-  }
-]
+    box: { format: 'xyxy', xmin: 310.0, ymin: 85.3, xmax: 520.1, ymax: 410.0 },
+    label: 'person',
+    confidence: 0.94,
+  },
+];
 ```
 
 ## Configuration & Options

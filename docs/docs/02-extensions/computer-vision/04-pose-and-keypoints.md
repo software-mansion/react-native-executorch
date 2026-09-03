@@ -118,22 +118,21 @@ type KeypointDetection<F extends BoxFormat = 'xyxy', L extends PropertyKey = str
 
 For human pose models ([`YOLO26_POSE`](../../06-api-reference/variables/models.md#keypointdetectionyolo26_pose)), [`landmarks`](../../06-api-reference/type-aliases/KeypointDetection.md#landmarks) includes 17 [`COCO_LANDMARKS`](../../06-api-reference/variables/COCO_LANDMARKS.md) body points:
 
-```json
+```typescript
 [
   {
-    "box": { "format": "xyxy", "xmin": 45.2, "ymin": 12.0, "xmax": 310.5, "ymax": 580.0 },
-    "confidence": 0.93,
-    "landmarks": {
-      "nose": { "x": 178.4, "y": 85.2, "confidence": 0.97 },
-      "leftEye": { "x": 190.1, "y": 75.4, "confidence": 0.95 },
-      "rightEye": { "x": 165.8, "y": 76.0, "confidence": 0.94 },
-      "leftShoulder": { "x": 230.5, "y": 150.0, "confidence": 0.91 },
-      "rightShoulder": { "x": 125.0, "y": 152.3, "confidence": 0.89 },
-      "leftElbow": { "x": 260.0, "y": 230.1, "confidence": 0.88 },
-      "leftWrist": { "x": 280.2, "y": 305.4, "confidence": 0.84 }
-    }
-  }
-]
+    box: { format: 'xyxy', xmin: 45.2, ymin: 12.0, xmax: 310.5, ymax: 580.0 },
+    confidence: 0.93,
+    landmarks: {
+      nose: { x: 178.4, y: 85.2, confidence: 0.97 },
+      leftEye: { x: 190.1, y: 75.4, confidence: 0.95 },
+      rightEye: { x: 165.8, y: 76.0, confidence: 0.94 },
+      leftEar: { x: 205.3, y: 80.1, confidence: 0.91 },
+      rightEar: { x: 150.2, y: 81.0, confidence: 0.9 },
+      // ... 12 more COCO landmarks (shoulders → ankles)
+    },
+  },
+];
 ```
 
 For face models ([`BLAZEFACE`](../../06-api-reference/variables/models.md#keypointdetectionblazeface)), [`landmarks`](../../06-api-reference/type-aliases/KeypointDetection.md#landmarks) includes 6 facial points from [`BLAZEFACE_LANDMARKS`](../../06-api-reference/variables/BLAZEFACE_LANDMARKS.md): `leftEye`, `rightEye`, `noseTip`, `mouthCenter`, `leftEar`, `rightEar`.

@@ -117,19 +117,19 @@ type OcrDetection = {
 
 Example result:
 
-```json
+```typescript
 [
   {
-    "text": "RECEIPT TOTAL: $42.50",
-    "confidence": 0.96,
-    "quad": [
-      { "x": 45.0, "y": 120.5 },
-      { "x": 380.2, "y": 122.0 },
-      { "x": 380.0, "y": 155.4 },
-      { "x": 44.8, "y": 154.0 }
-    ]
-  }
-]
+    text: 'RECEIPT TOTAL: $42.50',
+    confidence: 0.96,
+    quad: [
+      { x: 45.0, y: 120.5 },
+      { x: 380.2, y: 122.0 },
+      { x: 380.0, y: 155.4 },
+      { x: 44.8, y: 154.0 },
+    ],
+  },
+];
 ```
 
 ## Configuration & Options

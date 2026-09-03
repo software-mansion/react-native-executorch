@@ -121,15 +121,15 @@ type InstanceSegmentationResult<F extends BoxFormat = 'xyxy', L = string> = {
 
 Example result:
 
-```json
+```typescript
 [
   {
-    "box": { "format": "xyxy", "xmin": 50.0, "ymin": 120.0, "xmax": 280.0, "ymax": 450.0 },
-    "label": "person",
-    "confidence": 0.92,
-    "mask": { "width": 230, "height": 330, "format": "rgba", "data": "..." }
-  }
-]
+    box: { format: 'xyxy', xmin: 50.0, ymin: 120.0, xmax: 280.0, ymax: 450.0 },
+    label: 'person',
+    confidence: 0.92,
+    mask: { width: 230, height: 330, format: 'rgba' /* data: Uint8Array */ },
+  },
+];
 ```
 
 ## Configuration & Options

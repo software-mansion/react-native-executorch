@@ -115,12 +115,12 @@ type Classification<L = string> = {
 
 Example result:
 
-```json
+```typescript
 [
-  { "label": "golden_retriever", "confidence": 0.912 },
-  { "label": "cocker_spaniel", "confidence": 0.043 },
-  { "label": "labrador_retriever", "confidence": 0.018 }
-]
+  { label: 'golden_retriever', confidence: 0.912 },
+  { label: 'cocker_spaniel', confidence: 0.043 },
+  { label: 'labrador_retriever', confidence: 0.018 },
+];
 ```
 
 ## Configuration & Options
