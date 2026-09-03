@@ -30,7 +30,7 @@ capability, and guaranteed privacy. No data ever leaves the device.
 The library ships with a curated set of pre-exported models covering
 computer vision, language models, text-to-speech, transcription, and more — all available in our
 [HuggingFace collection](https://huggingface.co/software-mansion/collections)
-and ready to use out of the box. You can also bring your own `.pte` models and
+and ready to use out of the box. You can also bring your own models and
 plug them into existing pipelines or build entirely custom ones from scratch.
 
 ## What is ExecuTorch?
@@ -43,7 +43,7 @@ accelerators.
 
 The runtime supports hardware-accelerated backends for every major platform:
 XNNPACK for CPU acceleration across all platforms, Core ML and MLX on Apple
-devices, Vulkan for GPU, and more. It's a core part of the PyTorch ecosystem,
+devices, Vulkan for Android GPU, and more. It's a core part of the PyTorch ecosystem,
 with full support for the standard PyTorch model export workflow.
 
 ExecuTorch handles the hard parts: memory planning, operator dispatch, and
