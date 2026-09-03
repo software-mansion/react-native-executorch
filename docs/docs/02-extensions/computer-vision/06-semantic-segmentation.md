@@ -78,7 +78,7 @@ function MyComponent() {
 
   // Hook state:
   // segmenter.isReady          — true once model is downloaded and loaded in memory
-  // segmenter.downloadProgress — 0.0 to 1.0 download progress
+  // segmenter.downloadProgress — 0 to 100 download progress
   // segmenter.error            — Error instance if download or load failed
 
   const handleSegment = async (imageBuffer: ImageBuffer) => {

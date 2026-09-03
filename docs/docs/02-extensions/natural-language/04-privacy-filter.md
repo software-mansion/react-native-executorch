@@ -78,7 +78,7 @@ function MyComponent() {
 
   // Hook state:
   // filter.isReady          — true once model and tokenizer are downloaded and loaded in memory
-  // filter.downloadProgress — 0.0 to 1.0 download progress
+  // filter.downloadProgress — 0 to 100 download progress
   // filter.error            — Error instance if download or load failed
 
   const handleScan = async (rawText: string) => {

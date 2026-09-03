@@ -87,7 +87,7 @@ function SpeechComponent() {
 
   // Hook state:
   // tts.isReady          — true once all sub-models and voice assets are loaded
-  // tts.downloadProgress — 0.0 to 1.0 download progress across all files
+  // tts.downloadProgress — 0 to 100 download progress across all files
   // tts.error            — Error instance if download or load failed
 
   const handleSpeak = async () => {

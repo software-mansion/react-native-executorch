@@ -79,7 +79,7 @@ function MyComponent() {
 
   // Hook state:
   // styleTransfer.isReady          — true once model is downloaded and loaded in memory
-  // styleTransfer.downloadProgress — 0.0 to 1.0 download progress
+  // styleTransfer.downloadProgress — 0 to 100 download progress
   // styleTransfer.error            — Error instance if download or load failed
 
   const handleTransfer = async (imageBuffer: ImageBuffer) => {

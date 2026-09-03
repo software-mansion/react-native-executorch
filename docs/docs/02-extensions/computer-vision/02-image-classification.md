@@ -80,7 +80,7 @@ function MyComponent() {
 
   // Hook state:
   // classifier.isReady          — true once model is downloaded and loaded in memory
-  // classifier.downloadProgress — 0.0 to 1.0 download progress
+  // classifier.downloadProgress — 0 to 100 download progress
   // classifier.error            — Error instance if download or load failed
 
   const handleClassify = async (imageBuffer: ImageBuffer) => {

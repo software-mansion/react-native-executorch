@@ -78,7 +78,7 @@ function MyComponent() {
 
   // Hook state:
   // embedder.isReady          — true once model and tokenizer are downloaded and loaded in memory
-  // embedder.downloadProgress — 0.0 to 1.0 download progress
+  // embedder.downloadProgress — 0 to 100 download progress
   // embedder.error            — Error instance if download or load failed
 
   const handleEmbed = async (inputText: string) => {

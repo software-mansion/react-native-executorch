@@ -91,7 +91,7 @@ function MyChatComponent() {
 
   // Hook state:
   // session.isReady          — true once model weights and tokenizer are loaded in memory
-  // session.downloadProgress — 0.0 to 1.0 download progress
+  // session.downloadProgress — 0 to 100 download progress
   // session.error            — Error instance if download or load failed
 
   const handleSend = async (userPrompt: string) => {

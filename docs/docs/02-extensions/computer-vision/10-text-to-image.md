@@ -77,7 +77,7 @@ function MyComponent() {
 
   // Hook state:
   // generator.isReady          — true once model and tokenizer are downloaded and loaded
-  // generator.downloadProgress — 0.0 to 1.0 download progress
+  // generator.downloadProgress — 0 to 100 download progress
   // generator.error            — Error instance if download or load failed
 
   const handleGenerate = async (prompt: string) => {

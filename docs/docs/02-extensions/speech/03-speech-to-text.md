@@ -87,7 +87,7 @@ function TranscriptionComponent() {
 
   // Hook state:
   // stt.isReady          — true once Whisper model, tokenizer, and VAD are loaded
-  // stt.downloadProgress — 0.0 to 1.0 download progress across all files
+  // stt.downloadProgress — 0 to 100 download progress across all files
   // stt.error            — Error instance if download or load failed
 
   const handleToggleRecording = async () => {
