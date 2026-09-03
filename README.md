@@ -36,10 +36,10 @@ To explore all on-device capabilities in an interactive showcase app, check out 
 ## Table of Contents
 
 - [Key Features](#key-features)
-- [Supported Capabilities](#supported-capabilities)
 - [Quickstart](#quickstart)
   - [1. Installation](#1-installation)
   - [2. Run the Model](#2-run-the-model)
+- [Interactive Gallery App](#interactive-gallery-app)
 - [Documentation](#documentation)
 - [Powered by React Native ExecuTorch](#powered-by-react-native-executorch)
 - [Created by Software Mansion](#created-by-software-mansion)
@@ -52,15 +52,6 @@ To explore all on-device capabilities in an interactive showcase app, check out 
   - **Ready-to-use Task Hooks (`use<Task>`)**: Out-of-the-box support for LLMs, computer vision, speech, and embeddings with automatic caching and lifecycle management.
   - **Lower-level Runtime & Custom Orchestration**: Build custom pipelines entirely in TypeScript using low-level tensor operations, fast native operators, schema validation, and worklet threading.
 - **Pre-Exported Model Catalog**: Access verified models directly via the `models` registry and the [Software Mansion Hugging Face Collections](https://huggingface.co/software-mansion/collections).
-
-## Supported Capabilities
-
-| Domain | Task Pipelines | Featured Models |
-| :--- | :--- | :--- |
-| **Natural Language** | [LLM Chat & Generation](https://docs.swmansion.com/react-native-executorch/docs/extensions/llm-chat-and-generation), [Text Embeddings](https://docs.swmansion.com/react-native-executorch/docs/extensions/text-embeddings), [Privacy Filter (PII)](https://docs.swmansion.com/react-native-executorch/docs/extensions/privacy-filter), [Tokenizers](https://docs.swmansion.com/react-native-executorch/docs/extensions/tokenizers) | LFM 2.5, Gemma 4, Qwen 3, MiniLM, Nemotron PII |
-| **Speech & Audio** | [Text-to-Speech](https://docs.swmansion.com/react-native-executorch/docs/extensions/text-to-speech), [Speech-to-Text](https://docs.swmansion.com/react-native-executorch/docs/extensions/speech-to-text), [Voice Activity Detection](https://docs.swmansion.com/react-native-executorch/docs/extensions/voice-activity-detection) | Supertonic 3, Kokoro, Whisper, FSMN-VAD |
-| **Computer Vision** | [Image Classification](https://docs.swmansion.com/react-native-executorch/docs/extensions/image-classification), [Object Detection](https://docs.swmansion.com/react-native-executorch/docs/extensions/object-detection), [Pose & Keypoints](https://docs.swmansion.com/react-native-executorch/docs/extensions/pose-and-keypoints), [OCR](https://docs.swmansion.com/react-native-executorch/docs/extensions/optical-character-recognition), [Segmentation](https://docs.swmansion.com/react-native-executorch/docs/extensions/semantic-segmentation), [Style Transfer](https://docs.swmansion.com/react-native-executorch/docs/extensions/style-transfer), [Image Embeddings](https://docs.swmansion.com/react-native-executorch/docs/extensions/image-embeddings), [Text-to-Image](https://docs.swmansion.com/react-native-executorch/docs/extensions/text-to-image) | YOLO26, RF-DETR, SSDLite, FastSAM, PP-OCRv6, CLIP, SDXS DreamShaper |
-| **Custom Pipelines** | [Models & Tensors](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/models-and-tensors), [Schema Validation](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/schema-validation), [Native Ops](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/native-operators), [Custom Export](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/exporting-custom-models) | Any PyTorch model exported to `.pte` via ExecuTorch |
 
 ## Quickstart
 
