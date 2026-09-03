@@ -6,7 +6,17 @@ keywords:
   [react native executorch, executorch, native libraries, backends, xnnpack, coreml, mlx, vulkan]
 ---
 
-React Native ExecuTorch ships the ExecuTorch runtime, hardware backends, and third-party libraries as **separate downloadable artifacts**. At install time, a `postinstall` script pulls only what your app needs — by default, everything is enabled.
+React Native ExecuTorch ships the core runtime, hardware-accelerated backends
+(XNNPACK, Core ML, MLX, Vulkan), and native third-party libraries (OpenCV,
+phonemis) as **separate downloadable artifacts**.
+
+By default, **everything is downloaded and enabled**, so no configuration is
+required to get started. However, because on-device AI backends and vision
+libraries add substantial binary weight, you can tailor exactly what gets
+pulled into your app. Declaring only the features or backends you use reduces
+install times, speeds up builds, and significantly shrinks the final app bundle.
+At install time, a postinstall script inspects your configuration and fetches only
+the native artifacts your app needs.
 
 ## How it works
 
@@ -29,104 +39,50 @@ Add a `react-native-executorch` block to your `package.json`:
 
 ### Options
 
-| Option     | Purpose                                                       | Example values                                |
-| ---------- | ------------------------------------------------------------- | --------------------------------------------- |
-| `features` | High-level tasks — each expands to the backends/libs it needs | `"classification"`, `"llm"`, `"speechToText"` |
-| `backends` | Hardware backends directly                                    | `"xnnpack"`, `"coreml"`, `"mlx"`, `"vulkan"`  |
-| `libs`     | Extra native libraries                                        | `"opencv"`, `"phonemis"`                      |
+| Option     | Purpose                                                                              | Accepted values                                                                                                                                                                                                                                                                                                                                           |
+| ---------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `features` | High-level tasks — each automatically expands to the backends and libraries it needs | `"classification"`, `"imageEmbeddings"`, `"instanceSegmentation"`, `"keypointDetection"`, `"llm"`, `"multimodalLLM"`, `"objectDetection"`, `"ocr"`, `"privacyFilter"`, `"segmentAnything"`, `"semanticSegmentation"`, `"speechToText"`, `"styleTransfer"`, `"textEmbeddings"`, `"textToImage"`, `"textToSpeech"`, `"tokenizer"`, `"vad"`, `"verticalOCR"` |
+| `backends` | Hardware acceleration backends directly                                              | `"xnnpack"`, `"coreml"`, `"mlx"`, `"vulkan"`                                                                                                                                                                                                                                                                                                              |
+| `libs`     | Extra native C++ libraries                                                           | `"opencv"`, `"phonemis"`                                                                                                                                                                                                                                                                                                                                  |
 
-The three lists are merged, so you can mix them. Re-run your install after editing.
+The three lists are merged, so you can pair high-level `features` with specific `backends` or `libs`. Re-run your package manager install after editing.
+
+### Backends
+
+Hardware backends provide optimized execution kernels for specific processors and platforms. See the [ExecuTorch Backends documentation](https://docs.pytorch.org/executorch/stable/backends-section.html) for details on lowering and delegate compilation:
+
+- **[XNNPACK](https://docs.pytorch.org/executorch/stable/backends/xnnpack/xnnpack-overview.html)** — High-efficiency floating-point and quantized neural network inference operators optimized for ARM and x86 CPUs. Supported on both **Android** and **iOS**.
+- **[Core ML](https://docs.pytorch.org/executorch/stable/backends/coreml/coreml-overview.html)** — Apple's framework for hardware-accelerated machine learning on Apple Silicon, targeting the Apple Neural Engine (ANE) and GPU. Supported on **iOS only**.
+- **[MLX](https://github.com/ml-explore/mlx)** — An array framework designed for efficient machine learning on Apple silicon via Metal compute shaders, used primarily for accelerated LLM generation. Supported on **iOS only** (physical device only, no simulator).
+- **[Vulkan](https://docs.pytorch.org/executorch/stable/backends/vulkan/vulkan-overview.html)** — Cross-platform 3D graphics and compute API, leveraging mobile GPUs on **Android only** for accelerated neural network inference and tensor compute operations.
+
+### Third-Party Libraries
+
+- **[OpenCV](https://opencv.org/)** — High-performance computer vision library providing image transformations, color space conversions, resizing, and pixel format operations (used by vision pipelines and multimodal LLMs). Provided on iOS via CocoaPods and on Android as static prebuilt libraries.
+- **[phonemis](https://github.com/IgorSwat/Phonemis)** — High-performance C++ library for Grapheme-to-Phoneme (G2P) conversion, delivering universal IPA phonemization as the frontend for [Text-to-Speech](../02-extensions/speech/02-text-to-speech.md) pipelines. Compiled from source on both Android and iOS when enabled.
 
 ### Features
 
-| Feature                | Backends                | Extra libs |
-| ---------------------- | ----------------------- | ---------- |
-| `llm`                  | xnnpack, mlx            | —          |
-| `multimodalLLM`        | xnnpack, mlx, vulkan    | opencv     |
-| `privacyFilter`        | xnnpack, mlx            | —          |
-| `speechToText`         | xnnpack, coreml         | —          |
-| `textToSpeech`         | xnnpack                 | phonemis   |
-| `vad`                  | xnnpack                 | —          |
-| `textEmbeddings`       | xnnpack, mlx            | —          |
-| `imageEmbeddings`      | xnnpack                 | opencv     |
-| `classification`       | xnnpack, coreml         | opencv     |
-| `objectDetection`      | xnnpack, coreml         | opencv     |
-| `keypointDetection`    | xnnpack, coreml, mlx    | opencv     |
-| `semanticSegmentation` | xnnpack                 | opencv     |
-| `instanceSegmentation` | xnnpack, coreml         | opencv     |
-| `ocr`                  | xnnpack, coreml, vulkan | opencv     |
-| `verticalOCR`          | xnnpack                 | opencv     |
-| `styleTransfer`        | xnnpack, coreml         | opencv     |
-| `textToImage`          | xnnpack                 | opencv     |
-| `segmentAnything`      | xnnpack, coreml         | opencv     |
-| `tokenizer`            | —                       | —          |
+Specifying a task under `features` is shorthand: it automatically expands to the union of backends and native libraries required by the pre-exported models in that domain.
 
-### Platform notes
-
-- **Core ML** — iOS only
-- **MLX** — iOS only, device slice only (no simulator)
-- **Vulkan** — Android only
-- **OpenCV** — iOS via `opencv-rne` CocoaPod; Android as static libraries
-- **phonemis** — compiled from source when enabled
-
-## Environment variables
-
-| Variable             | Purpose                                                                    |
-| -------------------- | -------------------------------------------------------------------------- |
-| `RNET_SKIP_DOWNLOAD` | Skip the network download (useful on CI)                                   |
-| `RNET_BASE_URL`      | Override the download URL (e.g. `http://localhost:8080` for local testing) |
-| `RNET_NO_X86_64`     | Skip the x86_64 Android emulator slice                                     |
-| `RNET_HEADERS_ONLY`  | Fetch only headers, no native libs (for IDE tooling)                       |
-
-## Downloaded artifacts
-
-| Artifact                 | Target  | Contents                                                |
-| ------------------------ | ------- | ------------------------------------------------------- |
-| `headers`                | any     | ExecuTorch + c10/torch + tokenizer + OpenCV headers     |
-| `core-android-arm64-v8a` | Android | `libexecutorch.so` + `executorch.jar`                   |
-| `core-android-x86_64`    | Android | `libexecutorch.so` (emulator)                           |
-| `xnnpack-android-*`      | Android | `libxnnpack_executorch_backend.so`                      |
-| `vulkan-android-*`       | Android | `libvulkan_executorch_backend.so`                       |
-| `opencv-android-*`       | Android | Static OpenCV + KleidiCV HAL                            |
-| `core-ios`               | iOS     | `ExecutorchLib.xcframework`                             |
-| `xnnpack-ios`            | iOS     | `XnnpackBackend.xcframework`                            |
-| `coreml-ios`             | iOS     | `CoreMLBackend.xcframework`                             |
-| `mlx-ios`                | iOS     | `MLXBackend.xcframework` (device only) + `mlx.metallib` |
-
-## Why backends must be force-loaded
-
-ExecuTorch registers kernels via `__attribute__((constructor))` functions — they run at load time with no external callers. Without force-loading (`-force_load` on iOS, `--whole-archive` on Android), the linker strips the registration symbols and you get `Missing operator: ...` at inference.
-
-## Building from source
-
-The binaries come from [`software-mansion-labs/executorch` (branch `rne-split-build`)](https://github.com/software-mansion-labs/executorch/tree/rne-split-build).
-
-**Android:**
-
-```bash
-export ANDROID_NDK=$HOME/Library/Android/sdk/ndk/27.1.12297006
-EXECUTORCH_BUILD_VULKAN=ON \
-EXECUTORCH_BUILD_XNNPACK_BACKEND_SHARED=ON \
-ANDROID_ABI=arm64-v8a ./scripts/build_android_library.sh
-```
-
-**iOS:**
-
-```bash
-rm -rf cmake-out
-./scripts/build_apple_frameworks.sh --Release
-```
-
-**Package and upload:**
-
-```bash
-./scripts/package-release-artifacts.sh
-```
-
-Upload the tarballs from `dist-artifacts/` as GitHub Release assets. To test locally:
-
-```bash
-cd packages/react-native-executorch/dist-artifacts
-python3 -m http.server 8080 &
-RNET_BASE_URL=http://localhost:8080 yarn install
-```
+| Feature                | Expanded Backends            | Expanded Extra Libs |
+| ---------------------- | ---------------------------- | ------------------- |
+| `llm`                  | xnnpack, mlx, vulkan         | —                   |
+| `multimodalLLM`        | xnnpack, mlx, vulkan         | opencv              |
+| `privacyFilter`        | xnnpack, mlx                 | —                   |
+| `speechToText`         | xnnpack, coreml, mlx, vulkan | —                   |
+| `textToSpeech`         | xnnpack, coreml, mlx, vulkan | phonemis            |
+| `vad`                  | xnnpack                      | —                   |
+| `textEmbeddings`       | xnnpack, coreml, mlx, vulkan | —                   |
+| `imageEmbeddings`      | xnnpack, coreml, mlx, vulkan | opencv              |
+| `classification`       | xnnpack, coreml              | opencv              |
+| `objectDetection`      | xnnpack, coreml              | opencv              |
+| `keypointDetection`    | xnnpack, coreml, mlx         | opencv              |
+| `semanticSegmentation` | xnnpack, coreml              | opencv              |
+| `instanceSegmentation` | xnnpack, coreml              | opencv              |
+| `ocr`                  | xnnpack, coreml, vulkan      | opencv              |
+| `verticalOCR`          | xnnpack                      | opencv              |
+| `styleTransfer`        | xnnpack, coreml              | opencv              |
+| `textToImage`          | xnnpack, coreml              | opencv              |
+| `segmentAnything`      | xnnpack, coreml              | opencv              |
+| `tokenizer`            | —                            | —                   |
