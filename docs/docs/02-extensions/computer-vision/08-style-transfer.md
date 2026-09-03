@@ -75,19 +75,19 @@ import { models, useStyleTransfer } from 'react-native-executorch';
 import type { ImageBuffer } from 'react-native-executorch/cv';
 
 function MyComponent() {
-  const styleTransfer = useStyleTransfer(models.styleTransfer.CANDY.DEFAULT);
+  const styler = useStyleTransfer(models.styleTransfer.CANDY.DEFAULT);
 
   // Hook state:
-  // styleTransfer.isReady          — true once model is downloaded and loaded in memory
-  // styleTransfer.downloadProgress — 0 to 100 download progress
-  // styleTransfer.error            — Error instance if download or load failed
-  // styleTransfer.resource         — resolved config with all URLs replaced by local file paths
+  // styler.isReady          — true once model is downloaded and loaded in memory
+  // styler.downloadProgress — 0 to 100 download progress
+  // styler.error            — Error instance if download or load failed
+  // styler.resource         — resolved config with all URLs replaced by local file paths
 
   const handleTransfer = async (imageBuffer: ImageBuffer) => {
-    if (!styleTransfer.isReady || !styleTransfer.transferStyle) return;
+    if (!styler.isReady || !styler.transferStyle) return;
 
     // Run inference on background thread
-    const styledBuffer = await styleTransfer.transferStyle(imageBuffer);
+    const styledBuffer = await styler.transferStyle(imageBuffer);
     console.log('Styled image dimensions:', styledBuffer.width, styledBuffer.height);
   };
 
@@ -123,14 +123,14 @@ import { createStyleTransfer, download, models } from 'react-native-executorch';
 
 // Download and cache model assets before creating the pipeline
 const model = await download(models.styleTransfer.CANDY.DEFAULT);
-const styleTransfer = await createStyleTransfer(model);
+const styler = await createStyleTransfer(model);
 
 try {
-  const styledBuffer = await styleTransfer.transferStyle(imageBuffer);
+  const styledBuffer = await styler.transferStyle(imageBuffer);
   console.log('Styled output byte length:', styledBuffer.data.byteLength);
 } finally {
   // Always release native resources when finished
-  styleTransfer.dispose();
+  styler.dispose();
 }
 ```
 
@@ -140,7 +140,7 @@ For high-throughput loops like live viewfinder styling or video recording, [`cre
 
 ```typescript
 // Called synchronously inside a VisionCamera frame processor on the UI worklet thread
-const styledBuffer = styleTransfer.transferStyleWorklet(frameBuffer);
+const styledBuffer = styler.transferStyleWorklet(frameBuffer);
 ```
 
 See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.md) for details on worklet execution contexts and zero-copy host objects.
@@ -160,7 +160,7 @@ The library provides ready-to-use style transfer models from the [Software Mansi
 To use your own trained feed-forward style transfer `.pte` model, pass a [`StyleTransferModel`](../../06-api-reference/type-aliases/StyleTransferModel.md) configuration object to [`useStyleTransfer`](../../06-api-reference/functions/useStyleTransfer.md) or [`createStyleTransfer`](../../06-api-reference/functions/createStyleTransfer.md):
 
 ```typescript
-const customStyleTransfer = await createStyleTransfer({
+const customStyler = await createStyleTransfer({
   modelPath: 'https://example.com/my-style.pte',
   modelOpts: {
     resizeMode: 'stretch',
