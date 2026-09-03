@@ -34,8 +34,15 @@ writing native code — the same building blocks every built-in pipeline uses.
 | [`llm`](../06-api-reference/react-native-executorch/namespaces/llm/index.md)       | The LLM runner, chat preprocessing, and tool-calling.          |
 
 ```typescript
+// Import as namespaces from the root entrypoint:
 import { math, cv, speech, nlp, llm } from 'react-native-executorch';
+
+// Or import directly from domain subpaths for types and standalone utilities:
+import type { ImageBuffer, BoundingBox } from 'react-native-executorch/cv';
+import type { ChatMessage, ToolDefinition } from 'react-native-executorch/llm';
 ```
+
+All domain utilities and types are available both as namespaces on the root `react-native-executorch` import and directly via dedicated subpath imports (`react-native-executorch/cv`, `/llm`, `/nlp`, `/speech`, `/math`, `/schema`).
 
 ## Two kinds of building block
 
