@@ -210,3 +210,9 @@ The pipeline automatically verifies that the model's exported input and output s
 
 - [`models.semanticSegmentation`](../../06-api-reference/variables/models.md#semanticsegmentation) — Pre-configured semantic segmentation models registry.
 - [`PASCAL_VOC_LABELS`](../../06-api-reference/variables/PASCAL_VOC_LABELS.md) — List of 21 standard Pascal VOC class labels.
+
+:::info Source Code
+View the implementation on GitHub:
+
+- [`src/extensions/cv/tasks/semanticSegmentation.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/cv/tasks/semanticSegmentation.ts)
+  :::

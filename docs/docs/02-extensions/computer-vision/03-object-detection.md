@@ -228,3 +228,9 @@ The pipeline automatically verifies that the model's exported input and output s
 ### Model Presets
 
 - [`models.objectDetection`](../../06-api-reference/variables/models.md#objectdetection) — Pre-configured object detection models registry.
+
+:::info Source Code
+View the implementation on GitHub:
+
+- [`src/extensions/cv/tasks/objectDetection.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/cv/tasks/objectDetection.ts)
+  :::

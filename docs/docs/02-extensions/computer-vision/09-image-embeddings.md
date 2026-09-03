@@ -197,3 +197,9 @@ The pipeline automatically verifies that the model's exported input and output s
 ### Model Presets
 
 - [`models.imageEmbeddings`](../../06-api-reference/variables/models.md#imageembeddings) — Pre-configured vision encoder models registry.
+
+:::info Source Code
+View the implementation on GitHub:
+
+- [`src/extensions/cv/tasks/imageEmbedding.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/cv/tasks/imageEmbedding.ts)
+  :::

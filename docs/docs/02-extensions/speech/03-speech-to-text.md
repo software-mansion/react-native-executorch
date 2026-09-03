@@ -231,3 +231,9 @@ The library provides ready-to-use Whisper models from the [Software Mansion Hugg
 - [`WHISPER_SAMPLE_RATE_HZ`](../../06-api-reference/variables/WHISPER_SAMPLE_RATE_HZ.md) — Target audio sample rate expected by Whisper models (16000 Hz).
 - [`WHISPER_LANGUAGES`](../../06-api-reference/variables/WHISPER_LANGUAGES.md) — Array of 99+ supported language codes.
 - [`models.speechToText`](../../06-api-reference/variables/models.md#speechtotext) — Pre-configured Whisper models registry.
+
+:::info Source Code
+View the implementation on GitHub:
+
+- [`src/extensions/speech/tasks/whisperSpeechToText.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts)
+  :::

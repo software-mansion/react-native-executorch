@@ -211,3 +211,9 @@ The pipeline automatically verifies that the model's exported input and output s
 ### Model Presets
 
 - [`models.textEmbeddings`](../../06-api-reference/variables/models.md#textembeddings) — Pre-configured text embedding models registry.
+
+:::info Source Code
+View the implementation on GitHub:
+
+- [`src/extensions/nlp/tasks/textEmbedding.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/nlp/tasks/textEmbedding.ts)
+  :::

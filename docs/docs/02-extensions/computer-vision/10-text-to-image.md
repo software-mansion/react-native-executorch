@@ -189,3 +189,9 @@ The pipeline automatically verifies that the model's exported methods (`encode`,
 ### Model Presets
 
 - [`models.textToImage`](../../06-api-reference/variables/models.md#texttoimage) — Pre-configured text-to-image generation models registry.
+
+:::info Source Code
+View the implementation on GitHub:
+
+- [`src/extensions/cv/tasks/sdxsTextToImage.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/cv/tasks/sdxsTextToImage.ts)
+  :::

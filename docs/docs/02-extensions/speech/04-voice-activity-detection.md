@@ -236,3 +236,9 @@ The library provides the optimized FSMN-VAD model from the [Software Mansion Hug
 
 - [`FSMN_VAD_SAMPLE_RATE_HZ`](../../06-api-reference/variables/FSMN_VAD_SAMPLE_RATE_HZ.md) — Expected audio input sample rate constant (16000 Hz).
 - [`models.voiceActivityDetection`](../../06-api-reference/variables/models.md#voiceactivitydetection) — Pre-configured VAD models registry.
+
+:::info Source Code
+View the implementation on GitHub:
+
+- [`src/extensions/speech/tasks/fsmnVoiceActivityDetection.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/speech/tasks/fsmnVoiceActivityDetection.ts)
+  :::

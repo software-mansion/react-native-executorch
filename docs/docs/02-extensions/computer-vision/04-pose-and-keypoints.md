@@ -235,3 +235,9 @@ The pipeline automatically verifies that the model's exported input and output s
 - [`models.keypointDetection`](../../06-api-reference/variables/models.md#keypointdetection) — Pre-configured keypoint and pose models registry.
 - [`COCO_LANDMARKS`](../../06-api-reference/variables/COCO_LANDMARKS.md) — List of 17 standard COCO skeletal body keypoints.
 - [`BLAZEFACE_LANDMARKS`](../../06-api-reference/variables/BLAZEFACE_LANDMARKS.md) — List of 6 standard BlazeFace facial landmarks.
+
+:::info Source Code
+View the implementation on GitHub:
+
+- [`src/extensions/cv/tasks/keypointDetection.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/cv/tasks/keypointDetection.ts)
+  :::

@@ -1,5 +1,6 @@
 {
-  "gitRevision": "main",
+  "_todo": "Switch back to main once the rne-rewrite branch is merged into main",
+  "gitRevision": "rne-rewrite",
   "skipErrorChecking": true,
   "compilerOptions": {
     "skipLibCheck": true

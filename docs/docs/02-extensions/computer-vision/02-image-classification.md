@@ -215,3 +215,9 @@ Models](../../03-core-and-advanced/07-exporting-custom-models.md#using-a-built-i
 ### Model Presets
 
 - [`models.classification`](../../06-api-reference/variables/models.md#classification) — Pre-configured classification models registry.
+
+:::info Source Code
+View the implementation on GitHub:
+
+- [`src/extensions/cv/tasks/classification.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/cv/tasks/classification.ts)
+  :::

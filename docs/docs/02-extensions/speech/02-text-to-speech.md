@@ -207,3 +207,10 @@ Because Text-to-Speech architectures require distinct multi-model orchestration 
 - [`speech.SUPERTONIC_SUPPORTED_LANGUAGES`](../../06-api-reference/react-native-executorch/namespaces/speech/variables/SUPERTONIC_SUPPORTED_LANGUAGES.md) — Supported language codes for Supertonic.
 - [`speech.KOKORO_PAUSE_MS`](../../06-api-reference/react-native-executorch/namespaces/speech/variables/KOKORO_PAUSE_MS.md) — Pause duration in milliseconds inserted between clauses.
 - [`models.textToSpeech`](../../06-api-reference/variables/models.md#texttospeech) — Pre-configured TTS models registry.
+
+:::info Source Code
+View the implementation on GitHub:
+
+- [`src/extensions/speech/tasks/kokoroTextToSpeech.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/speech/tasks/kokoroTextToSpeech.ts)
+- [`src/extensions/speech/tasks/supertonicTextToSpeech.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/speech/tasks/supertonicTextToSpeech.ts)
+  :::

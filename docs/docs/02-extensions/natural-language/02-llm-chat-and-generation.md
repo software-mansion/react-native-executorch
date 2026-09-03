@@ -359,3 +359,10 @@ The pipeline automatically verifies that the model's exported methods and KV cac
 ### Model Presets
 
 - [`models.llm`](../../06-api-reference/variables/models.md#llm) — Pre-configured LLM models registry.
+
+:::info Source Code
+View the implementation on GitHub:
+
+- [`src/extensions/llm/tasks/llmChatSession.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/llm/tasks/llmChatSession.ts)
+- [`src/extensions/llm/llmRunner.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/llm/llmRunner.ts)
+  :::

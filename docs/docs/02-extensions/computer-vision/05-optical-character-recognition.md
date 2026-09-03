@@ -222,3 +222,9 @@ The pipeline automatically verifies that the model's exported input and output s
 ### Model Presets
 
 - [`models.ocr`](../../06-api-reference/variables/models.md#ocr) — Pre-configured OCR models registry.
+
+:::info Source Code
+View the implementation on GitHub:
+
+- [`src/extensions/cv/tasks/paddleOcr.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/cv/tasks/paddleOcr.ts)
+  :::
