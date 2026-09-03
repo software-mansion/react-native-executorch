@@ -115,24 +115,37 @@ const ALL_LIBS = ['opencv', 'phonemis'];
 // features -> { backends, libs }
 // Backend lists are the union of what at least one model in that family ships
 // today (per src/models.ts). When a new variant lands for a model that adds
-// e.g. coreml or vulkan support, bump the family here.
+// e.g. coreml or vulkan support, bump the family here. Leaving one out is not
+// only a missed optimization: `models.<task>.<MODEL>.DEFAULT` resolves to the
+// fastest export the device can actually run, so a backend that never gets
+// downloaded silently drops that model back to XNNPACK. The registry test
+// `feature map` in __tests__/api/modelVariants.test.ts holds this in sync.
 const FEATURE_MAP = {
-  // Text-only LLMs ship xnnpack + mlx (Gemma 4 ships an MLX iOS export).
-  llm: { backends: ['xnnpack', 'mlx'], libs: [] },
+  // Text-only LLMs ship xnnpack + mlx (Gemma 4 ships an MLX iOS export) and
+  // vulkan (Gemma 4 E2B ships a Vulkan export).
+  llm: { backends: ['xnnpack', 'mlx', 'vulkan'], libs: [] },
   // Multimodal LLMs add vulkan (Gemma-3-multimodal ships a Vulkan export) and
   // mlx (Gemma 4 ships an MLX iOS export); the vision encoder needs opencv.
   multimodalLLM: { backends: ['xnnpack', 'mlx', 'vulkan'], libs: ['opencv'] },
   // Privacy filter classifiers ship xnnpack + an MLX iOS export.
   privacyFilter: { backends: ['xnnpack', 'mlx'], libs: [] },
-  // Whisper ships xnnpack + coreml.
-  speechToText: { backends: ['xnnpack', 'coreml'], libs: [] },
-  // Kokoro ships xnnpack + coreml.
-  textToSpeech: { backends: ['xnnpack', 'coreml'], libs: ['phonemis'] },
+  // Whisper ships xnnpack, coreml, an MLX iOS export and a Vulkan Android one.
+  speechToText: { backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'], libs: [] },
+  // Kokoro ships xnnpack + coreml; Supertonic adds an MLX iOS export and a
+  // Vulkan Android one.
+  textToSpeech: {
+    backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'],
+    libs: ['phonemis'],
+  },
   // FSMN VAD — xnnpack only.
   vad: { backends: ['xnnpack'], libs: [] },
-  // LFM2.5-Embedding ships an MLX iOS export alongside xnnpack.
-  textEmbeddings: { backends: ['xnnpack', 'mlx'], libs: [] },
-  imageEmbeddings: { backends: ['xnnpack'], libs: ['opencv'] },
+  // The MiniLM/CLIP-text/distiluse family ships coreml alongside xnnpack,
+  // LFM2.5-Embedding and distiluse add MLX iOS exports, and every sentence
+  // transformer now ships a vulkan Android export.
+  textEmbeddings: { backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'], libs: [] },
+  // CLIP's vision encoder ships xnnpack, coreml and mlx, plus a vulkan Android
+  // export.
+  imageEmbeddings: { backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'], libs: ['opencv'] },
   // EfficientNet ships xnnpack + coreml.
   classification: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
   // YOLO is xnnpack-only, ssdlite/rf_detr add coreml → union.
@@ -141,8 +154,8 @@ const FEATURE_MAP = {
   // keypoint adds coreml + mlx → union. (Named to track the useKeypointDetector
   // hook; main calls this poseEstimation.)
   keypointDetection: { backends: ['xnnpack', 'coreml', 'mlx'], libs: ['opencv'] },
-  // DeepLab/FCN/LR-ASPP/selfie — xnnpack only.
-  semanticSegmentation: { backends: ['xnnpack'], libs: ['opencv'] },
+  // DeepLab/FCN/LR-ASPP/selfie all ship xnnpack + coreml.
+  semanticSegmentation: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
   // YOLO-seg xnnpack-only, rf_detr-seg/fastsam add coreml → union.
   instanceSegmentation: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
   // PP-OCRv6 (DBNet + SVTR) ships xnnpack, coreml and vulkan → union.
@@ -150,8 +163,8 @@ const FEATURE_MAP = {
   verticalOCR: { backends: ['xnnpack'], libs: ['opencv'] },
   // All style-transfer presets ship xnnpack + coreml.
   styleTransfer: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
-  // BK-SDM — xnnpack only.
-  textToImage: { backends: ['xnnpack'], libs: ['opencv'] },
+  // SDXS ships xnnpack + coreml.
+  textToImage: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
   // FastSAM ships xnnpack + coreml.
   segmentAnything: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
   // Tokenizer is pure-CPU string ops resolved from libexecutorch; needs no
@@ -476,8 +489,12 @@ async function main() {
   console.log('[react-native-executorch] Native libs ready.');
 }
 
-main().catch((err) => {
-  console.error('[react-native-executorch] Failed to download native libs:', err.message);
-  console.error('  You can set RNET_SKIP_DOWNLOAD=1 to skip and provide libs manually.');
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((err) => {
+    console.error('[react-native-executorch] Failed to download native libs:', err.message);
+    console.error('  You can set RNET_SKIP_DOWNLOAD=1 to skip and provide libs manually.');
+    process.exit(1);
+  });
+}
+
+module.exports = { ALL_BACKENDS, ALL_LIBS, FEATURE_MAP };
