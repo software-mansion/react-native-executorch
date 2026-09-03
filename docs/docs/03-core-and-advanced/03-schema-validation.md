@@ -123,8 +123,9 @@ Pass the exported schema and a set of named variants to
 [`validateSpec`](../06-api-reference/react-native-executorch/namespaces/schema/functions/validateSpec.md).
 Variants are tried in order; the first to match wins. The returned
 [`SpecMatch`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/SpecMatch.md)
-carries the matched `variant` key and accessors for the values each symbol bound
-to.
+carries the matched
+[`variant`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/SpecMatch.md#variant)
+key and accessors for the values each symbol bound to.
 
 ```typescript
 const { variant, dims } = validateSpec(model.schema, {
@@ -141,24 +142,25 @@ const outShape = { batched: [1, N], unbatched: [N] }[variant];
 
 This is the standard opening of a pipeline: validate first, then use the bound
 symbols to allocate the exact tensors the model needs. If nothing matches,
-`validateSpec` throws [`SCHEMA_MISMATCH`](./05-error-handling.md#error-codes-reference) with
+[`validateSpec`](../06-api-reference/react-native-executorch/namespaces/schema/functions/validateSpec.md)
+throws [`SCHEMA_MISMATCH`](./05-error-handling.md#error-codes-reference) with
 a per-variant explanation of why each one failed — so validation doubles as the
 pipeline's precondition check.
 
 The [`dims`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/SpecMatch.md#dims)
 accessors are typed to the domain you ask for:
 
-- `dims.constant(...)` returns numbers (from static symbols).
-- `dims.range(...)` returns [`Range`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/Range.md) objects `{ min, max, step }`.
-- `dims.enum(...)` returns `readonly number[]` choice lists.
-- `dims.dynamic(...)` returns the raw dynamic domain (range or enum).
+- [`dims.constant(...)`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/SpecMatch.md#constant) returns numbers (from static symbols).
+- [`dims.range(...)`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/SpecMatch.md#range) returns [`Range`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/Range.md) objects `{ min, max, step }`.
+- [`dims.enum(...)`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/SpecMatch.md#enum) returns `readonly number[]` choice lists.
+- [`dims.dynamic(...)`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/SpecMatch.md#dynamic) returns the raw dynamic domain (range or enum).
 
 There is also a single-symbol
 [`dim(name, kind?)`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/SpecMatch.md#dim)
 accessor for one-off reads.
 
 :::tip Validate before you allocate
-Run `validateSpec` immediately after [`loadModel`](../06-api-reference/functions/loadModel.md),
+Run [`validateSpec`](../06-api-reference/react-native-executorch/namespaces/schema/functions/validateSpec.md) immediately after [`loadModel`](../06-api-reference/functions/loadModel.md),
 before allocating any tensors. The bound symbols give you the exact shapes to
 allocate, and a mismatch is caught before you commit any native memory.
 :::
@@ -169,7 +171,13 @@ Every concrete dimension has one of three domains, and your symbols bind to them
 
 - **constant** — a single fixed value. Static string symbols (and plain integers)
   match these.
-- **range** — values from `min` to `max` in steps of `step`, via
+- **range** — values from
+  [`min`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/Range.md#min)
+  to
+  [`max`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/Range.md#max)
+  in steps of
+  [`step`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/Range.md#step),
+  via
   [`RangeDim`](../06-api-reference/react-native-executorch/namespaces/schema/functions/RangeDim.md).
 - **enum** — an explicit set of choices, via
   [`EnumDim`](../06-api-reference/react-native-executorch/namespaces/schema/functions/EnumDim.md).
@@ -196,8 +204,13 @@ helpers.
 
 A dimension is referenced by a
 [`DimRef`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/DimRef.md)
-— `{ paramSide, tensorIdx, dimIdx }`, where `tensorIdx` counts only tensor
-parameters, skipping any primitives.
+— `{`
+[`paramSide`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/DimRef.md#paramside),
+[`tensorIdx`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/DimRef.md#tensoridx),
+[`dimIdx`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/DimRef.md#dimidx)
+`}`, where
+[`tensorIdx`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/DimRef.md#tensoridx)
+counts only tensor parameters, skipping any primitives.
 
 ```typescript
 // Two int64 inputs [1, L1] and [1, L2] whose second dimensions must be equal
@@ -224,9 +237,10 @@ Two kinds are available:
 
 Constraints are matched as **declarations**: for a variant to validate, the
 exported spec must declare exactly the same constraints, one-to-one — no missing
-ones and no extras. `validateSpec` compares the declarations; it does not evaluate
-whether they hold. Enforcement against the tensors you actually pass happens later,
-inside the native runtime.
+ones and no extras.
+[`validateSpec`](../06-api-reference/react-native-executorch/namespaces/schema/functions/validateSpec.md)
+compares the declarations; it does not evaluate whether they hold. Enforcement
+against the tensors you actually pass happens later, inside the native runtime.
 
 ## Primitive parameters
 
@@ -247,7 +261,8 @@ method(
 
 Primitives are skipped when counting tensors for a
 [`DimRef`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/DimRef.md):
-`tensorIdx` indexes only tensor parameters. In
+[`tensorIdx`](../06-api-reference/react-native-executorch/namespaces/schema/type-aliases/DimRef.md#tensoridx)
+indexes only tensor parameters. In
 `[f32(1, 'N'), { kind: 'Int' }, i64(1, 'L')]`, the `i64` tensor is `tensorIdx: 1`,
 not `2`.
 
@@ -256,10 +271,12 @@ not `2`.
 A variant is not limited to a single method. Because
 [`method`](../06-api-reference/react-native-executorch/namespaces/schema/functions/method.md)
 returns a one-method spec object, you merge several into one variant with object
-spread. `validateSpec` requires every method you declare to be present and to
-match (the model may export additional methods you don't mention). Symbols bind
-across the **whole** variant, so a symbol reused between methods must resolve
-consistently — which is exactly how you assert that two methods share a dimension.
+spread.
+[`validateSpec`](../06-api-reference/react-native-executorch/namespaces/schema/functions/validateSpec.md)
+requires every method you declare to be present and to match (the model may
+export additional methods you don't mention). Symbols bind across the **whole**
+variant, so a symbol reused between methods must resolve consistently — which is
+exactly how you assert that two methods share a dimension.
 
 ```typescript
 // An encoder/decoder whose embedding width D is the same across both methods,
