@@ -350,3 +350,6 @@ phonemizes
 həlˈoʊ
 NSURL
 backgrounding
+LibriSpeech
+recompiles
+xzmf

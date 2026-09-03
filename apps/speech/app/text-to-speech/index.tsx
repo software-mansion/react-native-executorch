@@ -53,11 +53,14 @@ const STEPS_OPTIONS = [
 const MODEL_OPTIONS = [
   { label: 'XNNPACK (CPU)', value: 'XNNPACK_FP32' as const },
   { label: 'MLX (Apple Silicon)', value: 'MLX_FP32' as const, disabled: Platform.OS !== 'ios' },
+  { label: 'Vulkan (GPU)', value: 'VULKAN_FP16' as const, disabled: Platform.OS !== 'android' },
 ];
 
 function TTSContent() {
   const [text, setText] = useState(SAMPLE_TEXT);
-  const [selectedModel, setSelectedModel] = useState<'XNNPACK_FP32' | 'MLX_FP32'>('XNNPACK_FP32');
+  const [selectedModel, setSelectedModel] = useState<'XNNPACK_FP32' | 'MLX_FP32' | 'VULKAN_FP16'>(
+    Platform.OS === 'android' ? 'VULKAN_FP16' : 'XNNPACK_FP32'
+  );
   const [selectedVoice, setSelectedVoice] = useState<SupertonicDefaultVoiceName>('F1');
   const [selectedLang, setSelectedLang] = useState<speech.SupertonicLanguage>('en');
   const [speed, setSpeed] = useState(1.05);
