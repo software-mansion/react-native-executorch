@@ -865,7 +865,7 @@ export const WHISPER_BASE_EN_MODEL_MLX = `${URL_PREFIX}-whisper-base.en/${VERSIO
 export const WHISPER_SMALL_EN_TOKENIZER = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/tokenizer.json`;
 export const WHISPER_SMALL_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/xnnpack/whisper_small_en_xnnpack_fp32.pte`;
 export const WHISPER_SMALL_EN_MODEL_COREML = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/coreml/whisper_small_en_coreml_fp16.pte`;
-export const WHISPER_SMALL_EN_MODEL_MLX = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/mlx/whisper_small_en_mlx_bf16.pte`;
+export const WHISPER_SMALL_EN_MODEL_MLX = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/mlx/whisper_small_en_mlx_int8.pte`;
 
 export const WHISPER_TINY_TOKENIZER = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/tokenizer.json`;
 export const WHISPER_TINY_MODEL_XNNPACK = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/xnnpack/whisper_tiny_xnnpack_fp32.pte`;
@@ -880,7 +880,7 @@ export const WHISPER_BASE_MODEL_MLX = `${URL_PREFIX}-whisper-base/${VERSION_TAG}
 export const WHISPER_SMALL_TOKENIZER = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/tokenizer.json`;
 export const WHISPER_SMALL_MODEL_XNNPACK = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/xnnpack/whisper_small_xnnpack_fp32.pte`;
 export const WHISPER_SMALL_MODEL_COREML = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/coreml/whisper_small_coreml_fp16.pte`;
-export const WHISPER_SMALL_MODEL_MLX = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/mlx/whisper_small_mlx_bf16.pte`;
+export const WHISPER_SMALL_MODEL_MLX = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/mlx/whisper_small_mlx_int8.pte`;
 
 /**
  * @category Models - Speech To Text
