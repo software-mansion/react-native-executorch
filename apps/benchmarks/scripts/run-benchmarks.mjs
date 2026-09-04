@@ -19,7 +19,8 @@
  *
  * Usage:
  *   yarn bench --platform android --label et-1.4.1
- *   yarn bench --platform android --suite full --repeats 3 --max-temp-c 35
+ *   yarn bench --platform android --suite full --max-temp-c 35
+ *   yarn bench --platform android --suite full --repeats 3   # with an error bar
  *   yarn bench --platform android --resume         # continue an interrupted run
  *   yarn bench --platform ios --no-launch          # app started by hand
  */
@@ -43,7 +44,7 @@ const DEFAULTS = {
   iterations: '20',
   warmup: '3',
   memoryIterations: '5',
-  repeats: '3',
+  repeats: '1',
   maxTempC: '35',
   gateTimeoutS: '1800',
   maxBytes: '6000000000',
@@ -63,6 +64,7 @@ function parseArgs(argv) {
     native: true,
     resume: false,
     keepModels: false,
+    unplug: true,
   };
 
   for (let i = 0; i < argv.length; i++) {
@@ -72,6 +74,7 @@ function parseArgs(argv) {
     else if (arg === '--no-native') options.native = false;
     else if (arg === '--resume') options.resume = true;
     else if (arg === '--keep-models') options.keepModels = true;
+    else if (arg === '--no-unplug') options.unplug = false;
     else if (arg.startsWith('--')) {
       const key = arg.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
       if (!(key in DEFAULTS)) throw new Error(`Unknown option ${arg}`);
@@ -210,6 +213,30 @@ async function holdUntilCool(maxTempC, timeoutS, onWait) {
     onWait?.(heat, elapsedS);
     await sleep(POLL_MS);
   }
+}
+
+
+/**
+ * Stops the device charging for the duration of the run, and reads the level.
+ *
+ * `adb` needs the USB cable, and the cable charges the phone, and charging is
+ * what holds it warm: an S26 Ultra sat at 34.9-35.1C plugged in and dropped to
+ * 33.8C the moment charging stopped. With a 35C gate that is the difference
+ * between every measurement waiting out the timeout and none of them waiting at
+ * all, so the harness stops charging rather than asking whoever runs it to
+ * unplug a phone it also needs to talk to.
+ *
+ * `dumpsys battery unplug` is the framework-level switch the battery test
+ * tooling uses; the device runs on its own cell until `reset`. That makes the
+ * battery level a real constraint on a long suite, which is why it is read back
+ * and reported.
+ * @returns The battery percentage after unplugging, or null if adb cannot say.
+ */
+async function stopCharging() {
+  await adbCapture('dumpsys battery unplug');
+  const out = await adbCapture('dumpsys battery | grep level');
+  const level = /level:\s*(\d+)/.exec(out);
+  return level ? Number(level[1]) : null;
 }
 
 function run(command, args, env) {
@@ -475,6 +502,22 @@ async function main() {
   });
   console.log(`[bench] collector listening on ${sink}`);
 
+  let unplugged = false;
+  if (options.platform === 'android' && options.unplug) {
+    const level = await stopCharging();
+    unplugged = true;
+    console.log(
+      `[bench] charging stopped for this run (battery ${level ?? '?'}%) — the cable holds the ` +
+        'device above the gate temperature'
+    );
+    if (level !== null && level < 40) {
+      console.warn(
+        `[bench] WARNING: battery is at ${level}% and will not charge during the run; ` +
+          'a long suite may not finish. Pass --no-unplug to leave charging on.'
+      );
+    }
+  }
+
   // Pin the clock BEFORE the cooldown so the device settles at the frequency it
   // will actually run at, rather than cooling at 3.4 GHz and being capped after.
   let clocksPinned = false;
@@ -501,17 +544,26 @@ async function main() {
   // Always hand the phone back at its normal clocks, including on Ctrl-C or a
   // crash. Leaving a device capped at 2 GHz would silently poison every later
   // measurement taken on it, benchmark or not.
-  const unpin = () => {
-    if (!clocksPinned) return;
-    clocksPinned = false;
-    spawnSync('adb', ['shell', 'cmd', 'power', 'set-fixed-performance-mode-enabled', 'false'], {
-      stdio: 'ignore',
-    });
+  // Always hand the phone back as it was found, including on Ctrl-C or a crash.
+  // Leaving it capped at 2 GHz would poison every later measurement taken on it,
+  // and leaving it refusing to charge is worse: the owner has no reason to
+  // suspect a benchmark for a phone that is quietly running its battery down.
+  const restoreDevice = () => {
+    if (clocksPinned) {
+      clocksPinned = false;
+      spawnSync('adb', ['shell', 'cmd', 'power', 'set-fixed-performance-mode-enabled', 'false'], {
+        stdio: 'ignore',
+      });
+    }
+    if (unplugged) {
+      unplugged = false;
+      spawnSync('adb', ['shell', 'dumpsys', 'battery', 'reset'], { stdio: 'ignore' });
+    }
   };
-  process.on('exit', unpin);
+  process.on('exit', restoreDevice);
   for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
     process.on(signal, () => {
-      unpin();
+      restoreDevice();
       process.exit(130);
     });
   }
@@ -544,6 +596,13 @@ async function main() {
 
   let child = null;
   if (options.launch) {
+    // A previous run's app survives its driver being killed, and reconnects to
+    // whatever collector is listening next — reporting the tail of the old plan
+    // as though it were the new one. Observed as a "from scratch" run whose
+    // first measurement was case 3 repeat 3.
+    if (options.platform === 'android') {
+      await adbCapture('am force-stop com.anonymous.benchmarks');
+    }
     console.log(`[bench] launching the app on ${options.platform}`);
     child = run('yarn', [options.platform], env);
 

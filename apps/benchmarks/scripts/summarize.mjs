@@ -110,6 +110,26 @@ function rowsFor(run) {
     const peak = ok.map((entry) => entry.memory?.peakMb).filter((v) => typeof v === 'number');
     const loaded = ok.map((entry) => entry.memory?.loadedMb).filter((v) => typeof v === 'number');
 
+    // Every case runs in one process, and the baseline creeps upward through a
+    // suite as the allocator and the JS heap settle at a higher water mark
+    // (292 MB to 350 MB over seven measurements on an S26 Ultra). Absolute peak
+    // therefore charges a model measured late for the cases before it. The
+    // difference from the baseline read immediately before the model loaded is
+    // the model's own cost, and it is markedly steadier: 108.1 / 108.2 / 108.3
+    // MB across three repeats where the absolute figure moved with the run.
+    const modelPeak = ok
+      .map((entry) =>
+        entry.memory ? entry.memory.peakMb - entry.memory.baselineMb : undefined
+      )
+      .filter((v) => typeof v === 'number');
+    // A dispose that does not return to the baseline is a leak, and it is the
+    // one memory number worth failing on rather than merely reporting.
+    const retained = ok
+      .map((entry) =>
+        entry.memory ? entry.memory.disposedMb - entry.memory.baselineMb : undefined
+      )
+      .filter((v) => typeof v === 'number');
+
     // The raw-execute total is the ExecuTorch-only figure: it excludes the
     // TypeScript pre- and post-processing a pipeline timing folds in, which is
     // most of the difference between a fast model and a slow-looking one.
@@ -118,6 +138,22 @@ function rowsFor(run) {
         (entry.native?.methods ?? []).reduce((sum, method) => sum + (method.stats?.median ?? 0), 0)
       )
       .filter((value) => value > 0);
+
+    // Where the time actually goes, which is the question that decides what to
+    // optimise: a model that is 90% ExecuTorch wants a better export, one that
+    // is 70% TypeScript wants better pre- and post-processing, and the two are
+    // completely different pieces of work.
+    //
+    // Only meaningful when the two passes ran the same shapes. Where a model
+    // declares a dynamic dimension the raw pass takes it at the top of its
+    // declared domain while the pipeline feeds what the input needs, so execute
+    // can legitimately exceed the pipeline figure — on all-MiniLM-L6-v2 that is
+    // a 254-token forward against a 20-token one. Reported as unknown rather
+    // than as a negative overhead, which would read as a measurement error.
+    const pipelineMs = median(pipeline);
+    const executeMs = median(executeTotal);
+    const comparable =
+      typeof pipelineMs === 'number' && typeof executeMs === 'number' && executeMs <= pipelineMs;
 
     rows.push({
       id,
@@ -128,12 +164,16 @@ function rowsFor(run) {
       sizeMb: first.bytes ? first.bytes / 1e6 : undefined,
       status: ok.length === entries.length ? 'ok' : `ok ${ok.length}/${entries.length}`,
       runs: entries.length,
-      pipelineMs: median(pipeline),
+      pipelineMs,
       pipelineSpread: spreadPercent(pipeline),
-      executeMs: median(executeTotal),
+      executeMs,
       executeSpread: spreadPercent(executeTotal),
+      overheadMs: comparable ? pipelineMs - executeMs : undefined,
+      executeShare: comparable ? (executeMs / pipelineMs) * 100 : undefined,
       loadMs: median(load),
       peakMb: median(peak),
+      modelPeakMb: median(modelPeak),
+      retainedMb: median(retained),
       loadedMb: median(loaded),
       units: ok[0].units,
       detail: ok[0].detail,
@@ -154,7 +194,26 @@ const COLUMNS = [
   { key: 'pipelineMs', header: 'Inference ms', get: (row) => num(row.pipelineMs, 2) },
   { key: 'pipelineSpread', header: 'Spread %', get: (row) => num(row.pipelineSpread, 0) },
   { key: 'executeMs', header: 'Execute ms', get: (row) => num(row.executeMs, 2) },
-  { key: 'peakMb', header: 'Peak MB', get: (row) => num(row.peakMb, 0) },
+  {
+    key: 'overheadMs',
+    header: 'JS ms',
+    get: (row) => num(row.overheadMs, 2),
+  },
+  {
+    key: 'executeShare',
+    header: 'Execute %',
+    // The one number that says which half to optimise.
+    get: (row) => (row.executeShare === undefined ? '?' : num(row.executeShare, 0)),
+  },
+  { key: 'modelPeakMb', header: 'Model MB', get: (row) => num(row.modelPeakMb, 0) },
+  { key: 'peakMb', header: 'Proc peak MB', get: (row) => num(row.peakMb, 0) },
+  {
+    key: 'retainedMb',
+    header: 'Retained MB',
+    // Only worth a column when it is non-trivial: a few MB is the allocator
+    // being lazy, tens of MB is a model that did not let go.
+    get: (row) => (row.retainedMb > 5 ? num(row.retainedMb, 0) : ''),
+  },
   { key: 'runs', header: 'Runs', get: (row) => (row.runs === undefined ? '' : String(row.runs)) },
   { key: 'status', header: 'Status', get: (row) => (row.status === 'ok' ? '' : row.status) },
 ];
