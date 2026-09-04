@@ -3,20 +3,15 @@
   "version": "1.0.0",
   "main": "index.ts",
   "react-native-executorch": {
-    "features": [
-      "classification",
-      "styleTransfer",
-      "semanticSegmentation",
-      "instanceSegmentation",
-      "objectDetection",
-      "keypointDetection",
-      "imageEmbeddings",
-      "textEmbeddings",
-      "privacyFilter",
-      "vad",
-      "speechToText",
-      "textToSpeech",
-      "tokenizer"
+    "backends": [
+      "xnnpack",
+      "coreml",
+      "mlx",
+      "vulkan"
+    ],
+    "libs": [
+      "opencv",
+      "phonemis"
     ]
   },
   "scripts": {
@@ -27,7 +22,9 @@
     "lint": "eslint . --ext .ts,.tsx --fix",
     "bench": "node scripts/run-benchmarks.mjs",
     "bench:compare": "node scripts/compare.mjs",
-    "postinstall": "yarn run -T patch-package --patch-dir ../../patches"
+    "bench:variants": "node scripts/generate-variants.mjs",
+    "bench:variants:check": "node scripts/generate-variants.mjs --check",
+    "bench:summary": "node scripts/summarize.mjs"
   },
   "dependencies": {
     "expo": "~56.0.9",
