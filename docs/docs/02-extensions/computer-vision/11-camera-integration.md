@@ -22,7 +22,47 @@ React Native ExecuTorch models can process live camera streams directly on-devic
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-<!-- GIF DEMO PLACEHOLDER: Place real-time camera processing demo gif here, e.g. ![Real-Time Camera Processing Demo](./media/camera-integration.gif) -->
+<table className="showcase-table">
+  <thead>
+    <tr>
+      <th>iOS</th>
+      <th>Android</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div className="device-phone iphone-chassis">
+          <div className="device-screen iphone-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/camera-integration-ios.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+      <td>
+        <div className="device-phone s24-chassis">
+          <div className="s24-camera-hole"></div>
+          <div className="device-screen s24-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/camera-integration-android.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## Quick Start
 
