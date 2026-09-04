@@ -34,6 +34,7 @@ export type ExecutionProfile = Readonly<Record<string, MethodProfile>>;
  * @category Core / Functions
  */
 export function getExecutionProfile(): ExecutionProfile {
+  'worklet';
   return rnexecutorchJsi.getExecutionProfile() as ExecutionProfile;
 }
 
@@ -46,6 +47,7 @@ export function getExecutionProfile(): ExecutionProfile {
  * @category Core / Functions
  */
 export function resetExecutionProfile(): void {
+  'worklet';
   rnexecutorchJsi.resetExecutionProfile();
 }
 
