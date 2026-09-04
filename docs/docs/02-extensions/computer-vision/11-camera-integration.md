@@ -110,7 +110,7 @@ import { useFrameOutput } from 'react-native-vision-camera';
 import { type GPUFrame, useResizer } from 'react-native-vision-camera-resizer';
 import { scheduleOnRN } from 'react-native-worklets';
 
-const INPUT_SIZE = { width: 320, height: 320 };
+const INPUT_SIZE = { width: 384, height: 384 };
 ```
 
 #### Model & GPU Resizer Setup
@@ -118,7 +118,7 @@ const INPUT_SIZE = { width: 320, height: 320 };
 Initialize the [`useObjectDetector`](../../06-api-reference/functions/useObjectDetector.md) hook to obtain its synchronous [`detectObjectsWorklet`](../../06-api-reference/functions/useObjectDetector.md#detectobjectsworklet) method, and configure [`useResizer`](https://github.com/mrousavy/react-native-vision-camera/tree/main/packages/react-native-vision-camera-resizer) to crop and convert incoming camera frames directly on the GPU to match the model's required input resolution:
 
 ```tsx
-const detector = useObjectDetector(models.objectDetection.SSDLITE320_MOBILENET_V3_LARGE.DEFAULT);
+const detector = useObjectDetector(models.objectDetection.YOLO26.NANO.SIZE_384.DEFAULT);
 const { detectObjectsWorklet } = detector;
 
 const { resizer } = useResizer({
