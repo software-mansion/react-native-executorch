@@ -17,7 +17,6 @@
 
 import type { BenchDeviceInfo, BenchThermalState } from '../modules/bench-probe';
 import type { GateResult } from './gate';
-import type { NativeResult } from './nativeForward';
 import type { Stats } from './stats';
 import { config } from './config';
 import { INPUT_SPEC_VERSION } from './inputs';
@@ -69,10 +68,9 @@ export interface CaseResult {
   /**
    * ExecuTorch time measured inside the pipeline pass, per iteration.
    *
-   * Unlike `native`, this is the same work the pipeline did: same shapes, same
-   * number of calls. It is what makes an execute share meaningful for a model
-   * with a dynamic dimension, where the standalone pass has to pick a size and
-   * picks the maximum.
+   * Covers the same work the pipeline row does: the shapes the pipeline fed
+   * and the number of calls it made. That is what makes an execute share
+   * meaningful for a model with a dynamic dimension.
    */
   readonly execution?: {
     readonly perIteration: Readonly<Record<string, { readonly count: number; readonly ms: number }>>;
@@ -88,8 +86,6 @@ export interface CaseResult {
    * while the device was throttling is not comparable with one measured cool.
    */
   readonly thermal?: BenchThermalState;
-  /** Raw `model.execute` timings, per exported method. */
-  readonly native?: NativeResult;
   readonly memory?: {
     /** Footprint before the model was loaded, in MB. */
     readonly baselineMb: number;
@@ -106,7 +102,7 @@ export interface RunReport {
   /**
    * Report schema version. Bumped when a field's meaning changes.
    *
-   * 2 added `taskLoad` and `native.load`: version 1 timed each load exactly
+   * 2 added `taskLoad`: version 1 timed each load exactly
    * once, and a single sample of a load is not stable enough to compare.
    * 3 made a result one measurement rather than one case, adding `progress`,
    * `gate` and `inputSpecVersion`, and moved case selection onto the generated
