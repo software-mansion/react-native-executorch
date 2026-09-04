@@ -103,6 +103,19 @@ if you can: charging holds it warm and will stall the gate.
 result records `gate.kind: "device"` so nobody reads an iOS number as gated to
 37 °C. Give the phone a cool room and do not hold it.
 
+## Build type
+
+**Release only.** `yarn bench` defaults to `--build-type release` and warns
+loudly in debug; every report records `buildType`.
+
+This is not a detail. ExecuTorch ships as a prebuilt release library so
+`execute` is unaffected, but the library's own C++ compiles unoptimised in a
+debug build and JS is served as a dev bundle with dev-mode checks, so everything
+around the model runs roughly an order of magnitude slow. It inverts conclusions
+rather than just adding noise: EfficientNet measured 29 percent ExecuTorch in
+debug and 91 percent in release, which is the difference between "optimise the
+TypeScript" and "optimise the export".
+
 ## Clocks
 
 **Clocks are left alone.** The device runs at whatever frequency its governor

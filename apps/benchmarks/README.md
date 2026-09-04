@@ -25,6 +25,7 @@ yarn bench --platform android --suite full --label v0.10.0 --max-temp-c 37
 
 # The small models only, for bisecting
 yarn bench --platform android --suite quick --label et-1.4.1
+# release by default; --build-type debug is for iterating on the harness, not for numbers
 
 # One task, or one backend, across every model that has it
 yarn bench --platform android --tasks objectDetection,instanceSegmentation
