@@ -38,19 +38,27 @@ export interface TimedRun {
  * times; only the last `iterations` calls are timed.
  * @param iterations Number of timed iterations.
  * @param warmup Number of untimed iterations run first.
+ * @param beforeTimed Worklet run once after the warmups and before the first
+ * timed iteration. The execution profiler is zeroed here so its tally covers
+ * exactly the iterations the durations cover; a warmup pass pays one-off costs
+ * (Vulkan shader compilation, XNNPACK plan setup) that the timed median never
+ * sees, and counting it made ExecuTorch time exceed pipeline time on 23 of 52
+ * variants.
  * @returns The per-iteration durations and the final workload size.
  */
 export function timeInWorklet(
   runtime: WorkletRuntime,
   run: () => number,
   iterations: number,
-  warmup: number
+  warmup: number,
+  beforeTimed?: () => void
 ): Promise<TimedRun> {
   return runOnRuntimeAsync(
     runtime,
-    (fn: () => number, timed: number, untimed: number) => {
+    (fn: () => number, timed: number, untimed: number, onTimedStart?: () => void) => {
       'worklet';
       for (let i = 0; i < untimed; i++) fn();
+      if (onTimedStart) onTimedStart();
 
       const durations: number[] = [];
       let units = 1;
@@ -63,7 +71,8 @@ export function timeInWorklet(
     },
     run,
     iterations,
-    warmup
+    warmup,
+    beforeTimed
   );
 }
 
@@ -77,14 +86,18 @@ export function timeInWorklet(
  * @param run An async function returning its workload size.
  * @param iterations Number of timed iterations.
  * @param warmup Number of untimed iterations run first.
+ * @param beforeTimed Run once after the warmups and before the first timed
+ * iteration. See {@link timeInWorklet}.
  * @returns The per-iteration durations and the final workload size.
  */
 export async function timeAsync(
   run: () => Promise<number>,
   iterations: number,
-  warmup: number
+  warmup: number,
+  beforeTimed?: () => void
 ): Promise<TimedRun> {
   for (let i = 0; i < warmup; i++) await run();
+  beforeTimed?.();
 
   const durations: number[] = [];
   let units = 1;
