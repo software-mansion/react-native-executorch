@@ -3,7 +3,7 @@
  *
  * A case is a generated registry variant joined to its task driver. Nothing is
  * declared per model here: the variant list comes from `models.ts` by way of
- * `scripts/generate-variants.mjs`, and the driver comes from `src/drivers.ts`,
+ * `src/registry.ts`, and the driver comes from `src/drivers.ts`,
  * so a variant added to the library is benchmarked without touching this file
  * and a variant removed from it stops being benchmarked the same way.
  *
@@ -23,7 +23,7 @@ import { Platform } from 'react-native';
 
 import type { SuiteName } from './config';
 import { driverFor, type Driver } from './drivers';
-import { REGISTRY_VARIANTS, type RegistryVariant } from './variants.generated';
+import { REGISTRY_VARIANTS, type RegistryVariant } from './registry';
 
 /** A variant paired with the driver that runs it. */
 export interface BenchCase {

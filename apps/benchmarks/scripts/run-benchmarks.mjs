@@ -62,7 +62,6 @@ function parseArgs(argv) {
     ...DEFAULTS,
     launch: true,
     memory: true,
-    native: true,
     resume: false,
     keepModels: false,
     unplug: false,
@@ -72,7 +71,6 @@ function parseArgs(argv) {
     const arg = argv[i];
     if (arg === '--no-launch') options.launch = false;
     else if (arg === '--no-memory') options.memory = false;
-    else if (arg === '--no-native') options.native = false;
     else if (arg === '--resume') options.resume = true;
     else if (arg === '--keep-models') options.keepModels = true;
     else if (arg === '--unplug') options.unplug = true;
@@ -699,7 +697,6 @@ async function main() {
     EXPO_PUBLIC_BENCH_MAX_BYTES: options.maxBytes,
     EXPO_PUBLIC_BENCH_KEEP_MODELS: options.keepModels ? '1' : '0',
     EXPO_PUBLIC_BENCH_MEMORY: options.memory ? '1' : '0',
-    EXPO_PUBLIC_BENCH_NATIVE: options.native ? '1' : '0',
     EXPO_PUBLIC_BENCH_SINK: sink,
     EXPO_PUBLIC_BENCH_AUTOSTART: '1',
   };

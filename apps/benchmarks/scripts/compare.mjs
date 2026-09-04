@@ -140,20 +140,10 @@ function compareCase(baseline, current, tolerance) {
     ];
   }
 
-  // Raw execute first: it is the number to read, so it belongs at the top of
-  // each case's block rather than below the pipeline figure it explains.
-  for (const beforeMethod of baseline.native?.methods ?? []) {
-    const afterMethod = (current.native?.methods ?? []).find(
-      (entry) => entry.method === beforeMethod.method
-    );
-    add(
-      `execute.${beforeMethod.method}`,
-      beforeMethod.stats?.median,
-      afterMethod?.stats?.median,
-      tolerance.execute,
-      noiseFloor(beforeMethod.stats, afterMethod?.stats)
-    );
-  }
+  // Execute first: it is the number to read, so it belongs at the top of each
+  // case's block rather than below the pipeline figure it explains. Measured
+  // in-band, so it covers the same work the pipeline row does.
+  add('execute.total', baseline.execution?.totalMs, current.execution?.totalMs, tolerance.execute);
 
   add(
     'pipeline.median',
@@ -162,21 +152,14 @@ function compareCase(baseline, current, tolerance) {
     tolerance.pipeline,
     noiseFloor(baseline.pipeline, current.pipeline)
   );
-  // `taskLoad` and `native.load` arrived in schema 2. A version 1 baseline has
-  // only the single-sample number, so there is no spread to fall back on.
+  // `taskLoad` arrived in schema 2. A version 1 baseline has only the
+  // single-sample number, so there is no spread to fall back on.
   add(
     'load.task',
     baseline.taskLoadMs,
     current.taskLoadMs,
     tolerance.load,
     noiseFloor(baseline.taskLoad, current.taskLoad)
-  );
-  add(
-    'load.native',
-    baseline.native?.loadMs,
-    current.native?.loadMs,
-    tolerance.load,
-    noiseFloor(baseline.native?.load, current.native?.load)
   );
   add('memory.peak', baseline.memory?.peakMb, current.memory?.peakMb, tolerance.memory);
   add('memory.loaded', baseline.memory?.loadedMb, current.memory?.loadedMb, tolerance.memory);
@@ -237,17 +220,7 @@ function foldRepeats(report) {
 
     const pipeline = across((entry) => entry.pipeline?.median);
     const taskLoad = across((entry) => entry.taskLoadMs);
-    const nativeLoad = across((entry) => entry.native?.loadMs);
 
-    const methods = (ok[0].native?.methods ?? []).map((method) => {
-      const perRepeat = across(
-        (entry) => entry.native?.methods?.find((m) => m.method === method.method)?.stats?.median
-      );
-      return {
-        ...method,
-        stats: widen({ ...method.stats, median: perRepeat.median ?? method.stats?.median }, perRepeat.range),
-      };
-    });
 
     folded.push({
       ...ok[0],
@@ -256,12 +229,6 @@ function foldRepeats(report) {
       pipeline: widen({ ...ok[0].pipeline, median: pipeline.median }, pipeline.range),
       taskLoadMs: taskLoad.median,
       taskLoad: widen({ ...ok[0].taskLoad, median: taskLoad.median }, taskLoad.range),
-      native: ok[0].native && {
-        ...ok[0].native,
-        loadMs: nativeLoad.median ?? ok[0].native.loadMs,
-        load: widen(ok[0].native.load, nativeLoad.range),
-        methods,
-      },
       memory: ok[0].memory && {
         ...ok[0].memory,
         peakMb: across((entry) => entry.memory?.peakMb).median ?? ok[0].memory.peakMb,
@@ -314,7 +281,7 @@ function main() {
   }
 
   // A throttling device is the single largest source of false regressions here.
-  // Two full suites run fifteen seconds apart made every raw-execute metric 9%
+  // Two full suites run fifteen seconds apart made every execute metric 9%
   // to 51% slower (median 22%) with no code change at all. Nothing downstream
   // can correct for that, so the comparison is refused rather than reported.
   const worstThermal = (report) =>

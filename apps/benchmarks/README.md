@@ -131,7 +131,7 @@ Per variant, per repeat:
 | `memory.peak`      | Peak footprint during inference                                                        |
 | `memory.disposed`  | Footprint after `dispose` - a leak shows up as a case that never returns to baseline   |
 
-The raw-execute pass is the one to watch for an ExecuTorch bump. A pipeline
+The execute figure is the one to watch for an ExecuTorch bump. A pipeline
 timing folds `model.execute` together with preprocessing and post-processing,
 which are TypeScript and did not change; `execute.<method>` is ExecuTorch and
 nothing else. Its input and output tensors are derived from `model.schema`, so
@@ -235,10 +235,9 @@ than dying halfway through the download.
 
 ## Where the case list comes from
 
-There is no hand-written case list. `src/variants.generated.ts` is produced from
-`packages/react-native-executorch/src/models.ts` by
-`scripts/generate-variants.mjs`, and `src/suite.ts` joins each variant to the
-driver for its task in `src/drivers.ts`.
+There is no hand-written case list. `src/registry.ts` walks the registry at
+runtime — it is a plain nested object once imported — and `src/suite.ts` joins
+each variant to the driver for its task in `src/drivers.ts`.
 
 That split is what keeps the suite honest at this scale. A variant added to the
 registry is benchmarked without touching the harness; a variant removed stops
@@ -247,13 +246,14 @@ being benchmarked the same way; and a task added with no driver is reported as
 variants would guarantee the list went stale, and a model that is quietly never
 measured is the exact failure this harness exists to prevent.
 
+Only the download sizes are cached, since measuring them needs the network:
+
 ```bash
-yarn bench:variants --sizes    # regenerate, re-measuring download sizes
-yarn bench:variants:check      # fail if the committed file is stale
+yarn bench:sizes    # re-measure download sizes into scripts/variant-sizes.json
 ```
 
 Adding a **task** means adding a driver: a factory, the call to time, and the
-config key holding the `.pte` for the raw-execute pass. Adding a **model or
+config key holding the `.pte`. Adding a **model or
 variant** means nothing here at all - regenerate and it is covered.
 
 ## The native probe
