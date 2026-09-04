@@ -182,3 +182,48 @@ export const SAMPLE_PII_TEXT =
   'Please forward the signed contract to Dana Whitfield at dana.whitfield@example.com ' +
   'or call 555-0142 before Friday. The office is at 118 Ellis Street, Portland, and ' +
   'the account number on file is 4029 1183 5567 2210.';
+
+/**
+ * Version of the input set.
+ *
+ * Recorded in every report and checked by the comparator. Two devices are only
+ * comparable if they fed the models the same bytes, and the cheapest way to
+ * know that is to make a change here visible in the output: bump this whenever
+ * any constant below, the scene, or the waveform changes.
+ */
+export const INPUT_SPEC_VERSION = 1;
+
+/**
+ * The two vision frames, built once and shared.
+ *
+ * They are pure data, and building a 640x640 scene costs more than most of the
+ * inferences being measured, so materialising one per case would put scene
+ * construction into the numbers.
+ */
+export const IMAGE_512 = syntheticImage(512, 512);
+export const IMAGE_640 = syntheticImage(640, 640);
+
+/** Fixed text for the text-to-speech pipelines. Long enough to span chunks. */
+export const TTS_TEXT =
+  'On device inference keeps user data on the phone. The runtime loads a ' +
+  'compiled program and executes it against pre-allocated tensors.';
+
+/** Fixed prompt for SDXS, with a fixed seed so the denoiser path is identical. */
+export const SDXS_PROMPT = 'a small wooden sailboat on a calm lake at sunrise';
+export const SDXS_SEED = 12345;
+
+/**
+ * Fixed prompt for the LLM cases. Short on purpose: prefill scales with prompt
+ * length, and a long prompt would bury the decode rate the number is about.
+ */
+export const LLM_PROMPT = 'List three uses for a paperclip.';
+
+/**
+ * Tokens every LLM case decodes, with EOS ignored.
+ *
+ * Pinned because generation length is otherwise a property of the model and its
+ * quantisation, not of the runtime: a wall-clock figure over a token count that
+ * differs per model, and between two runs of the same model, compares nothing.
+ * Divide the pipeline median by this to get milliseconds per token.
+ */
+export const LLM_MAX_NEW_TOKENS = 64;

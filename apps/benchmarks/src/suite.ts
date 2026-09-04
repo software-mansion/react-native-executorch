@@ -1,373 +1,153 @@
 /**
- * The benchmark case list.
+ * Case selection.
  *
- * A case pairs a model from the registry with the task pipeline that drives it
- * and a deterministic input. Cases are split into two tiers because the whole
- * suite is gated on download size far more than on runtime: `quick` stays under
- * roughly 150 MB of model files and finishes in a couple of minutes, which is
- * what you want when bisecting. `full` adds the larger models and the pipelines
- * whose downloads run to several hundred megabytes.
+ * A case is a generated registry variant joined to its task driver. Nothing is
+ * declared per model here: the variant list comes from `models.ts` by way of
+ * `scripts/generate-variants.mjs`, and the driver comes from `src/drivers.ts`,
+ * so a variant added to the library is benchmarked without touching this file
+ * and a variant removed from it stops being benchmarked the same way.
  *
- * Adding a case means adding an entry here and nothing else — the runner
- * discovers what to measure from the task instance and the model schema.
+ * Selection applies four filters, in this order:
+ *
+ * 1. **Platform.** A Core ML or MLX variant cannot run on Android and a Vulkan
+ *    one cannot run on iOS. These are excluded rather than reported as failures.
+ * 2. **Driver.** A task with no driver is reported as `skipped`, not dropped —
+ *    a registry category nobody wired up should be visible, not invisible.
+ * 3. **Size.** A variant whose download exceeds the cap is reported as
+ *    `skipped` with its size, so a run on a 6 GB phone says what it did not
+ *    attempt instead of dying partway through a 8 GB download.
+ * 4. **Tier or explicit ids.**
  */
 
-import {
-  createClassifier,
-  createFsmnVoiceActivityDetector,
-  createImageEmbedder,
-  createInstanceSegmenter,
-  createKokoroTextToSpeech,
-  createKeypointDetector,
-  createObjectDetector,
-  createPaddleOcr,
-  createPrivacyFilter,
-  createSemanticSegmenter,
-  createStyleTransfer,
-  createSupertonicTextToSpeech,
-  createTextEmbedder,
-  createWhisperSpeechToText,
-  SUPERTONIC_DEFAULT_VOICE_NAMES,
-  models,
-  FSMN_VAD_SAMPLE_RATE_HZ,
-  WHISPER_SAMPLE_RATE_HZ,
-} from 'react-native-executorch';
 import { Platform } from 'react-native';
 
-import { SAMPLE_PII_TEXT, SAMPLE_TEXT, syntheticImage, syntheticWaveform } from './inputs';
 import type { SuiteName } from './config';
+import { driverFor, type Driver } from './drivers';
+import { REGISTRY_VARIANTS, type RegistryVariant } from './variants.generated';
 
-interface CaseCommon<TInstance extends { dispose: () => void }> {
-  /** Stable identifier. Used by `EXPO_PUBLIC_BENCH_ONLY` and by the comparator. */
+/** A variant paired with the driver that runs it. */
+export interface BenchCase {
   readonly id: string;
-  /** Registry category, e.g. `classification`. */
-  readonly task: string;
-  /** Registry path of the model variant, e.g. `EFFICIENTNET_V2_S.XNNPACK_INT8`. */
-  readonly model: string;
-  readonly tier: SuiteName;
-  /** Platforms the case can run on. Omit for both. */
-  readonly platforms?: readonly ('ios' | 'android')[];
-  /**
-   * Task config with the registry's remote URLs still in place. The runner
-   * resolves them to local paths with `download` before calling `create`.
-   */
-  readonly config: any;
-  /**
-   * Key within `config` holding the main `.pte`, for the raw-execute pass. Omit
-   * on pipelines built from several sub-models, which have no single program to
-   * benchmark in isolation.
-   */
-  readonly modelPathKey?: string;
-  readonly create: (config: any) => Promise<TInstance>;
-  /** Free-text caveat recorded with the result. */
-  readonly note?: string;
+  readonly variant: RegistryVariant;
+  readonly driver: Driver;
+}
+
+/** A variant that will not run, and why. */
+export interface SkippedCase {
+  readonly id: string;
+  readonly variant: RegistryVariant;
+  readonly reason: string;
+}
+
+export interface Selection {
+  readonly cases: readonly BenchCase[];
+  readonly skipped: readonly SkippedCase[];
 }
 
 /**
- * A case timed on the worklet runtime through the pipeline's synchronous entry
- * point. This is the accurate path and the default.
+ * Tasks in the `quick` tier: the small models, for bisecting a regression
+ * without waiting on hundreds of gigabytes of weights.
  */
-interface WorkletCase<TInstance extends { dispose: () => void }> extends CaseCommon<TInstance> {
-  readonly mode?: 'worklet';
-  /**
-   * Builds the worklet to time. It returns the iteration's workload size, so a
-   * pipeline whose cost depends on its own output (tokens decoded, boxes kept)
-   * can report it; constant-work pipelines return 1. The comparator refuses to
-   * diff two runs whose workload sizes differ.
-   */
-  readonly run: (instance: TInstance) => () => number;
-}
+const QUICK_TASKS = new Set([
+  'classification',
+  'styleTransfer',
+  'semanticSegmentation',
+  'keypointDetection',
+  'textEmbeddings',
+  'voiceActivityDetection',
+  'ocr',
+]);
 
 /**
- * A case timed from the React Native thread, for pipelines with no synchronous
- * entry point to call.
- */
-interface AsyncCase<TInstance extends { dispose: () => void }> extends CaseCommon<TInstance> {
-  readonly mode: 'async';
-  readonly runAsync: (instance: TInstance) => () => Promise<number>;
-}
-
-export type BenchCase<TInstance extends { dispose: () => void } = any> =
-  | WorkletCase<TInstance>
-  | AsyncCase<TInstance>;
-
-/**
- * Type-checks one case against the pipeline it drives.
+ * Tasks excluded from `full`, which is otherwise everything.
  *
- * The case list is heterogeneous, so the array itself can only be typed as
- * `BenchCase<any>` — and `any` would let `instance.classifyWorklet` keep
- * compiling after the pipeline renamed that method, which is exactly the rot a
- * benchmark suite is prone to. Naming the pipeline's `create` as a separate
- * leading parameter makes it its own inference site, resolved before the object
- * literal is checked, so `run` sees the real instance type. Passing `create`
- * inside the literal instead does not work: it is then inferred alongside `run`,
- * and `TInstance` collapses to its constraint.
- * @typeParam TInstance The task runner type, inferred from `create`.
- * @param create The pipeline's factory.
- * @param body The rest of the case.
- * @returns The assembled case, widened for the array.
+ * LLMs are their own tier because they dominate the estate: 39 of the Android
+ * variants, and around 90 GB of the 118 GB. A `full` run that pulled them in
+ * would be a multi-day download before a single vision model was measured.
  */
-const defineCase = <TInstance extends { dispose: () => void }>(
-  create: (config: any) => Promise<TInstance>,
-  body: Omit<WorkletCase<TInstance>, 'create'> | Omit<AsyncCase<TInstance>, 'create'>
-): BenchCase => ({ ...body, create }) as BenchCase;
+const LLM_TASKS = new Set(['llm']);
 
-// Vision inputs are generated once and shared: they are pure data, and building
-// a 640x640 scene costs more than the inference being measured.
-const IMAGE_512 = syntheticImage(512, 512);
-const IMAGE_640 = syntheticImage(640, 640);
-const VAD_WAVEFORM = syntheticWaveform(10, FSMN_VAD_SAMPLE_RATE_HZ);
-const WHISPER_WAVEFORM = syntheticWaveform(10, WHISPER_SAMPLE_RATE_HZ);
-const SUPERTONIC_VOICE = SUPERTONIC_DEFAULT_VOICE_NAMES[0]!;
-const KOKORO_VOICE = Object.keys(
-  models.textToSpeech.KOKORO.EN_US.XNNPACK_FP32.voices
-)[0]! as keyof typeof models.textToSpeech.KOKORO.EN_US.XNNPACK_FP32.voices;
-
-export const CASES: readonly BenchCase[] = [
-  defineCase(createClassifier, {
-    id: 'classification/efficientnet-v2-s-xnnpack-int8',
-    task: 'classification',
-    model: 'EFFICIENTNET_V2_S.XNNPACK_INT8',
-    tier: 'quick',
-    config: models.classification.EFFICIENTNET_V2_S.XNNPACK_INT8,
-    modelPathKey: 'modelPath',
-    run: (instance) => () => {
-      'worklet';
-      return instance.classifyWorklet(IMAGE_512, { topk: 5 }).length;
-    },
-  }),
-  defineCase(createClassifier, {
-    id: 'classification/efficientnet-v2-s-coreml-fp16',
-    task: 'classification',
-    model: 'EFFICIENTNET_V2_S.COREML_FP16',
-    tier: 'quick',
-    platforms: ['ios'],
-    config: models.classification.EFFICIENTNET_V2_S.COREML_FP16,
-    modelPathKey: 'modelPath',
-    run: (instance) => () => {
-      'worklet';
-      return instance.classifyWorklet(IMAGE_512, { topk: 5 }).length;
-    },
-    // CoreML programs fail to encode on the iOS Simulator, so this case only
-    // produces numbers on real hardware.
-    note: 'physical device only',
-  }),
-  defineCase(createSemanticSegmenter, {
-    id: 'semantic-segmentation/selfie-xnnpack-fp32',
-    task: 'semanticSegmentation',
-    model: 'SELFIE_SEGMENTATION.XNNPACK_FP32',
-    tier: 'quick',
-    config: models.semanticSegmentation.SELFIE_SEGMENTATION.XNNPACK_FP32,
-    modelPathKey: 'modelPath',
-    run: (instance) => () => {
-      'worklet';
-      return instance.segmentWorklet(IMAGE_512).buffer.width;
-    },
-  }),
-  defineCase(createStyleTransfer, {
-    id: 'style-transfer/candy-xnnpack-int8',
-    task: 'styleTransfer',
-    model: 'CANDY.XNNPACK_INT8',
-    tier: 'quick',
-    config: models.styleTransfer.CANDY.XNNPACK_INT8,
-    modelPathKey: 'modelPath',
-    run: (instance) => () => {
-      'worklet';
-      return instance.transferStyleWorklet(IMAGE_512).width;
-    },
-  }),
-  defineCase(createKeypointDetector, {
-    id: 'keypoint-detection/blazeface-xnnpack-fp32',
-    task: 'keypointDetection',
-    model: 'BLAZEFACE.XNNPACK_FP32',
-    tier: 'quick',
-    config: models.keypointDetection.BLAZEFACE.XNNPACK_FP32,
-    modelPathKey: 'modelPath',
-    run: (instance) => () => {
-      'worklet';
-      return instance.detectKeypointsWorklet(IMAGE_512).length;
-    },
-  }),
-  defineCase(createTextEmbedder, {
-    id: 'text-embeddings/all-minilm-l6-v2-xnnpack-fp32',
-    task: 'textEmbeddings',
-    model: 'ALL_MINILM_L6_V2.XNNPACK_FP32',
-    tier: 'quick',
-    config: models.textEmbeddings.ALL_MINILM_L6_V2.XNNPACK_FP32,
-    modelPathKey: 'modelPath',
-    run: (instance) => () => {
-      'worklet';
-      return instance.embedWorklet(SAMPLE_TEXT).length;
-    },
-  }),
-  defineCase(createFsmnVoiceActivityDetector, {
-    id: 'vad/fsmn-xnnpack-fp32',
-    task: 'voiceActivityDetection',
-    model: 'FSMN_VAD.XNNPACK_FP32',
-    tier: 'quick',
-    config: models.voiceActivityDetection.FSMN_VAD.XNNPACK_FP32,
-    modelPathKey: 'modelPath',
-    run: (instance) => () => {
-      'worklet';
-      return instance.detectVoiceWorklet(VAD_WAVEFORM).length;
-    },
-  }),
-
-  defineCase(createObjectDetector, {
-    id: 'object-detection/ssdlite320-xnnpack-fp32',
-    task: 'objectDetection',
-    model: 'SSDLITE320_MOBILENET_V3_LARGE.XNNPACK_FP32',
-    tier: 'full',
-    config: models.objectDetection.SSDLITE320_MOBILENET_V3_LARGE.XNNPACK_FP32,
-    modelPathKey: 'modelPath',
-    run: (instance) => () => {
-      'worklet';
-      return instance.detectObjectsWorklet(IMAGE_640).length;
-    },
-  }),
-  defineCase(createObjectDetector, {
-    id: 'object-detection/yolo26-nano-384-xnnpack-fp32',
-    task: 'objectDetection',
-    model: 'YOLO26.NANO.SIZE_384.XNNPACK_FP32',
-    tier: 'full',
-    config: models.objectDetection.YOLO26.NANO.SIZE_384.XNNPACK_FP32,
-    modelPathKey: 'modelPath',
-    run: (instance) => () => {
-      'worklet';
-      return instance.detectObjectsWorklet(IMAGE_640).length;
-    },
-  }),
-  defineCase(createImageEmbedder, {
-    id: 'image-embeddings/clip-vit-base-patch32-xnnpack-fp32',
-    task: 'imageEmbeddings',
-    model: 'CLIP_VIT_BASE_PATCH32.XNNPACK_FP32',
-    tier: 'full',
-    config: models.imageEmbeddings.CLIP_VIT_BASE_PATCH32.XNNPACK_FP32,
-    modelPathKey: 'modelPath',
-    run: (instance) => () => {
-      'worklet';
-      return instance.embedWorklet(IMAGE_512).length;
-    },
-  }),
-  defineCase(createPrivacyFilter, {
-    id: 'privacy-filter/openai-xnnpack-8da4w',
-    task: 'privacyFilter',
-    model: 'OPENAI.XNNPACK_8DA4W',
-    tier: 'full',
-    config: models.privacyFilter.OPENAI.XNNPACK_8DA4W,
-    modelPathKey: 'modelPath',
-    run: (instance) => () => {
-      'worklet';
-      return instance.detectPiiWorklet(SAMPLE_PII_TEXT).length;
-    },
-  }),
-  defineCase(createWhisperSpeechToText, {
-    id: 'speech-to-text/whisper-tiny-en-xnnpack-fp32',
-    task: 'speechToText',
-    model: 'WHISPER.EN.TINY.XNNPACK_FP32',
-    tier: 'full',
-    config: models.speechToText.WHISPER.EN.TINY.XNNPACK_FP32,
-    modelPathKey: 'modelPath',
-    run: (instance) => () => {
-      'worklet';
-      return instance.transcribeWorklet(WHISPER_WAVEFORM, { language: 'en' }).length;
-    },
-    // The synthetic waveform is voice-shaped but is not speech, so the decoder
-    // emits far fewer tokens than a real clip would and the pipeline figure is
-    // dominated by the encoder. The per-method numbers from the raw-execute pass
-    // are the ones to trust here; the comparator invalidates the pipeline figure
-    // outright if the transcript length moves between runs.
-    note: 'decode length is input-dependent; compare the raw-execute methods',
-  }),
-  defineCase(createSupertonicTextToSpeech, {
-    id: 'text-to-speech/supertonic-xnnpack-fp32',
-    task: 'textToSpeech',
-    model: 'SUPERTONIC.XNNPACK_FP32',
-    tier: 'full',
-    config: models.textToSpeech.SUPERTONIC.XNNPACK_FP32,
-    mode: 'async',
-    runAsync: (instance) => async () => {
-      let samples = 0;
-      for await (const chunk of instance.synthesize(SAMPLE_TEXT, {
-        voiceStyle: SUPERTONIC_VOICE,
-      })) {
-        samples += chunk.audio.length;
-      }
-      return samples;
-    },
-    // Supertonic streams through four sub-models with JS-thread orchestration
-    // between chunks, so there is no synchronous entry point to time, and no
-    // single `.pte` for the raw-execute pass. These numbers include one thread
-    // hop per chunk.
-    note: 'timed on the RN thread; includes per-chunk thread hops',
-  }),
-  defineCase(createInstanceSegmenter, {
-    id: 'instance-segmentation/rfdetr-nano-xnnpack-fp32',
-    task: 'instanceSegmentation',
-    model: 'RFDETR_NANO.XNNPACK_FP32',
-    tier: 'full',
-    config: models.instanceSegmentation.RFDETR_NANO.XNNPACK_FP32,
-    modelPathKey: 'modelPath',
-    run: (instance) => () => {
-      'worklet';
-      return instance.segmentInstancesWorklet(IMAGE_640).length;
-    },
-    // RF-DETR rather than FastSAM on purpose. FastSAM pairs a 0.5 confidence
-    // threshold with an IoU of 0.9, which suppresses almost nothing, so on a
-    // textured synthetic image nearly every candidate survives and each one
-    // materialises a full 640x640 mask in JS. That wedged a run. RF-DETR emits
-    // a fixed set of queries and runs NMS at 0.55, so its post-processing is
-    // bounded whatever the input happens to look like.
-    note: 'bounded query set; FastSAM is unsuitable for synthetic input',
-  }),
-  defineCase(createPaddleOcr, {
-    id: 'ocr/ppocrv6-small-xnnpack-int8',
-    task: 'ocr',
-    model: 'PADDLE.PPOCRV6_SMALL.XNNPACK',
-    tier: 'full',
-    config: models.ocr.PADDLE.PPOCRV6_SMALL.XNNPACK,
-    run: (instance) => () => {
-      'worklet';
-      return instance.recognizeCharactersWorklet(IMAGE_640).length;
-    },
-    // Detector plus recognizer: the recognizer runs once per detected box, so
-    // the timing depends on how many regions the synthetic scene produces.
-    note: 'two models; recognizer cost scales with detected regions',
-  }),
-  defineCase(createKokoroTextToSpeech, {
-    id: 'text-to-speech/kokoro-en-us-xnnpack-fp32',
-    task: 'textToSpeech',
-    model: 'KOKORO.EN_US.XNNPACK_FP32',
-    tier: 'full',
-    config: models.textToSpeech.KOKORO.EN_US.XNNPACK_FP32,
-    mode: 'async',
-    runAsync: (instance) => async () => {
-      let samples = 0;
-      for await (const chunk of instance.synthesize(SAMPLE_TEXT, {
-        voice: KOKORO_VOICE,
-      })) {
-        samples += chunk.audio.length;
-      }
-      return samples;
-    },
-    // Same shape as Supertonic: a chunked generator driven from the RN thread,
-    // so there is no single synchronous call to time.
-    note: 'timed on the RN thread; includes per-chunk thread hops',
-  }),
-];
+const currentPlatform = (): 'ios' | 'android' => (Platform.OS === 'ios' ? 'ios' : 'android');
 
 /**
- * Selects the cases to run.
- * @param suite The tier to run when `only` is empty.
- * @param only Explicit case ids. Non-empty overrides `suite`.
- * @returns The runnable cases for the current platform, in declaration order.
+ * Resolves the registry config for a variant by walking its dotted path.
+ *
+ * The generated list stores the path rather than the config object because the
+ * generated module is produced outside the app, where the registry's own
+ * objects are not available to embed. Resolving here also means the app always
+ * benchmarks the config the shipped library holds, not a copy of it taken when
+ * the list was generated.
+ * @param registry The `models` export.
+ * @param path A dotted path such as `objectDetection.RFDETR_NANO.XNNPACK_FP32`.
+ * @returns The config, or undefined when the path no longer exists.
  */
-export function selectCases(suite: SuiteName, only: readonly string[]): BenchCase[] {
-  const platform = Platform.OS === 'ios' ? 'ios' : 'android';
+export function resolveConfig(registry: unknown, path: string): any {
+  let node: any = registry;
+  for (const segment of path.split('.')) {
+    if (node === null || node === undefined) return undefined;
+    node = node[segment];
+  }
+  return node;
+}
 
-  return CASES.filter((benchCase) => {
-    if (benchCase.platforms && !benchCase.platforms.includes(platform)) return false;
-    if (only.length > 0) return only.includes(benchCase.id);
-    return suite === 'full' || benchCase.tier === 'quick';
-  });
+export interface SelectOptions {
+  readonly suite: SuiteName;
+  readonly only: readonly string[];
+  /** Largest total download a case may have, in bytes. 0 disables the cap. */
+  readonly maxBytes: number;
+  /** Task names to include. Empty means "whatever the tier says". */
+  readonly tasks: readonly string[];
+  /** Backend tags to include. Empty means every backend this platform runs. */
+  readonly backends: readonly string[];
+}
+
+/**
+ * Selects the cases to run and the variants deliberately left out.
+ * @param options The run's filters.
+ * @returns The runnable cases in registry order, plus the skipped variants.
+ */
+export function selectCases(options: SelectOptions): Selection {
+  const platform = currentPlatform();
+  const cases: BenchCase[] = [];
+  const skipped: SkippedCase[] = [];
+
+  for (const variant of REGISTRY_VARIANTS) {
+    // Not a failure and not a skip: this platform's binary cannot link the
+    // backend, so the variant is not part of this device's estate at all.
+    if (!variant.platforms.includes(platform)) continue;
+    if (options.backends.length > 0 && !options.backends.includes(variant.backend)) continue;
+
+    if (options.only.length > 0) {
+      if (!options.only.includes(variant.id)) continue;
+    } else {
+      if (options.tasks.length > 0) {
+        if (!options.tasks.includes(variant.task)) continue;
+      } else if (options.suite === 'quick') {
+        if (!QUICK_TASKS.has(variant.task)) continue;
+      } else if (options.suite === 'full') {
+        if (LLM_TASKS.has(variant.task)) continue;
+      }
+      // `everything` applies no tier filter.
+    }
+
+    const driver = driverFor(variant);
+    if (!driver) {
+      skipped.push({ id: variant.id, variant, reason: `no driver for task ${variant.task}` });
+      continue;
+    }
+    if (options.maxBytes > 0 && variant.bytes > options.maxBytes) {
+      skipped.push({
+        id: variant.id,
+        variant,
+        reason:
+          `download is ${(variant.bytes / 1e9).toFixed(2)} GB, over the ` +
+          `${(options.maxBytes / 1e9).toFixed(2)} GB cap`,
+      });
+      continue;
+    }
+
+    cases.push({ id: variant.id, variant, driver });
+  }
+
+  return { cases, skipped };
 }

@@ -184,12 +184,113 @@ function compareCase(baseline, current, tolerance) {
   return rows;
 }
 
+
+const median = (values) => {
+  if (values.length === 0) return undefined;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = sorted.length >> 1;
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+};
+
+/**
+ * Collapses a schema-3 report's repeats into one entry per case.
+ *
+ * Every metric becomes the median across the repeats, and each metric's spread
+ * is widened to cover the run-to-run range as well as the within-run one. That
+ * second term is the point of taking repeats at all: on a phone the spread
+ * between three cold measurements is routinely larger than the spread between
+ * twenty back-to-back iterations inside one of them, and a comparator that only
+ * saw the inner spread would call a thermal artefact a regression.
+ *
+ * A schema-2 report has one entry per case already and passes through.
+ * @param report A loaded report.
+ * @returns The report with `cases` collapsed and repeats summarised.
+ */
+function foldRepeats(report) {
+  if ((report.schemaVersion ?? 2) < 3) return report;
+
+  const groups = new Map();
+  for (const entry of report.cases) {
+    if (entry.status === 'skipped') continue;
+    const list = groups.get(entry.id) ?? [];
+    list.push(entry);
+    groups.set(entry.id, list);
+  }
+
+  const folded = [];
+  for (const [id, entries] of groups) {
+    const ok = entries.filter((entry) => entry.status === 'ok');
+    // A case that failed even once is reported as failed: a model that OOMs on
+    // one repeat out of three has not passed, it has been lucky twice.
+    if (ok.length === 0 || ok.length !== entries.length) {
+      folded.push({ ...entries[0], repeats: entries.length, okRepeats: ok.length });
+      continue;
+    }
+
+    const across = (pick) => {
+      const values = ok.map(pick).filter((value) => typeof value === 'number');
+      return { median: median(values), range: values.length > 1 ? Math.max(...values) - Math.min(...values) : 0 };
+    };
+
+    const widen = (stats, spread) =>
+      stats === undefined ? undefined : { ...stats, iqr: Math.max(stats.iqr ?? 0, spread) };
+
+    const pipeline = across((entry) => entry.pipeline?.median);
+    const taskLoad = across((entry) => entry.taskLoadMs);
+    const nativeLoad = across((entry) => entry.native?.loadMs);
+
+    const methods = (ok[0].native?.methods ?? []).map((method) => {
+      const perRepeat = across(
+        (entry) => entry.native?.methods?.find((m) => m.method === method.method)?.stats?.median
+      );
+      return {
+        ...method,
+        stats: widen({ ...method.stats, median: perRepeat.median ?? method.stats?.median }, perRepeat.range),
+      };
+    });
+
+    folded.push({
+      ...ok[0],
+      repeats: entries.length,
+      okRepeats: ok.length,
+      pipeline: widen({ ...ok[0].pipeline, median: pipeline.median }, pipeline.range),
+      taskLoadMs: taskLoad.median,
+      taskLoad: widen({ ...ok[0].taskLoad, median: taskLoad.median }, taskLoad.range),
+      native: ok[0].native && {
+        ...ok[0].native,
+        loadMs: nativeLoad.median ?? ok[0].native.loadMs,
+        load: widen(ok[0].native.load, nativeLoad.range),
+        methods,
+      },
+      memory: ok[0].memory && {
+        ...ok[0].memory,
+        peakMb: across((entry) => entry.memory?.peakMb).median ?? ok[0].memory.peakMb,
+        loadedMb: across((entry) => entry.memory?.loadedMb).median ?? ok[0].memory.loadedMb,
+      },
+    });
+  }
+
+  return { ...report, cases: folded };
+}
+
 const pad = (value, width) => String(value).padEnd(width);
 const padStart = (value, width) => String(value).padStart(width);
 
 function main() {
   const { files, tolerance, allowDeviceMismatch } = parseArgs(process.argv.slice(2));
-  const [baseline, current] = files.map(load);
+  const [baseline, current] = files.map((file) => foldRepeats(load(file)));
+
+  // Two reports built from different inputs measured different work, whatever
+  // else they agree on.
+  const baselineInputs = baseline.inputSpecVersion ?? 0;
+  const currentInputs = current.inputSpecVersion ?? 0;
+  if (baselineInputs !== currentInputs) {
+    console.error(
+      `\nERROR: input spec versions differ (${baselineInputs} vs ${currentInputs}).\n` +
+        'The two runs fed the models different data, so their timings measure different work.'
+    );
+    process.exit(2);
+  }
 
   console.log(`baseline: ${baseline.label} (${files[0]})`);
   console.log(`current:  ${current.label} (${files[1]})`);
@@ -263,8 +364,8 @@ function main() {
   }
 
   console.log(
-    `\ntolerances: inference ${tolerance.inference}%, load ${tolerance.load}%, ` +
-      `memory ${tolerance.memory}%\n`
+    `\ntolerances: execute ${tolerance.execute}%, pipeline ${tolerance.pipeline}%, ` +
+      `load ${tolerance.load}%, memory ${tolerance.memory}%\n`
   );
 
   const currentById = new Map(current.cases.map((entry) => [entry.id, entry]));
