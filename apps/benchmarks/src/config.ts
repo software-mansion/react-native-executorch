@@ -42,9 +42,21 @@ const list = (value: string | undefined): string[] =>
  */
 export type SuiteName = 'quick' | 'full' | 'everything';
 
+/**
+ * What the app does when it starts.
+ *
+ * - `bench` — the timing suite, which is what this app is for.
+ * - `probe` — fetch a plan from the host, run each `.pte` on one fixed input and
+ *   send the output tensors back. For defects that only exist on the device, so
+ *   the numbers have to be read off the device rather than reproduced on a Mac.
+ */
+export type BenchMode = 'bench' | 'probe';
+
 const SUITES: readonly SuiteName[] = ['quick', 'full', 'everything'];
 
 export interface BenchConfig {
+  /** Whether to run the timing suite or the raw-output probe. */
+  readonly mode: BenchMode;
   readonly suite: SuiteName;
   /** Explicit case ids to run, overriding `suite`. Empty means "use the suite". */
   readonly only: readonly string[];
@@ -143,6 +155,7 @@ const suite = ((): SuiteName => {
 })();
 
 export const config: BenchConfig = {
+  mode: process.env.EXPO_PUBLIC_BENCH_MODE === 'probe' ? 'probe' : 'bench',
   suite,
   only: list(process.env.EXPO_PUBLIC_BENCH_ONLY),
   tasks: list(process.env.EXPO_PUBLIC_BENCH_TASKS),
