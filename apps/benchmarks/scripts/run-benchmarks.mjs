@@ -3,8 +3,8 @@
  * Drives a benchmark run and collects its results.
  *
  * Starts an HTTP collector, points the app at it through `EXPO_PUBLIC_BENCH_*`,
- * builds and launches the app, and waits for the run to finish before writing
- * the report to `results/`.
+ * builds and launches the app, and writes every measurement to disk as it
+ * arrives.
  *
  * The collector exists because getting structured data off a phone is otherwise
  * platform-specific: `adb logcat` covers Android, `xcrun simctl` covers the iOS
@@ -12,15 +12,21 @@
  * HTTP POST works the same everywhere — over `adb reverse` on Android, and over
  * the LAN on an iOS device.
  *
+ * It also owns the thermal gate. The device asks to be held before each
+ * measurement; the host answers when `dumpsys battery` reports the ceiling has
+ * been reached. That lives here because Android exposes battery temperature to
+ * `adb` and not to an ordinary app.
+ *
  * Usage:
- *   yarn bench --platform android --label et-1.3.1
- *   yarn bench --platform ios --suite full --label et-1.4.1
+ *   yarn bench --platform android --label et-1.4.1
+ *   yarn bench --platform android --suite full --repeats 3 --max-temp-c 35
+ *   yarn bench --platform android --resume         # continue an interrupted run
  *   yarn bench --platform ios --no-launch          # app started by hand
  */
 
 import { createServer } from 'node:http';
 import { spawn, spawnSync } from 'node:child_process';
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { networkInterfaces } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,26 +37,41 @@ const DEFAULTS = {
   platform: 'android',
   suite: 'quick',
   only: '',
+  tasks: '',
+  backends: '',
   label: 'local',
   iterations: '20',
   warmup: '3',
   memoryIterations: '5',
+  repeats: '3',
+  maxTempC: '35',
+  gateTimeoutS: '1800',
+  maxBytes: '6000000000',
   port: '8099',
   host: '',
   out: '',
-  cooldown: '0',
+  cooldown: 'auto',
   cooldownMax: '900',
   pinClocks: 'auto',
 };
 
 function parseArgs(argv) {
-  const options = { ...DEFAULTS, launch: true, memory: true, native: true };
+  const options = {
+    ...DEFAULTS,
+    launch: true,
+    memory: true,
+    native: true,
+    resume: false,
+    keepModels: false,
+  };
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--no-launch') options.launch = false;
     else if (arg === '--no-memory') options.memory = false;
     else if (arg === '--no-native') options.native = false;
+    else if (arg === '--resume') options.resume = true;
+    else if (arg === '--keep-models') options.keepModels = true;
     else if (arg.startsWith('--')) {
       const key = arg.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
       if (!(key in DEFAULTS)) throw new Error(`Unknown option ${arg}`);
@@ -66,6 +87,9 @@ function parseArgs(argv) {
   }
   if (options.platform !== 'ios' && options.platform !== 'android') {
     throw new Error(`--platform must be ios or android, got ${options.platform}`);
+  }
+  if (!['quick', 'full', 'everything'].includes(options.suite)) {
+    throw new Error(`--suite must be quick, full or everything, got ${options.suite}`);
   }
   return options;
 }
@@ -85,8 +109,13 @@ function readBody(request) {
     const chunks = [];
     request.on('data', (chunk) => chunks.push(chunk));
     request.on('end', () => {
+      const raw = Buffer.concat(chunks).toString('utf8');
+      if (raw === '') {
+        resolveBody(null);
+        return;
+      }
       try {
-        resolveBody(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+        resolveBody(JSON.parse(raw));
       } catch (error) {
         rejectBody(error);
       }
@@ -95,103 +124,7 @@ function readBody(request) {
   });
 }
 
-function startCollector(port, onCase, onEnd) {
-  const server = createServer(async (request, response) => {
-    let body = null;
-    try {
-      body = await readBody(request);
-    } catch {
-      response.writeHead(400).end();
-      return;
-    }
-    response.writeHead(204).end();
-
-    if (request.url === '/begin') {
-      console.log(`\n[bench] run "${body.label}" started — ${body.cases.length} cases`);
-    } else if (request.url === '/case') {
-      const summary =
-        body.status === 'ok'
-          ? `${body.pipeline?.median ?? '-'} ms median` +
-            (body.memory ? `, peak ${body.memory.peakMb} MB` : '')
-          : `FAILED: ${body.error}`;
-      console.log(`[bench] ${body.id} — ${summary}`);
-      onCase(body);
-    } else if (request.url === '/end') {
-      onEnd(body);
-    }
-  });
-
-  return new Promise((resolveServer, rejectServer) => {
-    server.on('error', (error) => {
-      rejectServer(
-        error.code === 'EADDRINUSE'
-          ? new Error(
-              `port ${port} is in use — another run is still open. Pass --port to change it.`
-            )
-          : error
-      );
-    });
-    // 0.0.0.0 so an iOS device on the LAN can reach the collector, not just
-    // adb-reversed localhost traffic from Android.
-    server.listen(port, '0.0.0.0', () => resolveServer(server));
-  });
-}
-
-function run(command, args, env) {
-  return spawn(command, args, { cwd: APP_ROOT, env, stdio: 'inherit', shell: false });
-}
-
-/**
- * Pins the CPU to a fixed, sustainable clock for the duration of a run.
- *
- * Android exposes `PowerManager`'s FIXED_PERFORMANCE mode over `cmd power`,
- * which vendors implement as a frequency cap rather than a hint. On a Galaxy
- * S26 Ultra it takes every cluster from 3.19/3.40 GHz down to ~1.98 GHz, so a
- * long suite cannot boost early and sag later as the device heats. That trades
- * absolute speed for the thing a benchmark actually needs: the same clock in
- * every run.
- *
- * Not every device implements the HAL, so `verifyClockPin` reads the frequency
- * back rather than trusting the call. There is no iOS equivalent: nothing in
- * the public API pins or caps the clock, so runs there rely on the thermal
- * gate alone.
- */
-function setClockPin(enabled) {
-  return new Promise((done) => {
-    const child = spawn(
-      'adb',
-      ['shell', 'cmd', 'power', 'set-fixed-performance-mode-enabled', String(enabled)],
-      {
-        stdio: 'ignore',
-      }
-    );
-    child.on('exit', () => done());
-    child.on('error', () => done());
-  });
-}
-
-/** Reads back the per-cluster max frequency, so a no-op HAL is visible. */
-function readMaxFrequencies() {
-  return new Promise((done) => {
-    const child = spawn(
-      'adb',
-      ['shell', 'cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_max_freq'],
-      { stdio: ['ignore', 'pipe', 'ignore'] }
-    );
-    let out = '';
-    child.stdout.on('data', (chunk) => (out += chunk));
-    child.on('exit', () =>
-      done(
-        out
-          .split(/\s+/)
-          .filter(Boolean)
-          .map(Number)
-          .filter((n) => Number.isFinite(n))
-      )
-    );
-    child.on('error', () => done([]));
-  });
-}
+const sleep = (ms) => new Promise((wake) => setTimeout(wake, ms));
 
 /** Reads one line of `adb shell`, trimmed. Empty string if adb cannot answer. */
 function adbCapture(command) {
@@ -221,73 +154,115 @@ async function readDeviceHeat() {
 }
 
 /**
- * Waits for the device to actually be cool, instead of sleeping a fixed guess.
+ * Holds until the device is at or below `maxTempC`, or the timeout expires.
  *
- * A blind `--cooldown 420` is both too long when the phone is already cold and
- * too short when it is not. This polls until the framework reports no throttling
- * AND the battery temperature has stopped falling, which is device-agnostic in a
- * way that an absolute threshold is not: what counts as cool differs per phone,
- * but "no longer dropping" does not.
+ * An absolute ceiling rather than the plateau rule an earlier version used.
+ * A plateau answers "has it stopped cooling", which is the right question when
+ * comparing two runs on one device but the wrong one when comparing four
+ * devices: a phone that plateaus at 41C and one that plateaus at 30C both pass
+ * a plateau test and are not measuring the same thing. A fixed number is the
+ * only gate that means the same thing on every device.
  *
- * Bounded at both ends. The floor lets the heat of building and installing
- * dissipate before the first case; the ceiling stops a warm room or a charging
- * phone from stalling the run forever.
+ * The ceiling is not always reachable — a warm room, a charging phone, a device
+ * whose idle temperature sits above it — so the wait is bounded and a timeout is
+ * recorded on the measurement rather than failing the run.
+ * @param maxTempC Ceiling in Celsius.
+ * @param timeoutS Seconds to wait before letting a warm measurement proceed.
+ * @param onWait Called with each poll, for the progress line.
+ * @returns What the gate observed, in the shape `src/gate.ts` expects.
  */
-async function waitUntilCool(maxSeconds) {
-  const FLOOR_MS = 30_000;
-  const INTERVAL_MS = 15_000;
-  const PLATEAU_C = 0.2;
-
+async function holdUntilCool(maxTempC, timeoutS, onWait) {
+  const POLL_MS = 15_000;
   const started = Date.now();
-  const deadline = started + maxSeconds * 1000;
+  const deadline = started + timeoutS * 1000;
+
   const first = await readDeviceHeat();
-
-  if (first.status === null && first.temperatureC === null) {
-    console.log('[bench] cannot read device heat over adb; skipping the adaptive wait');
-    return null;
+  if (first.temperatureC === null) {
+    // Nothing to poll. The device falls back to its own coarse thermal state.
+    return { kind: 'none', waitedS: 0, temperatureC: null, thermalStatus: first.status, timedOut: false };
   }
-  if (first.charging) {
-    console.log('[bench] device is charging, which keeps it warm; unplug for a colder floor');
-  }
-
-  let previous = first.temperatureC;
-  let plateauHits = 0;
 
   for (;;) {
-    const elapsed = Date.now() - started;
     const heat = await readDeviceHeat();
-    const cool = heat.status === 0 || heat.status === null;
-    const settled =
-      previous === null || heat.temperatureC === null
-        ? true
-        : Math.abs(previous - heat.temperatureC) < PLATEAU_C;
+    const elapsedS = Math.round((Date.now() - started) / 1000);
+    const coolEnough = heat.temperatureC !== null && heat.temperatureC <= maxTempC;
+    const notThrottling = heat.status === 0 || heat.status === null;
 
-    plateauHits = settled ? plateauHits + 1 : 0;
-    previous = heat.temperatureC;
-
-    // Two consecutive settled samples, so a single flat reading mid-fall does
-    // not end the wait early.
-    if (elapsed >= FLOOR_MS && cool && plateauHits >= 2) {
-      console.log(
-        `[bench] device cool after ${Math.round(elapsed / 1000)}s ` +
-          `(thermal ${heat.status ?? '?'}, ${heat.temperatureC ?? '?'}C)`
-      );
-      return heat;
+    if (coolEnough && notThrottling) {
+      return {
+        kind: 'host',
+        waitedS: elapsedS,
+        temperatureC: heat.temperatureC,
+        thermalStatus: heat.status,
+        timedOut: false,
+      };
     }
     if (Date.now() >= deadline) {
-      console.warn(
-        `[bench] WARNING: still not settled after ${maxSeconds}s ` +
-          `(thermal ${heat.status ?? '?'}, ${heat.temperatureC ?? '?'}C); starting anyway`
-      );
-      return heat;
+      return {
+        kind: 'host',
+        waitedS: elapsedS,
+        temperatureC: heat.temperatureC,
+        thermalStatus: heat.status,
+        timedOut: true,
+      };
     }
 
-    console.log(
-      `[bench] waiting to cool: thermal ${heat.status ?? '?'}, ` +
-        `${heat.temperatureC ?? '?'}C, ${Math.round(elapsed / 1000)}s elapsed`
-    );
-    await new Promise((tick) => setTimeout(tick, INTERVAL_MS));
+    onWait?.(heat, elapsedS);
+    await sleep(POLL_MS);
   }
+}
+
+function run(command, args, env) {
+  return spawn(command, args, { cwd: APP_ROOT, env, stdio: 'inherit', shell: false });
+}
+
+/**
+ * Pins the CPU to a fixed, sustainable clock for the duration of a run.
+ *
+ * Android exposes `PowerManager`'s FIXED_PERFORMANCE mode over `cmd power`,
+ * which vendors implement as a frequency cap rather than a hint. On a Galaxy
+ * S26 Ultra it takes every cluster from 3.19/3.40 GHz down to ~1.98 GHz, so a
+ * long suite cannot boost early and sag later as the device heats. That trades
+ * absolute speed for the thing a benchmark actually needs: the same clock in
+ * every run.
+ *
+ * Not every device implements the HAL, so the frequency is read back rather
+ * than trusting the call. There is no iOS equivalent: nothing in the public API
+ * pins or caps the clock, so runs there rely on the thermal gate alone.
+ */
+function setClockPin(enabled) {
+  return new Promise((done) => {
+    const child = spawn(
+      'adb',
+      ['shell', 'cmd', 'power', 'set-fixed-performance-mode-enabled', String(enabled)],
+      { stdio: 'ignore' }
+    );
+    child.on('exit', () => done());
+    child.on('error', () => done());
+  });
+}
+
+/** Reads back the per-cluster max frequency, so a no-op HAL is visible. */
+function readMaxFrequencies() {
+  return new Promise((done) => {
+    const child = spawn(
+      'adb',
+      ['shell', 'cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_max_freq'],
+      { stdio: ['ignore', 'pipe', 'ignore'] }
+    );
+    let out = '';
+    child.stdout.on('data', (chunk) => (out += chunk));
+    child.on('exit', () =>
+      done(
+        out
+          .split(/\s+/)
+          .filter(Boolean)
+          .map(Number)
+          .filter((n) => Number.isFinite(n))
+      )
+    );
+    child.on('error', () => done([]));
+  });
 }
 
 function adbReverse(port, quiet = false) {
@@ -311,17 +286,65 @@ function keepReverseAlive(port) {
   return timer;
 }
 
-function reportPath(options, report) {
-  if (options.out) return resolve(options.out);
-  const device = String(report.device?.model ?? 'unknown').replace(/[^\w.-]+/g, '-');
-  return join(APP_ROOT, 'results', `${options.label}-${report.platform}-${device}.json`);
+/** Slugified device name, or a placeholder until the app has announced one. */
+const deviceSlug = (device) => String(device?.model ?? 'unknown').replace(/[^\w.-]+/g, '-');
+
+function outputPaths(options, device) {
+  if (options.out) {
+    const base = resolve(options.out).replace(/\.jsonl?$/, '');
+    return { jsonl: `${base}.jsonl`, json: `${base}.json` };
+  }
+  const stem = `${options.label}-${options.platform}-${deviceSlug(device)}`;
+  return {
+    jsonl: join(APP_ROOT, 'results', `${stem}.jsonl`),
+    json: join(APP_ROOT, 'results', `${stem}.json`),
+  };
 }
 
-/** Path of the incremental file, alongside wherever the final report will land. */
-const partialPath = (options) =>
-  options.out
-    ? `${resolve(options.out)}.partial`
-    : join(APP_ROOT, 'results', `${options.label}.partial.json`);
+/**
+ * Reads the measurement keys an existing JSONL already holds.
+ * @param path The JSONL file.
+ * @returns Keys of the form `<caseId>#<repeat>`.
+ */
+function readCompleted(path) {
+  if (!existsSync(path)) return [];
+  const done = [];
+  for (const line of readFileSync(path, 'utf8').split('\n')) {
+    if (!line.trim()) continue;
+    try {
+      const entry = JSON.parse(line);
+      // Only an `ok` measurement counts as done: re-running a case that errored
+      // is usually the point of resuming.
+      if (entry.status === 'ok' && entry.id && entry.progress?.repeat) {
+        done.push(`${entry.id}#${entry.progress.repeat}`);
+      }
+    } catch {
+      // A half-written final line after a kill. Everything before it stands.
+    }
+  }
+  return done;
+}
+
+const pad = (value, width) => String(value).padStart(width);
+
+/** One progress line per measurement: where the run is, and what it measured. */
+function progressLine(result) {
+  const { caseIndex, caseCount, repeat, repeats } = result.progress ?? {};
+  const position =
+    caseCount === undefined
+      ? ''
+      : `(${pad(caseIndex, String(caseCount).length)}/${caseCount} models · run ${repeat}/${repeats}) `;
+
+  if (result.status === 'error') return `${position}${result.id} — FAILED: ${result.error}`;
+  if (result.status === 'skipped') return `${position}${result.id} — skipped: ${result.error}`;
+
+  const parts = [];
+  if (result.pipeline?.median !== undefined) parts.push(`${result.pipeline.median} ms`);
+  if (result.memory?.peakMb !== undefined) parts.push(`peak ${result.memory.peakMb} MB`);
+  if (result.taskLoadMs) parts.push(`load ${Math.round(result.taskLoadMs)} ms`);
+  if (result.gate?.temperatureC != null) parts.push(`${result.gate.temperatureC}C`);
+  return `${position}${result.id} — ${parts.join(', ')}`;
+}
 
 function writeJson(destination, value) {
   mkdirSync(dirname(destination), { recursive: true });
@@ -343,29 +366,114 @@ async function main() {
     settle = resolveFinished;
   });
 
-  // Cases are written to disk as they arrive, not just at the end. A suite over
-  // the larger models runs for the better part of an hour, and a crash or an
-  // out-of-memory kill on the last case used to throw away every case before it.
-  const collected = [];
-  const partial = partialPath(options);
-  const onCase = (result) => {
-    collected.push(result);
-    writeJson(partial, { partial: true, label: options.label, cases: collected });
-  };
+  // Output paths are only final once the app has announced its device, so a
+  // provisional pair is used until `/begin` arrives. With --resume the caller
+  // has usually passed --out, or the device is the one already in results/.
+  let paths = outputPaths(options, null);
+  let completed = options.resume ? readCompleted(paths.jsonl) : [];
+  let measurements = 0;
+  let plannedMeasurements = null;
 
-  const server = await startCollector(port, onCase, settle);
+  const server = createServer(async (request, response) => {
+    let body = null;
+    try {
+      body = await readBody(request);
+    } catch {
+      response.writeHead(400).end();
+      return;
+    }
+
+    if (request.url === '/completed') {
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ done: completed }));
+      return;
+    }
+
+    if (request.url === '/gate') {
+      // Long-poll: the device stays parked here while the host watches the
+      // temperature, so it is not generating heat polling for its own cooldown.
+      if (options.platform !== 'android') {
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ kind: 'none' }));
+        return;
+      }
+      const label = `${body?.caseId ?? '?'} run ${body?.repeat ?? '?'}/${body?.repeats ?? '?'}`;
+      const gate = await holdUntilCool(
+        Number(body?.maxTempC ?? options.maxTempC),
+        Number(body?.timeoutS ?? options.gateTimeoutS),
+        (heat, elapsedS) => {
+          const charging = heat.charging ? ', charging' : '';
+          console.log(
+            `[bench] cooling for ${label}: ${heat.temperatureC ?? '?'}C > ` +
+              `${body?.maxTempC ?? options.maxTempC}C, ${elapsedS}s elapsed${charging}`
+          );
+        }
+      );
+      if (gate.timedOut) {
+        console.warn(
+          `[bench] WARNING: ${label} starting at ${gate.temperatureC}C after ` +
+            `${gate.waitedS}s; it never reached ${body?.maxTempC ?? options.maxTempC}C`
+        );
+      }
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify(gate));
+      return;
+    }
+
+    response.writeHead(204).end();
+
+    if (request.url === '/begin') {
+      paths = outputPaths(options, body.device);
+      if (options.resume) completed = readCompleted(paths.jsonl);
+      mkdirSync(dirname(paths.jsonl), { recursive: true });
+      plannedMeasurements = body.cases.length * body.repeats;
+      console.log(
+        `\n[bench] run "${body.label}" on ${deviceSlug(body.device)} — ` +
+          `${body.cases.length} models x ${body.repeats} runs = ${plannedMeasurements} measurements`
+      );
+      if (body.skipped?.length) {
+        console.log(`[bench] ${body.skipped.length} variants skipped:`);
+        for (const entry of body.skipped) console.log(`         ${entry.id} — ${entry.reason}`);
+      }
+      if (completed.length > 0) {
+        console.log(`[bench] resuming: ${completed.length} measurements already on disk`);
+      }
+      console.log(`[bench] appending to ${paths.jsonl}\n`);
+    } else if (request.url === '/case') {
+      // Appended before anything else touches it: a kill between the POST and
+      // the write is the one gap this file exists to close.
+      appendFileSync(paths.jsonl, `${JSON.stringify(body)}\n`);
+      measurements += 1;
+      const total = plannedMeasurements ? `/${plannedMeasurements}` : '';
+      console.log(`[bench] [${measurements}${total}] ${progressLine(body)}`);
+    } else if (request.url === '/end') {
+      settle(body);
+    }
+  });
+
+  await new Promise((ready, fail) => {
+    server.on('error', (error) => {
+      fail(
+        error.code === 'EADDRINUSE'
+          ? new Error(
+              `port ${port} is in use — another run is still open. Pass --port to change it.`
+            )
+          : error
+      );
+    });
+    // 0.0.0.0 so an iOS device on the LAN can reach the collector, not just
+    // adb-reversed localhost traffic from Android.
+    server.listen(port, '0.0.0.0', ready);
+  });
   console.log(`[bench] collector listening on ${sink}`);
 
-  // Back-to-back suites are not comparable: a second run started fifteen seconds
-  // after the first finished came out 9% to 51% slower on every raw-execute
-  // metric (median 22%), purely from the device having no chance to cool.
   // Pin the clock BEFORE the cooldown so the device settles at the frequency it
   // will actually run at, rather than cooling at 3.4 GHz and being capped after.
   let clocksPinned = false;
   if (options.platform === 'android' && options.pinClocks !== 'off') {
     const before = await readMaxFrequencies();
     await setClockPin(true);
-    await new Promise((settled) => setTimeout(settled, 1500));
+    await sleep(1500);
     const after = await readMaxFrequencies();
     const capped =
       before.length > 0 && after.length === before.length && after.some((f, i) => f < before[i]);
@@ -400,27 +508,6 @@ async function main() {
     });
   }
 
-  let coolAt = null;
-  if (options.cooldown === 'auto') {
-    if (options.platform === 'android') {
-      console.log('[bench] waiting for the device to cool before starting');
-      coolAt = await waitUntilCool(Number(options.cooldownMax));
-    } else {
-      // iOS exposes no thermal readout over the wire, so there is nothing to
-      // poll from the host: fall back to a fixed wait rather than pretend.
-      const fallback = Math.min(300, Number(options.cooldownMax));
-      console.log(`[bench] no host-side thermal readout on iOS; sleeping ${fallback}s instead`);
-      await new Promise((wake) => setTimeout(wake, fallback * 1000));
-    }
-  } else {
-    const cooldown = Number(options.cooldown);
-    if (cooldown > 0) {
-      console.log(`[bench] cooling down for ${cooldown}s before starting`);
-      await new Promise((wake) => setTimeout(wake, cooldown * 1000));
-    }
-  }
-  console.log(`[bench] partial results: ${partial}`);
-
   if (options.platform === 'android') {
     await adbReverse(port);
     keepReverseAlive(port);
@@ -430,10 +517,17 @@ async function main() {
     ...process.env,
     EXPO_PUBLIC_BENCH_SUITE: options.suite,
     EXPO_PUBLIC_BENCH_ONLY: options.only,
+    EXPO_PUBLIC_BENCH_TASKS: options.tasks,
+    EXPO_PUBLIC_BENCH_BACKENDS: options.backends,
     EXPO_PUBLIC_BENCH_LABEL: options.label,
     EXPO_PUBLIC_BENCH_ITERATIONS: options.iterations,
     EXPO_PUBLIC_BENCH_WARMUP: options.warmup,
     EXPO_PUBLIC_BENCH_MEMORY_ITERATIONS: options.memoryIterations,
+    EXPO_PUBLIC_BENCH_REPEATS: options.repeats,
+    EXPO_PUBLIC_BENCH_MAX_TEMP_C: options.maxTempC,
+    EXPO_PUBLIC_BENCH_GATE_TIMEOUT_S: options.gateTimeoutS,
+    EXPO_PUBLIC_BENCH_MAX_BYTES: options.maxBytes,
+    EXPO_PUBLIC_BENCH_KEEP_MODELS: options.keepModels ? '1' : '0',
     EXPO_PUBLIC_BENCH_MEMORY: options.memory ? '1' : '0',
     EXPO_PUBLIC_BENCH_NATIVE: options.native ? '1' : '0',
     EXPO_PUBLIC_BENCH_SINK: sink,
@@ -465,14 +559,16 @@ async function main() {
 
   const report = await finished;
   report.clocksPinned = clocksPinned;
-  if (coolAt) report.cooldown = coolAt;
-  const destination = reportPath(options, report);
-  writeJson(destination, report);
-  rmSync(partial, { force: true });
+  writeJson(paths.json, report);
 
-  const failures = report.cases.filter((entry) => entry.status !== 'ok');
-  console.log(`\n[bench] wrote ${destination}`);
-  console.log(`[bench] ${report.cases.length - failures.length} ok, ${failures.length} failed`);
+  const measured = report.cases.filter((entry) => entry.status !== 'skipped');
+  const failures = measured.filter((entry) => entry.status !== 'ok');
+  console.log(`\n[bench] wrote ${paths.json}`);
+  console.log(`[bench] measurements kept in ${paths.jsonl}`);
+  console.log(
+    `[bench] ${measured.length - failures.length} ok, ${failures.length} failed, ` +
+      `${report.skipped.length} skipped`
+  );
 
   child?.kill('SIGTERM');
   server.close();
