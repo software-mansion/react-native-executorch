@@ -52,7 +52,7 @@ const DEFAULTS = {
   out: '',
   cooldown: 'auto',
   cooldownMax: '900',
-  pinClocks: 'auto',
+  pinClocks: 'off',
 };
 
 function parseArgs(argv) {
@@ -219,16 +219,24 @@ function run(command, args, env) {
 /**
  * Pins the CPU to a fixed, sustainable clock for the duration of a run.
  *
- * Android exposes `PowerManager`'s FIXED_PERFORMANCE mode over `cmd power`,
- * which vendors implement as a frequency cap rather than a hint. On a Galaxy
- * S26 Ultra it takes every cluster from 3.19/3.40 GHz down to ~1.98 GHz, so a
- * long suite cannot boost early and sag later as the device heats. That trades
- * absolute speed for the thing a benchmark actually needs: the same clock in
- * every run.
+ * **Off by default, and it should stay off for a benchmark.** Android exposes
+ * `PowerManager`'s FIXED_PERFORMANCE mode over `cmd power`, which vendors
+ * implement as a frequency cap rather than a hint: on a Galaxy S26 Ultra it
+ * takes every cluster from 3.19/3.40 GHz down to about 1.98 GHz. That is the
+ * right trade when the question is "did this build regress", because the same
+ * clock in both runs is worth more than a fast one. It is the wrong trade when
+ * the question is "how fast is this model on this phone", because the answer
+ * then describes a frequency the device would never choose on its own, and
+ * understates every number by roughly the ratio of the clocks.
+ *
+ * So: `--pin-clocks on` for an A/B against another build, and the default for
+ * publishing device numbers. With it off, the thermal gate is the only control
+ * over run-to-run drift, which is why the gate is per-repeat rather than
+ * per-run.
  *
  * Not every device implements the HAL, so the frequency is read back rather
  * than trusting the call. There is no iOS equivalent: nothing in the public API
- * pins or caps the clock, so runs there rely on the thermal gate alone.
+ * pins or caps the clock.
  */
 function setClockPin(enabled) {
   return new Promise((done) => {

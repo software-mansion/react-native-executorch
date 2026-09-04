@@ -84,18 +84,26 @@ result records `gate.kind: "device"` so nobody reads an iOS number as gated to
 
 ## Clocks
 
-On Android the host pins the CPU to a fixed clock via `PowerManager`'s
-fixed-performance mode, which vendors implement as a hard frequency cap: on a
-Galaxy S26 Ultra it takes every cluster from 3.19/3.40 GHz to about 1.98 GHz.
-Absolute numbers come out lower than a boosted run, which is the point — a phone
-that boosts early and sags as it heats produced 9% to 51% differences between
-two runs of identical code.
+**Clocks are left alone.** The device runs at whatever frequency its governor
+picks, because that is the performance a user of the library actually gets.
 
-A pinned run and an unpinned one are not comparable and `bench:compare` refuses
-to diff across them. There is no iOS equivalent, so iOS depends on the thermal
-gate alone. **Android-to-iOS comparisons are therefore comparisons of two
-different clock regimes** and should be read as such; device-to-device
-comparisons within a platform are the sound ones.
+The harness can pin them — Android's `PowerManager` fixed-performance mode,
+which vendors implement as a hard frequency cap — and that is the right thing
+when the question is "did this build regress", where the same clock in both runs
+is worth more than a fast one. It is the wrong thing here. On a Galaxy S26 Ultra
+it caps every cluster from 3.19/3.40 GHz to about 1.98 GHz, so every number
+published from a pinned run would understate the device by roughly that ratio
+and describe a state the phone would never enter on its own.
+
+Do not pass `--pin-clocks on` for these runs. It is off by default; the flag
+exists for A/B work against another build, and `bench:compare` refuses to diff a
+pinned run against an unpinned one for the same reason.
+
+With the clock free, the thermal gate is the only control over run-to-run drift,
+which is why it runs before every repeat rather than once per suite. A phone
+that boosts early and sags as it heats produced 9% to 51% differences between
+two runs of identical code; starting every measurement cold is what keeps that
+in hand.
 
 ## Inputs
 
@@ -139,8 +147,14 @@ Two caveats worth knowing before reading the output:
 | `everything` | Including LLMs | ~119 GB |
 
 LLMs are their own tier because they are 39 of the 163 Android variants and
-around 90 GB of the 119 GB. Run `--suite everything` overnight, on a charger, and
-expect the gate to be the slowest part.
+around 90 GB of the 119 GB. Run `--suite everything` overnight and expect the
+gate to be the slowest part of it.
+
+Leave the phone unplugged if its battery will survive the run: charging holds a
+device warm, so a charged run spends far longer at the gate and may never reach
+35 °C at all. If it has to be plugged in, the run still completes — the
+measurements that started warm are flagged `gate.timedOut` with their real
+starting temperature.
 
 Models are deleted after each variant's last repeat, so peak disk is one model
 rather than the whole tier. Pass `--keep-models` to keep them when re-running a

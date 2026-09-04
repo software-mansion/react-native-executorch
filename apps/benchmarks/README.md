@@ -56,7 +56,8 @@ environment to start it with.
 Options: `--suite quick|full|everything`, `--only <ids>`, `--tasks <names>`,
 `--backends <tags>`, `--repeats N`, `--max-temp-c C`, `--gate-timeout-s N`,
 `--max-bytes N`, `--keep-models`, `--iterations N`, `--warmup N`, `--no-memory`,
-`--no-native`, `--resume`, `--port N`, `--out <path>`, `--pin-clocks auto|on|off`.
+`--no-native`, `--resume`, `--port N`, `--out <path>`,
+`--pin-clocks off|auto|on` (off by default; see Clocks).
 
 **`BENCHMARK_SPEC.md` is the protocol** — what is measured, on what inputs, under
 what thermal and clock conditions. Read it before comparing two devices, and
@@ -188,28 +189,27 @@ iOS exposes no temperature at all, on the device or over the wire. There the gat
 falls back to waiting for `thermalState` to clear plus a fixed 90-second settle,
 and records `gate.kind: "device"` so no iOS number is read as gated to 35C.
 
-## Holding the clock still
+## Clocks
 
-The largest source of noise on a phone is not the code, it is the clock. A
-device boosts early in a run and sags as it heats, which is how two runs of
-_identical_ code came out 9% to 51% apart.
+Clocks are left alone by default, because a benchmark should report the
+performance the device actually delivers.
 
-On Android the driver pins the CPU to a fixed clock for the duration of a run
-via `PowerManager`'s fixed-performance mode. Vendors implement it as a hard
-frequency cap: on a Galaxy S26 Ultra it takes every cluster from 3.19/3.40 GHz
-to about 1.98 GHz. Absolute numbers come out lower than a boosted run, which is
-the point — the same clock in every run is worth more than a fast one.
+`--pin-clocks on` puts Android into `PowerManager`'s fixed-performance mode,
+which vendors implement as a hard frequency cap: on a Galaxy S26 Ultra it takes
+every cluster from 3.19/3.40 GHz down to about 1.98 GHz. That is worth having
+when the question is "did this build regress" - a device boosts early in a run
+and sags as it heats, which is how two runs of *identical* code came out 9% to
+51% apart, and the same clock in every run removes that. It is not worth having
+when the question is "how fast is this model on this phone", because the answer
+then describes a frequency the governor would never pick and understates the
+device by the ratio of the two clocks.
 
-`--pin-clocks` defaults to `auto`: pin if the device supports it, carry on
-without it if not. `on` fails the run rather than measuring unpinned, `off`
-disables it. The driver reads the frequency back after enabling rather than
-trusting the call, because not every vendor implements the HAL, and it restores
-normal clocks on exit, Ctrl-C and crash alike. A pinned run and an unpinned one
-are not comparable, and `bench:compare` refuses to diff across them.
-
-There is no iOS equivalent. Nothing in the public API pins or caps the clock,
-so runs there depend on the thermal gate and on cooling the device between
-suites.
+So: pinned for an A/B against another build, unpinned for publishing numbers.
+`bench:compare` refuses to diff across the two, and the driver reads the
+frequency back after enabling rather than trusting the call, because not every
+vendor implements the HAL. It restores normal clocks on exit, Ctrl-C and crash
+alike. There is no iOS equivalent - nothing in the public API pins or caps the
+clock - so iOS runs depend on the thermal gate alone.
 
 ## Tiers
 
