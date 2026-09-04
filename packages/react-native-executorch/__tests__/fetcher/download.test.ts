@@ -205,6 +205,57 @@ describe('download — failure handling', () => {
   });
 });
 
+describe('download — completeness check', () => {
+  it('rejects a body shorter than the advertised length', async () => {
+    // The check exists so a truncated `.pte` cannot be promoted into the cache,
+    // where the existence-only hit check would serve it forever and the failure
+    // would only surface much later, at load.
+    fakeNet.serve(URL_A, { body: 'short', headLength: 4096 });
+    await expect(download(URL_A)).rejects.toThrow(/incomplete/);
+    expect(cachedPath('model.pte')).toBeUndefined();
+  });
+
+  it('accepts a body longer than the advertised length', async () => {
+    // No transfer can produce more bytes than the resource holds, so an
+    // over-long result disproves the expectation rather than the transfer.
+    // Observed in the wild: a HEAD against a signed Xet CDN URL answered 26 for
+    // a 1,835,532-byte model, and every retry answered the same, so a complete
+    // and valid file was rejected three times out of three.
+    const whole = 'the-whole-file-'.repeat(8); // 120 bytes against an advertised 26
+    fakeNet.serve(URL_A, { body: whole, headLength: 26 });
+
+    const path = await download(URL_A);
+
+    expect(fakeFs.readText(path)).toBe(whole);
+  });
+
+  it('skips the check when the server will not give a length', async () => {
+    fakeNet.serve(URL_A, { body: 'model-bytes', headOk: false });
+
+    const path = await download(URL_A);
+
+    expect(path).toBe(cachedPath('model.pte'));
+    expect(fakeFs.readText(path)).toBe('model-bytes');
+  });
+
+  it('believes x-linked-size over a content-length describing the redirect', async () => {
+    // Hugging Face answers a model URL with a 302 to a CDN and reports the
+    // object's real size in `x-linked-size` on every hop; `content-length` on
+    // the redirect hop describes the redirect body instead. Reading the wrong
+    // one is what makes a complete file look over-long.
+    fakeNet.serve(URL_A, { body: 'a'.repeat(64), headLength: 1082, linkedSize: 64 });
+
+    const path = await download(URL_A);
+
+    expect(fakeFs.readText(path)).toBe('a'.repeat(64));
+  });
+
+  it('still rejects a short body when x-linked-size is the header in play', async () => {
+    fakeNet.serve(URL_A, { body: 'short', headLength: 1082, linkedSize: 4096 });
+    await expect(download(URL_A)).rejects.toThrow(/incomplete/);
+  });
+});
+
 describe('download — cancellation', () => {
   it('rejects with DOWNLOAD_ABORTED when the signal is already aborted', async () => {
     fakeNet.serve(URL_A);

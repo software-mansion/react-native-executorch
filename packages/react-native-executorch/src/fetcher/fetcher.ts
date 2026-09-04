@@ -94,6 +94,12 @@ async function remoteSize(url: string, signal?: AbortSignal): Promise<number> {
 
   try {
     const res = await fetch(url, { method: 'HEAD', signal: controller.signal });
+    // `x-linked-size` first: Hugging Face serves an LFS or Xet object by
+    // redirecting to a CDN, and only this header describes the object on every
+    // hop. `content-length` on the redirect hop describes the redirect body,
+    // and a client that stops following early reads that instead of the file.
+    const linked = res.headers.get('x-linked-size');
+    if (linked && Number(linked) > 0) return Number(linked);
     const len = res.headers.get('content-length');
     return len ? Number(len) : 0;
   } catch {
@@ -121,6 +127,19 @@ async function expectedBytesFor(
   if (resolved && resolved > 0) return resolved;
   return remoteSize(url, signal);
 }
+
+// Whether a finished transfer is genuinely short of what the server advertised.
+//
+// Only a file SHORTER than expected is evidence of a truncated transfer. A file
+// longer than expected disproves the expectation instead: no transfer can
+// produce more bytes than the resource holds, so an over-long result means the
+// length was wrong, and rejecting on it turns a flaky HEAD into a model that can
+// never be downloaded. That is not hypothetical — a HEAD against a signed Xet
+// CDN URL answered `26` for a 1,835,532-byte `.pte`, and the retry answered the
+// same, so all three attempts rejected a complete and valid file. It also covers
+// the legitimate case of a server reporting a compressed length for a body the
+// client stores decompressed.
+const isTruncated = (got: number, want: number) => want > 0 && got < want;
 
 // Raised when a transfer reported success but the bytes on disk don't match
 // what the server advertised.
@@ -386,7 +405,7 @@ async function downloadUrlViaAndroidDownloadManager(
   // its final name forever — the existence-only cache check can't tell the
   // difference, and a truncated .pte only fails much later, at load.
   const expected = await expectedBytesFor(url, cb.expectedBytes, cb.signal);
-  if (expected > 0 && size !== expected) {
+  if (isTruncated(size, expected)) {
     await RNBlobUtil.fs.unlink(tmp).catch(() => {});
     throw incompleteError(url, size, expected);
   }
@@ -552,7 +571,7 @@ async function downloadUrlViaBackgroundSession(
   // only fail much later, at load.
   const expected = await expectedBytesFor(url, cb.expectedBytes, cb.signal);
   const assembled = await fileSize(part);
-  if (expected > 0 && assembled !== expected) {
+  if (isTruncated(assembled, expected)) {
     throw incompleteError(url, assembled, expected);
   }
 
@@ -731,13 +750,15 @@ async function downloadUrlViaIosStream(
   // existence, not size) and the truncated .pte fails at load with
   // InvalidProgram.
   const assembled = await fileSize(part);
-  if (expected > 0 && assembled !== expected) {
-    if (assembled > expected && canResume) {
-      // More bytes than the file has: a resume appended onto an offset that had
-      // moved on. The partial is unusable, so start over rather than fail.
-      await RNBlobUtil.fs.unlink(part).catch(() => {});
-      return downloadUrlViaIosStream(url, dest, cb, false);
-    }
+  if (expected > 0 && assembled > expected && canResume) {
+    // More bytes than the file has, on a transfer that resumed: the resume
+    // appended onto an offset that had moved on. The partial is unusable, so
+    // start over rather than fail. A fresh transfer that overshoots is a wrong
+    // expectation instead, and falls through to be accepted.
+    await RNBlobUtil.fs.unlink(part).catch(() => {});
+    return downloadUrlViaIosStream(url, dest, cb, false);
+  }
+  if (isTruncated(assembled, expected)) {
     // Short: keep the partial so the next call resumes and finishes it.
     throw incompleteError(url, assembled, expected);
   }
