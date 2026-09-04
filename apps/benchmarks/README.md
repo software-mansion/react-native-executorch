@@ -20,8 +20,8 @@ request and being ignored.
 ## Running a suite
 
 ```bash
-# Everything the platform can run except LLMs, gated at 35C
-yarn bench --platform android --suite full --label v0.10.0 --max-temp-c 35
+# Everything the platform can run except LLMs, gated at 37C
+yarn bench --platform android --suite full --label v0.10.0 --max-temp-c 37
 
 # The small models only, for bisecting
 yarn bench --platform android --suite quick --label et-1.4.1
@@ -172,7 +172,7 @@ Every measurement starts from the same thermal state, because on a phone that is
 the largest thing separating two runs of identical code.
 
 Before each repeat the device parks at the gate and the host polls
-`dumpsys battery` until the battery is at or below `--max-temp-c` (35C by
+`dumpsys battery` until the battery is at or below `--max-temp-c` (37C by
 default) and the framework reports no throttling. An absolute ceiling is used
 rather than a "has it stopped cooling" plateau: a plateau answers the right
 question when comparing two runs on one device and the wrong one when comparing
@@ -187,7 +187,7 @@ a device warm and is called out when detected.
 
 iOS exposes no temperature at all, on the device or over the wire. There the gate
 falls back to waiting for `thermalState` to clear plus a fixed 90-second settle,
-and records `gate.kind: "device"` so no iOS number is read as gated to 35C.
+and records `gate.kind: "device"` so no iOS number is read as gated to 37C.
 
 ## Clocks
 

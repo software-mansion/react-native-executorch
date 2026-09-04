@@ -104,6 +104,18 @@ export interface BenchConfig {
   /**
    * Battery temperature, in Celsius, the device must be at or below before each
    * measurement. The host enforces it; see `src/gate.ts`.
+   *
+   * 37 rather than a rounder 35 because a gate below the device's idle floor
+   * never opens. A Galaxy S26 Ultra sits at 35.4C doing nothing with the
+   * harness in the foreground: the screen is held on for the length of the run,
+   * or Android freezes the app mid-suite. At 35 every measurement waited out
+   * the full timeout and then measured warm anyway, turning a 52-model tier
+   * into a day of waiting; at 37 the gate opens immediately on an idle device
+   * and still holds after a model that heated it.
+   *
+   * It has to stay an absolute number rather than something derived per device,
+   * or two phones stop being comparable — which is the whole reason for a gate
+   * rather than a plateau rule.
    */
   readonly maxTempC: number;
   /** Seconds the host may wait for the gate before giving up and measuring warm. */
@@ -146,7 +158,7 @@ export const config: BenchConfig = {
   sink: process.env.EXPO_PUBLIC_BENCH_SINK || null,
   autostart: bool(process.env.EXPO_PUBLIC_BENCH_AUTOSTART, true),
   label: str(process.env.EXPO_PUBLIC_BENCH_LABEL, 'local'),
-  maxTempC: num(process.env.EXPO_PUBLIC_BENCH_MAX_TEMP_C, 35),
+  maxTempC: num(process.env.EXPO_PUBLIC_BENCH_MAX_TEMP_C, 37),
   gateTimeoutS: int(process.env.EXPO_PUBLIC_BENCH_GATE_TIMEOUT_S, 1800),
   maxBytes: int(process.env.EXPO_PUBLIC_BENCH_MAX_BYTES, 6_000_000_000),
   keepModels: bool(process.env.EXPO_PUBLIC_BENCH_KEEP_MODELS, false),
