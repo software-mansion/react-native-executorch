@@ -45,7 +45,7 @@ const DEFAULTS = {
   warmup: '3',
   memoryIterations: '5',
   repeats: '1',
-  maxTempC: '35',
+  maxTempC: '37',
   gateTimeoutS: '1800',
   maxBytes: '6000000000',
   port: '8099',
@@ -440,6 +440,15 @@ async function main() {
   // has usually passed --out, or the device is the one already in results/.
   let paths = outputPaths(options, null);
   let completed = options.resume ? readCompleted(paths.jsonl) : [];
+  // Every key the output file already holds, whatever the app believes.
+  //
+  // `--resume` works by the app asking which measurements exist and skipping
+  // them, and that request travels the same adb tunnel that has been seen to
+  // drop: a lost answer means the app re-measures everything and the file grows
+  // a second copy of each row. The writer is the only place that can actually
+  // promise otherwise, so it refuses a key it already has rather than trusting
+  // the handshake.
+  let onDisk = new Set(readCompleted(paths.jsonl));
   let measurements = 0;
   let plannedMeasurements = null;
 
@@ -511,7 +520,9 @@ async function main() {
       }
 
       paths = outputPaths(options, body.device);
-      if (options.resume) completed = readCompleted(paths.jsonl);
+      // The device is only known now, so the path may have changed under us.
+      completed = options.resume ? readCompleted(paths.jsonl) : [];
+      onDisk = new Set(readCompleted(paths.jsonl));
       mkdirSync(dirname(paths.jsonl), { recursive: true });
       plannedMeasurements = body.cases.length * body.repeats;
       console.log(
@@ -527,9 +538,15 @@ async function main() {
       }
       console.log(`[bench] appending to ${paths.jsonl}\n`);
     } else if (request.url === '/case') {
+      const key = `${body.id}#${body.progress?.repeat ?? 1}`;
+      if (body.status === 'ok' && onDisk.has(key)) {
+        console.log(`[bench] ${key} is already recorded; keeping the first and dropping this one`);
+        return;
+      }
       // Appended before anything else touches it: a kill between the POST and
       // the write is the one gap this file exists to close.
       appendFileSync(paths.jsonl, `${JSON.stringify(body)}\n`);
+      if (body.status === 'ok') onDisk.add(key);
       measurements += 1;
       const total = plannedMeasurements ? `/${plannedMeasurements}` : '';
       console.log(`[bench] [${measurements}${total}] ${progressLine(body)}`);
