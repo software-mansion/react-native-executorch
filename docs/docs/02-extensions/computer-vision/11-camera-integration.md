@@ -184,15 +184,16 @@ Pass `frameOutput` to the `<Camera />` component via the `outputs` prop:
 
 Connecting `frameOutput` through the `outputs` prop attaches your processing pipeline directly to the active camera session. Because inference runs inside the worklet runtime with `dropFramesWhileBusy: true`, the camera preview continues rendering smoothly at hardware display refresh rates without UI stutter. VisionCamera allows combining `frameOutput` with interactive camera controls (such as tap-to-focus, zoom, and exposure bias) as well as other capture outputs. See the [VisionCamera Camera Outputs documentation](https://visioncamera.margelo.com/docs/camera-outputs) for full configuration options.
 
-### 3. Transforming Bounding Boxes to Screen Space
+### 3. Transforming Model Coordinates to Screen Space
 
-Camera models return bounding box coordinates relative to the model's resized input tensor space (e.g. 384×384). To render these boxes accurately over the camera viewfinder, coordinate transformations must account for:
+Vision models predict spatial outputs—such as bounding boxes (object detection), skeletal landmarks (pose estimation), segmentation masks, or text bounding polygons (OCR)—relative to the model's resized input tensor coordinate space (e.g. 384×384). To render overlays, markers, or contours accurately over the camera viewfinder, coordinate transformations must account for:
 
-- **Landscape-Native Sensors**: Physical camera sensors are mounted in landscape orientation. When holding the phone upright in portrait, the frame's width and height dimensions are swapped relative to the screen.
-- **Compound Aspect-Fill Scaling**: Both the GPU resizer and the camera viewfinder typically use cover/aspect-fill cropping. The overlay needs to account for the relative scaling factor and centering offsets between the model tensor and the rendered viewfinder canvas.
+- **Landscape-Native Sensors**: Physical camera sensors are mounted in landscape orientation. In portrait mode, the sensor frame's width and height dimensions are inverted relative to screen space.
+- **Compound Aspect-Fill Scaling**: Both the GPU resizer (`useResizer` with `scaleMode: 'cover'`) and the camera viewfinder (`<Camera resizeMode="cover" />`) typically apply aspect-fill cropping. The overlay mapping needs to account for the compound scaling factor and centering offsets between the model tensor and the rendered viewfinder canvas.
+- **Coordinate Remapping**: Mapping normalized or pixel `(x, y)` coordinates from the cropped tensor space back onto the visible camera viewport coordinates.
 
-:::tip Complete Implementation in Gallery App
-See [`src/components/RealtimeDetectionViewport.tsx`](https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/components/RealtimeDetectionViewport.tsx) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete implementation of viewport transforms, orientation handling, and bounding box normalization.
+:::tip Reference Implementation in Gallery App
+See [`src/app/(screens)/realtime-object-detection.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/realtime-object-detection.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete reference implementation of viewport coordinate transforms, orientation normalization, and real-time visual overlays.
 :::
 
 ## Performance & Best Practices
