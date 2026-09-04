@@ -51,44 +51,47 @@ const BLIND_SETTLE_MS = 90_000;
 const DEVICE_POLL_MS = 10_000;
 
 /**
- * Waits on the device alone, with no host to read a temperature from.
+ * Waits without the host, which happens on iOS and whenever the collector is
+ * briefly unreachable.
  *
- * `thermalState` is coarse — a status enum, not a figure — so this waits for it
- * to report no throttling and then settles for a fixed period regardless. The
- * fixed part is what does the real work; the status check only avoids starting
- * a measurement while the OS is actively throttling.
+ * Android's `thermalState` carries a real battery temperature, so this holds to
+ * the same ceiling the host would. Falling back to a coarse wait when a number
+ * is available is how a measurement came to start at 36.6C under a 35C gate:
+ * the reading was in the result all along, and nothing consulted it.
+ *
+ * iOS reports -1 for the temperature, since nothing in the public API exposes
+ * one. There the enum is all there is, so the gate waits for it to report no
+ * throttling and then settles for a fixed period. That settle is what does the
+ * real work; the status check only avoids starting while the OS is throttling.
  * @param timeoutS Seconds to wait before measuring anyway.
+ * @param maxTempC Ceiling to hold to, where a temperature can be read.
  * @returns What the gate observed.
  */
-async function waitOnDevice(timeoutS: number): Promise<GateResult> {
+async function waitOnDevice(timeoutS: number, maxTempC: number): Promise<GateResult> {
   const started = Date.now();
   const deadline = started + timeoutS * 1000;
+  const elapsedS = () => Math.round((Date.now() - started) / 1000);
+  const report = (state: ReturnType<typeof BenchProbe.thermalState>, timedOut: boolean) => ({
+    kind: 'device' as const,
+    waitedS: elapsedS(),
+    temperatureC: state.batteryTemperatureC >= 0 ? state.batteryTemperatureC : null,
+    thermalStatus: state.status,
+    timedOut,
+  });
 
   for (;;) {
     const state = BenchProbe.thermalState();
-    const throttling = state.status > 0;
-    if (!throttling) break;
-    if (Date.now() >= deadline) {
-      return {
-        kind: 'device',
-        waitedS: Math.round((Date.now() - started) / 1000),
-        temperatureC: state.batteryTemperatureC >= 0 ? state.batteryTemperatureC : null,
-        thermalStatus: state.status,
-        timedOut: true,
-      };
+    const readable = state.batteryTemperatureC >= 0;
+    const coolEnough = !readable || state.batteryTemperatureC <= maxTempC;
+    if (state.status <= 0 && coolEnough) {
+      // A device with no readable temperature has only the enum to go on, so it
+      // still owes the fixed settle. One that met the ceiling has met it.
+      if (!readable) await sleep(BLIND_SETTLE_MS);
+      return report(BenchProbe.thermalState(), false);
     }
+    if (Date.now() >= deadline) return report(state, true);
     await sleep(DEVICE_POLL_MS);
   }
-
-  await sleep(BLIND_SETTLE_MS);
-  const state = BenchProbe.thermalState();
-  return {
-    kind: 'device',
-    waitedS: Math.round((Date.now() - started) / 1000),
-    temperatureC: state.batteryTemperatureC >= 0 ? state.batteryTemperatureC : null,
-    thermalStatus: state.status,
-    timedOut: false,
-  };
 }
 
 /**
@@ -107,7 +110,7 @@ export async function waitUntilCool(
   repeat: number,
   repeats: number
 ): Promise<GateResult> {
-  if (!config.sink) return waitOnDevice(config.gateTimeoutS);
+  if (!config.sink) return waitOnDevice(config.gateTimeoutS, config.maxTempC);
 
   const started = Date.now();
   try {
@@ -128,7 +131,7 @@ export async function waitUntilCool(
     // every iOS device and any Android one adb cannot reach. Falling back to the
     // device-side wait is better than measuring immediately, and it is recorded
     // as a device gate so nobody reads it as a 35C guarantee.
-    if (body.kind === 'none') return waitOnDevice(config.gateTimeoutS);
+    if (body.kind === 'none') return waitOnDevice(config.gateTimeoutS, config.maxTempC);
 
     return {
       kind: 'host',
@@ -139,6 +142,8 @@ export async function waitUntilCool(
     };
   } catch {
     // A dropped adb tunnel must not strand the run: fall back rather than fail.
-    return waitOnDevice(config.gateTimeoutS);
+    // The fallback holds the same ceiling wherever a temperature can be read, so
+    // a blip in the tunnel cannot quietly lower the bar for a measurement.
+    return waitOnDevice(config.gateTimeoutS, config.maxTempC);
   }
 }

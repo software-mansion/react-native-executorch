@@ -27,8 +27,8 @@
 
 import { createServer } from 'node:http';
 import { spawn, spawnSync } from 'node:child_process';
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { networkInterfaces } from 'node:os';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { networkInterfaces, tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -241,6 +241,40 @@ async function stopCharging() {
 
 function run(command, args, env) {
   return spawn(command, args, { cwd: APP_ROOT, env, stdio: 'inherit', shell: false });
+}
+
+/**
+ * Clears everything that can carry a previous run's settings into this one.
+ *
+ * Every `EXPO_PUBLIC_BENCH_*` value is inlined into the bundle when Metro
+ * transforms it, so the settings live in the bundler, not in the app. Two things
+ * then keep them alive across invocations:
+ *
+ * - A Metro already listening on the dev-server port. `expo run:*` attaches to
+ *   it rather than starting its own, and that process holds the environment it
+ *   was launched with — no cache clearing can reach it. This is what actually
+ *   bit: a run asked for one repeat under a new label and the app announced
+ *   three repeats under the old one.
+ * - Metro's transform cache, whose key does not cover these variables.
+ *
+ * Killing a bundler the user may have started by hand is worth it here: a
+ * benchmark that silently measures under settings nobody chose is worse than
+ * one that takes an extra thirty seconds to boot.
+ * @param port The dev-server port to free, matching what `expo run:*` will use.
+ */
+function resetBundler(port = 8081) {
+  const held = spawnSync('lsof', ['-ti', `tcp:${port}`], { encoding: 'utf8' });
+  const pids = (held.stdout ?? '')
+    .split('\n')
+    .map((pid) => pid.trim())
+    .filter(Boolean);
+  if (pids.length > 0) {
+    console.log(`[bench] stopping the bundler on port ${port}; it holds the previous settings`);
+    spawnSync('kill', ['-9', ...pids], { stdio: 'ignore' });
+  }
+  for (const dir of [join(tmpdir(), 'metro-cache'), join(APP_ROOT, 'node_modules/.cache')]) {
+    rmSync(dir, { recursive: true, force: true });
+  }
 }
 
 /**
@@ -458,6 +492,24 @@ async function main() {
     response.writeHead(204).end();
 
     if (request.url === '/begin') {
+      // The app reports what it actually booted with. A mismatch means the
+      // bundle predates this invocation, and every number it goes on to produce
+      // would be labelled with settings that were not the ones requested.
+      const stale = [];
+      if (body.label !== options.label) stale.push(`label ${body.label} != ${options.label}`);
+      if (body.repeats !== Number(options.repeats)) {
+        stale.push(`repeats ${body.repeats} != ${options.repeats}`);
+      }
+      if (stale.length > 0) {
+        console.error(
+          `\n[bench] FATAL: the app is running a stale bundle (${stale.join(', ')}).\n` +
+            'Metro inlines EXPO_PUBLIC_BENCH_* at bundle time and served a cached build.\n' +
+            'The cache is cleared automatically now; if this persists, stop Metro and rerun.'
+        );
+        server.close();
+        process.exit(3);
+      }
+
       paths = outputPaths(options, body.device);
       if (options.resume) completed = readCompleted(paths.jsonl);
       mkdirSync(dirname(paths.jsonl), { recursive: true });
@@ -603,6 +655,7 @@ async function main() {
     if (options.platform === 'android') {
       await adbCapture('am force-stop com.anonymous.benchmarks');
     }
+    resetBundler();
     console.log(`[bench] launching the app on ${options.platform}`);
     child = run('yarn', [options.platform], env);
 
