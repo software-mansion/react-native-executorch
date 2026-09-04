@@ -15,7 +15,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.benchmarks"
+      "bundleIdentifier": "com.msluszniak.rne.benchmarks",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true,
+          "NSAllowsLocalNetworking": true
+        },
+        "NSLocalNetworkUsageDescription": "Fetches benchmark models and reports results to the collector running on your Mac."
+      }
     },
     "android": {
       "adaptiveIcon": {

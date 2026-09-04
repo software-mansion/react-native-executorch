@@ -13,6 +13,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useKeepAwake } from 'expo-keep-awake';
 
 import { config } from './src/config';
+import { runProbe, type ProbeResult } from './src/probe';
 import { runSuite } from './src/runner';
 import type { CaseResult, Progress } from './src/report';
 import { selectCases } from './src/suite';
@@ -58,6 +59,7 @@ export default function App() {
   const [phase, setPhase] = useState<Phase | null>(null);
   const [results, setResults] = useState<CaseResult[]>([]);
   const [fatal, setFatal] = useState<string | null>(null);
+  const [probed, setProbed] = useState<ProbeResult[]>([]);
   const started = useRef(false);
 
   const selection = useMemo(
@@ -81,10 +83,17 @@ export default function App() {
     setDone(false);
 
     try {
-      await runSuite({
-        onPhase: (caseId, name, progress) => setPhase({ caseId, phase: name, progress }),
-        onCase: (result) => setResults((previous) => [...previous, result]),
-      });
+      if (config.mode === 'probe') {
+        // No gate and no repeats here: the probe is measuring what the model
+        // computes, not how long it takes, and thermal state does not change an
+        // output.
+        await runProbe((result) => setProbed((previous) => [...previous, result]));
+      } else {
+        await runSuite({
+          onPhase: (caseId, name, progress) => setPhase({ caseId, phase: name, progress }),
+          onCase: (result) => setResults((previous) => [...previous, result]),
+        });
+      }
       setDone(true);
     } catch (error) {
       setFatal(String(error));
@@ -109,8 +118,9 @@ export default function App() {
       <SafeAreaView style={styles.container}>
         <Text style={styles.title}>ExecuTorch benchmarks</Text>
         <Text style={styles.meta}>
-          {config.label} · {config.only.length > 0 ? 'custom' : config.suite} ·{' '}
-          {selection.cases.length} models × {config.repeats} runs · {config.iterations} iterations
+          {config.mode === 'probe'
+            ? `probe · ${probed.length} arms reported`
+            : `${config.label} · ${config.only.length > 0 ? 'custom' : config.suite} · ${selection.cases.length} models × ${config.repeats} runs · ${config.iterations} iterations`}
         </Text>
         <Text style={styles.meta}>
           sink: {config.sink ?? 'console only'}
@@ -127,6 +137,15 @@ export default function App() {
 
         <ProgressHeader phase={phase} done={results.length} />
         {done && <Text style={styles.done}>Run complete.</Text>}
+        {config.mode === 'probe' &&
+          probed.map((result) => (
+            <Text
+              key={result.id}
+              style={result.status === 'ok' ? styles.done : styles.error}
+            >
+              {result.id}: {result.status === 'ok' ? `${result.outputs?.length ?? 0} tensors` : result.error}
+            </Text>
+          ))}
         {fatal && <Text style={styles.error}>{fatal}</Text>}
 
         <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
