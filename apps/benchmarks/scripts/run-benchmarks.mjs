@@ -64,7 +64,7 @@ function parseArgs(argv) {
     native: true,
     resume: false,
     keepModels: false,
-    unplug: true,
+    unplug: false,
   };
 
   for (let i = 0; i < argv.length; i++) {
@@ -74,7 +74,7 @@ function parseArgs(argv) {
     else if (arg === '--no-native') options.native = false;
     else if (arg === '--resume') options.resume = true;
     else if (arg === '--keep-models') options.keepModels = true;
-    else if (arg === '--no-unplug') options.unplug = false;
+    else if (arg === '--unplug') options.unplug = true;
     else if (arg.startsWith('--')) {
       const key = arg.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
       if (!(key in DEFAULTS)) throw new Error(`Unknown option ${arg}`);
@@ -219,24 +219,51 @@ async function holdUntilCool(maxTempC, timeoutS, onWait) {
 /**
  * Stops the device charging for the duration of the run, and reads the level.
  *
- * `adb` needs the USB cable, and the cable charges the phone, and charging is
- * what holds it warm: an S26 Ultra sat at 34.9-35.1C plugged in and dropped to
- * 33.8C the moment charging stopped. With a 35C gate that is the difference
- * between every measurement waiting out the timeout and none of them waiting at
- * all, so the harness stops charging rather than asking whoever runs it to
- * unplug a phone it also needs to talk to.
+ * **Off by default, and worth understanding before turning on.** The cable adb
+ * needs also charges the phone, and charging holds it about 1.5C warmer: an S26
+ * Ultra sat at 34.9-35.1C plugged in and 33.5C unplugged. Under the old 35C gate
+ * that gap decided whether any measurement ever started, so the harness stopped
+ * charging on its own.
  *
- * `dumpsys battery unplug` is the framework-level switch the battery test
- * tooling uses; the device runs on its own cell until `reset`. That makes the
- * battery level a real constraint on a long suite, which is why it is read back
- * and reported.
+ * That cure was worse. `dumpsys battery unplug` convinces the framework the
+ * device is on battery, and Samsung answers by engaging Battery Saver — sticky
+ * until the cell reaches 90%. The CPU's maximum frequencies stay put, so it does
+ * not look like throttling, but EfficientNet int8 went from 66 ms to 116 ms with
+ * nothing else changed. Benchmarking a phone in a power-saving mode no user
+ * asked for measures the power-saving mode.
+ *
+ * With the gate at 37C the whole trade disappears: charging costs 1.5C and the
+ * ceiling has room for it, so the run stays plugged in and the battery survives
+ * a long suite. `--unplug` remains for a device whose idle floor genuinely needs
+ * it, and it now clears Battery Saver rather than leaving it set.
  * @returns The battery percentage after unplugging, or null if adb cannot say.
  */
 async function stopCharging() {
   await adbCapture('dumpsys battery unplug');
+  // Undo the vendor's reaction to believing it is on battery. Without this the
+  // run measures Battery Saver rather than the device.
+  await adbCapture('settings put global low_power 0');
   const out = await adbCapture('dumpsys battery | grep level');
   const level = /level:\s*(\d+)/.exec(out);
   return level ? Number(level[1]) : null;
+}
+
+/**
+ * Fails the run if the device is in a power-saving mode.
+ *
+ * A phone in Battery Saver is not the phone the numbers are meant to describe,
+ * and it does not announce itself: frequencies read normal and nothing throttles,
+ * the work is simply slower. Checked rather than assumed, because the harness
+ * itself turned it on once by unplugging.
+ * @returns A description of the problem, or null when the device is in a normal
+ * state.
+ */
+async function powerSaveProblem() {
+  const lowPower = (await adbCapture('settings get global low_power')).trim();
+  if (lowPower === '1') {
+    return 'Battery Saver is on; it slows the device without capping frequencies';
+  }
+  return null;
 }
 
 function run(command, args, env) {
@@ -571,6 +598,16 @@ async function main() {
   });
   console.log(`[bench] collector listening on ${sink}`);
 
+  if (options.platform === 'android') {
+    const problem = await powerSaveProblem();
+    if (problem) {
+      throw new Error(
+        `${problem}.\nTurn it off before benchmarking: ` +
+          'adb shell settings put global low_power 0'
+      );
+    }
+  }
+
   let unplugged = false;
   if (options.platform === 'android' && options.unplug) {
     const level = await stopCharging();
@@ -627,6 +664,9 @@ async function main() {
     if (unplugged) {
       unplugged = false;
       spawnSync('adb', ['shell', 'dumpsys', 'battery', 'reset'], { stdio: 'ignore' });
+      spawnSync('adb', ['shell', 'settings', 'put', 'global', 'low_power', '0'], {
+        stdio: 'ignore',
+      });
     }
   };
   process.on('exit', restoreDevice);
