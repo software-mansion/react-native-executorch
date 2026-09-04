@@ -13,7 +13,13 @@ buildscript {
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+// AGP 9 ships built-in Kotlin support and registers the `kotlin` extension
+// itself. Applying the Kotlin plugin on top of it fails configuration with
+// "Cannot add extension with name 'kotlin'". Only apply it when nothing has
+// registered that extension yet.
+if (project.extensions.findByName('kotlin') == null) {
+    apply plugin: 'kotlin-android'
+}
 
 android {
     namespace 'com.executorch.webrtc'
@@ -51,9 +57,11 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = '17'
-    }
+    // No `kotlinOptions` block: it comes from the Kotlin plugin, which is not
+    // applied on AGP 9, so referencing it there fails with "Could not find
+    // method kotlinOptions()". Both AGP 8 and AGP 9 take the Kotlin jvmTarget
+    // from `compileOptions` above; verified to emit Java 17 bytecode on
+    // AGP 8.13.2 and AGP 9.4.0.
 
     packaging {
         jniLibs {
