@@ -8,7 +8,7 @@ The short version: **check out this branch, run one command, send the JSONL.**
 
 ```bash
 # Android
-yarn bench --platform android --suite full --label v0.10.0 --max-temp-c 35
+yarn bench --platform android --suite full --label v0.10.0 --max-temp-c 37
 
 # iOS
 yarn bench --platform ios --suite full --label v0.10.0
@@ -73,7 +73,7 @@ can afford the time.
 
 ## The thermal gate
 
-Every measurement starts with the device at **35 °C or below**, enforced before
+Every measurement starts with the device at **37 °C or below**, enforced before
 each individual repeat rather than once per run.
 
 On Android the host polls `dumpsys battery` over adb and holds the device at the
@@ -83,7 +83,16 @@ comparing two runs on one device and the wrong one when comparing four devices,
 because a phone that settles at 41 °C and one that settles at 30 °C both pass a
 plateau test while measuring quite different things.
 
-The wait is bounded (30 minutes by default). If a device never reaches 35 °C —
+37 °C rather than a rounder 35 because a ceiling below a device's idle floor
+never opens. A Galaxy S26 Ultra sits at 35.4 °C doing nothing with the harness
+in the foreground — the screen is held on for the length of the run, or Android
+freezes the app mid-suite — so a 35 °C gate waited out its full timeout on every
+measurement and then measured warm regardless. Raise it further only if a device
+in your set idles above 37 °C, and raise it for **every** device if you do:
+the number has to be the same everywhere or the runs stop being comparable,
+which is the entire reason for a fixed ceiling.
+
+The wait is bounded (30 minutes by default). If a device never reaches 37 °C —
 a warm room, a phone on charge — the measurement proceeds and is flagged
 `gate.timedOut`, with the temperature it actually started at. Unplug the phone
 if you can: charging holds it warm and will stall the gate.
@@ -92,7 +101,7 @@ if you can: charging holds it warm and will stall the gate.
 `adb` has no counterpart. There, the gate falls back to waiting for
 `thermalState` to report no throttling plus a fixed 90-second settle, and every
 result records `gate.kind: "device"` so nobody reads an iOS number as gated to
-35 °C. Give the phone a cool room and do not hold it.
+37 °C. Give the phone a cool room and do not hold it.
 
 ## Clocks
 
@@ -164,7 +173,7 @@ gate to be the slowest part of it.
 
 Leave the phone unplugged if its battery will survive the run: charging holds a
 device warm, so a charged run spends far longer at the gate and may never reach
-35 °C at all. If it has to be plugged in, the run still completes — the
+37 °C at all. If it has to be plugged in, the run still completes — the
 measurements that started warm are flagged `gate.timedOut` with their real
 starting temperature.
 
