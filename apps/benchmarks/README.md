@@ -4,7 +4,7 @@ An on-device harness that measures model load time, inference latency and peak
 memory for the task pipelines, and a comparator that diffs two runs and fails on
 regressions.
 
-Its first job is bracketing an ExecuTorch bump: run the suite on 1.3.1, bump,
+It also brackets an ExecuTorch bump: run the suite, bump,
 run it again on the same device, and compare.
 
 ## Why on-device
@@ -77,7 +77,7 @@ final `.json`, so a running suite can be summarised without stopping it.
 ## Comparing two runs
 
 ```bash
-yarn bench:compare results/et-1.3.1-ios-iPhone17,1.json results/et-1.4.1-ios-iPhone17,1.json
+yarn bench:compare results/before-ios-iPhone17,1.json results/after-ios-iPhone17,1.json
 ```
 
 Prints a per-metric table and exits 1 if anything regressed past tolerance
@@ -114,7 +114,7 @@ back `NOISY`, read its `execute.*` rows: those measure ExecuTorch, which is what
 a bump changes, and they are far steadier than any metric with TypeScript
 post-processing in it.
 
-Copy a run you want to keep into `baselines/`; `results/` is gitignored.
+`results/` is gitignored; keep a run you care about outside the repo.
 
 ## What gets measured
 
