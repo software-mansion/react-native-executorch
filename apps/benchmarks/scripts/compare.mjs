@@ -3,7 +3,7 @@
  * Diffs two benchmark reports and fails on regressions.
  *
  * Usage:
- *   yarn bench:compare results/et-1.3.1-ios-iPhone17,1.json results/et-1.4.1-ios-iPhone17,1.json
+ *   yarn bench:compare results/before-ios-iPhone17,1.json results/after-ios-iPhone17,1.json
  *   yarn bench:compare baseline.json current.json --inference 8 --memory 5
  *
  * Exits 1 when any metric regresses past its tolerance, 0 otherwise.
