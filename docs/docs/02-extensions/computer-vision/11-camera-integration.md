@@ -98,7 +98,6 @@ Process each frame inside [`useFrameOutput`](https://visioncamera.margelo.com/do
 const frameOutput = useFrameOutput({
   pixelFormat: 'yuv',
   dropFramesWhileBusy: true,
-  enablePhysicalBufferRotation: true,
   onFrame(frame) {
     'worklet';
     if (!resizer || !detectObjectsWorklet) {
@@ -137,6 +136,7 @@ Pass `frameOutput` to the `<Camera />` component via the `outputs` prop:
   style={StyleSheet.absoluteFill}
   device={device}
   isActive={isActive}
+  orientationSource="interface"
   outputs={[frameOutput]}
   resizeMode="cover"
 />
@@ -144,16 +144,25 @@ Pass `frameOutput` to the `<Camera />` component via the `outputs` prop:
 
 Connecting `frameOutput` through the `outputs` prop attaches your processing pipeline directly to the active camera session. Because inference runs inside the worklet runtime with `dropFramesWhileBusy: true`, the camera preview continues rendering smoothly at hardware display refresh rates without UI stutter. VisionCamera allows combining `frameOutput` with interactive camera controls (such as tap-to-focus, zoom, and exposure bias) as well as other capture outputs. See the [VisionCamera Camera Outputs documentation](https://visioncamera.margelo.com/docs/camera-outputs) for full configuration options.
 
-:::tip Full Interactive Example in Gallery App
-See [`src/app/(screens)/realtime-object-detection.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/realtime-object-detection.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen with live camera feed, bounding box overlays, and latency tracking.
+### 3. Transforming Bounding Boxes to Screen Space
+
+Camera models return bounding box coordinates relative to the model's resized input tensor space (e.g. 384×384). To render these boxes accurately over the camera viewfinder, coordinate transformations must account for:
+
+- **Landscape-Native Sensors**: Physical camera sensors are mounted in landscape orientation. When holding the phone upright in portrait, the frame's width and height dimensions are swapped relative to the screen.
+- **Compound Aspect-Fill Scaling**: Both the GPU resizer and the camera viewfinder typically use cover/aspect-fill cropping. The overlay needs to account for the relative scaling factor and centering offsets between the model tensor and the rendered viewfinder canvas.
+
+:::tip Complete Implementation in Gallery App
+See [`src/components/RealtimeDetectionViewport.tsx`](https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/components/RealtimeDetectionViewport.tsx) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete implementation of viewport transforms, orientation handling, and bounding box normalization.
 :::
 
 ## Performance & Best Practices
 
-- **Always Dispose Frames in `finally` & Catch Teardown Errors**: Frames created by VisionCamera and the GPU resizer represent scarce native memory and hardware texture allocations. Always call `resized?.dispose()` and `frame.dispose()` inside a `finally` block. Wrap the processing block in a `catch` to safely absorb errors caused by frames being closed mid-flight when the camera component unmounts.
-- **Enable `dropFramesWhileBusy: true`**: Skips incoming camera sensor frames while inference is actively running, preventing queue buildup and ensuring real-time latency.
-- **Enable `enablePhysicalBufferRotation: true`**: Automatically rotates the sensor buffer to match physical device orientation before reaching the GPU resizer, eliminating manual image rotation logic.
-- **Match Resizer Settings to `ImageBuffer`**: ExecuTorch CV models expect interleaved RGB memory. Configure `useResizer` with `channelOrder: 'rgb'`, `pixelLayout: 'interleaved'`, `dataType: 'uint8'`, and `scaleMode: 'cover'`.
+- **Always Dispose Frames in `finally`**: Both VisionCamera frames and GPU resizer textures represent native memory allocations. Always call `resized?.dispose()` and `frame.dispose()` inside a `finally` block to prevent leaks and crashes.
+- **Enable `dropFramesWhileBusy: true`**: Skips incoming camera sensor frames while inference is running, preventing queue buildup and ensuring real-time responsiveness.
+- **Avoid `enablePhysicalBufferRotation`**: Keep this prop `false` (the default) to avoid unnecessary extra buffer allocations and potential GPU memory issues on Android.
+- **Match Orientation to UI**: Use `orientationSource="interface"` when your app's UI is locked in portrait so that the camera preview and overlays stay anchored to screen coordinates.
+- **Use `pixelFormat: 'yuv'`**: Recommended for maximum Android camera compatibility across devices. The GPU resizer efficiently converts YUV to RGB before passing it to the model.
+- **Match Resizer Settings to `ImageBuffer`**: Configure `useResizer` with `channelOrder: 'rgb'`, `pixelLayout: 'interleaved'`, and `dataType: 'uint8'` to match ExecuTorch's expected format.
 
 :::warning Hardware, Thermal & Battery Impact
 Continuous neural network inference on live camera streams is computationally intensive. Operating the camera sensor, GPU resizer, and ExecuTorch runtime simultaneously puts high sustained load on the mobile SoC, leading to increased battery consumption and device heating (thermal throttling) during extended sessions.
