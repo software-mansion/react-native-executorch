@@ -37,7 +37,6 @@ import { config } from './config';
 import { waitUntilCool, type GateResult } from './gate';
 import { INPUT_SPEC_VERSION } from './inputs';
 import { footprintMb, sampleDuring } from './memory';
-import { benchmarkNativeForward } from './nativeForward';
 import {
   fetchCompleted,
   reportCase,
@@ -111,29 +110,11 @@ async function measureOnce(
   const base = describe(benchCase, progress);
   const { driver } = benchCase;
 
-  let native: CaseResult['native'];
-  if (config.measureNative && driver.modelPathKey) {
-    events.onPhase?.(benchCase.id, 'raw execute', progress);
-    const modelPath = resolved[driver.modelPathKey];
-    if (typeof modelPath === 'string') {
-      native = await benchmarkNativeForward(
-        modelPath,
-        config.iterations,
-        config.warmup,
-        config.loadIterations
-      );
-      await settle();
-    }
-  }
-
-  // Read after the raw-execute pass, not before it. That pass loads and disposes
-  // a model of its own, and the allocator does not hand every page back; a
-  // baseline taken ahead of it would charge whatever it retained to the pipeline.
   const baselineMb = footprintMb();
 
   events.onPhase?.(benchCase.id, 'load', progress);
-  // Repeated for the same reason as the raw load above: one sample of a load is
-  // not a measurement. Each cycle disposes the previous instance first, so the
+  // Repeated because one sample of a load is not a measurement: a single cold
+  // load swung 45% between two runs of identical code. Each cycle disposes the previous instance first, so the
   // last one survives the loop and is what the inference passes run against.
   const loadSamples: number[] = [];
   let instance: any = null;
@@ -229,7 +210,6 @@ async function measureOnce(
       detail,
       gate,
       thermal: BenchProbe.thermalState(),
-      native,
       memory,
     };
   } catch (error) {
@@ -242,7 +222,6 @@ async function measureOnce(
       taskLoadMs: taskLoad.median,
       taskLoad,
       gate,
-      native,
     };
   }
 }

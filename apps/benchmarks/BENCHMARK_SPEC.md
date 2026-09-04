@@ -22,7 +22,7 @@ run is interrupted.
 
 Every variant in `models.ts` that the device's platform can link, without
 exception, taken from a generated list rather than a hand-written one
-(`src/variants.generated.ts`, produced by `scripts/generate-variants.mjs`). At
+(`src/registry.ts` walks it at runtime). At
 the time of writing that is **163 variants on Android** and **234 on iOS**;
 `DEFAULT` aliases are excluded because each resolves to a variant already in the
 list under its own name.

@@ -42,21 +42,10 @@ const list = (value: string | undefined): string[] =>
  */
 export type SuiteName = 'quick' | 'full' | 'everything';
 
-/**
- * What the app does when it starts.
- *
- * - `bench` — the timing suite, which is what this app is for.
- * - `probe` — fetch a plan from the host, run each `.pte` on one fixed input and
- *   send the output tensors back. For defects that only exist on the device, so
- *   the numbers have to be read off the device rather than reproduced on a Mac.
- */
-export type BenchMode = 'bench' | 'probe';
 
 const SUITES: readonly SuiteName[] = ['quick', 'full', 'everything'];
 
 export interface BenchConfig {
-  /** Whether to run the timing suite or the raw-output probe. */
-  readonly mode: BenchMode;
   readonly suite: SuiteName;
   /** Explicit case ids to run, overriding `suite`. Empty means "use the suite". */
   readonly only: readonly string[];
@@ -103,8 +92,6 @@ export interface BenchConfig {
   readonly repeats: number;
   /** Whether to run the memory pass at all. */
   readonly measureMemory: boolean;
-  /** Whether to run the schema-driven raw `model.execute` pass. */
-  readonly measureNative: boolean;
   /** Polling period of the memory sampler, in milliseconds. */
   readonly sampleIntervalMs: number;
   /** Base URL of the collector run by `scripts/run-benchmarks.mjs`, or null. */
@@ -155,7 +142,6 @@ const suite = ((): SuiteName => {
 })();
 
 export const config: BenchConfig = {
-  mode: process.env.EXPO_PUBLIC_BENCH_MODE === 'probe' ? 'probe' : 'bench',
   suite,
   only: list(process.env.EXPO_PUBLIC_BENCH_ONLY),
   tasks: list(process.env.EXPO_PUBLIC_BENCH_TASKS),
@@ -166,7 +152,6 @@ export const config: BenchConfig = {
   loadIterations: int(process.env.EXPO_PUBLIC_BENCH_LOAD_ITERATIONS, 3),
   repeats: Math.max(1, int(process.env.EXPO_PUBLIC_BENCH_REPEATS, 1)),
   measureMemory: bool(process.env.EXPO_PUBLIC_BENCH_MEMORY, true),
-  measureNative: bool(process.env.EXPO_PUBLIC_BENCH_NATIVE, true),
   sampleIntervalMs: int(process.env.EXPO_PUBLIC_BENCH_SAMPLE_INTERVAL_MS, 100),
   sink: process.env.EXPO_PUBLIC_BENCH_SINK || null,
   autostart: bool(process.env.EXPO_PUBLIC_BENCH_AUTOSTART, true),

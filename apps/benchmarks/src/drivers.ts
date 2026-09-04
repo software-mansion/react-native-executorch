@@ -3,7 +3,7 @@
  *
  * A driver is everything the runner needs that a registry entry cannot tell it:
  * which factory builds the pipeline, which synchronous call to time, and which
- * key holds the `.pte` for the raw-execute pass. It is written once per task
+ * key holds the `.pte`. It is written once per task
  * rather than once per variant, because every variant of a task is driven
  * identically — only the weights differ. `src/suite.ts` joins these against the
  * generated variant list, which is what lets 261 published variants be covered
@@ -47,7 +47,7 @@ import {
   syntheticWaveform,
   TTS_TEXT,
 } from './inputs';
-import type { RegistryVariant } from './variants.generated';
+import type { RegistryVariant } from './registry';
 
 const VAD_WAVEFORM = syntheticWaveform(10, FSMN_VAD_SAMPLE_RATE_HZ);
 const WHISPER_WAVEFORM = syntheticWaveform(10, WHISPER_SAMPLE_RATE_HZ);
@@ -139,7 +139,7 @@ const instanceSegmentation: Driver = {
   // candidate survives and each materialises a full 640x640 mask in JS. Its
   // pipeline figure is dominated by that post-processing, not by inference, so
   // read its `execute.*` rows instead.
-  note: 'post-processing is mask-bound; compare the raw-execute methods',
+  note: 'post-processing is mask-bound; read Execute %',
 };
 
 const imageEmbeddings: Driver = {
@@ -189,7 +189,7 @@ const speechToText: Driver = {
   // emits far fewer tokens than a real clip would and the pipeline figure is
   // dominated by the encoder. The comparator invalidates the pipeline number
   // outright if the transcript length moves between runs.
-  note: 'decode length is input-dependent; compare the raw-execute methods',
+  note: 'decode length is input-dependent; read Execute %',
 };
 
 const ocr: Driver = {
@@ -245,7 +245,7 @@ const supertonicTts: Driver = {
     return samples;
   },
   // Four sub-models with JS-thread orchestration between chunks: no synchronous
-  // entry point to time, and no single `.pte` for the raw-execute pass.
+  // entry point to time, and no single `.pte`.
   note: 'timed on the RN thread; includes per-chunk thread hops',
 };
 

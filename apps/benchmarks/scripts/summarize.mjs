@@ -133,30 +133,9 @@ function rowsFor(run) {
     // ExecuTorch time measured inside the pipeline pass, so it covers exactly
     // the work the pipeline did.
     //
-    // The older `native` pass is kept in the report but is not used here. It
-    // runs each method once at its schema maximum, which for a model with a
-    // dynamic dimension is not what the pipeline ran: a text embedder declaring
-    // 510 tokens was benchmarked at 510 while the pipeline fed 75, so the share
-    // came out above 100% and had to be suppressed. Measuring in place removes
-    // the mismatch, and it also handles a pipeline that calls one method many
-    // times, which a single replay cannot.
-    //
-    // Falls back to the replay pass for measurements taken before the in-band
-    // profiler existed. That fallback is only sound for a static-shape model,
-    // where the replay necessarily ran what the pipeline ran; a dynamic-shape
-    // model measured the old way is exactly the case the profiler was added
-    // for, and is filtered out below by the same rule as before.
     const executeTotal = ok
-      .map((entry) => {
-        if (typeof entry.execution?.totalMs === 'number') return entry.execution.totalMs;
-        const replay = (entry.native?.methods ?? []).reduce(
-          (sum, method) => sum + (method.stats?.median ?? 0),
-          0
-        );
-        return replay > 0 ? replay : undefined;
-      })
+      .map((entry) => entry.execution?.totalMs)
       .filter((value) => typeof value === 'number' && value > 0);
-    const inBand = ok.every((entry) => typeof entry.execution?.totalMs === 'number');
 
     // Where the time actually goes, which is the question that decides what to
     // optimise: a model that is 90% ExecuTorch wants a better export, one that
@@ -171,12 +150,7 @@ function rowsFor(run) {
     // exactly the models most worth knowing about.
     const pipelineMs = median(pipeline);
     const executeMs = median(executeTotal);
-    // In-band numbers are always comparable. Replayed ones only when they did
-    // not overshoot, which is the old dynamic-shape guard.
-    const comparable =
-      typeof pipelineMs === 'number' &&
-      typeof executeMs === 'number' &&
-      (inBand || executeMs <= pipelineMs);
+    const comparable = typeof pipelineMs === 'number' && typeof executeMs === 'number';
 
     rows.push({
       id,

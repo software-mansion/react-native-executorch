@@ -22,10 +22,8 @@
     "lint": "eslint . --ext .ts,.tsx --fix",
     "bench": "node scripts/run-benchmarks.mjs",
     "bench:compare": "node scripts/compare.mjs",
-    "bench:variants": "node scripts/generate-variants.mjs",
-    "bench:variants:check": "node scripts/generate-variants.mjs --check",
     "bench:summary": "node scripts/summarize.mjs",
-    "probe": "node scripts/run-probe.mjs"
+    "bench:sizes": "node scripts/fetch-variant-sizes.mjs"
   },
   "dependencies": {
     "expo": "~56.0.9",
