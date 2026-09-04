@@ -136,21 +136,26 @@ function rowsFor(run) {
     const executeTotal = ok
       .map((entry) => entry.execution?.totalMs)
       .filter((value) => typeof value === 'number' && value > 0);
+    const pipelineMean = ok.map((entry) => entry.pipeline?.mean).filter((v) => typeof v === 'number');
 
     // Where the time actually goes, which is the question that decides what to
     // optimise: a model that is 90% ExecuTorch wants a better export, one that
     // is 70% TypeScript wants better pre- and post-processing, and the two are
     // completely different pieces of work.
     //
-    // Both figures now describe the same work, so a share is always meaningful.
-    // A model that is essentially all ExecuTorch can still measure a hair over
-    // 100% because the pipeline clock starts inside JS and stops after the
-    // native call returns; that is noise on the order of a scheduling quantum,
-    // so it is clamped rather than discarded — dropping the row would hide
-    // exactly the models most worth knowing about.
+    // Both figures describe the same work over the same iterations, so a share
+    // above 100% is not noise to be clamped away: it means ExecuTorch was
+    // credited with time the pipeline never spent. It is printed as measured,
+    // because hiding it behind a clamp is how a warmup-contaminated tally went
+    // unnoticed across 23 of 52 variants.
+    // `execution.totalMs` is a per-iteration MEAN, so the share compares it
+    // against the pipeline mean. Comparing it to the median mixed two different
+    // statistics and, on a right-skewed run, made the share read over 100%.
     const pipelineMs = median(pipeline);
+    const pipelineMeanMs = median(pipelineMean);
     const executeMs = median(executeTotal);
-    const comparable = typeof pipelineMs === 'number' && typeof executeMs === 'number';
+    const comparable =
+      typeof pipelineMeanMs === 'number' && typeof executeMs === 'number';
 
     rows.push({
       id,
@@ -165,8 +170,8 @@ function rowsFor(run) {
       pipelineSpread: spreadPercent(pipeline),
       executeMs,
       executeSpread: spreadPercent(executeTotal),
-      overheadMs: comparable ? Math.max(pipelineMs - executeMs, 0) : undefined,
-      executeShare: comparable ? Math.min((executeMs / pipelineMs) * 100, 100) : undefined,
+      overheadMs: comparable ? pipelineMeanMs - executeMs : undefined,
+      executeShare: comparable ? (executeMs / pipelineMeanMs) * 100 : undefined,
       loadMs: median(load),
       peakMb: median(peak),
       modelPeakMb: median(modelPeak),
@@ -194,6 +199,8 @@ const COLUMNS = [
   {
     key: 'overheadMs',
     header: 'JS ms',
+    // Negative means the execute tally exceeded the pipeline mean, which is a
+    // measurement fault rather than a fast pipeline. Shown signed.
     get: (row) => num(row.overheadMs, 2),
   },
   {

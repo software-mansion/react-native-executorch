@@ -138,24 +138,36 @@ async function measureOnce(
 
   try {
     events.onPhase?.(benchCase.id, 'inference', progress);
-    // Reset after the warmups would be wrong and before them is wasteful, so
-    // the profile is cleared here and the warmup contribution is divided out
-    // along with the timed iterations below.
-    resetExecutionProfile();
+    // Zeroed after the warmups, not before them, so the tally covers exactly the
+    // iterations the durations cover. Counting the warmups and dividing by all
+    // passes looks equivalent and is not: a warmup pays one-off costs the timed
+    // median never sees (Vulkan shader compilation above all), so the resulting
+    // mean exceeded the pipeline median on 23 of 52 variants, by up to 1.47x.
+    const startTimedWindow = () => {
+      'worklet';
+      resetExecutionProfile();
+    };
     const timed =
       driver.mode === 'async'
-        ? await timeAsync(driver.runAsync!(loaded), config.iterations, config.warmup)
+        ? await timeAsync(
+            driver.runAsync!(loaded),
+            config.iterations,
+            config.warmup,
+            startTimedWindow
+          )
         : await timeInWorklet(
             defaultWorkletRuntime,
             driver.run!(loaded),
             config.iterations,
-            config.warmup
+            config.warmup,
+            startTimedWindow
           );
 
     // What ExecuTorch actually spent during those iterations, at the shapes and
-    // call counts the pipeline used. Divided by the number of passes the tally
-    // covers, which includes the warmups because they run the model too.
-    const passes = config.iterations + config.warmup;
+    // call counts the pipeline used. The tally starts after the warmups, so it
+    // covers the timed iterations only and is a per-iteration mean directly
+    // comparable to `pipeline.mean`.
+    const passes = config.iterations;
     const profile = getExecutionProfile();
     const execution = {
       perIteration: Object.fromEntries(
