@@ -68,14 +68,25 @@ export interface BenchConfig {
    */
   readonly loadIterations: number;
   /**
-   * Independent repeats of each case.
+   * Independent repeats of each case. One by default.
    *
    * A repeat is a whole measurement taken again from a cold pipeline, with the
-   * device cooled back to the gate temperature in between. That is a different
-   * thing from `iterations`, which are back-to-back calls inside one
-   * measurement: iterations bound the noise within a measurement, repeats
-   * expose the run-to-run spread that thermal state and clock drift produce,
-   * which is the larger of the two on a phone.
+   * device cooled back to the gate temperature in between — a different thing
+   * from `iterations`, which are back-to-back calls inside one measurement.
+   *
+   * One is enough because the two turn out to measure the same noise. Across
+   * the quick tier on a Galaxy S26 Ultra the within-measurement spread and the
+   * across-repeat spread came out comparable (16.8% against 12.1% on
+   * EfficientNet int8, 21.7% against 19.6% on fp32), so 20 back-to-back
+   * iterations already show what repeating the whole measurement shows. The
+   * spread that remains is intrinsic to the metric rather than to the sampling:
+   * `pipeline` carries garbage collection in its TypeScript post-processing and
+   * sits at 7-22%, while `execute` is ExecuTorch alone and sits near 2.5%. No
+   * repeat count fixes that; repeating only prices it.
+   *
+   * Raise it when an error bar is worth roughly 2.5x the wall clock — the gate
+   * and the download are paid once per case, but every repeat waits at the gate
+   * again.
    */
   readonly repeats: number;
   /** Whether to run the memory pass at all. */
@@ -128,7 +139,7 @@ export const config: BenchConfig = {
   warmup: int(process.env.EXPO_PUBLIC_BENCH_WARMUP, 3),
   memoryIterations: int(process.env.EXPO_PUBLIC_BENCH_MEMORY_ITERATIONS, 5),
   loadIterations: int(process.env.EXPO_PUBLIC_BENCH_LOAD_ITERATIONS, 3),
-  repeats: Math.max(1, int(process.env.EXPO_PUBLIC_BENCH_REPEATS, 3)),
+  repeats: Math.max(1, int(process.env.EXPO_PUBLIC_BENCH_REPEATS, 1)),
   measureMemory: bool(process.env.EXPO_PUBLIC_BENCH_MEMORY, true),
   measureNative: bool(process.env.EXPO_PUBLIC_BENCH_NATIVE, true),
   sampleIntervalMs: int(process.env.EXPO_PUBLIC_BENCH_SAMPLE_INTERVAL_MS, 100),

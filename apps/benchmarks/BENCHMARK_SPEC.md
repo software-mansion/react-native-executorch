@@ -8,10 +8,10 @@ The short version: **check out this branch, run one command, send the JSONL.**
 
 ```bash
 # Android
-yarn bench --platform android --suite full --label v0.10.0 --repeats 3 --max-temp-c 35
+yarn bench --platform android --suite full --label v0.10.0 --max-temp-c 35
 
 # iOS
-yarn bench --platform ios --suite full --label v0.10.0 --repeats 3
+yarn bench --platform ios --suite full --label v0.10.0
 ```
 
 Send back `apps/benchmarks/results/v0.10.0-<platform>-<device>.jsonl`. It is
@@ -47,17 +47,29 @@ Memory is sampled in a separate pass from the timings. Reading total PSS on
 Android walks `/proc/self/smaps` and costs milliseconds; polling that during a
 15 ms inference would land in the numbers.
 
-## Runs, iterations, and which is which
+## Iterations, and why one run is enough
 
-- **3 repeats** per variant. A repeat is a complete measurement from a cold
-  pipeline, with the device cooled back to the gate temperature in between.
-- **20 iterations** inside each measurement, after 3 untimed warmups.
+- **20 timed iterations** per variant, after 3 untimed warmups. The reported
+  figure is their median; the JSON carries the IQR and standard deviation.
+- **1 repeat** by default. `--repeats N` takes N complete measurements from a
+  cold pipeline, cooling to the gate between each.
 
-These are not the same thing and the distinction matters. Iterations bound the
-noise *within* one measurement; repeats expose the run-to-run spread that
-thermal state and clock drift produce, which on a phone is the larger of the
-two. The summary reports the median of the three repeats and the spread between
-them, so a variant that could not be pinned down says so.
+Repeating the whole measurement was the original design and it turned out not to
+earn its cost. Measured across the quick tier on a Galaxy S26 Ultra, the spread
+*within* one 20-iteration measurement and the spread *across* three cold repeats
+came out comparable: 16.8% against 12.1% on EfficientNet int8, 21.7% against
+19.6% on fp32. Twenty back-to-back calls already show what repeating shows, at
+roughly a third of the wall clock, because every repeat waits at the thermal gate
+again.
+
+What is left is intrinsic to the metric rather than to how often it is sampled.
+`pipeline` includes garbage collection in its TypeScript post-processing and
+sits at 7-22% spread; `native.methods[].stats` is ExecuTorch alone and sits near
+2.5%. No repeat count changes that. It is the reason to read the execute column
+when a pipeline number looks unstable.
+
+Pass `--repeats 3` when you want an explicit error bar on a specific model and
+can afford the time.
 
 ## The thermal gate
 
@@ -185,8 +197,18 @@ yarn bench:summary results/v0.10.0-android-SM-S948B.jsonl              # markdow
 yarn bench:summary results/*.jsonl --format csv > benchmarks.csv       # every device
 ```
 
-`Inference ms` is the median of the three repeats and `Spread %` the range
-between fastest and slowest as a percentage of it. A large spread is a real
-result, not a formatting artefact: it means the variant was not pinned down at
-this repeat count, and its `Execute ms` column — ExecuTorch alone, without the
-TypeScript pre- and post-processing — is the steadier number to read.
+`Inference ms` is the median of the 20 iterations (and, with `--repeats N`, the
+median across repeats). `Execute %` is the share of it spent inside ExecuTorch,
+which is the column that says what to optimise: EfficientNet runs at 28% and
+wants better pre- and post-processing, style transfer at 90% and wants a better
+export or backend.
+
+`Model MB` is peak footprint minus the baseline read immediately before the
+model loaded. Prefer it to `Proc peak MB`: every case shares one process, whose
+baseline creeps upward through a suite, so absolute peak charges a model
+measured late for the cases before it. `Retained MB` is what did not come back
+after `dispose`, and is blank unless it exceeds a few MB.
+
+`Spread %` is the range across repeats and is 0 on a single-repeat run. When a
+pipeline number looks unstable, read `Execute ms`: it excludes the TypeScript
+pre- and post-processing, and is several times steadier.

@@ -20,8 +20,8 @@ request and being ignored.
 ## Running a suite
 
 ```bash
-# Everything the platform can run except LLMs, 3 repeats, gated at 35C
-yarn bench --platform android --suite full --label v0.10.0 --repeats 3 --max-temp-c 35
+# Everything the platform can run except LLMs, gated at 35C
+yarn bench --platform android --suite full --label v0.10.0 --max-temp-c 35
 
 # The small models only, for bisecting
 yarn bench --platform android --suite quick --label et-1.4.1
