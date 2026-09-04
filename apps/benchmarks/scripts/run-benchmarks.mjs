@@ -54,6 +54,7 @@ const DEFAULTS = {
   cooldown: 'auto',
   cooldownMax: '900',
   pinClocks: 'off',
+  buildType: 'release',
 };
 
 function parseArgs(argv) {
@@ -712,9 +713,30 @@ async function main() {
     if (options.platform === 'android') {
       await adbCapture('am force-stop com.anonymous.benchmarks');
     }
-    resetBundler();
+    // A release build is the point of a published benchmark. A debug build
+    // compiles the library's own C++ without optimisation and serves JS as a
+    // dev bundle with dev-mode checks, so everything outside `execute` is
+    // slower than any shipped app would be: the ExecuTorch runtime is a
+    // prebuilt release library and is unaffected, but the preprocessing and
+    // post-processing around it are not, and those are most of the pipeline
+    // for a good part of the estate. Numbers taken in debug describe a build
+    // nobody ships.
+    const release = options.buildType === 'release';
+    if (release) {
+      // Release bundles the JS into the APK at build time, so the
+      // EXPO_PUBLIC_BENCH_* values above are baked in during the build and no
+      // dev server is involved. Nothing to reset, and nothing to attach to.
+      console.log('[bench] building in release');
+    } else {
+      console.warn('[bench] WARNING: debug build, unoptimised. Do not publish these numbers.');
+      resetBundler();
+    }
     console.log(`[bench] launching the app on ${options.platform}`);
-    child = run('yarn', [options.platform], env);
+    const variantArgs =
+      options.platform === 'android'
+        ? ['--variant', release ? 'release' : 'debug']
+        : ['--configuration', release ? 'Release' : 'Debug'];
+    child = run('yarn', ['expo', `run:${options.platform}`, ...variantArgs], env);
 
     // A failed build must not leave the collector waiting forever: it holds the
     // port, so the next attempt cannot even start its own. `expo run:*` stays
@@ -736,6 +758,7 @@ async function main() {
 
   const report = await finished;
   report.clocksPinned = clocksPinned;
+  report.buildType = options.buildType;
   writeJson(paths.json, report);
 
   const measured = report.cases.filter((entry) => entry.status !== 'skipped');

@@ -23,7 +23,13 @@
  *    never returns to its baseline.
  */
 
-import { download, defaultWorkletRuntime, models } from 'react-native-executorch';
+import {
+  download,
+  defaultWorkletRuntime,
+  models,
+  getExecutionProfile,
+  resetExecutionProfile,
+} from 'react-native-executorch';
 import { Platform } from 'react-native';
 
 import BenchProbe from '../modules/bench-probe';
@@ -151,6 +157,10 @@ async function measureOnce(
 
   try {
     events.onPhase?.(benchCase.id, 'inference', progress);
+    // Reset after the warmups would be wrong and before them is wasteful, so
+    // the profile is cleared here and the warmup contribution is divided out
+    // along with the timed iterations below.
+    resetExecutionProfile();
     const timed =
       driver.mode === 'async'
         ? await timeAsync(driver.runAsync!(loaded), config.iterations, config.warmup)
@@ -160,6 +170,22 @@ async function measureOnce(
             config.iterations,
             config.warmup
           );
+
+    // What ExecuTorch actually spent during those iterations, at the shapes and
+    // call counts the pipeline used. Divided by the number of passes the tally
+    // covers, which includes the warmups because they run the model too.
+    const passes = config.iterations + config.warmup;
+    const profile = getExecutionProfile();
+    const execution = {
+      perIteration: Object.fromEntries(
+        Object.entries(profile).map(([method, entry]) => [
+          method,
+          { count: entry.count / passes, ms: entry.totalMs / passes },
+        ])
+      ),
+      totalMs:
+        Object.values(profile).reduce((sum, entry) => sum + entry.totalMs, 0) / passes,
+    };
 
     // Read before dispose: an LLM's stats live on the session.
     const detail = driver.detail?.(loaded);
@@ -198,6 +224,7 @@ async function measureOnce(
       taskLoadMs: taskLoad.median,
       taskLoad,
       pipeline: summarize(timed.durations),
+      execution,
       units: timed.units,
       detail,
       gate,

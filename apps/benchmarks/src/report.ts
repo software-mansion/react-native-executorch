@@ -66,6 +66,18 @@ export interface CaseResult {
   /** End-to-end pipeline timings: preprocessing, execute, and post-processing. */
   readonly pipeline?: Stats;
   /** Workload size the pipeline reported. See `TimedRun.units`. */
+  /**
+   * ExecuTorch time measured inside the pipeline pass, per iteration.
+   *
+   * Unlike `native`, this is the same work the pipeline did: same shapes, same
+   * number of calls. It is what makes an execute share meaningful for a model
+   * with a dynamic dimension, where the standalone pass has to pick a size and
+   * picks the maximum.
+   */
+  readonly execution?: {
+    readonly perIteration: Readonly<Record<string, { readonly count: number; readonly ms: number }>>;
+    readonly totalMs: number;
+  };
   readonly units?: number;
   /** Per-task extras, e.g. an LLM's time to first token. */
   readonly detail?: Record<string, number>;

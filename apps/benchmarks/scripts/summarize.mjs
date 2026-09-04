@@ -130,30 +130,53 @@ function rowsFor(run) {
       )
       .filter((v) => typeof v === 'number');
 
-    // The raw-execute total is the ExecuTorch-only figure: it excludes the
-    // TypeScript pre- and post-processing a pipeline timing folds in, which is
-    // most of the difference between a fast model and a slow-looking one.
+    // ExecuTorch time measured inside the pipeline pass, so it covers exactly
+    // the work the pipeline did.
+    //
+    // The older `native` pass is kept in the report but is not used here. It
+    // runs each method once at its schema maximum, which for a model with a
+    // dynamic dimension is not what the pipeline ran: a text embedder declaring
+    // 510 tokens was benchmarked at 510 while the pipeline fed 75, so the share
+    // came out above 100% and had to be suppressed. Measuring in place removes
+    // the mismatch, and it also handles a pipeline that calls one method many
+    // times, which a single replay cannot.
+    //
+    // Falls back to the replay pass for measurements taken before the in-band
+    // profiler existed. That fallback is only sound for a static-shape model,
+    // where the replay necessarily ran what the pipeline ran; a dynamic-shape
+    // model measured the old way is exactly the case the profiler was added
+    // for, and is filtered out below by the same rule as before.
     const executeTotal = ok
-      .map((entry) =>
-        (entry.native?.methods ?? []).reduce((sum, method) => sum + (method.stats?.median ?? 0), 0)
-      )
-      .filter((value) => value > 0);
+      .map((entry) => {
+        if (typeof entry.execution?.totalMs === 'number') return entry.execution.totalMs;
+        const replay = (entry.native?.methods ?? []).reduce(
+          (sum, method) => sum + (method.stats?.median ?? 0),
+          0
+        );
+        return replay > 0 ? replay : undefined;
+      })
+      .filter((value) => typeof value === 'number' && value > 0);
+    const inBand = ok.every((entry) => typeof entry.execution?.totalMs === 'number');
 
     // Where the time actually goes, which is the question that decides what to
     // optimise: a model that is 90% ExecuTorch wants a better export, one that
     // is 70% TypeScript wants better pre- and post-processing, and the two are
     // completely different pieces of work.
     //
-    // Only meaningful when the two passes ran the same shapes. Where a model
-    // declares a dynamic dimension the raw pass takes it at the top of its
-    // declared domain while the pipeline feeds what the input needs, so execute
-    // can legitimately exceed the pipeline figure — on all-MiniLM-L6-v2 that is
-    // a 254-token forward against a 20-token one. Reported as unknown rather
-    // than as a negative overhead, which would read as a measurement error.
+    // Both figures now describe the same work, so a share is always meaningful.
+    // A model that is essentially all ExecuTorch can still measure a hair over
+    // 100% because the pipeline clock starts inside JS and stops after the
+    // native call returns; that is noise on the order of a scheduling quantum,
+    // so it is clamped rather than discarded — dropping the row would hide
+    // exactly the models most worth knowing about.
     const pipelineMs = median(pipeline);
     const executeMs = median(executeTotal);
+    // In-band numbers are always comparable. Replayed ones only when they did
+    // not overshoot, which is the old dynamic-shape guard.
     const comparable =
-      typeof pipelineMs === 'number' && typeof executeMs === 'number' && executeMs <= pipelineMs;
+      typeof pipelineMs === 'number' &&
+      typeof executeMs === 'number' &&
+      (inBand || executeMs <= pipelineMs);
 
     rows.push({
       id,
@@ -168,8 +191,8 @@ function rowsFor(run) {
       pipelineSpread: spreadPercent(pipeline),
       executeMs,
       executeSpread: spreadPercent(executeTotal),
-      overheadMs: comparable ? pipelineMs - executeMs : undefined,
-      executeShare: comparable ? (executeMs / pipelineMs) * 100 : undefined,
+      overheadMs: comparable ? Math.max(pipelineMs - executeMs, 0) : undefined,
+      executeShare: comparable ? Math.min((executeMs / pipelineMs) * 100, 100) : undefined,
       loadMs: median(load),
       peakMb: median(peak),
       modelPeakMb: median(modelPeak),
