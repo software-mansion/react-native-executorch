@@ -110,6 +110,14 @@ export type Route = {
   error?: Error;
   /** Whether a `HEAD` request reports a content length. Defaults to `true`. */
   headOk?: boolean;
+  /**
+   * Content length a `HEAD` reports, when it disagrees with the body. Real
+   * servers do this: a HEAD against a signed CDN URL has been seen to answer a
+   * two-digit length for a two-megabyte file.
+   */
+  headLength?: number;
+  /** Value for `x-linked-size`, the header Hugging Face uses for LFS objects. */
+  linkedSize?: number;
 };
 
 type Request = { method: string; url: string; headers: Record<string, string> };
@@ -176,10 +184,18 @@ export const fakeFetch = async (
   if (!route) throw new Error(`fakeNet: no route registered for ${url}`);
   if (route.error) throw route.error;
 
-  const length = route.headOk === false ? null : String(bodyOf(route).length);
+  const length = route.headOk === false ? null : String(route.headLength ?? bodyOf(route).length);
+  const linked = route.linkedSize === undefined ? null : String(route.linkedSize);
   return {
     status: route.status ?? 200,
-    headers: { get: (name: string) => (name.toLowerCase() === 'content-length' ? length : null) },
+    headers: {
+      get: (name: string) => {
+        const key = name.toLowerCase();
+        if (key === 'content-length') return length;
+        if (key === 'x-linked-size') return linked;
+        return null;
+      },
+    },
   };
 };
 
