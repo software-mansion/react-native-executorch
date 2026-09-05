@@ -1,4 +1,5 @@
 {
   "extends": "./tsconfig",
+  // === LEGACY SUPPORT ===: "legacy" is compiled separately via legacy/tsconfig.json
   "exclude": ["legacy", "example", "lib", "__tests__", "jest.config.js"]
 }

@@ -93,6 +93,9 @@ Pod::Spec.new do |s|
   ]
   s.preserve_paths = "legacy/cpp/rnexecutorch/jsi/*.{h,hpp}"
   # ==============================================================================
+  exclude_files += opencv_source_files unless enable_opencv
+  exclude_files += phonemis_source_files unless enable_phonemis
+  s.exclude_files = exclude_files
 
   # --- Preprocessor flags ---
   extra_compiler_flags = []

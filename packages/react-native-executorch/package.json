@@ -43,6 +43,7 @@
       "types": "./lib/typescript/src/core/schema.d.ts",
       "default": "./lib/module/core/schema.js"
     },
+    "// === LEGACY SUPPORT (remove in future release) ===": "Legacy export entrypoint",
     "./legacy": {
       "source": "./legacy/src/index.ts",
       "types": "./lib/typescript/legacy/src/index.d.ts",
@@ -81,6 +82,7 @@
     "!cpp/tests",
     "!**/.*"
   ],
+  "// === LEGACY SUPPORT: prepare script ===": "tsc -p legacy/tsconfig.json builds legacy type definitions",
   "scripts": {
     "clean": "del-cli lib",
     "prepare": "bob build && tsc -p legacy/tsconfig.json",
@@ -124,6 +126,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
+  "// === LEGACY SUPPORT: dependencies ===": "jsonrepair, jsonschema, react-native-device-info, and zod are only needed for legacy API",
   "dependencies": {
     "@huggingface/jinja": "^0.5.9",
     "jsonrepair": "^3.12.0",
@@ -140,7 +143,8 @@
   },
   "peerDependenciesMeta": {
     "@kesha-antonov/react-native-background-downloader": {
-      "optional": true
+      "optional": true,
+      "// === LEGACY SUPPORT ===": "Only used by legacy ResourceFetcher on bare React Native"
     }
   },
   "devDependencies": {

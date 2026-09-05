@@ -74,7 +74,9 @@ module.exports = {
       },
     },
     {
-      // Legacy code was written prior to v0.10 lint rules.
+      // ==============================================================================
+      // LEGACY SUPPORT: disable v0.10 lint rules for legacy code (remove when legacy is dropped)
+      // ==============================================================================
       files: [
         'packages/react-native-executorch/legacy/**/*.{js,jsx,ts,tsx}',
         'packages/bare-resource-fetcher/**/*.{js,jsx,ts,tsx}',
