@@ -18,7 +18,7 @@ It is recommended to use models provided by us which are available at our [Huggi
 ## High Level Overview
 
 ```typescript
-import { models, useTextToImage } from 'react-native-executorch';
+import { models, useTextToImage } from 'react-native-executorch/legacy';
 const model = useTextToImage({
   model: models.image_generation.bk_sdm_tiny_vpred_256(),
 });
@@ -63,7 +63,7 @@ Larger imageSize values require significantly more memory to run the model.
 ## Example
 
 ```tsx
-import { models, useTextToImage } from 'react-native-executorch';
+import { models, useTextToImage } from 'react-native-executorch/legacy';
 function App() {
   const model = useTextToImage({
     model: models.image_generation.bk_sdm_tiny_vpred_256(),

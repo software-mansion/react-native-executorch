@@ -17,7 +17,7 @@ These bindings are primarily intended for custom model integration where no dedi
 You can initialize the ExecuTorch module in your JavaScript application using the `useExecutorchModule` hook. This hook facilitates the loading of models from the specified source and prepares them for use.
 
 ```typescript
-import { useExecutorchModule } from 'react-native-executorch';
+import { useExecutorchModule } from 'react-native-executorch/legacy';
 const executorchModule = useExecutorchModule({
   modelSource: require('../assets/models/model.pte'),
 });
@@ -62,11 +62,7 @@ This example demonstrates the integration and usage of the ExecuTorch bindings w
 First, import the necessary functions from the `react-native-executorch` package and initialize the ExecuTorch module with the specified style transfer model.
 
 ```typescript
-import {
-  models,
-  useExecutorchModule,
-  ScalarType,
-} from 'react-native-executorch';
+import { models, useExecutorchModule, ScalarType } from 'react-native-executorch/legacy';
 // Initialize the executorch module with the predefined style transfer model.
 const executorchModule = useExecutorchModule({
   modelSource: models.style_transfer.candy(),

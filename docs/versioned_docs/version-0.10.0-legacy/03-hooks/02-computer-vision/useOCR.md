@@ -16,7 +16,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```tsx
-import { models, useOCR } from 'react-native-executorch';
+import { models, useOCR } from 'react-native-executorch/legacy';
 function App() {
   const model = useOCR({ model: models.ocr.craft({ language: 'en' }) });
 
@@ -80,7 +80,7 @@ The `text` property contains the text recognized within detected text region. Th
 ## Example
 
 ```tsx
-import { models, useOCR } from 'react-native-executorch';
+import { models, useOCR } from 'react-native-executorch/legacy';
 function App() {
   const model = useOCR({ model: models.ocr.craft({ language: 'en' }) });
 

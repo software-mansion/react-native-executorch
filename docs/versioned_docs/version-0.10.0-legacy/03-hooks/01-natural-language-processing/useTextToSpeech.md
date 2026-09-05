@@ -33,7 +33,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 You can play the generated waveform in any way most suitable to you; however, in the snippet below we utilize the react-native-audio-api library to play synthesized speech.
 
 ```typescript
-import { models, useTextToSpeech } from 'react-native-executorch';
+import { models, useTextToSpeech } from 'react-native-executorch/legacy';
 import { AudioContext } from 'react-native-audio-api';
 
 const model = useTextToSpeech(models.text_to_speech.kokoro.en_us.heart());
@@ -111,7 +111,7 @@ Since `forward` and `stream` process the input, they might take a significant am
 ```tsx
 import React from 'react';
 import { Button, View } from 'react-native';
-import { models, useTextToSpeech } from 'react-native-executorch';
+import { models, useTextToSpeech } from 'react-native-executorch/legacy';
 import { AudioContext } from 'react-native-audio-api';
 
 export default function App() {
@@ -146,7 +146,7 @@ export default function App() {
 ```tsx
 import React, { useRef } from 'react';
 import { Button, View } from 'react-native';
-import { models, useTextToSpeech } from 'react-native-executorch';
+import { models, useTextToSpeech } from 'react-native-executorch/legacy';
 import { AudioContext } from 'react-native-audio-api';
 
 export default function App() {
@@ -190,7 +190,7 @@ If you already have a phoneme string obtained from an external source (e.g. the 
 ```tsx
 import React from 'react';
 import { Button, View } from 'react-native';
-import { models, useTextToSpeech } from 'react-native-executorch';
+import { models, useTextToSpeech } from 'react-native-executorch/legacy';
 export default function App() {
   const tts = useTextToSpeech(models.text_to_speech.kokoro.en_us.heart());
 
@@ -206,11 +206,7 @@ export default function App() {
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Button
-        title="Synthesize Phonemes"
-        onPress={synthesizePhonemes}
-        disabled={!tts.isReady}
-      />
+      <Button title="Synthesize Phonemes" onPress={synthesizePhonemes} disabled={!tts.isReady} />
     </View>
   );
 }

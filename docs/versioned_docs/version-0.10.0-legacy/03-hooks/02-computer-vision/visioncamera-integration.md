@@ -54,12 +54,7 @@ The `isFrontCamera` parameter tells the native side whether the front camera is 
 The `Camera` component requires specific props for correct orientation handling:
 
 ```tsx
-<Camera
-  device={device}
-  outputs={[frameOutput]}
-  isActive
-  orientationSource="device"
-/>
+<Camera device={device} outputs={[frameOutput]} isActive orientationSource="device" />
 ```
 
 - **`orientationSource="device"`** — ensures frame orientation metadata reflects the physical device orientation, which the library uses to rotate model inputs and outputs correctly.
@@ -78,7 +73,7 @@ import {
   useFrameOutput,
 } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
-import { models, Detection, useObjectDetection } from 'react-native-executorch';
+import { models, Detection, useObjectDetection } from 'react-native-executorch/legacy';
 export default function App() {
   const { hasPermission, requestPermission } = useCameraPermission();
   const devices = useCameraDevices();
@@ -165,9 +160,7 @@ import { createSynchronizable } from 'react-native-worklets';
 const cameraPositionSync = createSynchronizable<'front' | 'back'>('back');
 
 export default function App() {
-  const [cameraPosition, setCameraPosition] = useState<'front' | 'back'>(
-    'back'
-  );
+  const [cameraPosition, setCameraPosition] = useState<'front' | 'back'>('back');
 
   // Keep the synchronizable in sync with React state
   useEffect(() => {
@@ -208,7 +201,7 @@ import {
   useFrameOutput,
 } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
-import { models, ClassificationModule } from 'react-native-executorch';
+import { models, ClassificationModule } from 'react-native-executorch/legacy';
 export default function App() {
   const { hasPermission, requestPermission } = useCameraPermission();
   const device = useCameraDevice('back');
@@ -220,9 +213,7 @@ export default function App() {
   }, [hasPermission, requestPermission]);
 
   useEffect(() => {
-    ClassificationModule.fromModelName(
-      models.classification.efficientnet_v2_s()
-    ).then((module) => {
+    ClassificationModule.fromModelName(models.classification.efficientnet_v2_s()).then((module) => {
       // () => module.runOnFrame is required — passing module.runOnFrame directly
       // would cause React to call it as a state initializer function
       setRunOnFrame(() => module.runOnFrame);
@@ -255,11 +246,7 @@ export default function App() {
   });
 
   if (!device || !hasPermission)
-    return (
-      <Text>
-        {!hasPermission ? 'No camera permission' : 'No camera device'}
-      </Text>
-    );
+    return <Text>{!hasPermission ? 'No camera permission' : 'No camera device'}</Text>;
 
   return (
     <View style={{ flex: 1 }}>

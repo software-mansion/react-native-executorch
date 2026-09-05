@@ -359,9 +359,6 @@ A Promise resolving to a `TextToImageModule` instance.
 #### Example
 
 ```ts
-import {
-  TextToImageModule,
-  BK_SDM_TINY_VPRED_512,
-} from 'react-native-executorch';
+import { TextToImageModule, BK_SDM_TINY_VPRED_512 } from 'react-native-executorch/legacy';
 const tti = await TextToImageModule.fromModelName(BK_SDM_TINY_VPRED_512);
 ```

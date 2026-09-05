@@ -15,7 +15,7 @@ For React applications, consider using the [`useExecutorchModule`](../../03-hook
 ## High Level Overview
 
 ```typescript
-import { models, ExecutorchModule, ScalarType } from 'react-native-executorch';
+import { models, ExecutorchModule, ScalarType } from 'react-native-executorch/legacy';
 // Creating the input array
 const inputTensor = {
   dataPtr: new Float32Array(1 * 3 * 640 * 640),
@@ -56,7 +56,7 @@ This example demonstrates the integration and usage of the ExecuTorch bindings w
 First, import the necessary functions from the `react-native-executorch` package and initialize the ExecuTorch module with the specified style transfer model.
 
 ```typescript
-import { models, ExecutorchModule, ScalarType } from 'react-native-executorch';
+import { models, ExecutorchModule, ScalarType } from 'react-native-executorch/legacy';
 // Initialize the executorch module
 const executorchModule = new ExecutorchModule();
 

@@ -12,7 +12,7 @@ TypeScript API implementation of the [useClassification](../../03-hooks/02-compu
 ## High Level Overview
 
 ```typescript
-import { models, ClassificationModule } from 'react-native-executorch';
+import { models, ClassificationModule } from 'react-native-executorch/legacy';
 const imageUri = 'path/to/image.png';
 
 // Creating and loading the module
@@ -45,7 +45,7 @@ For real-time frame processing, use [`runOnFrame`](../../03-hooks/02-computer-vi
 Use [`fromCustomModel`](../../06-api-reference/classes/ClassificationModule.md#fromcustommodel) to load your own exported model binary instead of a built-in preset.
 
 ```typescript
-import { ClassificationModule } from 'react-native-executorch';
+import { ClassificationModule } from 'react-native-executorch/legacy';
 const MyLabels = { CAT: 0, DOG: 1, BIRD: 2 } as const;
 
 const classifier = await ClassificationModule.fromCustomModel(

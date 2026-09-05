@@ -20,7 +20,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```typescript
-import { models, useClassification } from 'react-native-executorch';
+import { models, useClassification } from 'react-native-executorch/legacy';
 const model = useClassification({
   model: models.classification.efficientnet_v2_s(),
 });
@@ -76,7 +76,7 @@ See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 ## Example
 
 ```typescript
-import { models, useClassification } from 'react-native-executorch';
+import { models, useClassification } from 'react-native-executorch/legacy';
 function App() {
   const model = useClassification({
     model: models.classification.efficientnet_v2_s(),

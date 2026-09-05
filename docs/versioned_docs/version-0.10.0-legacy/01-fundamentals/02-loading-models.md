@@ -40,7 +40,7 @@ To use the Expo adapter, please add these libraries:
 and then add the following code in your React Native app:
 
 ```typescript
-import { initExecutorch } from 'react-native-executorch';
+import { initExecutorch } from 'react-native-executorch/legacy';
 import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher'; // Use /legacy import if you're using Expo SDK < 54
 
 initExecutorch({
@@ -77,7 +77,7 @@ If you cannot use Expo in your project, proceed with the following steps:
 and
 
 ```typescript
-import { initExecutorch } from 'react-native-executorch';
+import { initExecutorch } from 'react-native-executorch/legacy';
 import { BareResourceFetcher } from 'react-native-executorch-bare-resource-fetcher';
 
 initExecutorch({
@@ -128,6 +128,6 @@ Our library offers out-of-the-box support for multiple models. To make things ea
 The following code snippet demonstrates how to load model and tokenizer files using `useLLM` hook:
 
 ```typescript
-import { models, useLLM } from 'react-native-executorch';
+import { models, useLLM } from 'react-native-executorch/legacy';
 const llm = useLLM({ model: models.llm.lfm2_5_1_2b_instruct() });
 ```

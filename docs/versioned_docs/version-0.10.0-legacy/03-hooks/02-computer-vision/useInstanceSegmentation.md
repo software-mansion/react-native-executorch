@@ -15,7 +15,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```typescript
-import { models, useInstanceSegmentation } from 'react-native-executorch';
+import { models, useInstanceSegmentation } from 'react-native-executorch/legacy';
 const model = useInstanceSegmentation({
   model: models.instance_segmentation.yolo26n(),
 });
@@ -80,7 +80,7 @@ To run the model, use the [`forward`](../../06-api-reference/interfaces/Instance
 ## Example
 
 ```typescript
-import { models, useInstanceSegmentation } from 'react-native-executorch';
+import { models, useInstanceSegmentation } from 'react-native-executorch/legacy';
 function App() {
   const model = useInstanceSegmentation({
     model: models.instance_segmentation.yolo26n(),
@@ -153,7 +153,7 @@ import {
   selectByPoint,
   selectByBox,
   selectByText,
-} from 'react-native-executorch';
+} from 'react-native-executorch/legacy';
 const model = useInstanceSegmentation({
   model: models.instance_segmentation.fastsam_x(),
 });

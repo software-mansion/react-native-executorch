@@ -14,7 +14,7 @@ The `SpeechToTextModule` class provides a direct interface to the library's spee
 You can transcribe audio in two ways: **one-shot** (for files/short clips) and **streaming** (for live microphone input).
 
 ```typescript
-import { SpeechToTextModule, models } from 'react-native-executorch';
+import { SpeechToTextModule, models } from 'react-native-executorch/legacy';
 
 // Initialize the model with VAD submodule
 const model = await SpeechToTextModule.fromModelName(
@@ -86,7 +86,7 @@ The `stream()` function accepts several optional parameters:
 In this example, we use [`react-native-audio-api`](https://docs.swmansion.com/react-native-audio-api/) to feed live audio into the model.
 
 ```tsx
-import { SpeechToTextModule, models } from 'react-native-executorch';
+import { SpeechToTextModule, models } from 'react-native-executorch/legacy';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 
 const model = await SpeechToTextModule.fromModelName(
@@ -105,13 +105,10 @@ await AudioManager.requestRecordingPermissions();
 // 2. Setup Audio Recorder
 const recorder = new AudioRecorder();
 
-recorder.onAudioReady(
-  { sampleRate: 16000, bufferLength: 1600, channelCount: 1 },
-  (chunk) => {
-    // Feed chunks directly into the model's buffer
-    model.streamInsert(chunk.buffer.getChannelData(0));
-  }
-);
+recorder.onAudioReady({ sampleRate: 16000, bufferLength: 1600, channelCount: 1 }, (chunk) => {
+  // Feed chunks directly into the model's buffer
+  model.streamInsert(chunk.buffer.getChannelData(0));
+});
 
 await recorder.start();
 

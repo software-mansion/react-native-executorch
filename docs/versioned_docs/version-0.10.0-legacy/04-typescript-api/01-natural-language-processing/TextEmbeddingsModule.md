@@ -12,7 +12,7 @@ TypeScript API implementation of the [useTextEmbeddings](../../03-hooks/01-natur
 ## High Level Overview
 
 ```typescript
-import { models, TextEmbeddingsModule } from 'react-native-executorch';
+import { models, TextEmbeddingsModule } from 'react-native-executorch/legacy';
 // Creating an instance and loading the model
 const textEmbeddingsModule = await TextEmbeddingsModule.fromModelName(
   models.text_embedding.all_minilm_l6_v2()

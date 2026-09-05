@@ -5,7 +5,7 @@ title: Model Registry
 The Model Registry is a typed, grouped index of every model shipped with React Native ExecuTorch. It removes the need to memorize per-model constant names: pick a capability group, pick a model, and optionally opt out of quantization or override the backend.
 
 ```typescript
-import { models } from 'react-native-executorch';
+import { models } from 'react-native-executorch/legacy';
 
 // Default (quantized when available, platform-default backend).
 const llm = useLLM({ model: models.llm.llama3_2_3b() });
@@ -55,7 +55,7 @@ type ModelOpts<B extends Backend = Backend> = {
 ### Default model
 
 ```typescript
-import { models } from 'react-native-executorch';
+import { models } from 'react-native-executorch/legacy';
 
 const llm = useLLM({ model: models.llm.llama3_2_3b() });
 const classifier = useClassification({
@@ -94,7 +94,7 @@ const styled = useStyleTransfer({
 `text_to_speech` is grouped by model family then by language code (`kokoro.en_us`, `kokoro.en_gb`, `kokoro.fr`, `kokoro.es`, `kokoro.it`, `kokoro.pt`, `kokoro.hi`, `kokoro.pl`, `kokoro.de`). Each leaf returns a complete Kokoro preset bundling the model, voice, and phonemizer — pass the whole result to `useTextToSpeech`. The `kokoro` level reserves room for a future TTS family without forcing a breaking rename.
 
 ```typescript
-import { models, useTextToSpeech } from 'react-native-executorch';
+import { models, useTextToSpeech } from 'react-native-executorch/legacy';
 
 const tts = useTextToSpeech(models.text_to_speech.kokoro.en_us.heart());
 // Other languages:
@@ -120,7 +120,7 @@ The `language` parameter is type-narrowed to supported tokens (`'en'`, `'es'`, `
 Every model is also exported as a top-level constant. Either style is supported:
 
 ```typescript
-import { LFM2_5_1_2B_INSTRUCT, models } from 'react-native-executorch';
+import { LFM2_5_1_2B_INSTRUCT, models } from 'react-native-executorch/legacy';
 
 useLLM({ model: LFM2_5_1_2B_INSTRUCT });
 useLLM({ model: models.llm.lfm2_5_1_2b_instruct() });

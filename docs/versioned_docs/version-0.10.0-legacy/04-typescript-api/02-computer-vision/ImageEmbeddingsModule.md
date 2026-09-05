@@ -12,16 +12,14 @@ TypeScript API implementation of the [useImageEmbeddings](../../03-hooks/02-comp
 ## High Level Overview
 
 ```typescript
-import { models, ImageEmbeddingsModule } from 'react-native-executorch';
+import { models, ImageEmbeddingsModule } from 'react-native-executorch/legacy';
 // Creating and loading the module
 const imageEmbeddingsModule = await ImageEmbeddingsModule.fromModelName(
   models.image_embedding.clip_vit_base_patch32_image()
 );
 
 // Running the model
-const embedding = await imageEmbeddingsModule.forward(
-  'https://url-to-image.jpg'
-);
+const embedding = await imageEmbeddingsModule.forward('https://url-to-image.jpg');
 ```
 
 ### Methods

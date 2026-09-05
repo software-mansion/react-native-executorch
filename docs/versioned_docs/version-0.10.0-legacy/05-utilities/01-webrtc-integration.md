@@ -56,7 +56,7 @@ Use `ResourceFetcher` together with `models.semantic_segmentation.selfie_segment
 ```tsx
 import { useEffect, useState } from 'react';
 import { Button, Text } from 'react-native';
-import { models, ResourceFetcher } from 'react-native-executorch';
+import { models, ResourceFetcher } from 'react-native-executorch/legacy';
 import { useBackgroundBlur } from 'react-native-executorch-webrtc';
 import { useCamera } from '@fishjam-cloud/react-native-client';
 

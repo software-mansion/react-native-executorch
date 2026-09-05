@@ -32,7 +32,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```typescript
-import { models, usePrivacyFilter } from 'react-native-executorch';
+import { models, usePrivacyFilter } from 'react-native-executorch/legacy';
 const model = usePrivacyFilter({ model: models.privacy_filter.openai() });
 
 try {
@@ -83,7 +83,7 @@ Built-in presets run with neutral, validity-only Viterbi decoding. To shift the 
 ```tsx
 import React, { useState } from 'react';
 import { Button, Text, View, TextInput, ScrollView } from 'react-native';
-import { models, usePrivacyFilter, PiiEntity } from 'react-native-executorch';
+import { models, usePrivacyFilter, PiiEntity } from 'react-native-executorch/legacy';
 export default function App() {
   const model = usePrivacyFilter({ model: models.privacy_filter.openai() });
   const [text, setText] = useState(

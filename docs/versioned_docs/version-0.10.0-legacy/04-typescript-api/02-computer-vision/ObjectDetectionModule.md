@@ -12,7 +12,7 @@ TypeScript API implementation of the [useObjectDetection](../../03-hooks/02-comp
 ## High Level Overview
 
 ```typescript
-import { models, ObjectDetectionModule } from 'react-native-executorch';
+import { models, ObjectDetectionModule } from 'react-native-executorch/legacy';
 const imageUri = 'path/to/image.png';
 
 // Creating an instance and loading the model
@@ -64,7 +64,7 @@ const detections = await model.forward(imageUri, {
 Use [`fromCustomModel`](../../06-api-reference/classes/ObjectDetectionModule.md#fromcustommodel) to load your own exported model binary instead of a built-in preset.
 
 ```typescript
-import { ObjectDetectionModule } from 'react-native-executorch';
+import { ObjectDetectionModule } from 'react-native-executorch/legacy';
 const MyLabels = { BACKGROUND: 0, CAT: 1, DOG: 2 } as const;
 
 const detector = await ObjectDetectionModule.fromCustomModel(

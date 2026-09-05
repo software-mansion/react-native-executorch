@@ -14,7 +14,7 @@ import {
   LLMModule,
   RnExecutorchError,
   RnExecutorchErrorCode,
-} from 'react-native-executorch';
+} from 'react-native-executorch/legacy';
 
 const llm = await LLMModule.fromModelName(
   models.llm.lfm2_5_1_2b_instruct(),
@@ -27,10 +27,7 @@ const llm = await LLMModule.fromModelName(
 try {
   await llm.configure({ topp: 1.5 }); // This will throw InvalidConfig error
 } catch (err) {
-  if (
-    err instanceof RnExecutorchError &&
-    err.code === RnExecutorchErrorCode.InvalidConfig
-  ) {
+  if (err instanceof RnExecutorchError && err.code === RnExecutorchErrorCode.InvalidConfig) {
     console.error('Invalid configuration:', err.message);
     // Handle the invalid config - set default values
     await llm.configure({ topp: 0.9 });

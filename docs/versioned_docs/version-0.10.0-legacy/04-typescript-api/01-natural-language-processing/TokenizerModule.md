@@ -11,7 +11,7 @@ TypeScript API implementation of the [useTokenizer](../../03-hooks/01-natural-la
 ## High Level Overview
 
 ```typescript
-import { models, TokenizerModule } from 'react-native-executorch';
+import { models, TokenizerModule } from 'react-native-executorch/legacy';
 // Creating an instance
 const tokenizerModule = new TokenizerModule();
 

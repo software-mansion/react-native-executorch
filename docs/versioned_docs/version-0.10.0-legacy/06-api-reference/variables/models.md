@@ -583,7 +583,7 @@ compile-time error.
 ## Example
 
 ```ts
-import { models } from 'react-native-executorch';
+import { models } from 'react-native-executorch/legacy';
 
 // Platform default (CoreML on iOS, XNNPACK on Android for multi-backend models).
 useObjectDetection({ model: models.object_detection.rf_detr_nano() });

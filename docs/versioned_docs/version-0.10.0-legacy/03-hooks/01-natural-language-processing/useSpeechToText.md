@@ -44,7 +44,7 @@ In this example, we use [`react-native-audio-api`](https://docs.swmansion.com/re
 ### Example
 
 ```typescript
-import { models, useSpeechToText } from 'react-native-executorch';
+import { models, useSpeechToText } from 'react-native-executorch/legacy';
 import { AudioContext } from 'react-native-audio-api';
 import * as FileSystem from 'expo-file-system';
 
@@ -102,7 +102,7 @@ Integrating a VAD submodule is highly recommended for streaming. It improves per
 ```tsx
 import React, { useEffect, useState, useRef } from 'react';
 import { Text, Button, View, SafeAreaView } from 'react-native';
-import { models, useSpeechToText } from 'react-native-executorch';
+import { models, useSpeechToText } from 'react-native-executorch/legacy';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 
 export default function LiveTranscriber() {
@@ -119,9 +119,8 @@ export default function LiveTranscriber() {
     setText('');
 
     // 2. Capture microphone input
-    recorder.onAudioReady(
-      { sampleRate: 16000, bufferLength: 1600, channelCount: 1 },
-      (chunk) => model.streamInsert(chunk.buffer.getChannelData(0))
+    recorder.onAudioReady({ sampleRate: 16000, bufferLength: 1600, channelCount: 1 }, (chunk) =>
+      model.streamInsert(chunk.buffer.getChannelData(0))
     );
 
     await recorder.start();
@@ -155,11 +154,7 @@ export default function LiveTranscriber() {
   return (
     <SafeAreaView>
       <Text>{text || 'Press start and speak...'}</Text>
-      <Button
-        onPress={startLiveStreaming}
-        title="Start Live"
-        disabled={model.isGenerating}
-      />
+      <Button onPress={startLiveStreaming} title="Start Live" disabled={model.isGenerating} />
       <Button onPress={stopLiveStreaming} title="Stop" color="red" />
     </SafeAreaView>
   );

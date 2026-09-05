@@ -13,7 +13,7 @@ TypeScript API implementation of the [useTextToSpeech](../../03-hooks/01-natural
 ## High Level Overview
 
 ```typescript
-import { models, TextToSpeechModule } from 'react-native-executorch';
+import { models, TextToSpeechModule } from 'react-native-executorch/legacy';
 const model = await TextToSpeechModule.fromModelName(
   models.text_to_speech.kokoro.en_us.heart(),
   (progress) => console.log(progress)
@@ -64,7 +64,7 @@ Since `forward` processes the entire input at once, it might take a significant 
 ### Speech Synthesis
 
 ```typescript
-import { models, TextToSpeechModule } from 'react-native-executorch';
+import { models, TextToSpeechModule } from 'react-native-executorch/legacy';
 import { AudioContext } from 'react-native-audio-api';
 
 const tts = await TextToSpeechModule.fromModelName(models.text_to_speech.kokoro.en_us.heart());
@@ -89,7 +89,7 @@ try {
 ### Streaming Synthesis
 
 ```typescript
-import { models, TextToSpeechModule } from 'react-native-executorch';
+import { models, TextToSpeechModule } from 'react-native-executorch/legacy';
 import { AudioContext } from 'react-native-audio-api';
 
 const tts = await TextToSpeechModule.fromModelName(models.text_to_speech.kokoro.en_us.heart());
@@ -122,7 +122,7 @@ try {
 If you already have a phoneme string (e.g., from an external library), you can use `forward` or `stream` with the `phonemize: false` flag to synthesize audio directly, skipping the internal phonemizer stage.
 
 ```typescript
-import { models, TextToSpeechModule } from 'react-native-executorch';
+import { models, TextToSpeechModule } from 'react-native-executorch/legacy';
 const tts = await TextToSpeechModule.fromModelName(models.text_to_speech.kokoro.en_us.heart());
 
 // Example phonemes for "ExecuTorch"

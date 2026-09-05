@@ -12,7 +12,7 @@ TypeScript API implementation of the [useTextToImage](../../03-hooks/02-computer
 ## High Level Overview
 
 ```typescript
-import { models, TextToImageModule } from 'react-native-executorch';
+import { models, TextToImageModule } from 'react-native-executorch/legacy';
 const input = 'a castle';
 
 // Creating an instance and loading the model

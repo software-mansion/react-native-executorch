@@ -29,7 +29,7 @@ We are using [Hugging Face Tokenizers](https://huggingface.co/docs/tokenizers/in
 ## High Level Overview
 
 ```typescript
-import { models, useTokenizer } from 'react-native-executorch';
+import { models, useTokenizer } from 'react-native-executorch/legacy';
 
 const tokenizer = useTokenizer({
   tokenizer: models.text_embedding.all_minilm_l6_v2(),
@@ -69,7 +69,7 @@ You need more details? Check the following resources:
 ## Example
 
 ```typescript
-import { models, useTokenizer } from 'react-native-executorch';
+import { models, useTokenizer } from 'react-native-executorch/legacy';
 
 function App() {
   const tokenizer = useTokenizer({

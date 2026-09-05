@@ -139,6 +139,6 @@ A Promise resolving to an `OCRModule` instance.
 #### Example
 
 ```ts
-import { OCRModule, OCR_ENGLISH } from 'react-native-executorch';
+import { OCRModule, OCR_ENGLISH } from 'react-native-executorch/legacy';
 const ocr = await OCRModule.fromModelName(OCR_ENGLISH);
 ```

@@ -12,7 +12,7 @@ TypeScript API implementation of the [useVerticalOCR](../../03-hooks/02-computer
 ## High Level Overview
 
 ```typescript
-import { models, VerticalOCRModule } from 'react-native-executorch';
+import { models, VerticalOCRModule } from 'react-native-executorch/legacy';
 const imageUri = 'path/to/image.png';
 
 // Creating an instance and loading the model

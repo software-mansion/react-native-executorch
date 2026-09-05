@@ -9,10 +9,7 @@ If the built-in `BareResourceFetcher` and `ExpoResourceFetcher` don't fit your n
 Your adapter must implement the `ResourceFetcherAdapter` interface exported from `react-native-executorch`. This interface defines every method which is used under the hood by React Native ExecuTorch:
 
 ```typescript
-import {
-  ResourceFetcherAdapter,
-  ResourceSource,
-} from 'react-native-executorch';
+import { ResourceFetcherAdapter, ResourceSource } from 'react-native-executorch/legacy';
 
 interface ResourceFetcherAdapter {
   fetch(
@@ -47,7 +44,7 @@ Called internally to read configuration files (e.g. tokenizer configs) that were
 Pass your adapter to `initExecutorch` at the entry point of your app, before any other library API is called:
 
 ```typescript
-import { initExecutorch } from 'react-native-executorch';
+import { initExecutorch } from 'react-native-executorch/legacy';
 import { MyCustomFetcher } from './MyCustomFetcher';
 
 initExecutorch({ resourceFetcher: MyCustomFetcher });

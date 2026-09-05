@@ -13,7 +13,7 @@ TypeScript API implementation of the [useLLM](../../03-hooks/01-natural-language
 ## High Level Overview
 
 ```typescript
-import { models, LLMModule } from 'react-native-executorch';
+import { models, LLMModule } from 'react-native-executorch/legacy';
 // Creating an instance and loading the model
 const llm = await LLMModule.fromModelName(
   models.llm.lfm2_5_1_2b_instruct(),
@@ -121,11 +121,9 @@ Model presets expose an optional `generationConfig` that `LLMModule.fromModelNam
 Some models support multimodal input — text, images and/or audio together. To use them, pass `capabilities` in the model object when calling [`fromModelName`](../../06-api-reference/classes/LLMModule.md#frommodelname):
 
 ```typescript
-import { models, LLMModule } from 'react-native-executorch';
-const llm = await LLMModule.fromModelName(
-  models.llm.gemma4_e2b_multimodal(),
-  undefined,
-  (token) => console.log(token)
+import { models, LLMModule } from 'react-native-executorch/legacy';
+const llm = await LLMModule.fromModelName(models.llm.gemma4_e2b_multimodal(), undefined, (token) =>
+  console.log(token)
 );
 ```
 
@@ -179,7 +177,7 @@ const response = await llm.generate(chat);
 Use [`fromCustomModel`](../../06-api-reference/classes/LLMModule.md#fromcustommodel) to load your own exported LLM instead of a built-in preset:
 
 ```typescript
-import { LLMModule } from 'react-native-executorch';
+import { LLMModule } from 'react-native-executorch/legacy';
 const llm = await LLMModule.fromCustomModel(
   'https://example.com/model.pte',
   'https://example.com/tokenizer.json',

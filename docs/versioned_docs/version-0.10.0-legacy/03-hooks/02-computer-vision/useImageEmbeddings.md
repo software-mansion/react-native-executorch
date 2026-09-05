@@ -30,7 +30,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```typescript
-import { models, useImageEmbeddings } from 'react-native-executorch';
+import { models, useImageEmbeddings } from 'react-native-executorch/legacy';
 const model = useImageEmbeddings({
   model: models.image_embedding.clip_vit_base_patch32_image(),
 });

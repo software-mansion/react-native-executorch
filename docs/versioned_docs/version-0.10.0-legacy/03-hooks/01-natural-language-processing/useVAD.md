@@ -18,7 +18,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 This mode is best suited for processing pre-recorded audio files or existing buffers. You provide a full waveform to the `forward` method, which returns an array of detected speech segments.
 
 ```typescript
-import { useVAD, models } from 'react-native-executorch';
+import { useVAD, models } from 'react-native-executorch/legacy';
 
 const model = useVAD({ model: models.vad.fsmn_vad() });
 
@@ -55,7 +55,7 @@ You can fine-tune the streaming behavior via the `options` object:
 - **`detectionMargin`** (default: `100`ms): Specifies the maximum allowed gap between the last detected speech segment and the current time to still consider the speech as "ongoing." This value determines how much silence is tolerated before `onSpeechEnd` is triggered.
 
 ```tsx
-import { useVAD, models } from 'react-native-executorch';
+import { useVAD, models } from 'react-native-executorch/legacy';
 import { AudioRecorder } from 'react-native-audio-api';
 
 const model = useVAD({ model: models.vad.fsmn_vad() });
@@ -73,9 +73,8 @@ const startLiveVAD = async () => {
   });
 
   // Capture microphone input at 16kHz
-  recorder.onAudioReady(
-    { sampleRate: 16000, bufferLength: 1600, channelCount: 1 },
-    (chunk) => model.streamInsert(chunk.buffer.getChannelData(0))
+  recorder.onAudioReady({ sampleRate: 16000, bufferLength: 1600, channelCount: 1 }, (chunk) =>
+    model.streamInsert(chunk.buffer.getChannelData(0))
   );
 
   await recorder.start();

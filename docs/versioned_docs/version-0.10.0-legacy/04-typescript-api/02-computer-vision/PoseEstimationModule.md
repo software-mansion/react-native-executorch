@@ -12,7 +12,7 @@ TypeScript API implementation of the [usePoseEstimation](../../03-hooks/02-compu
 ## High Level Overview
 
 ```typescript
-import { models, PoseEstimationModule } from 'react-native-executorch';
+import { models, PoseEstimationModule } from 'react-native-executorch/legacy';
 const imageUri = 'path/to/image.png';
 
 // Creating an instance and loading the model
@@ -71,7 +71,7 @@ for (const person of detections) {
 Use [`fromCustomModel`](../../06-api-reference/classes/PoseEstimationModule.md#fromcustommodel) to load your own exported model binary instead of a built-in preset. You provide the keypoint map; `forward`'s return type is automatically derived from it, so each detected person is typed as a record keyed by the names you defined.
 
 ```typescript
-import { PoseEstimationModule } from 'react-native-executorch';
+import { PoseEstimationModule } from 'react-native-executorch/legacy';
 const HandKeypoints = {
   WRIST: 0,
   THUMB_TIP: 1,

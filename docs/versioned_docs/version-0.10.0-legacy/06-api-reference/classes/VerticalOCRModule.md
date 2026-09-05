@@ -149,7 +149,7 @@ A Promise resolving to a `VerticalOCRModule` instance.
 #### Example
 
 ```ts
-import { VerticalOCRModule, OCR_JAPANESE } from 'react-native-executorch';
+import { VerticalOCRModule, OCR_JAPANESE } from 'react-native-executorch/legacy';
 const ocr = await VerticalOCRModule.fromModelName({
   ...OCR_JAPANESE,
   independentCharacters: true,

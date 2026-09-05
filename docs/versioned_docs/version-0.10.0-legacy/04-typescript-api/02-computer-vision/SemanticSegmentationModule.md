@@ -12,7 +12,7 @@ TypeScript API implementation of the [useSemanticSegmentation](../../03-hooks/02
 ## High Level Overview
 
 ```typescript
-import { models, SemanticSegmentationModule } from 'react-native-executorch';
+import { models, SemanticSegmentationModule } from 'react-native-executorch/legacy';
 const imageUri = 'path/to/image.png';
 
 // Creating an instance from a built-in model

@@ -44,7 +44,7 @@ Lower-end devices might not be able to fit LLMs into memory. We recommend using 
 In order to load a model into the app, you need to run the following code:
 
 ```typescript
-import { models, useLLM } from 'react-native-executorch';
+import { models, useLLM } from 'react-native-executorch/legacy';
 const llm = useLLM({ model: models.llm.lfm2_5_1_2b_instruct() });
 ```
 
@@ -230,7 +230,7 @@ import {
   DEFAULT_SYSTEM_PROMPT,
   ToolCall,
   useLLM,
-} from 'react-native-executorch';
+} from 'react-native-executorch/legacy';
 const TOOL_DEFINITIONS: LLMTool[] = [
   {
     name: 'get_weather',
@@ -490,7 +490,7 @@ Some models support multimodal input — text, images and/or audio together. To 
 ### Loading a VLM
 
 ```tsx
-import { models, useLLM } from 'react-native-executorch';
+import { models, useLLM } from 'react-native-executorch/legacy';
 const llm = useLLM({ model: models.llm.gemma4_e2b_multimodal() });
 ```
 

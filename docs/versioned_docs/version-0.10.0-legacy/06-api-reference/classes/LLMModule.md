@@ -380,6 +380,6 @@ A Promise resolving to an `LLMModule` instance.
 #### Example
 
 ```ts
-import { LLMModule, LLAMA3_2_3B } from 'react-native-executorch';
+import { LLMModule, LLAMA3_2_3B } from 'react-native-executorch/legacy';
 const llm = await LLMModule.fromModelName(LLAMA3_2_3B);
 ```

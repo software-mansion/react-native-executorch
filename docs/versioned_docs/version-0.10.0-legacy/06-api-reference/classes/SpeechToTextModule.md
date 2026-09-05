@@ -270,6 +270,6 @@ A Promise resolving to a `SpeechToTextModule` instance.
 #### Example
 
 ```ts
-import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
+import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch/legacy';
 const stt = await SpeechToTextModule.fromModelName(WHISPER_TINY_EN);
 ```

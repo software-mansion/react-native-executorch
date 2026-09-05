@@ -42,6 +42,7 @@ const config = {
             // === LEGACY SUPPORT ===: versioned docs for legacy API (remove when legacy API is dropped)
             '0.10.0-legacy': {
               label: '0.10.0-legacy',
+              banner: 'unmaintained',
             },
           },
         },

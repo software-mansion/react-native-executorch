@@ -20,6 +20,14 @@ description: 'Get started with React Native ExecuTorch - a framework for running
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
+:::caution Legacy API Deprecation
+The API documented here is the **legacy API** (`react-native-executorch/legacy`). Starting with version `0.10.0`, React Native ExecuTorch has been completely rewritten with a new modular architecture, simplified hooks, unified resource fetching, and significantly better performance.
+
+- To use this legacy API, you must import from `'react-native-executorch/legacy'` (e.g. `import { initExecutorch, models } from 'react-native-executorch/legacy'`).
+- This legacy API is deprecated and will be removed in a future release.
+- We strongly recommend migrating to the **[latest 0.10.0 documentation](../../fundamentals/getting-started)**.
+  :::
+
 ## What is ExecuTorch?
 
 [ExecuTorch](https://executorch.ai) is a novel AI framework developed by Meta, designed to streamline deploying PyTorch models on a variety of devices, including mobile phones and microcontrollers. This framework enables exporting models into standalone binaries, allowing them to run locally without requiring API calls. ExecuTorch achieves state-of-the-art performance through optimizations and delegates such as Core ML and XNNPACK. It provides a seamless export process with robust debugging options, making it easier to resolve issues if they arise.
@@ -126,7 +134,7 @@ Pick the adapter that matches your project. We recommend the Expo adapter when y
 Before using any other API, you must call `initExecutorch` with a resource fetcher adapter at the entry point of your app:
 
 ```js
-import { initExecutorch } from 'react-native-executorch';
+import { initExecutorch } from 'react-native-executorch/legacy';
 import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher'; // Use /legacy import if you're using Expo SDK < 54
 // or BareResourceFetcher for bare react-native projects
 

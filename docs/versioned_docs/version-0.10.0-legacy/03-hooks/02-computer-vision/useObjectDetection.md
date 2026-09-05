@@ -16,7 +16,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```typescript
-import { models, useObjectDetection } from 'react-native-executorch';
+import { models, useObjectDetection } from 'react-native-executorch/legacy';
 const model = useObjectDetection({
   model: models.object_detection.ssdlite_320_mobilenet_v3_large(),
 });
@@ -80,7 +80,7 @@ To run the model, use the [`forward`](../../06-api-reference/interfaces/ObjectDe
 ## Example
 
 ```typescript
-import { models, useObjectDetection } from 'react-native-executorch';
+import { models, useObjectDetection } from 'react-native-executorch/legacy';
 function App() {
   const model = useObjectDetection({
     model: models.object_detection.yolo26n(),

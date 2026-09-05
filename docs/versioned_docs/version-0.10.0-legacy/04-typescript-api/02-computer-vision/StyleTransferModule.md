@@ -12,13 +12,11 @@ TypeScript API implementation of the [useStyleTransfer](../../03-hooks/02-comput
 ## High Level Overview
 
 ```typescript
-import { models, StyleTransferModule } from 'react-native-executorch';
+import { models, StyleTransferModule } from 'react-native-executorch/legacy';
 const imageUri = 'path/to/image.png';
 
 // Creating and loading the module
-const styleTransferModule = await StyleTransferModule.fromModelName(
-  models.style_transfer.candy()
-);
+const styleTransferModule = await StyleTransferModule.fromModelName(models.style_transfer.candy());
 
 // Running the model
 const generatedImageUrl = await styleTransferModule.forward(imageUri);
