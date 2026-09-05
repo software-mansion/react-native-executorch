@@ -9,7 +9,25 @@ import com.facebook.react.module.model.ReactModuleInfoProvider
 class RnExecutorchPackage : BaseReactPackage() {
 
   override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? =
-    if (name == RnExecutorchModule.NAME) RnExecutorchModule(reactContext) else null
+    when (name) {
+      RnExecutorchModule.NAME -> RnExecutorchModule(reactContext)
+      // ==============================================================================
+      // LEGACY SUPPORT: ETInstaller (Remove when react-native-executorch/legacy is dropped)
+      // ==============================================================================
+      ETInstaller.NAME -> {
+        try {
+          ETInstaller(reactContext)
+        } catch (e: RuntimeException) {
+          if (e.cause is UnsatisfiedLinkError) {
+            ETInstallerUnavailable(reactContext)
+          } else {
+            throw e
+          }
+        }
+      }
+      // ==============================================================================
+      else -> null
+    }
 
   override fun getReactModuleInfoProvider(): ReactModuleInfoProvider =
     ReactModuleInfoProvider {
@@ -17,12 +35,25 @@ class RnExecutorchPackage : BaseReactPackage() {
         RnExecutorchModule.NAME to ReactModuleInfo(
           RnExecutorchModule.NAME,
           RnExecutorchModule.NAME,
-          false, // canOverrideExistingModule
-          false, // needsEagerInit
-          true,  // hasConstants
-          false, // isCxxModule
-          true   // isTurboModule
+          false,
+          false,
+          true,
+          false,
+          true
+        ),
+        // ==============================================================================
+        // LEGACY SUPPORT: ETInstaller (Remove when react-native-executorch/legacy is dropped)
+        // ==============================================================================
+        ETInstaller.NAME to ReactModuleInfo(
+          ETInstaller.NAME,
+          ETInstaller.NAME,
+          false,
+          false,
+          true,
+          false,
+          true
         )
+        // ==============================================================================
       )
     }
 }

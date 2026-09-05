@@ -26,6 +26,7 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "ESNext",
-    "verbatimModuleSyntax": true
+    // === LEGACY SUPPORT ===: false required for legacy re-exports
+    "verbatimModuleSyntax": false
   }
 }

@@ -1,0 +1,11 @@
+// ==============================================================================
+// LEGACY SUPPORT: TurboModule spec for ETInstaller (remove when legacy API is dropped)
+// ==============================================================================
+import type { TurboModule } from 'react-native';
+import { TurboModuleRegistry } from 'react-native';
+
+export interface Spec extends TurboModule {
+  install(): boolean;
+}
+
+export default TurboModuleRegistry.get<Spec>('ETInstaller');

@@ -7,6 +7,7 @@
   "module": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
   "source": "./src/index.ts",
+  "// === LEGACY SUPPORT: exports ===": "./legacy subpath export is the legacy entrypoint (remove when legacy API is dropped)",
   "exports": {
     ".": {
       "source": "./src/index.ts",
@@ -43,10 +44,17 @@
       "types": "./lib/typescript/src/core/schema.d.ts",
       "default": "./lib/module/core/schema.js"
     },
+    "./legacy": {
+      "source": "./legacy/src/index.ts",
+      "types": "./lib/typescript/legacy/src/index.d.ts",
+      "default": "./lib/module/legacy/src/index.js"
+    },
     "./package.json": "./package.json"
   },
+  "// === LEGACY SUPPORT: files ===": "!legacy/cpp/**/tests excludes legacy C++ test fixtures and assets from the published tarball (remove when legacy API is dropped)",
   "files": [
     "src",
+    "legacy",
     "lib",
     "android",
     "ios",
@@ -73,11 +81,13 @@
     "!third-party/**/tests",
     "!third-party/common/phonemis/data",
     "!cpp/tests",
+    "!legacy/cpp/**/tests",
     "!**/.*"
   ],
+  "// === LEGACY SUPPORT: prepare script ===": "tsc -p legacy/tsconfig.json builds legacy type definitions",
   "scripts": {
     "clean": "del-cli lib",
-    "prepare": "bob build",
+    "prepare": "bob build && tsc -p legacy/tsconfig.json",
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
@@ -118,9 +128,15 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
+  "// === LEGACY SUPPORT: dependencies ===": "jsonrepair, jsonschema, react-native-device-info, and zod are only needed for legacy API",
   "dependencies": {
-    "@huggingface/jinja": "^0.5.9"
+    "@huggingface/jinja": "^0.5.9",
+    "jsonrepair": "^3.12.0",
+    "jsonschema": "^1.5.0",
+    "react-native-device-info": "^15.0.2",
+    "zod": "^4.3.6"
   },
+  "// === LEGACY SUPPORT: peerDependencies ===": "@kesha-antonov/react-native-background-downloader is only needed for legacy API (remove when legacy is dropped)",
   "peerDependencies": {
     "@kesha-antonov/react-native-background-downloader": ">=4.4.0",
     "react": "*",

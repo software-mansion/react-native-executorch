@@ -1,0 +1,5 @@
+{
+  "name": "react-native-executorch-legacy",
+  "main": "../lib/module/legacy/src/index.js",
+  "types": "../lib/typescript/legacy/src/index.d.ts"
+}

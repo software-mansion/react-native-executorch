@@ -65,6 +65,14 @@ Pod::Spec.new do |s|
     "ios/**/*.{h,m,mm}",
     "cpp/**/*.{cpp,c,h,hpp}",
   ]
+  # ==============================================================================
+  # LEGACY SUPPORT: include legacy sources (Remove when react-native-executorch/legacy is dropped)
+  # ==============================================================================
+  source_files += [
+    "legacy/ios/**/*.{h,m,mm}",
+    "legacy/cpp/**/*.{cpp,c,h,hpp}",
+  ]
+  # ==============================================================================
   source_files += phonemis_source_files if enable_phonemis
   s.source_files = source_files
 
@@ -75,6 +83,16 @@ Pod::Spec.new do |s|
     "third-party/common/phonemis/src/phonemis/main.cpp",
     "cpp/tests/**/*",
   ]
+  # ==============================================================================
+  # LEGACY SUPPORT: exclude legacy tests and preserve jsi headers
+  # (Remove when react-native-executorch/legacy is dropped)
+  # ==============================================================================
+  exclude_files += [
+    "legacy/cpp/rnexecutorch/tests/**/*",
+    "legacy/cpp/rnexecutorch/jsi/*.{h,hpp}",
+  ]
+  s.preserve_paths = "legacy/cpp/rnexecutorch/jsi/*.{h,hpp}"
+  # ==============================================================================
   exclude_files += opencv_source_files unless enable_opencv
   exclude_files += phonemis_source_files unless enable_phonemis
   s.exclude_files = exclude_files
@@ -135,6 +153,11 @@ Pod::Spec.new do |s|
     ].join(' '),
     "HEADER_SEARCH_PATHS" => [
       "\"$(PODS_TARGET_SRCROOT)/cpp\"",
+      # ==============================================================================
+      # LEGACY SUPPORT: legacy header search path (Remove when react-native-executorch/legacy is dropped)
+      # ==============================================================================
+      "\"$(PODS_TARGET_SRCROOT)/legacy/cpp\"",
+      # ==============================================================================
       "\"$(PODS_TARGET_SRCROOT)/third-party/include\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/cpuinfo\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/pthreadpool\"",

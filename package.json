@@ -2,10 +2,12 @@
   "name": "react-native-executorch-monorepo",
   "version": "0.0.0",
   "packageManager": "yarn@4.1.1",
+  "// === LEGACY SUPPORT: workspaces ===": "apps/legacy/* contains preserved legacy example apps (remove when legacy apps are dropped)",
   "workspaces": {
     "packages": [
       "packages/*",
-      "apps/*"
+      "apps/*",
+      "apps/legacy/*"
     ]
   },
   "scripts": {

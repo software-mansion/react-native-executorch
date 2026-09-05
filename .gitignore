@@ -92,6 +92,12 @@ ios/generated
 android/generated
 apps/*/ios/
 apps/*/android/
+# === LEGACY SUPPORT: Expo prebuild directories for legacy apps (remove when legacy apps are dropped) ===
+apps/legacy/*/ios/
+apps/legacy/*/android/
+!apps/legacy/bare-rn/ios/
+!apps/legacy/bare-rn/android/
+**/Pods/
 
 # generated TypeDoc API reference (regenerated at build time)
 docs/docs/06-api-reference/
