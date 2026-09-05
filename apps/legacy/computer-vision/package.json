@@ -33,16 +33,16 @@
     "react-native-gesture-handler": "~2.31.1",
     "react-native-image-picker": "^8.2.1",
     "react-native-loading-spinner-overlay": "^3.0.1",
-    "react-native-nitro-image": "0.13.1",
-    "react-native-nitro-modules": "0.35.4",
-    "react-native-reanimated": "4.3.1",
+    "react-native-nitro-image": "^0.15.2",
+    "react-native-nitro-modules": "^0.37.1",
+    "react-native-reanimated": "4.5.3",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.25.2",
     "react-native-svg": "15.15.4",
     "react-native-svg-transformer": "^1.5.3",
-    "react-native-vision-camera": "^5.0.6",
-    "react-native-vision-camera-worklets": "^5.0.6",
-    "react-native-worklets": "0.8.3"
+    "react-native-vision-camera": "^5.2.3",
+    "react-native-vision-camera-worklets": "^5.2.3",
+    "react-native-worklets": "0.10.3"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",

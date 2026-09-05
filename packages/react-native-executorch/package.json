@@ -7,6 +7,7 @@
   "module": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
   "source": "./src/index.ts",
+  "// === LEGACY SUPPORT: exports ===": "./legacy subpath export is the legacy entrypoint (remove when legacy API is dropped)",
   "exports": {
     ".": {
       "source": "./src/index.ts",
@@ -43,7 +44,6 @@
       "types": "./lib/typescript/src/core/schema.d.ts",
       "default": "./lib/module/core/schema.js"
     },
-    "// === LEGACY SUPPORT (remove in future release) ===": "Legacy export entrypoint",
     "./legacy": {
       "source": "./legacy/src/index.ts",
       "types": "./lib/typescript/legacy/src/index.d.ts",
@@ -134,6 +134,7 @@
     "react-native-device-info": "^15.0.2",
     "zod": "^4.3.6"
   },
+  "// === LEGACY SUPPORT: peerDependencies ===": "@kesha-antonov/react-native-background-downloader is only needed for legacy API (remove when legacy is dropped)",
   "peerDependencies": {
     "@kesha-antonov/react-native-background-downloader": ">=4.4.0",
     "react": "*",
@@ -143,8 +144,7 @@
   },
   "peerDependenciesMeta": {
     "@kesha-antonov/react-native-background-downloader": {
-      "optional": true,
-      "// === LEGACY SUPPORT ===": "Only used by legacy ResourceFetcher on bare React Native"
+      "optional": true
     }
   },
   "devDependencies": {

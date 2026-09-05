@@ -188,10 +188,11 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 )
 
 # ==============================================================================
-# LEGACY SUPPORT: link fbjni and android for legacy ETInstallerModule
+# LEGACY SUPPORT: link fbjni, reactnative (for CallInvoker), and android for legacy ETInstallerModule
 # (Remove when react-native-executorch/legacy is dropped)
 # ==============================================================================
 target_link_libraries(${CMAKE_PROJECT_NAME}
+    ReactAndroid::reactnative
     fbjni::fbjni
     android
 )

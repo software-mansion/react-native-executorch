@@ -3,7 +3,7 @@
   "version": "0.10.0",
   "description": "Expo resource fetcher for react-native-executorch",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "// === LEGACY SUPPORT: exports ===": "exports['./legacy'] provides legacy resource fetcher support (remove when legacy API is dropped)",
   "exports": {
     ".": {
       "import": "./lib/index.js",

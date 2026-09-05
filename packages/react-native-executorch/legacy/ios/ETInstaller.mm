@@ -1,11 +1,13 @@
 #import "ETInstaller.h"
 
 #import <React/RCTBridge+Private.h>
-
 #import <React/RCTCallInvoker.h>
 #import <ReactCommon/RCTTurboModule.h>
 #import <TargetConditionals.h>
+#pragma push_macro("NO")
+#undef NO
 #include <rnexecutorch/RnExecutorchInstaller.h>
+#pragma pop_macro("NO")
 #include <stdexcept>
 
 using namespace facebook::react;

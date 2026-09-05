@@ -13072,16 +13072,16 @@ __metadata:
     react-native-gesture-handler: "npm:~2.31.1"
     react-native-image-picker: "npm:^8.2.1"
     react-native-loading-spinner-overlay: "npm:^3.0.1"
-    react-native-nitro-image: "npm:0.13.1"
-    react-native-nitro-modules: "npm:0.35.4"
-    react-native-reanimated: "npm:4.3.1"
+    react-native-nitro-image: "npm:^0.15.2"
+    react-native-nitro-modules: "npm:^0.37.1"
+    react-native-reanimated: "npm:4.5.3"
     react-native-safe-area-context: "npm:~5.7.0"
     react-native-screens: "npm:~4.25.2"
     react-native-svg: "npm:15.15.4"
     react-native-svg-transformer: "npm:^1.5.3"
-    react-native-vision-camera: "npm:^5.0.6"
-    react-native-vision-camera-worklets: "npm:^5.0.6"
-    react-native-worklets: "npm:0.8.3"
+    react-native-vision-camera: "npm:^5.2.3"
+    react-native-vision-camera-worklets: "npm:^5.2.3"
+    react-native-worklets: "npm:0.10.3"
     react-refresh: "npm:^0.18.0"
   languageName: unknown
   linkType: soft
@@ -13119,12 +13119,12 @@ __metadata:
     react-native-image-picker: "npm:^8.2.1"
     react-native-loading-spinner-overlay: "npm:^3.0.1"
     react-native-markdown-display: "npm:^7.0.2"
-    react-native-reanimated: "npm:~4.3.0"
+    react-native-reanimated: "npm:4.5.3"
     react-native-safe-area-context: "npm:~5.7.0"
     react-native-screens: "npm:~4.25.2"
     react-native-svg: "npm:15.15.4"
     react-native-svg-transformer: "npm:^1.5.3"
-    react-native-worklets: "npm:0.8.1"
+    react-native-worklets: "npm:0.10.3"
     react-refresh: "npm:^0.18.0"
   languageName: unknown
   linkType: soft
@@ -13151,11 +13151,11 @@ __metadata:
     react-native-device-info: "npm:^15.0.2"
     react-native-executorch: "workspace:*"
     react-native-executorch-expo-resource-fetcher: "workspace:*"
-    react-native-reanimated: "npm:4.3.1"
+    react-native-reanimated: "npm:4.5.3"
     react-native-safe-area-context: "npm:~5.7.0"
     react-native-svg: "npm:15.15.4"
     react-native-svg-transformer: "npm:^1.5.3"
-    react-native-worklets: "npm:0.8.3"
+    react-native-worklets: "npm:0.10.3"
     react-refresh: "npm:^0.18.0"
   languageName: unknown
   linkType: soft
@@ -13186,11 +13186,11 @@ __metadata:
     react-native-executorch-expo-resource-fetcher: "workspace:*"
     react-native-gesture-handler: "npm:~2.31.1"
     react-native-image-picker: "npm:^8.2.1"
-    react-native-reanimated: "npm:4.3.1"
+    react-native-reanimated: "npm:4.5.3"
     react-native-safe-area-context: "npm:~5.7.0"
     react-native-screens: "npm:~4.25.2"
     react-native-svg: "npm:15.15.4"
-    react-native-worklets: "npm:0.8.3"
+    react-native-worklets: "npm:0.10.3"
     react-refresh: "npm:^0.18.0"
   languageName: unknown
   linkType: soft
@@ -16569,38 +16569,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-nitro-image@npm:0.13.1":
-  version: 0.13.1
-  resolution: "react-native-nitro-image@npm:0.13.1"
+"react-native-nitro-image@npm:^0.15.2":
+  version: 0.15.2
+  resolution: "react-native-nitro-image@npm:0.15.2"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-nitro-modules: "*"
-  checksum: 10/1b922566a01a59f164c061875edd9751e3e6694e621424c512f8776b40c3463c4e4fe4121932f9b1f610d20ac2cea51c07a8884a2b2ba4d33c3ea7b595c586e1
+  peerDependenciesMeta:
+    react-native-nitro-modules:
+      optional: true
+  checksum: 10/55377461210668bd9a90adbc278f7c91f3b59f0502915844187b0a95a3382ad340cf1114eb8dd59a76532651d7a52a0f00eec38d66a40ec3a5d0030d151eb4cd
   languageName: node
   linkType: hard
 
-"react-native-nitro-modules@npm:0.35.4":
-  version: 0.35.4
-  resolution: "react-native-nitro-modules@npm:0.35.4"
+"react-native-nitro-modules@npm:^0.37.1":
+  version: 0.37.1
+  resolution: "react-native-nitro-modules@npm:0.37.1"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/2672ab29e8b7abb38ccf799b96b54dd9fa112b398a112c272f5a67adbf0415908e4565bc7782571ce06cf5fdd4a6d04f49a127d66acae4cedc5f41d385323ede
-  languageName: node
-  linkType: hard
-
-"react-native-reanimated@npm:4.3.1":
-  version: 4.3.1
-  resolution: "react-native-reanimated@npm:4.3.1"
-  dependencies:
-    react-native-is-edge-to-edge: "npm:^1.3.1"
-    semver: "npm:^7.7.3"
-  peerDependencies:
-    react: "*"
-    react-native: 0.81 - 0.85
-    react-native-worklets: 0.8.x
-  checksum: 10/f47d50cc35def5038e68d9013bf976849207237e238ab597e0b8c07d003b0a54d73692185f1a49dc33ab3d7a9d345660a6e70796f28545a7340649806bf17b5c
+  checksum: 10/eba28d88427c2b3a113d4bf992c4c2bf6ca79cec65e72e7f84fc675b6d5c482d0a1e3db92dc5ca349c8ebd284cbb5263846ecd4edc8f0993568bca2880a83dba
   languageName: node
   linkType: hard
 
@@ -16615,20 +16604,6 @@ __metadata:
     react-native: 0.83 - 0.86
     react-native-worklets: 0.10.x - 0.11.x
   checksum: 10/b043b6316156a525f3b77bb22279dc9bc1113c06ae5e818e6511e879f989b5a0884a9b5abc2b8c93c8e14430011602850067585036e4645370ce503c7995673b
-  languageName: node
-  linkType: hard
-
-"react-native-reanimated@npm:~4.3.0":
-  version: 4.3.4
-  resolution: "react-native-reanimated@npm:4.3.4"
-  dependencies:
-    react-native-is-edge-to-edge: "npm:^1.3.1"
-    semver: "npm:^7.7.3"
-  peerDependencies:
-    react: "*"
-    react-native: 0.81 - 0.85
-    react-native-worklets: 0.8.x
-  checksum: 10/085d050a51ba6f38caa9da81811281a86a07722c26bdb8d804bb59f8e68fe0de513b7bae2b3c4f6d1edcf74a9b42ae24e92ac7346edfe51dce0c0d882acb5589
   languageName: node
   linkType: hard
 
@@ -16735,7 +16710,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-vision-camera-worklets@npm:^5.0.6":
+"react-native-vision-camera-worklets@npm:^5.2.3":
   version: 5.2.3
   resolution: "react-native-vision-camera-worklets@npm:5.2.3"
   peerDependencies:
@@ -16751,7 +16726,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-vision-camera@npm:^5.0.6":
+"react-native-vision-camera@npm:^5.2.3":
   version: 5.2.3
   resolution: "react-native-vision-camera@npm:5.2.3"
   peerDependencies:

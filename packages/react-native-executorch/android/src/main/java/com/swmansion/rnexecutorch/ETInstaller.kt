@@ -1,3 +1,6 @@
+// ==============================================================================
+// LEGACY SUPPORT: Android TurboModule for legacy ETInstaller (remove when legacy API is dropped)
+// ==============================================================================
 package com.swmansion.rnexecutorch
 
 import com.facebook.jni.HybridData
