@@ -15,6 +15,7 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
  * @category Hooks
  * @param speechToTextProps - Configuration object containing `model` source and optional `preventLoad` flag.
  * @returns Ready to use Speech to Text model.
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
 export const useSpeechToText = ({
   model,

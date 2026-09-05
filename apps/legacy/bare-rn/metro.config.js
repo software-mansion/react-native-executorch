@@ -1,7 +1,7 @@
 const path = require('path');
 const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 
-const workspaceRoot = path.resolve(__dirname, '../../'); // Adjust the path to your monorepo root
+const workspaceRoot = path.resolve(__dirname, '../../../'); // Adjust the path to your monorepo root
 const projectRoot = __dirname;
 const defaultConfig = getDefaultConfig(projectRoot);
 

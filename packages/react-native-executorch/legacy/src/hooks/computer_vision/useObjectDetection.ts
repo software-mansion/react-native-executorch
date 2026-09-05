@@ -17,6 +17,7 @@ import { useModuleFactory } from '../useModuleFactory';
  * @category Hooks
  * @param props - Configuration object containing `model` config and optional `preventLoad` flag.
  * @returns An object with model state (`error`, `isReady`, `isGenerating`, `downloadProgress`) and typed `forward` and `runOnFrame` functions.
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
 export const useObjectDetection = <C extends ObjectDetectionModelSources>({
   model,

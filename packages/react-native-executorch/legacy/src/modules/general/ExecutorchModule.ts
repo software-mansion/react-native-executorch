@@ -9,7 +9,9 @@ import { Logger } from '../../common/Logger';
 /**
  * General module for executing custom Executorch models.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class ExecutorchModule extends BaseModule {
   /**
    * Loads the model, where `modelSource` is a string, number, or object that specifies the location of the model binary.

@@ -16,6 +16,7 @@ import { useModuleFactory } from '../useModuleFactory';
  * @category Hooks
  * @param props - Configuration object containing `model` source and optional `preventLoad` flag.
  * @returns Ready to use Classification model.
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
 export const useClassification = <C extends ClassificationModelSources>({
   model,

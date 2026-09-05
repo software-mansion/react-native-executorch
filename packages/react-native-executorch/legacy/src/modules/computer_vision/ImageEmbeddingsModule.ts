@@ -9,7 +9,9 @@ import { VisionModule } from './VisionModule';
 /**
  * Module for generating image embeddings from input images.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class ImageEmbeddingsModule extends VisionModule<Float32Array> {
   private constructor(nativeModule: unknown) {
     super();

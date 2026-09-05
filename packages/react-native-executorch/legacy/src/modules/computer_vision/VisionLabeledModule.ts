@@ -34,7 +34,9 @@ export async function fetchModelPath(
  * @typeParam TOutput - The model's output type.
  * @typeParam LabelMap - The resolved {@link LabelEnum} for the model's output classes.
  * @internal
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export abstract class VisionLabeledModule<
   TOutput = unknown,
   LabelMap extends LabelEnum = LabelEnum,

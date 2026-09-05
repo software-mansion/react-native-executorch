@@ -7,7 +7,9 @@ import { Logger } from '../../common/Logger';
 /**
  * Module for Tokenizer functionalities.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class TokenizerModule {
   /**
    * Native module instance

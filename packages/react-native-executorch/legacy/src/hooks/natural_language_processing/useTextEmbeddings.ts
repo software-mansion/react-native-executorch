@@ -7,6 +7,7 @@ import { TextEmbeddingsType, TextEmbeddingsProps } from '../../types/textEmbeddi
  * @category Hooks
  * @param TextEmbeddingsProps - Configuration object containing `model` source and optional `preventLoad` flag.
  * @returns Ready to use Text Embeddings model.
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
 export const useTextEmbeddings = ({
   model,

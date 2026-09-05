@@ -7,7 +7,9 @@ import { OCRDetection, OCRLanguage, OCRModelName } from '../../types/ocr';
 /**
  * Module for Vertical Optical Character Recognition (Vertical OCR) tasks.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class VerticalOCRModule {
   private controller: VerticalOCRController;
 

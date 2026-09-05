@@ -16,6 +16,7 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
  * @param options - Additional options for the hook.
  * @param options.preventLoad - If true, prevents the model from loading automatically on initialization.
  * @returns Ready to use Text to Speech model.
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
 export const useTextToSpeech = (
   model: TextToSpeechModelConfig,

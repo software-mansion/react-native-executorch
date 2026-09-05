@@ -79,7 +79,9 @@ type ResolveLabels<T extends ObjectDetectionModelName | LabelEnum> = ResolveLabe
  * @typeParam T - Either a built-in model name (e.g. `'ssdlite-320-mobilenet-v3-large'`)
  *   or a custom {@link LabelEnum} label map.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class ObjectDetectionModule<
   T extends ObjectDetectionModelName | LabelEnum,
 > extends VisionLabeledModule<Detection<ResolveLabels<T>>[], ResolveLabels<T>> {

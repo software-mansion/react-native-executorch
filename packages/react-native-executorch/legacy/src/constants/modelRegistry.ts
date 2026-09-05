@@ -564,6 +564,7 @@ function craft({ language }: { language: SupportedLanguage }): OcrConfig {
  * useOcr({ model: models.ocr({ language: 'en' }) });
  * ```
  * @category Utils
+ * @deprecated Use the new model configs from `react-native-executorch` instead.
  */
 export const models = {
   llm: {

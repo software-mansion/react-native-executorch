@@ -14,7 +14,9 @@ import {
 /**
  * Module for managing a Large Language Model (LLM) instance.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class LLMModule {
   private controller: LLMController;
 

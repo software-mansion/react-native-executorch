@@ -7,7 +7,9 @@ import { parseUnknownError } from '../../errors/errorUtils';
 /**
  * Module for Optical Character Recognition (OCR) tasks.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class OCRModule {
   private controller: OCRController;
 

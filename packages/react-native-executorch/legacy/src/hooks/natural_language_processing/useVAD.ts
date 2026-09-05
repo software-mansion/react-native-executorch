@@ -7,6 +7,7 @@ import { useModuleFactory } from '../useModuleFactory';
  * @category Hooks
  * @param VADProps - Configuration object containing `model` source and optional `preventLoad` flag.
  * @returns Ready to use VAD model.
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
 export const useVAD = ({ model, preventLoad = false }: VADProps): VADType => {
   const { error, isReady, isGenerating, downloadProgress, runForward, runSideChannel } =

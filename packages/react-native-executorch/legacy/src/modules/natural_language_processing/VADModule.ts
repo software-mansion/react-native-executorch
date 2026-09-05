@@ -9,7 +9,9 @@ import { Logger } from '../../common/Logger';
 /**
  * Module for Voice Activity Detection (VAD) functionalities.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class VADModule extends BaseModule {
   private isStreaming: boolean = false;
 

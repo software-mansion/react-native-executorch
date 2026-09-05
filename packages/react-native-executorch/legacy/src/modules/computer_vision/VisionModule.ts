@@ -27,7 +27,9 @@ export function isPixelData(input: unknown): input is PixelData {
  *
  * Subclasses implement model-specific loading logic and may override `forward` for typed signatures.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export abstract class VisionModule<TOutput> extends BaseModule {
   /**
    * Synchronous worklet function for real-time VisionCamera frame processing.

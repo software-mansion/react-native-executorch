@@ -9,7 +9,9 @@ import { VisionModule } from './VisionModule';
 /**
  * Module for style transfer tasks.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class StyleTransferModule extends VisionModule<PixelData | string> {
   private constructor(nativeModule: unknown) {
     super();

@@ -8,6 +8,7 @@ import { useModuleFactory } from '../useModuleFactory';
  * @category Hooks
  * @param ImageEmbeddingsProps - Configuration object containing `model` source and optional `preventLoad` flag.
  * @returns Ready to use Image Embeddings model.
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
 export const useImageEmbeddings = ({
   model,

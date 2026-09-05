@@ -7,6 +7,7 @@ import { PiiEntity, PrivacyFilterProps, PrivacyFilterType } from '../../types/pr
  * @category Hooks
  * @param PrivacyFilterProps - Configuration object containing the model sources and an optional `preventLoad` flag.
  * @returns Ready to use Privacy Filter model.
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
 export const usePrivacyFilter = ({
   model,

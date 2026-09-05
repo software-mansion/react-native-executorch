@@ -7,7 +7,9 @@ import { TensorPtr } from '../types/common';
  * Provides core functionality for loading models, running inference,
  * and managing native resources.
  * @category Base Classes
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export abstract class BaseModule {
   /**
    * Native module instance (JSI Host Object)

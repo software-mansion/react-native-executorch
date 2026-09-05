@@ -9,6 +9,7 @@ import { OCRDetection, OCRProps, OCRType } from '../../types/ocr';
  * @category Hooks
  * @param OCRProps - Configuration object containing `model` sources and optional `preventLoad` flag.
  * @returns Ready to use OCR model.
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
 export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
   const [isReady, setIsReady] = useState(false);

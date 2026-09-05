@@ -46,7 +46,9 @@ type ResolveLabels<T extends ClassificationModelName | LabelEnum> = ResolveLabel
  * @typeParam T - Either a built-in model name (e.g. `'efficientnet-v2-s'`)
  *   or a custom {@link LabelEnum} label map.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class ClassificationModule<
   T extends ClassificationModelName | LabelEnum,
 > extends VisionLabeledModule<Record<keyof ResolveLabels<T>, number>, ResolveLabels<T>> {

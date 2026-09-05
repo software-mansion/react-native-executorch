@@ -9,6 +9,7 @@ import { TokenizerProps, TokenizerType } from '../../types/tokenizer';
  * @category Hooks
  * @param tokenizerProps - Configuration object containing `tokenizer` source and optional `preventLoad` flag.
  * @returns Ready to use Tokenizer model.
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
 export const useTokenizer = ({ tokenizer, preventLoad = false }: TokenizerProps): TokenizerType => {
   const [error, setError] = useState<null | RnExecutorchError>(null);
