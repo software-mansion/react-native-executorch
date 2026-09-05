@@ -36,6 +36,15 @@ const config = {
           sidebarCollapsible: false,
           editUrl:
             'https://github.com/software-mansion/react-native-executorch/edit/main/docs',
+          lastVersion: 'current',
+          versions: {
+            current: {
+              label: '0.10.0',
+            },
+            '0.10.0-legacy': {
+              label: '0.10.0-legacy',
+            },
+          },
         },
         theme: {
           customCss: require.resolve('./src/css/index.css'),
