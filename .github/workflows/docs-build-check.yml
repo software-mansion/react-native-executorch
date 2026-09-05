@@ -4,15 +4,20 @@ on:
   push:
     branches:
       - main
+      - rne-rewrite
     paths:
       - 'docs/**'
       - '.github/workflows/docs-build-check.yml'
   pull_request:
     branches:
       - main
+      - rne-rewrite
     paths:
       - 'docs/**'
       - '.github/workflows/docs-build-check.yml'
+  merge_group:
+    types:
+      - checks_requested
   workflow_dispatch:
 jobs:
   check:
