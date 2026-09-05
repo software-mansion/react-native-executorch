@@ -328,7 +328,6 @@ unclip
 EasyOCR
 ppocrv
 letterboxed
-nums
 ocrv
 unclips
 NHWC

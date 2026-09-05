@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - main
-      - rne-rewrite
     paths:
       - 'packages/react-native-executorch/cpp/**'
       - 'packages/react-native-executorch/.clang-tidy'

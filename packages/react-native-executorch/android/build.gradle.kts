@@ -64,6 +64,7 @@ android {
     defaultConfig {
         minSdk = (getExtOrDefault("minSdkVersion", 21) as Number).toInt()
         targetSdk = (getExtOrDefault("targetSdkVersion", 34) as Number).toInt()
+        consumerProguardFiles("consumer-proguard-rules.pro")
 
         externalNativeBuild {
             cmake {
