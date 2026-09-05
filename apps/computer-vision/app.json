@@ -32,7 +32,6 @@
       "favicon": "./assets/icons/favicon.png"
     },
     "plugins": [
-      "expo-font",
       "expo-router",
       [
         "expo-build-properties",

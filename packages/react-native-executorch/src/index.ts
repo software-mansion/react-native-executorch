@@ -1,262 +1,136 @@
-import { ETInstallerNativeModule } from './native/RnExecutorchModules';
-import {
-  ResourceFetcher,
-  ResourceFetcherAdapter,
-} from './utils/ResourceFetcher';
-import { Triple } from './types/common';
-import { LLMCapability } from './types/llm';
 /**
- * Configuration that goes to the `initExecutorch`.
- * You can pass either bare React Native or Expo configuration.
- * @category Utilities - General
+ * React Native ExecuTorch is a high-performance, privacy-first on-device AI
+ * inference library for React Native, powered by PyTorch's ExecuTorch runtime.
+ *
+ * It provides a layered architecture designed for different use cases:
+ *
+ * - **React Hooks (`use<Task>`)**:
+ *   Declarative hooks designed for UI components. They manage downloading
+ *   remote model assets with progress tracking, compilation, and automatic
+ *   native memory disposal on unmount.
+ *
+ * - **Task APIs (`create<Task>`)**:
+ *   Imperative, promise-based pipelines with built-in preprocessing and
+ *   postprocessing. Ideal for background services, worklets, or apps needing
+ *   manual lifecycle control.
+ *
+ * - **Domain Utilities**:
+ *   Domain-specific low-level tools:
+ *   - {@link math}: Native C++ tensor operations (softmax, sigmoid, argmax,
+ *     gather, etc.).
+ *   - {@link cv}: Image transformations (resizing, normalization, layout conversions),
+ *     bounding box, quadrilateral, and keypoint helpers.
+ *   - {@link llm}: Token-by-token text generation runner, chat template formatting,
+ *     and function calling helpers.
+ *   - {@link nlp}: Fast native HuggingFace tokenizers and privacy filter utilities.
+ *   - {@link speech}: Text-to-speech phonemizers, sentence splitters, voice activity
+ *     detection, and audio utilities.
+ *
+ * - **Model Registry ({@link models})**:
+ *   A curated catalog of verified, hosted on-device AI models across LLMs,
+ *   Computer Vision, Speech, and NLP. Provides download URLs, pre-tuned
+ *   configurations, and label maps for out-of-the-box inference.
+ *
+ * - **Resource Fetcher ({@link download})**:
+ *   Imperative asset downloader and caching engine with abort control, progress
+ *   tracking, and deduplicated local storage.
+ *
+ * - **Core Primitives ({@link Model}, {@link Tensor}, {@link schema}, {@link wrapAsync},
+ *   {@link createResourceScope})**:
+ *   Low-level building blocks for custom architectures: direct C++ tensor
+ *   memory management, raw model execution, load-time shape/domain validation,
+ *   worklet threading, and construction-time ownership of native resources.
+ * @packageDocumentation
  */
-export interface ExecutorchConfig {
-  resourceFetcher: ResourceFetcherAdapter;
-}
 
-/**
- * Function that setups the provided resource fetcher.
- * @category Utilities - General
- * @param config - Configuration that you want to use in resource fetching.
- */
-export function initExecutorch(config: ExecutorchConfig) {
-  ResourceFetcher.setAdapter(config.resourceFetcher);
-}
+// Hooks — primary API for app developers
+export * from './hooks/useClassifier';
+export * from './hooks/useStyleTransfer';
+export * from './hooks/useSemanticSegmenter';
+export * from './hooks/useInstanceSegmenter';
+export * from './hooks/useKeypointDetector';
+export * from './hooks/useObjectDetector';
+export * from './hooks/useTokenizer';
+export * from './hooks/useLLMChatSession';
+export * from './hooks/useTextEmbedder';
+export * from './hooks/usePrivacyFilter';
+export * from './hooks/useImageEmbedder';
+export * from './hooks/useVoiceActivityDetector';
+export * from './hooks/useSpeechToText';
+export * from './hooks/useTextToSpeech';
+export * from './hooks/useTextToImage';
+export * from './hooks/useOpticalCharacterRecognizer';
+export * from './hooks/useResourceDownload';
+export * from './hooks/useModel';
 
-/**
- * Function that cleans current setup of fetching resources.
- * @category Utilities - General
- */
-export function cleanupExecutorch() {
-  ResourceFetcher.resetAdapter();
-}
+// Resource fetching — imperative download API
+export * from './fetcher';
 
-// eslint-disable no-var
-declare global {
-  var loadStyleTransfer: (source: string) => Promise<any>;
-  var loadSemanticSegmentation: (
-    source: string,
-    normMean: Triple<number> | [],
-    normStd: Triple<number> | [],
-    allClasses: string[]
-  ) => Promise<any>;
-  var loadInstanceSegmentation: (
-    source: string,
-    normMean: Triple<number> | [],
-    normStd: Triple<number> | [],
-    applyNMS: boolean
-  ) => Promise<any>;
-  var loadClassification: (
-    source: string,
-    normMean: Triple<number> | [],
-    normStd: Triple<number> | [],
-    labelNames: string[]
-  ) => Promise<any>;
-  var loadObjectDetection: (
-    source: string,
-    normMean: Triple<number> | [],
-    normStd: Triple<number> | [],
-    labelNames: string[]
-  ) => Promise<any>;
-  var loadPoseEstimation: (
-    source: string,
-    normMean: Triple<number> | [],
-    normStd: Triple<number> | []
-  ) => Promise<any>;
-  var loadExecutorchModule: (source: string) => Promise<any>;
-  var loadTokenizerModule: (source: string) => Promise<any>;
-  var loadImageEmbeddings: (source: string) => Promise<any>;
-  var loadVAD: (source: string) => Promise<any>;
-  var loadTextEmbeddings: (
-    modelSource: string,
-    tokenizerSource: string
-  ) => Promise<any>;
-  var loadLLM: (
-    modelSource: string,
-    tokenizerSource: string,
-    capabilities: readonly LLMCapability[]
-  ) => Promise<any>;
-  var loadPrivacyFilter: (
-    modelSource: string,
-    tokenizerSource: string,
-    labelNames: readonly string[],
-    viterbiBiases: readonly number[]
-  ) => Promise<any>;
-  var loadTextToImage: (
-    tokenizerSource: string,
-    encoderSource: string,
-    unetSource: string,
-    decoderSource: string,
-    schedulerBetaStart: number,
-    schedulerBetaEnd: number,
-    schedulerNumTrainTimesteps: number,
-    schedulerStepsOffset: number
-  ) => Promise<any>;
-  var loadSpeechToText: (
-    modelName: string,
-    modelSource: string,
-    tokenizerSource: string,
-    vadSource: string
-  ) => Promise<any>;
-  var loadTextToSpeechKokoro: (
-    lang: string,
-    taggerData: string,
-    lexiconData: string,
-    neuralPhonemizerData: string,
-    durationPredictorSource: string,
-    synthesizerSource: string,
-    voice: string
-  ) => Promise<any>;
-  var loadTextToSpeechSupertonic: (
-    lang: string,
-    unicodeIndexerSource: string,
-    durationPredictorSource: string,
-    textEncoderSource: string,
-    vectorEstimatorSource: string,
-    vocoderSource: string,
-    voice: string
-  ) => Promise<any>;
-  var loadOCR: (
-    detectorSource: string,
-    recognizer: string,
-    symbols: string
-  ) => Promise<any>;
-  var loadVerticalOCR: (
-    detectorSource: string,
-    recognizer: string,
-    symbols: string,
-    independentCharacters?: boolean
-  ) => Promise<any>;
-  // eslint-disable-next-line camelcase
-  var __rne_isEmulator: boolean;
-}
-// eslint-disable no-var
+// Constants
+export { models } from './models';
+export * from './constants';
 
-if (
-  global.loadStyleTransfer == null ||
-  global.loadSemanticSegmentation == null ||
-  global.loadInstanceSegmentation == null ||
-  global.loadTextToImage == null ||
-  global.loadExecutorchModule == null ||
-  global.loadClassification == null ||
-  global.loadObjectDetection == null ||
-  global.loadPoseEstimation == null ||
-  global.loadTokenizerModule == null ||
-  global.loadTextEmbeddings == null ||
-  global.loadImageEmbeddings == null ||
-  global.loadVAD == null ||
-  global.loadLLM == null ||
-  global.loadPrivacyFilter == null ||
-  global.loadSpeechToText == null ||
-  global.loadTextToSpeechKokoro == null ||
-  global.loadTextToSpeechSupertonic == null ||
-  global.loadOCR == null ||
-  global.loadVerticalOCR == null ||
-  global.__rne_isEmulator == null
-) {
-  if (!ETInstallerNativeModule) {
-    throw new Error(
-      `Failed to install react-native-executorch: The native module could not be found.`
-    );
-  }
-  // install() returns false when the native library is intentionally unavailable
-  // (e.g. ETInstallerUnavailable on unsupported ABIs). In that case, JSI
-  // bindings are not injected and globals remain unset.
-  ETInstallerNativeModule.install();
-}
+// Task APIs — for developers needing manual lifetime/disposal control
+export * from './extensions/cv/tasks/classification';
+export * from './extensions/cv/tasks/styleTransfer';
+export * from './extensions/cv/tasks/semanticSegmentation';
+export * from './extensions/cv/tasks/instanceSegmentation';
+export * from './extensions/cv/tasks/keypointDetection';
+export * from './extensions/cv/tasks/objectDetection';
+export * from './extensions/cv/tasks/imageEmbedding';
+export * from './extensions/cv/tasks/sdxsTextToImage';
+export * from './extensions/cv/tasks/paddleOcr';
+export * from './extensions/llm/tasks/llmChatSession';
+export * from './extensions/nlp/tasks/tokenization';
+export * from './extensions/nlp/tasks/textEmbedding';
+export * from './extensions/nlp/tasks/privacyFilter';
+export * from './extensions/speech/tasks/fsmnVoiceActivityDetection';
+export * from './extensions/speech/tasks/whisperSpeechToText';
+export * from './extensions/speech/tasks/supertonicTextToSpeech';
+export * from './extensions/speech/tasks/kokoroTextToSpeech';
+
+// Core primitives — for library builders and power users
+export * from './core/error';
+export * from './core/model';
+export * from './core/tensor';
+export * from './core/runtime';
+export * from './core/lifetime';
 
 /**
- * Whether the native ExecuTorch runtime is available on this device.
- * Returns `false` when native libraries cannot be loaded (e.g. 32-bit Android
- * devices where only arm64-v8a binaries are shipped).
- * @category Utilities - General
+ * Model schema validation and dimension constraints.
+ * @category Modules
  */
-export const isAvailable = typeof global.loadExecutorchModule === 'function';
+export * as schema from './core/schema';
 
-// hooks
-export * from './hooks/computer_vision/useClassification';
-export * from './hooks/computer_vision/useObjectDetection';
-export * from './hooks/computer_vision/useStyleTransfer';
-export * from './hooks/computer_vision/useSemanticSegmentation';
-export * from './hooks/computer_vision/useInstanceSegmentation';
-export * from './hooks/computer_vision/useOCR';
-export * from './hooks/computer_vision/useVerticalOCR';
-export * from './hooks/computer_vision/useImageEmbeddings';
-export * from './hooks/computer_vision/useTextToImage';
-export * from './hooks/computer_vision/usePoseEstimation';
+/**
+ * Mathematical tensor operations and activation functions.
+ * @category Modules
+ */
+export * as math from './extensions/math';
 
-export * from './hooks/natural_language_processing/useLLM';
-export * from './hooks/natural_language_processing/useSpeechToText';
-export * from './hooks/natural_language_processing/useTextToSpeech';
-export * from './hooks/natural_language_processing/usePrivacyFilter';
-export * from './hooks/natural_language_processing/useTextEmbeddings';
-export * from './hooks/natural_language_processing/useTokenizer';
-export * from './hooks/natural_language_processing/useVAD';
+/**
+ * Computer vision operations, geometry helpers, and image preprocessing.
+ * @category Modules
+ */
+export * as cv from './extensions/cv';
 
-export * from './hooks/general/useExecutorchModule';
+/**
+ * LLM runner, tokenizer configurations, and multimodal chat preprocessing.
+ * @category Modules
+ */
+export * as llm from './extensions/llm';
 
-// modules
-export * from './modules/computer_vision/ClassificationModule';
-export * from './modules/computer_vision/ObjectDetectionModule';
-export * from './modules/computer_vision/StyleTransferModule';
-export * from './modules/computer_vision/SemanticSegmentationModule';
-export * from './modules/computer_vision/InstanceSegmentationModule';
-export * from './modules/computer_vision/OCRModule';
-export * from './modules/computer_vision/VerticalOCRModule';
-export * from './modules/computer_vision/ImageEmbeddingsModule';
-export * from './modules/computer_vision/TextToImageModule';
-export * from './modules/computer_vision/PoseEstimationModule';
+/**
+ * NLP tokenizers and privacy filter utilities.
+ * @category Modules
+ */
+export * as nlp from './extensions/nlp';
 
-export * from './modules/natural_language_processing/LLMModule';
-export * from './modules/natural_language_processing/SpeechToTextModule';
-export * from './modules/natural_language_processing/TextToSpeechModule';
-export * from './modules/natural_language_processing/PrivacyFilterModule';
-export * from './modules/natural_language_processing/TextEmbeddingsModule';
-export * from './modules/natural_language_processing/TokenizerModule';
-export * from './modules/natural_language_processing/VADModule';
+/**
+ * Speech utilities, phonemizers, text partitioning, and VAD framing.
+ * @category Modules
+ */
+export * as speech from './extensions/speech';
 
-export * from './modules/general/ExecutorchModule';
-
-// utils
-export * from './utils/ResourceFetcher';
-export * from './utils/ResourceFetcherUtils';
-export * from './utils/BaseResourceFetcherClass';
-export * from './utils/llm';
-export * from './common/Logger';
-export * from './utils/llms/context_strategy';
-export * from './utils/segmentAnythingPrompts';
-export * from './utils/textEmbeddings';
-
-// types
-export * from './types/objectDetection';
-export * from './types/ocr';
-export * from './types/semanticSegmentation';
-export * from './types/instanceSegmentation';
-export * from './types/llm';
-export * from './types/vad';
-export * from './types/common';
-export * from './types/stt';
-export * from './types/textEmbeddings';
-export * from './types/privacyFilter';
-export * from './types/tts';
-export * from './types/tokenizer';
-export * from './types/executorchModule';
-export * from './types/classification';
-export * from './types/imageEmbeddings';
-export * from './types/styleTransfer';
-export * from './types/tti';
-export * from './types/poseEstimation';
-
-// constants
-export * from './constants/commonVision';
-export * from './constants/classification';
-export * from './constants/modelUrls';
-export * from './constants/modelRegistry';
-export * from './constants/ocr/models';
-export * from './constants/tts/models';
-export * from './constants/tts/voices';
-export * from './constants/llmDefaults';
-export * from './constants/poseEstimation';
-
-export { RnExecutorchError } from './errors/errorUtils';
-export { RnExecutorchErrorCode } from './errors/ErrorCodes';
+// Utils
+export * from './utils';

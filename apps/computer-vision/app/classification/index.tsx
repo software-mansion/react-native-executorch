@@ -1,197 +1,199 @@
-import Spinner from '../../components/Spinner';
-import { getImage } from '../../utils';
-import {
-  models,
-  useClassification,
-  ClassificationModelSources,
-} from 'react-native-executorch';
-import { ModelPicker, ModelOption } from '../../components/ModelPicker';
-const classification = models.classification;
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { commonStyles, ColorPalette, theme } from '../../theme';
+import { useImage } from '@shopify/react-native-skia';
+import { useClassifier, models } from 'react-native-executorch';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import { getImage, skImageToBuffer } from '../../utils';
+import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
+import { ImageViewport } from '../../components/ImageViewport';
+import { ModelStatus } from '../../components/ModelStatus';
+import { LatencyIndicator } from '../../components/LatencyIndicator';
+import { Button } from '../../components/Button';
 
-const MODELS: ModelOption<ClassificationModelSources>[] = [
+const MODEL_OPTIONS: ModelOption[] = [
   {
-    label: 'EfficientNet V2 S Quantized',
-    value: classification.efficientnet_v2_s(),
+    label: 'EfficientNetV2-S (XNNPACK INT8)',
+    value: models.classification.EFFICIENTNET_V2_S.XNNPACK_INT8,
   },
   {
-    label: 'EfficientNet V2 S',
-    value: classification.efficientnet_v2_s({ quant: false }),
+    label: 'EfficientNetV2-S (XNNPACK FP32)',
+    value: models.classification.EFFICIENTNET_V2_S.XNNPACK_FP32,
+  },
+  {
+    label: 'EfficientNetV2-S (CoreML FP16)',
+    value: models.classification.EFFICIENTNET_V2_S.COREML_FP16,
+    disabled: Platform.OS !== 'ios',
   },
 ];
-import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
-import { BottomBar } from '../../components/BottomBar';
-import React, { useContext, useEffect, useState } from 'react';
-import { GeneratingContext } from '../../context';
-import ScreenWrapper from '../../ScreenWrapper';
-import { StatsBar } from '../../components/StatsBar';
-import ErrorBanner from '../../components/ErrorBanner';
 
-export default function ClassificationScreen() {
-  const [selectedModel, setSelectedModel] =
-    useState<ClassificationModelSources>(classification.efficientnet_v2_s());
-  const [results, setResults] = useState<{ label: string; score: number }[]>(
-    []
-  );
-  const [imageUri, setImageUri] = useState('');
-  const [inferenceTime, setInferenceTime] = useState<number | null>(null);
-
+function ClassificationContent() {
+  const insets = useSafeAreaInsets();
+  const [selectedModel, setSelectedModel] = useState<any>(MODEL_OPTIONS[0].value);
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [results, setResults] = useState<{ label: string; confidence: number }[]>([]);
+  const [latency, setLatency] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const model = useClassification({ model: selectedModel });
-  const { setGlobalGenerating } = useContext(GeneratingContext);
+  const skiaImage = useImage(imageUri, (err) => setError(err.message || String(err)));
 
-  useEffect(() => {
-    setGlobalGenerating(model.isGenerating);
-  }, [model.isGenerating, setGlobalGenerating]);
+  const {
+    isReady,
+    downloadProgress,
+    error: loadError,
+    classify,
+    classifyWorklet,
+  } = useClassifier<string>(selectedModel);
 
-  useEffect(() => {
-    if (model.error) setError(String(model.error));
-  }, [model.error]);
-
-  const handleCameraPress = async (isCamera: boolean) => {
-    const image = await getImage(isCamera);
-    const uri = image?.uri;
-    if (typeof uri === 'string') {
-      setImageUri(uri as string);
-      setResults([]);
-      setInferenceTime(null);
-    }
-  };
-
-  const runForward = async () => {
-    if (imageUri) {
-      try {
-        const start = Date.now();
-        const output = await model.forward(imageUri);
-        setInferenceTime(Date.now() - start);
-        const top10 = Object.entries(output)
-          .sort(([, a], [, b]) => (b as number) - (a as number))
-          .slice(0, 10)
-          .map(([label, score]) => ({ label, score: score as number }));
-        setResults(top10);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
+  const handlePickImage = async (useCamera: boolean) => {
+    setError(null);
+    try {
+      const uri = await getImage(useCamera);
+      if (uri) {
+        setImageUri(uri);
+        setResults([]);
+        setLatency(null);
       }
+    } catch (e: any) {
+      setError(e.message || String(e));
     }
   };
 
-  if (!model.isReady && !model.error) {
-    return (
-      <Spinner
-        visible={true}
-        textContent={`Loading the model ${(model.downloadProgress * 100).toFixed(0)} %`}
-      />
-    );
-  }
+  const runClassification = async (sync: boolean) => {
+    if (!skiaImage || !classify || !classifyWorklet) return;
+    if (!sync) setIsProcessing(true);
+    setError(null);
+    try {
+      const buffer = skImageToBuffer(skiaImage);
+      const start = Date.now();
+      const output = sync
+        ? classifyWorklet(buffer, { topk: 5 })
+        : await classify(buffer, { topk: 5 });
+
+      setLatency(Date.now() - start);
+      setResults(output);
+    } catch (e: any) {
+      setError(e.message || String(e));
+    } finally {
+      if (!sync) setIsProcessing(false);
+    }
+  };
+
+  const activeError = loadError ? String(loadError) : error;
 
   return (
-    <ScreenWrapper>
-      <ErrorBanner message={error} onDismiss={() => setError(null)} />
+    <ScrollView
+      style={commonStyles.container}
+      contentContainerStyle={[
+        commonStyles.contentContainer,
+        { paddingBottom: insets.bottom + theme.spacing.large },
+      ]}
+    >
+      <Text style={commonStyles.description}>
+        Upload or capture an image to identify objects using a classifier.
+      </Text>
 
-      <View style={styles.imageContainer}>
-        <Image
-          style={styles.image}
-          resizeMode="contain"
-          source={
-            imageUri
-              ? { uri: imageUri }
-              : require('../../assets/icons/executorch_logo.png')
-          }
-        />
-        {!imageUri && (
-          <View style={styles.infoContainer}>
-            <Text style={styles.infoTitle}>Image Classification</Text>
-            <Text style={styles.infoText}>
-              This model analyzes an image and returns the top 10 most likely
-              labels with confidence scores. Use the gallery or camera icons
-              below to pick an image, then tap the button to run the model.
-            </Text>
-          </View>
-        )}
-        {results.length > 0 && (
-          <View style={styles.results}>
-            <Text style={styles.resultHeader}>Results Top 10</Text>
-            <ScrollView style={styles.resultsList}>
-              {results.map(({ label, score }) => (
-                <View key={label} style={styles.resultRecord}>
-                  <Text style={styles.resultLabel}>{label}</Text>
-                  <Text>{score.toFixed(3)}</Text>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-      </View>
       <ModelPicker
-        models={MODELS}
-        selectedModel={selectedModel}
-        disabled={model.isGenerating}
-        onSelect={(m) => {
-          setSelectedModel(m);
+        label="Model"
+        options={MODEL_OPTIONS}
+        selectedValue={selectedModel}
+        onValueChange={(model) => {
+          setSelectedModel(model);
           setResults([]);
+          setLatency(null);
+          setError(null);
         }}
       />
-      <StatsBar inferenceTime={inferenceTime} />
-      <BottomBar
-        handleCameraPress={handleCameraPress}
-        runForward={runForward}
-        hasImage={!!imageUri}
-        isGenerating={model.isGenerating}
+
+      <ModelStatus
+        isReady={isReady}
+        downloadProgress={downloadProgress}
+        error={activeError}
+        modelTypeLabel="classification model"
       />
+
+      <ImageViewport skiaImage={skiaImage} onPressPlaceholder={() => handlePickImage(false)} />
+
+      <View style={commonStyles.buttonRow}>
+        <Button title="Gallery" onPress={() => handlePickImage(false)} variant="secondary" />
+        <Button title="Camera" onPress={() => handlePickImage(true)} variant="secondary" />
+      </View>
+
+      <View style={commonStyles.buttonRow}>
+        <Button
+          title="Run Async"
+          onPress={() => runClassification(false)}
+          disabled={!skiaImage || !isReady || isProcessing}
+          loading={isProcessing}
+        />
+        <Button
+          title="Run Sync"
+          onPress={() => runClassification(true)}
+          disabled={!skiaImage || !isReady || isProcessing}
+          variant="accent"
+        />
+      </View>
+
+      <LatencyIndicator latency={latency} />
+
+      {results.length > 0 && (
+        <View style={styles.resultsContainer}>
+          <Text style={styles.resultsTitle}>Results</Text>
+          {results.map((res, idx) => (
+            <View key={idx} style={styles.resultRow}>
+              <Text style={styles.resultLabel} numberOfLines={1}>
+                {res.label}
+              </Text>
+              <Text style={styles.resultConfidence}>{Math.round(res.confidence * 100)}%</Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </ScrollView>
+  );
+}
+
+export default function ClassificationScreen() {
+  return (
+    <ScreenWrapper>
+      <ClassificationContent />
     </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  imageContainer: {
-    flex: 6,
+  resultsContainer: {
     width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
     padding: 16,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
   },
-  image: {
-    flex: 2,
-    borderRadius: 8,
-    width: '100%',
+  resultsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: ColorPalette.strongPrimary,
+    marginBottom: 12,
   },
-  results: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    padding: 4,
-  },
-  resultHeader: {
-    fontSize: 18,
-    color: 'navy',
-  },
-  resultsList: {
-    flex: 1,
-  },
-  resultRecord: {
+  resultRow: {
     flexDirection: 'row',
-    width: '100%',
     justifyContent: 'space-between',
-    padding: 8,
+    paddingVertical: 8,
     borderBottomWidth: 1,
+    borderBottomColor: '#f1f3f5',
   },
   resultLabel: {
-    flex: 1,
-    marginRight: 4,
-  },
-  infoContainer: {
-    alignItems: 'center',
-    padding: 16,
-    gap: 8,
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: 'navy',
-  },
-  infoText: {
     fontSize: 14,
-    color: '#555',
-    textAlign: 'center',
-    lineHeight: 20,
+    color: '#333',
+    flex: 1,
+    marginRight: 8,
+  },
+  resultConfidence: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2b8a3e',
   },
 });

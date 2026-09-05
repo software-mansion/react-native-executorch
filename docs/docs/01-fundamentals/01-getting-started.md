@@ -6,211 +6,173 @@ keywords:
     react native,
     react native ai,
     react native llm,
-    react native qwen,
-    react native llama,
-    react native executorch,
-    executorch,
     on-device ai,
-    pytorch,
-    mobile ai,
+    executorch,
+    pytorch mobile,
+    mobile ml,
+    vision,
+    speech,
   ]
-description: 'Get started with React Native ExecuTorch - a framework for running AI models on-device in your React Native applications.'
+description: 'Get started with React Native ExecuTorch — high-performance, privacy-first on-device AI inference for React Native.'
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
+# Getting Started
+
+React Native ExecuTorch is an on-device AI inference library for React Native,
+powered by [ExecuTorch](https://executorch.ai) — Meta's on-device inference
+runtime and a project under the PyTorch Foundation. It lets you run machine
+learning models directly on the user's phone with zero network calls, full offline
+capability, and guaranteed privacy. No data ever leaves the device.
+
+The library ships with a curated set of pre-exported models covering
+computer vision, language models, text-to-speech, transcription, and more — all available in our
+[HuggingFace collection](https://huggingface.co/software-mansion/collections)
+and ready to use out of the box. You can also bring your own models and
+plug them into existing pipelines or build entirely custom ones from scratch.
+
 ## What is ExecuTorch?
 
-[ExecuTorch](https://executorch.ai) is a novel AI framework developed by Meta, designed to streamline deploying PyTorch models on a variety of devices, including mobile phones and microcontrollers. This framework enables exporting models into standalone binaries, allowing them to run locally without requiring API calls. ExecuTorch achieves state-of-the-art performance through optimizations and delegates such as Core ML and XNNPACK. It provides a seamless export process with robust debugging options, making it easier to resolve issues if they arise.
+[ExecuTorch](https://executorch.ai) is a PyTorch Core project — Meta's on-device
+inference runtime for deploying PyTorch models on edge devices. It takes standard
+PyTorch models and compiles them into an optimized `.pte` format that runs
+natively on mobile phones, AR/VR headsets, embedded systems, and custom
+accelerators.
 
-## React Native ExecuTorch
+The runtime supports hardware-accelerated backends for every major platform:
+XNNPACK for CPU acceleration across all platforms, Core ML and MLX on Apple
+devices, Vulkan for Android GPU, and more. It's a core part of the PyTorch ecosystem,
+with full support for the standard PyTorch model export workflow.
 
-React Native ExecuTorch is our way of bringing ExecuTorch into the React Native world. Our API is built to be simple, declarative, and efficient. Additionally, we provide a set of pre-exported models for common use cases, so you don't have to worry about handling exports yourself. With just a few lines of JavaScript, you can run AI models (even LLMs 👀) right on your device—keeping user data private and saving on cloud costs.
-
-## Compatibility
-
-React Native Executorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).
-
-If your app still runs on the old architecture, please consider upgrading to the New Architecture.
-
-For supported React Native and Expo versions, see the [Compatibility table](../07-other/01-compatibility.mdx).
+ExecuTorch handles the hard parts: memory planning, operator dispatch, and
+hardware delegate selection — so you don't have to. To learn more about the
+underlying runtime, check out the
+[ExecuTorch documentation](https://docs.pytorch.org/executorch/stable/index.html).
 
 ## Installation
 
-Installation takes two steps: install the core package, then install a resource fetcher adapter that matches your project type. If you want to implement your own model fetching logic instead, see [this document](../08-resource-fetcher/02-custom-adapter.md).
-
-### 1. Install the core package
-
-<Tabs groupId="package-manager">
-  <TabItem value="npm" label="npm">
-
-    ```bash
-    npm install react-native-executorch
-    ```
-
-  </TabItem>
-  <TabItem value="pnpm" label="pnpm">
-
-    ```bash
-    pnpm add react-native-executorch
-    ```
-
-  </TabItem>
-  <TabItem value="yarn" label="yarn">
-
-    ```bash
-    yarn add react-native-executorch
-    ```
-
-  </TabItem>
-</Tabs>
-
-### 2. Install a resource fetcher
-
-Pick the adapter that matches your project. We recommend the Expo adapter when your app uses Expo; use the bare adapter for projects without Expo.
-
-#### Expo projects
+Install [`react-native-executorch`](https://www.npmjs.com/package/react-native-executorch)
+alongside its peer dependencies:
 
 <Tabs groupId="package-manager">
   <TabItem value="npm" label="npm">
-
-    ```bash
-    npm install react-native-executorch-expo-resource-fetcher expo-file-system expo-asset
-    ```
-
-  </TabItem>
-  <TabItem value="pnpm" label="pnpm">
-
-    ```bash
-    pnpm add react-native-executorch-expo-resource-fetcher expo-file-system expo-asset
-    ```
-
-  </TabItem>
-  <TabItem value="yarn" label="yarn">
-
-    ```bash
-    yarn add react-native-executorch-expo-resource-fetcher expo-file-system expo-asset
-    ```
-
-  </TabItem>
-</Tabs>
-
-#### Bare React Native projects
-
-<Tabs groupId="package-manager">
-  <TabItem value="npm" label="npm">
-
-    ```bash
-    npm install react-native-executorch-bare-resource-fetcher @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
-    ```
-
-  </TabItem>
-  <TabItem value="pnpm" label="pnpm">
-
-    ```bash
-    pnpm add react-native-executorch-bare-resource-fetcher @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
-    ```
-
-  </TabItem>
-  <TabItem value="yarn" label="yarn">
-
-    ```bash
-    yarn add react-native-executorch-bare-resource-fetcher @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
-    ```
-
-  </TabItem>
-</Tabs>
-
-:::warning
-Before using any other API, you must call `initExecutorch` with a resource fetcher adapter at the entry point of your app:
-
-```js
-import { initExecutorch } from 'react-native-executorch';
-import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher'; // Use /legacy import if you're using Expo SDK < 54
-// or BareResourceFetcher for bare react-native projects
-
-initExecutorch({ resourceFetcher: ExpoResourceFetcher });
-```
-
-Calling any library API without initializing first will throw a `ResourceFetcherAdapterNotInitialized` error.
-:::
-
-Our library offers support for both bare React Native and Expo projects. Please follow the instructions from [Loading models section](./02-loading-models.md) to make sure you setup your project correctly. We encourage you to use Expo project if possible. If you are planning to migrate from bare React Native to Expo project, the link (https://docs.expo.dev/bare/installing-expo-modules/) offers a guidance on setting up Expo Modules in a bare React Native environment.
-
-If you plan on using your models via require() instead of fetching them from a url, you also need to add following lines to your `metro.config.js`:
-
-```json
-// metro.config.js
-...
-    defaultConfig.resolver.assetExts.push('pte')
-    defaultConfig.resolver.assetExts.push('bin')
-...
-```
-
-This allows us to use binaries, such as exported models or tokenizers for LLMs.
-
-:::warning
-When using Expo, please note that you need to use a custom development build of your app, not the standard Expo Go app. This is because we rely on native modules, which Expo Go doesn’t support.
-:::
-
-:::info
-Because we are using ExecuTorch under the hood, you won't be able to build iOS app for release with simulator selected as the target device. Make sure to test release builds on real devices.
-:::
-
-Running the app with the library:
-
-<Tabs groupId="package-manager">
-  <TabItem value="npm" label="npm">
-
-    ```bash
-    npm run <ios|android> -- -d
-    ```
-
-  </TabItem>
-  <TabItem value="pnpm" label="pnpm">
-
-    ```bash
-    pnpm <ios|android> -d
-    ```
-
-  </TabItem>
-  <TabItem value="yarn" label="yarn">
-
-    ```bash
-    yarn <ios|android> -d
-    ```
-
-  </TabItem>
-</Tabs>
-
-## Building from source
-
-To build the library from source instead, clone the repository and initialize submodules:
 
 ```bash
-git clone -b release/0.9 https://github.com/software-mansion/react-native-executorch.git
-cd react-native-executorch
-
-git submodule update --init --recursive packages/react-native-executorch/third-party/common
-
-yarn
+npm install react-native-executorch react-native-worklets react-native-blob-util
 ```
 
-## Supporting new models in React Native ExecuTorch
+  </TabItem>
+  <TabItem value="yarn" label="yarn">
 
-Adding new functionality to the library follows a consistent three-step integration pipeline:
+```bash
+yarn add react-native-executorch react-native-worklets react-native-blob-util
+```
 
-1. **Model Serialization:** Export PyTorch model for a specific task (e.g. object detection) into the `*.pte` format, which is optimized for the ExecuTorch runtime.
+  </TabItem>
+  <TabItem value="pnpm" label="pnpm">
 
-2. **Native Implementation:** Develop a C++ execution layer that interfaces with the ExecuTorch runtime to handle inference. This layer also manages model-dependent logic, such as data pre-processing and post-processing.
+```bash
+pnpm add react-native-executorch react-native-worklets react-native-blob-util
+```
 
-3. **TS Bindings:** Finally, implement a TypeScript API that bridges the JavaScript environment to the native C++ logic, providing a clean, typed interface for the end user.
+  </TabItem>
+</Tabs>
 
-## Good reads
+:::info Requirements
+React Native ExecuTorch requires:
 
-If you want to dive deeper into ExecuTorch or our previous work with the framework, we highly encourage you to check out the following resources:
+- **New Architecture** enabled
+- **React Native 0.81+** or **Expo SDK 54+** with [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/) (**Expo Go is not supported** due to custom C++ native libraries)
+- **iOS 17.0+** / **Android 13+**
 
-- [ExecuTorch docs](https://pytorch.org/executorch/stable/index.html)
-- [React Native RAG](https://blog.swmansion.com/introducing-react-native-rag-fbb62efa4991)
-- [Offline Text Recognition on Mobile: How We Brought EasyOCR to React Native ExecuTorch](https://blog.swmansion.com/bringing-easyocr-to-react-native-executorch-2401c09c2d0c)
+For supported React Native versions, see the [Compatibility
+table](../05-other/01-compatibility.mdx).
+:::
+
+### Selecting native libraries
+
+The native binaries — the ExecuTorch hardware backends (XNNPACK, Core ML, MLX,
+Vulkan), and third-party binaries — are downloaded on demand at install time. By
+default, **everything is downloaded and enabled**, so no configuration is
+required to get started.
+
+If you want a smaller app or faster installs, declare what you use in a
+`react-native-executorch` block in your `package.json`, e.g.:
+
+```json
+{
+  "react-native-executorch": {
+    "features": ["classification", "styleTransfer"]
+  }
+}
+```
+
+The available options are:
+
+- **`features`** — high-level task names. Each one expands to the backends and
+  native libs it needs.
+- **`backends`** — hardware backends directly, e.g. `xnnpack`, `coreml`,
+  `vulkan`.
+- **`libs`** — extra native libraries, see
+  [options](../03-core-and-advanced/08-native-libraries.md#options).
+
+The three lists are merged, so you can pair a `features` set with extra
+`backends` / `libs` entries. Re-run your package manager's install after
+editing. See [Native Libraries](../03-core-and-advanced/08-native-libraries.md)
+for details.
+
+## Choose Your Path
+
+Most mobile ML libraries force you into one of two extremes: opaque native
+black boxes that implement a fixed set of pipelines with no room for
+customization, or raw low-level bindings that leave you to wire up everything
+from preprocessing to memory management yourself.
+
+What if you need a bit of both? Ready-to-use pipelines for common tasks, but
+also the freedom to drop down and build something custom when the out-of-the-box
+solution doesn't quite fit.
+That's exactly how React Native ExecuTorch is designed. The library is built
+around a clean **two-layer architecture** where the higher-level layer is
+implemented entirely on top of the lower-level one — not as separate C++ code
+hidden behind abstractions. This means:
+
+- **Pipelines are transparent.** Every task pipeline (computer vision,
+  LLM chat, etc.) is written in a few hundred lines of TypeScript — often
+  less. You can read the full input/output contracts, preprocessing, and
+  postprocessing logic in one place — no native code required.
+
+- **Custom models just work.** Plug your own `.pte` into any existing pipeline —
+  computer vision, LLM, whatever. The schema DSL declares exactly what each
+  pipeline expects (tensor shapes, data types, preprocessing), so there's no
+  guessing. Everything is in one place, readable in TypeScript.
+
+- **You can always drop down.** When built-in pipelines don't fit your use
+  case, the lower-level API gives you direct access to ExecuTorch model
+  execution, native tensor operations, high-performance math/vision operators,
+  and worklet threading. You build custom orchestration pipelines entirely in
+  TypeScript — no C++ required — with complete control over preprocessing,
+  inference, postprocessing, and memory.
+
+### High-Level Task Pipelines
+
+Have a specific problem to solve — computer vision, LLM chat, speech
+transcription? Each task has a ready-made pipeline you can drop into your app.
+Hooks handle downloading, caching, and memory disposal automatically. Imperative
+APIs give you manual control. Both work with pre-exported models from our
+[HuggingFace collection](https://huggingface.co/software-mansion/collections) or
+your own `.pte` files — as long as they match the pipeline's schema.
+
+[Explore High-Level Pipelines →](../category/extensions)
+
+### Lower-Level Runtime & Custom Pipelines
+
+Working with a custom model or chaining multiple models together into a custom
+workflow? The lower-level API gives you direct access to ExecuTorch model
+execution, native tensor operations, native operators for vision, math, NLP, and
+audio, plus worklet-based multi-threading. You write the entire pipeline in
+TypeScript using the exact same building blocks and primitives we use to build
+the library's built-in extensions — no native C++ required.
+
+[Explore Lower-Level API →](../category/core--advanced)

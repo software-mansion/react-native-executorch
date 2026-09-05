@@ -25,3 +25,8 @@ runs:
       if: steps.yarn-cache.outputs.cache-hit != 'true'
       run: yarn install --immutable
       shell: bash
+      # CI is TypeScript-only and has no GitHub Release to fetch native libs
+      # from; skip the postinstall native-lib download (it still writes
+      # rne-build-config.json so the native build config exists).
+      env:
+        RNET_SKIP_DOWNLOAD: '1'

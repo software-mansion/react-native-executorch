@@ -30,7 +30,7 @@ import {
   RnExecutorchErrorCode,
   RnExecutorchError,
   BaseResourceFetcherClass,
-} from 'react-native-executorch';
+} from 'react-native-executorch/legacy';
 
 import { ResourceFetcherUtils, DownloadStatus } from './ResourceFetcherUtils';
 import {
@@ -44,8 +44,7 @@ import {
 if (
   typeof Directory !== 'function' ||
   typeof File !== 'function' ||
-  typeof (File as unknown as { createDownloadTask?: unknown })
-    .createDownloadTask !== 'function'
+  typeof (File as unknown as { createDownloadTask?: unknown }).createDownloadTask !== 'function'
 ) {
   throw new RnExecutorchError(
     RnExecutorchErrorCode.ResourceFetcherFileSystemApiUnavailable,
@@ -133,9 +132,7 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
 
     await downloadedFile.move(new File(downloadHandle.fileUri));
     this.downloads.delete(source);
-    downloadHandle.resolve(
-      ResourceFetcherUtils.removeFilePrefix(downloadHandle.fileUri)
-    );
+    downloadHandle.resolve(ResourceFetcherUtils.removeFilePrefix(downloadHandle.fileUri));
   }
 
   protected async cancel(source: ResourceSource): Promise<void> {
@@ -143,10 +140,7 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
     downloadHandle.downloadTask.cancel();
     this.downloads.delete(source);
     downloadHandle.reject(
-      new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'Download was canceled.'
-      )
+      new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted, 'Download was canceled.')
     );
   }
 
@@ -175,9 +169,7 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
    */
   async deleteResources(...sources: ResourceSource[]): Promise<void> {
     for (const source of sources) {
-      const filename = ResourceFetcherUtils.getFilenameFromUri(
-        source as string
-      );
+      const filename = ResourceFetcherUtils.getFilenameFromUri(source as string);
       const file = new File(`${RNEDirectory}${filename}`);
       if (file.exists) {
         file.delete();

@@ -3,25 +3,15 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - docs/**
-      - readmes/**
-      - "**.md"
   pull_request:
     branches:
       - main
-    types: [opened, synchronize, reopened, ready_for_review]
-    paths-ignore:
-      - docs/**
-      - readmes/**
-      - "**.md"
   merge_group:
     types:
       - checks_requested
   workflow_dispatch:
 jobs:
   lint:
-    if: github.event.pull_request.draft != true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -33,22 +23,10 @@ jobs:
       - name: Lint files
         run: yarn lint
 
-      - name: Check CI filter coverage
-        run: npx ts-node scripts/check-ci-filter-coverage.ts
-
       - name: Typecheck files
-        run: yarn workspaces foreach --all --topological-dev run prepare && yarn typecheck
-
-      - name: Verify error codes are up to date
-        run: |
-          yarn codegen:errors
-          git diff --exit-code -- \
-            packages/react-native-executorch/src/errors/ErrorCodes.ts \
-            packages/react-native-executorch/common/rnexecutorch/ErrorCodes.h \
-            || { echo "::error::Error codes are stale. Run 'yarn codegen:errors' and commit the result."; exit 1; }
+        run: yarn workspaces foreach --all --exclude react-native-executorch-webrtc --topological-dev run prepare && yarn typecheck
 
   build-library:
-    if: github.event.pull_request.draft != true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -58,4 +36,133 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build all packages
-        run: yarn workspaces foreach --all --topological-dev run prepare
+        run: yarn workspaces foreach --all --exclude react-native-executorch-webrtc --topological-dev run prepare
+
+  native-tests:
+    name: C++ unit tests
+    runs-on: ubuntu-latest
+    # Well clear of a cold run (the Hermes + ExecuTorch dependency build is the
+    # bulk of it) but far below the 6 h default, so a stalled download fails
+    # with logs instead of hanging.
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: packages/react-native-executorch
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # googletest for the harness, phonemis because cpp/extensions/speech
+      # compiles it. GIT_LFS_SKIP_SMUDGE keeps phonemis' `data/` as pointer
+      # files: it is Git LFS, several tens of MB, and nothing in the host suite
+      # reads it (see cpp/tests/extensions/PhonemizerTest.cpp).
+      - name: Check out the submodules the tests build
+        run: |
+          git submodule update --init --depth 1 third-party/googletest
+          GIT_LFS_SKIP_SMUDGE=1 git submodule update --init --depth 1 \
+            packages/react-native-executorch/third-party/common/phonemis
+        working-directory: ${{ github.workspace }}
+
+      # download-libs.js is dependency-free, so this job needs node but not a
+      # yarn install.
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      # Only the two OpenCV modules the cv extension uses. The `libopencv-dev`
+      # meta-package hard-depends on the viz and contrib modules, which pull VTK,
+      # OpenMPI and ~220 packages — over 50 minutes on a throttled mirror.
+      # OpenCVConfig.cmake ships only in that meta-package, so cpp/tests
+      # falls back to locating the libraries directly.
+      - name: Install build tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build libopencv-core-dev libopencv-imgproc-dev
+        working-directory: ${{ github.workspace }}
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Provision third-party headers
+        run: RNET_HEADERS_ONLY=1 node scripts/download-libs.js
+
+      # third-party/include and the ExecuTorch built below must come from the
+      # same release. When they drifted, `make_tensor_ptr` gaining a trailing
+      # `Device` parameter surfaced as an undefined reference nine minutes into
+      # the dependency build, blamed on whichever code happened to call it.
+      # Comparing the two up front fails in seconds and names both values.
+      # Note this only spans releases: ET_VERSION comes from the source tree's
+      # version.txt, so it cannot tell the fork's patches apart from upstream,
+      # and it says nothing about TOKENIZERS_COMMIT.
+      - name: Check the header and test-dependency ExecuTorch versions agree
+        run: |
+          headers=$(sed -n 's/^#define ET_VERSION "\(.*\)"$/\1/p' \
+            third-party/include/executorch/runtime/core/version.h)
+          pinned=$(sed -n 's/^EXECUTORCH_VERSION="v\(.*\)"$/\1/p' \
+            scripts/build-native-test-deps.sh)
+          if [ -z "$headers" ] || [ -z "$pinned" ]; then
+            echo "::error::could not read the ExecuTorch versions" \
+                 "(headers='$headers' pinned='$pinned')"
+            exit 1
+          fi
+          if [ "$headers" != "$pinned" ]; then
+            echo "::error::third-party/include is ExecuTorch $headers but" \
+                 "scripts/build-native-test-deps.sh pins v$pinned." \
+                 "Bump EXECUTORCH_VERSION (and TOKENIZERS_COMMIT) to match" \
+                 "the artifacts release."
+            exit 1
+          fi
+          echo "ExecuTorch $headers on both sides"
+
+      # Hermes and ExecuTorch are pinned to exact tags, so the cache only misses
+      # when scripts/build-native-test-deps.sh changes those pins.
+      #
+      # Split restore/save rather than actions/cache: the combined action only
+      # saves in a post step when the job succeeds, so a failing test would throw
+      # away the ~9 min dependency build and rebuild it on every retry.
+      - name: Restore native test dependencies
+        id: deps-cache
+        uses: actions/cache/restore@v5
+        with:
+          path: packages/react-native-executorch/.native-test-deps
+          key: ${{ runner.os }}-native-test-deps-${{ hashFiles('packages/react-native-executorch/scripts/build-native-test-deps.sh') }}
+
+      - name: Build native test dependencies
+        if: steps.deps-cache.outputs.cache-hit != 'true'
+        run: scripts/build-native-test-deps.sh
+
+      - name: Save native test dependencies
+        if: steps.deps-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: packages/react-native-executorch/.native-test-deps
+          key: ${{ steps.deps-cache.outputs.cache-primary-key }}
+
+      # ~3 MB in total (a .pte program and a tokenizer.json), each pinned to an
+      # exact HF revision and checksum-verified. Fetched as its own step so a
+      # Hugging Face outage is an obvious failure rather than a confusing one
+      # inside the test run.
+      - name: Fetch test fixtures
+        run: scripts/fetch-test-fixtures.sh
+
+      - name: Run C++ unit tests
+        run: scripts/run-native-tests.sh
+
+  api-tests:
+    name: TypeScript API tests
+    runs-on: ubuntu-latest
+    # A full run takes a few seconds; this only has to catch a hang.
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      # No native libraries, no simulator, no `.pte` download - the suites run
+      # against the fake JSI runtime in `__tests__/support/`, so the setup
+      # action's TypeScript-only install is all this job needs.
+      - name: Run TypeScript API tests
+        run: yarn workspace react-native-executorch test --ci

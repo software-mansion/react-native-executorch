@@ -14,13 +14,9 @@ import {
   ResourceSource,
   RnExecutorchErrorCode,
   RnExecutorchError,
-} from 'react-native-executorch';
+} from 'react-native-executorch/legacy';
 import { RNEDirectory } from './constants/directories';
-import {
-  ResourceFetcherUtils,
-  HTTP_CODE,
-  DownloadStatus,
-} from './ResourceFetcherUtils';
+import { ResourceFetcherUtils, HTTP_CODE, DownloadStatus } from './ResourceFetcherUtils';
 
 export interface ActiveDownload {
   downloadResumable: DownloadResumable;
@@ -72,8 +68,7 @@ export async function handleAsset(
   const filename = ResourceFetcherUtils.getFilenameFromUri(uri);
   const fileUri = `${RNEDirectory}${filename}`;
   // On Android, the bundled URI has no extension, so we append it manually
-  const fileUriWithType =
-    Platform.OS === 'android' ? `${fileUri}.${asset.type}` : fileUri;
+  const fileUriWithType = Platform.OS === 'android' ? `${fileUri}.${asset.type}` : fileUri;
 
   if (await ResourceFetcherUtils.checkFileExists(fileUri)) {
     return ResourceFetcherUtils.removeFilePrefix(fileUri);
@@ -159,13 +154,11 @@ export async function handleRemote(
       const downloadHandle = downloads.get(source);
       // If paused or canceled during the download, resolve/reject will be called
       // externally by resume() or cancel() — do nothing here.
-      if (!downloadHandle || downloadHandle.status === DownloadStatus.PAUSED)
-        return;
+      if (!downloadHandle || downloadHandle.status === DownloadStatus.PAUSED) return;
 
       if (
         !result ||
-        (result.status !== HTTP_CODE.OK &&
-          result.status !== HTTP_CODE.PARTIAL_CONTENT)
+        (result.status !== HTTP_CODE.OK && result.status !== HTTP_CODE.PARTIAL_CONTENT)
       ) {
         downloads.delete(source);
         reject(

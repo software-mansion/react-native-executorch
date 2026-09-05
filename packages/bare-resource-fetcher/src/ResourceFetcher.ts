@@ -31,7 +31,7 @@ import {
   RnExecutorchErrorCode,
   RnExecutorchError,
   BaseResourceFetcherClass,
-} from 'react-native-executorch';
+} from 'react-native-executorch/legacy';
 import { ResourceFetcherUtils, DownloadStatus } from './ResourceFetcherUtils';
 import {
   type ActiveDownload,
@@ -140,19 +140,14 @@ class BareResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
         );
       }
       RNFS.stopDownload(downloadHandle.jobId);
-      if (
-        await ResourceFetcherUtils.checkFileExists(downloadHandle.cacheFileUri)
-      ) {
+      if (await ResourceFetcherUtils.checkFileExists(downloadHandle.cacheFileUri)) {
         await RNFS.unlink(downloadHandle.cacheFileUri);
       }
     }
 
     this.downloads.delete(source);
     downloadHandle.reject(
-      new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'Download was canceled.'
-      )
+      new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted, 'Download was canceled.')
     );
   }
 
@@ -181,9 +176,7 @@ class BareResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
    */
   async deleteResources(...sources: ResourceSource[]): Promise<void> {
     for (const source of sources) {
-      const filename = ResourceFetcherUtils.getFilenameFromUri(
-        source as string
-      );
+      const filename = ResourceFetcherUtils.getFilenameFromUri(source as string);
       const fileUri = `${RNEDirectory}${filename}`;
       if (await ResourceFetcherUtils.checkFileExists(fileUri)) {
         await RNFS.unlink(fileUri);

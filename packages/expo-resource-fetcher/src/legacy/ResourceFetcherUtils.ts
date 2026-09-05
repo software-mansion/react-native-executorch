@@ -5,7 +5,7 @@ import {
   SourceType,
   RnExecutorchError,
   RnExecutorchErrorCode,
-} from 'react-native-executorch';
+} from 'react-native-executorch/legacy';
 import * as SharedUtils from '../sharedUtils';
 
 /**
@@ -22,10 +22,8 @@ export { HTTP_CODE, DownloadStatus, SourceType };
 export namespace ResourceFetcherUtils {
   export const removeFilePrefix = SharedUtils.removeFilePrefix;
   export const hashObject = SharedUtils.hashObject;
-  export const calculateDownloadProgress =
-    SharedUtils.calculateDownloadProgress;
-  export const triggerHuggingFaceDownloadCounter =
-    SharedUtils.triggerHuggingFaceDownloadCounter;
+  export const calculateDownloadProgress = SharedUtils.calculateDownloadProgress;
+  export const triggerHuggingFaceDownloadCounter = SharedUtils.triggerHuggingFaceDownloadCounter;
   export const triggerDownloadEvent = SharedUtils.triggerDownloadEvent;
   export const getFilenameFromUri = SharedUtils.getFilenameFromUri;
   export const getType = SharedUtils.getType;

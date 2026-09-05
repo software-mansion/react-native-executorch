@@ -1,0 +1,209 @@
+---
+name: add-native-extension
+description: Use when adding a C++ extension, writing native JSI host functions, registering functions in C++ install maps, or compiling native code.
+metadata:
+  id: add_native_extension
+  scope: cpp/extensions/*, src/extensions/*
+---
+
+# Skill: Add a Native C++ Extension & JSI Bindings
+
+Use this guide to add custom, performance-critical native operations in C++ and expose them to TypeScript via React Native JSI.
+
+---
+
+## 🚦 Architectural Guidelines
+
+Before writing any C++ code, ensure you adhere to the following principles:
+
+1. **Amdahl's Law & Premature Optimization**:
+   - Evaluate what percentage of total inference/pipeline time the processing step occupies. If the preprocessing/postprocessing step takes `< 5%` of the total inference budget, write it in **pure TypeScript** to reduce codebase complexity and maintenance overhead.
+
+2. **Destination Tensors & Local Memory**:
+   - **Local Memory is Allowed**: You can allocate temporary native C++ memory (such as stack variables, `std::vector`s, or dynamic memory cleaned up before the function exits) for intermediate calculations.
+   - **Destination Tensors**: If the operation writes dense output, the destination tensor must be pre-allocated by the caller (in TypeScript) and passed as an argument (e.g., `sigmoid(src, dst)`).
+   - **Primitive Array Returns**: If the operation produces variable-sized non-dense outputs (like bounding box indices in Non-Maximum Suppression (NMS)), return a plain `jsi::Array` of primitives (like indices or coordinates).
+     - _Example_: `nms(boxes, scores, options)` returns a `jsi::Array` of indices (e.g., `[0, 4, 12]`) rather than a new tensor. This avoids all native memory management overhead for variable-sized outputs.
+
+## 🚫 Avoid / Anti-Patterns
+
+- **Do NOT return implicitly allocated JSI Tensors:** Never return newly created `TensorHostObject` instances from C++. This forces the JavaScript layer to reason about their garbage collection and manual lifetimes, leading to native memory leaks.
+- **Do NOT define default parameters in C++:** Native C++ functions must never define default argument values (e.g. `axis = -1`). Define all default values explicitly in the TypeScript wrapper layer instead.
+- **Do NOT perform in-place mutation without safety checks:** Never allow inputs and outputs to share the same underlying instance.
+- **Do NOT throw raw `jsi::JSError`, `std::runtime_error`, or `std::invalid_argument`:** They reach JavaScript with no error code. Throw `error::X(message)` and register through `error::guarded(...)`. See the [Error Handling Skill](../error-handling/SKILL.md).
+
+---
+
+---
+
+## 🛠️ Step-by-Step Implementation
+
+### Step 1: Create the Native Operation Files
+
+Under `cpp/extensions/<domain>/`, create or modify the header and implementation files for your operations:
+
+#### 1. Header (`cpp/extensions/<domain>/operations.h`)
+
+Keep the header clean and specify exact JSI install functions:
+
+```cpp
+#pragma once
+#include <jsi/jsi.h>
+
+namespace rnexecutorch::extensions::<domain>
+{
+    void install_customOp(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
+}
+```
+
+#### 2. Source (`cpp/extensions/<domain>/operations.cpp`)
+
+- Validate, type-check, and extract input/output tensors using `tensor::fromJs`, specifying expected `DType` and shape constraints where possible.
+- Convert primitive parameters using `conversions::asType<T>`.
+- Prevent in-place mutations (aliasing) using `tensor::checkNotSameTensor`.
+- Lock tensors for thread-safe access using `tensor::tryLockShared` (for inputs) and `tensor::tryLockUnique` (for outputs), which also ensure the underlying memory buffer has not been disposed.
+- Raise every failure through a code factory, `error::X(message)`, and wrap the registration in `error::guarded(...)`, so the error reaches JavaScript with a `code`. See the [Error Handling Skill](../error-handling/SKILL.md).
+
+```cpp
+#include "operations.h"
+#include "core/conversions.h"
+#include "core/error.h"
+#include "core/tensor_helpers.h"
+#include <algorithm>
+
+namespace rnexecutorch::extensions::<domain>
+{
+    namespace jsi = facebook::jsi;
+    namespace conversions = rnexecutorch::core::conversions;
+    namespace tensor = rnexecutorch::core::tensor;
+    // Required under extensions::*; OMIT inside rnexecutorch::core::*, where
+    // unqualified `error` already resolves to the sibling namespace.
+    namespace error = rnexecutorch::core::error;
+    using rnexecutorch::core::types::DType;
+
+    void install_customOp(jsi::Runtime &rt, jsi::Object &module)
+    {
+        auto name = "customOp";
+        auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value
+        {
+            // 1. Strict argument count validation (No default values here!)
+            if (count != 3)
+            {
+                throw error::InvalidArgument("customOp: Usage: customOp(src, dst, factor)");
+            }
+
+            // 2. Validate, extract input/output tensors and check DType/Shape constraints using fromJs
+            auto src = tensor::fromJs(rt, "customOp: src", args[0], DType::float32, std::nullopt);
+            auto dst = tensor::fromJs(rt, "customOp: dst", args[1], DType::float32, src->shape_);
+
+            // Extract and convert arguments using conversions::asType
+            double factor = conversions::asType<double>(rt, "customOp: factor", args[2]);
+
+            // 3. Prevent in-place mutations (aliasing)
+            tensor::checkNotSameTensor(rt, "customOp: src", src, "customOp: dst", dst);
+
+            // 4. Lock underlying buffers and verify they aren't disposed
+            auto srcLock = tensor::tryLockShared(rt, "customOp: src", src);
+            auto dstLock = tensor::tryLockUnique(rt, "customOp: dst", dst);
+
+            // 5. Perform the computation
+            const float *srcData = reinterpret_cast<const float *>(src->data_.get());
+            float *dstData = reinterpret_cast<float *>(dst->data_.get());
+            size_t size = src->numel_;
+
+            for (size_t i = 0; i < size; ++i)
+            {
+                dstData[i] = srcData[i] * static_cast<float>(factor);
+            }
+
+            // Always return the destination tensor (args[1]) as the JSI result
+            return jsi::Value(rt, args[1]);
+        };
+
+        // error::guarded turns any RnExecuTorchException raised in the native stack into a
+        // JS Error carrying `code`. Never register a bare fnBody.
+        module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, error::guarded(fnBody)));
+    }
+}
+```
+
+---
+
+### Step 2: Register in Extension and Core JSI Installs
+
+1. **Extension Register** (`cpp/extensions/<domain>/install.cpp`):
+
+   ```cpp
+   #include "install.h"
+   #include "operations.h"
+
+   namespace rnexecutorch::extensions::<domain>
+   {
+       void install(facebook::jsi::Runtime &rt, facebook::jsi::Object &module)
+       {
+           facebook::jsi::Object subModule(rt);
+           install_customOp(rt, subModule);
+           module.setProperty(rt, "<domain>", subModule);
+       }
+   }
+   ```
+
+2. **Core Register** ([cpp/RnExecutorch.cpp](../../../packages/react-native-executorch/cpp/RnExecutorch.cpp)):
+   ```cpp
+   #include "extensions/<domain>/install.h"
+   // ... inside rnexecutorch::install ...
+   rnexecutorch::extensions::<domain>::install(jsiRuntime, module);
+   ```
+
+---
+
+### Step 3: TypeScript Bridge & Wrappers
+
+**Where the wrapper file goes — general vs. model-specific ops:**
+
+- **Domain-general ops** (reusable across every task in the domain, e.g. `image_ops`, `box_ops`) go in the domain's shared op files (`src/extensions/<domain>/ops.ts`), re-exported from `src/extensions/<domain>/index.ts`.
+- **Model- or task-specific ops** (only meaningful to one model/pipeline, e.g. FSMN-VAD framing) **must** go under `src/extensions/<domain>/utils/<name>.ts` — one file per model/task, named for it (e.g. `vadUtils.ts`, `supertonicUtils.ts`). Keep them out of the shared `ops.ts` so it stays a home for genuinely reusable ops, and group each model's helpers together under `utils/`. Re-export them from the domain `index.ts` too so power users can reach them.
+
+Then, in that wrapper file:
+
+- **Use the `rnexecutorchJsi` Symbol**: You must import and interact with native bindings using the `rnexecutorchJsi` symbol exported from [src/native/bridge.ts](../../../packages/react-native-executorch/src/native/bridge.ts). **Do not** reference the global `__rnexecutorch_jsi__` directly throughout your wrapper files.
+- Expose the TypeScript wrapper.
+- Handle default values here instead of the C++ layer.
+- Mark wrapper functions with the `"worklet";` directive.
+
+```typescript
+import { rnexecutorchJsi } from '../native/bridge';
+import { type Tensor } from '../core/tensor';
+
+/**
+ * Applies a custom operation scaling the src tensor by factor.
+ * @param src Input Tensor.
+ * @param dst Pre-allocated Destination Tensor.
+ * @param factor Scale factor. Defaults to 1.0.
+ */
+export function customOp(src: Tensor, dst: Tensor, factor: number = 1.0): Tensor {
+  'worklet';
+  return rnexecutorchJsi.<domain>.customOp(src, dst, factor);
+}
+```
+
+---
+
+## 📋 Verification Checklist
+
+When adding a native extension, verify that:
+
+- [ ] You only implemented in C++ if the operation takes `> 5%` of the total inference budget.
+- [ ] No JSI Tensors are implicitly allocated and returned in the C++ code.
+- [ ] Input and output tensors are extracted and validated using `tensor::fromJs` with strict expected `DType` and shape constraints where possible.
+- [ ] Primitive arguments are extracted and converted using `conversions::asType<T>`.
+- [ ] In-place mutation is explicitly prevented using `tensor::checkNotSameTensor`.
+- [ ] Input and output tensors are locked using `tensor::tryLockShared` and `tensor::tryLockUnique` respectively.
+- [ ] No default parameter values are defined in the C++ header/source files.
+- [ ] Every failure is raised through a factory, `error::X(message)`; no raw `jsi::JSError` / `std::runtime_error` / `std::invalid_argument` was introduced.
+- [ ] The host function is registered through `error::guarded(fnBody)`, not a bare `fnBody`.
+- [ ] `#include "core/error.h"` and the `namespace error = ...` alias sit at file scope, outside any `#if defined(__ANDROID__)` / `#elif defined(__APPLE__)` branch.
+- [ ] The custom operation install function is registered in both the domain `install` function and core [cpp/RnExecutorch.cpp](../../../packages/react-native-executorch/cpp/RnExecutorch.cpp).
+- [ ] The TypeScript wrapper lives in the right place: domain-general ops in the shared `ops.ts`, model-/task-specific ops under `src/extensions/<domain>/utils/<name>.ts`.
+- [ ] The TypeScript wrapper imports and uses `rnexecutorchJsi` instead of the global `__rnexecutorch_jsi__`.
+- [ ] The TypeScript wrapper is marked with the `"worklet";` directive and defines all default parameter values.

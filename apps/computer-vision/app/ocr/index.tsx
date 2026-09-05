@@ -1,212 +1,262 @@
-import Spinner from '../../components/Spinner';
-import { BottomBar } from '../../components/BottomBar';
-import { ModelPicker, ModelOption } from '../../components/ModelPicker';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { commonStyles, ColorPalette, theme } from '../../theme';
+import { useImage, ColorType, AlphaType } from '@shopify/react-native-skia';
+import {
+  useOpticalCharacterRecognizer,
+  models,
+  type OcrDetection,
+  type PaddleOcrModel,
+} from 'react-native-executorch';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import { getImage } from '../../utils';
-import { models, useOCR, OCRProps } from 'react-native-executorch';
-import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
-import ImageWithBboxes2 from '../../components/ImageWithOCRBboxes';
-import React, { useContext, useEffect, useState } from 'react';
-import { GeneratingContext } from '../../context';
-import ScreenWrapper from '../../ScreenWrapper';
-import { StatsBar } from '../../components/StatsBar';
+import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
+import { ImageViewport } from '../../components/ImageViewport';
+import { ModelStatus } from '../../components/ModelStatus';
+import { Button } from '../../components/Button';
 
-type OCRModelSources = OCRProps['model'];
-
-const ocr = models.ocr.craft;
-
-const MODELS: ModelOption<OCRModelSources>[] = [
-  { label: 'English', value: ocr({ language: 'en' }) },
-  { label: 'German', value: ocr({ language: 'de' }) },
-  { label: 'French', value: ocr({ language: 'fr' }) },
-  { label: 'Spanish', value: ocr({ language: 'es' }) },
-  { label: 'Italian', value: ocr({ language: 'it' }) },
-  { label: 'Japanese', value: ocr({ language: 'ja' }) },
-  { label: 'Korean', value: ocr({ language: 'ko' }) },
+// Every variant is listed on both platforms; the ones the platform can't run are
+// shown disabled (CoreML is Apple-only, Vulkan is the Android GPU delegate).
+const isIos = Platform.OS === 'ios';
+const OCR_MODELS: { label: string; base: PaddleOcrModel; disabled: boolean }[] = [
+  {
+    label: 'PaddleOCR (XNNPACK)',
+    base: models.ocr.PADDLE.PPOCRV6_SMALL.XNNPACK,
+    disabled: false,
+  },
+  {
+    label: 'PaddleOCR (Vulkan)',
+    base: models.ocr.PADDLE.PPOCRV6_SMALL.VULKAN,
+    disabled: isIos,
+  },
+  {
+    label: 'PaddleOCR (CoreML)',
+    base: models.ocr.PADDLE.PPOCRV6_SMALL.COREML,
+    disabled: !isIos,
+  },
 ];
-import ErrorBanner from '../../components/ErrorBanner';
 
-export default function OCRScreen() {
-  const [imageUri, setImageUri] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+const MODEL_OPTIONS: ModelOption[] = OCR_MODELS.map((m, i) => ({
+  label: m.label,
+  value: i,
+  disabled: m.disabled,
+}));
+
+function OCRContent() {
+  const insets = useSafeAreaInsets();
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [detections, setDetections] = useState<OcrDetection[]>([]);
+  const [wallMs, setWallMs] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [imageDimensions, setImageDimensions] = useState<{
-    width: number;
-    height: number;
-  }>();
-  const [selectedModel, setSelectedModel] = useState<OCRModelSources>(
-    ocr({ language: 'en' })
-  );
-  const [inferenceTime, setInferenceTime] = useState<number | null>(null);
 
-  const model = useOCR({
-    model: selectedModel,
-  });
-  const { setGlobalGenerating } = useContext(GeneratingContext);
-  useEffect(() => {
-    setGlobalGenerating(model.isGenerating);
-  }, [model.isGenerating, setGlobalGenerating]);
+  const selected = OCR_MODELS[selectedIdx]!;
+  const skiaImage = useImage(imageUri, (err) => setError(err.message || String(err)));
 
-  useEffect(() => {
-    if (model.error) setError(String(model.error));
-  }, [model.error]);
+  const {
+    isReady,
+    downloadProgress,
+    error: loadError,
+    recognizeCharacters,
+  } = useOpticalCharacterRecognizer(selected.base);
 
-  const handleCameraPress = async (isCamera: boolean) => {
-    const image = await getImage(isCamera);
-    const width = image?.width;
-    const height = image?.height;
-    setImageDimensions({ width: width as number, height: height as number });
-    const uri = image?.uri;
-    if (typeof uri === 'string') {
-      setImageUri(uri as string);
-      setResults([]);
-      setInferenceTime(null);
-    }
+  const resetResults = () => {
+    setDetections([]);
+    setWallMs(null);
   };
 
-  const runForward = async () => {
+  const handlePick = async (useCamera: boolean) => {
+    setError(null);
     try {
-      const start = Date.now();
-      const output = await model.forward(imageUri);
-      setInferenceTime(Date.now() - start);
-      setResults(output);
+      const uri = await getImage(useCamera);
+      if (uri) {
+        setImageUri(uri);
+        resetResults();
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
   };
 
-  if (!model.isReady && !model.error) {
-    return (
-      <Spinner
-        visible={true}
-        textContent={`Loading the model ${(model.downloadProgress * 100).toFixed(0)} %`}
-      />
-    );
-  }
+  const run = async () => {
+    if (!skiaImage || !recognizeCharacters) return;
+    setIsProcessing(true);
+    setError(null);
+    try {
+      const pixels = skiaImage.readPixels(0, 0, {
+        width: skiaImage.width(),
+        height: skiaImage.height(),
+        colorType: ColorType.RGBA_8888,
+        alphaType: AlphaType.Unpremul,
+      });
+      if (!(pixels instanceof Uint8Array)) throw new Error('Expected Uint8Array from readPixels');
+      const start = Date.now();
+      const out = await recognizeCharacters({
+        data: pixels,
+        width: skiaImage.width(),
+        height: skiaImage.height(),
+        format: 'rgba' as const,
+        layout: 'hwc' as const,
+      });
+      setWallMs(Date.now() - start);
+      setDetections(out);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const activeError = loadError ? String(loadError) : error;
+  const boxes = useMemo(() => detections.map((d) => d.quad), [detections]);
 
   return (
-    <ScreenWrapper>
-      <ErrorBanner message={error} onDismiss={() => setError(null)} />
-      <View style={styles.container}>
-        <View style={styles.imageContainer}>
-          {imageUri && imageDimensions?.width && imageDimensions?.height ? (
-            <ImageWithBboxes2
-              detections={results}
-              imageWidth={imageDimensions?.width}
-              imageHeight={imageDimensions?.height}
-              imageUri={
-                imageUri || require('../../assets/icons/executorch_logo.png')
-              }
-            />
-          ) : (
-            <Image
-              style={styles.image}
-              resizeMode="contain"
-              source={require('../../assets/icons/executorch_logo.png')}
-            />
-          )}
-        </View>
-        {!imageUri && (
-          <View style={styles.infoContainer}>
-            <Text style={styles.infoTitle}>OCR</Text>
-            <Text style={styles.infoText}>
-              This model reads and extracts text from images, returning each
-              detected text region with its bounding box and confidence score.
-              Pick an image from your gallery or take one with your camera to
-              get started.
-            </Text>
-          </View>
-        )}
-        {results.length > 0 && (
-          <View style={styles.results}>
-            <Text style={styles.resultHeader}>Results</Text>
-            <ScrollView style={styles.resultsList}>
-              {results.map(({ text, score }, index) => (
-                <View key={index} style={styles.resultRecord}>
-                  <Text style={styles.resultLabel}>{text}</Text>
-                  <Text>{score.toFixed(3)}</Text>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-      </View>
+    <ScrollView
+      style={commonStyles.container}
+      contentContainerStyle={[
+        commonStyles.contentContainer,
+        { paddingBottom: insets.bottom + theme.spacing.large },
+      ]}
+    >
+      <Text style={commonStyles.description}>
+        Detect and recognize text on-device: every text line is located, cropped and read, and the
+        results come back in reading order.
+      </Text>
+
       <ModelPicker
-        models={MODELS}
-        selectedModel={selectedModel}
-        disabled={model.isGenerating}
-        onSelect={(m) => {
-          setSelectedModel(m);
-          setResults([]);
+        label="Model"
+        options={MODEL_OPTIONS}
+        selectedValue={selectedIdx}
+        onValueChange={(idx) => {
+          setSelectedIdx(idx);
+          resetResults();
+          setError(null);
         }}
       />
-      <StatsBar
-        inferenceTime={inferenceTime}
-        detectionCount={results.length > 0 ? results.length : null}
+
+      <ModelStatus
+        isReady={isReady}
+        downloadProgress={downloadProgress}
+        error={activeError}
+        modelTypeLabel="OCR model"
       />
-      <BottomBar
-        handleCameraPress={handleCameraPress}
-        runForward={runForward}
-        hasImage={!!imageUri}
-        isGenerating={model.isGenerating}
+
+      <ImageViewport
+        skiaImage={skiaImage}
+        boxes={boxes}
+        onPressPlaceholder={() => handlePick(false)}
       />
+
+      <View style={commonStyles.buttonRow}>
+        <Button title="Gallery" onPress={() => handlePick(false)} variant="secondary" />
+        <Button title="Camera" onPress={() => handlePick(true)} variant="secondary" />
+      </View>
+      <View style={commonStyles.buttonRow}>
+        <Button
+          title="Run OCR"
+          onPress={run}
+          disabled={!skiaImage || !isReady || isProcessing}
+          loading={isProcessing}
+        />
+      </View>
+
+      {wallMs !== null && (
+        <View style={styles.statsCard}>
+          <Text style={styles.statsTitle}>Performance</Text>
+          <View style={styles.statTiles}>
+            <View style={styles.tile}>
+              <Text style={styles.tileValue}>
+                {wallMs}
+                <Text style={styles.tileUnit}> ms</Text>
+              </Text>
+              <Text style={styles.tileLabel}>Wall time</Text>
+            </View>
+            <View style={styles.tile}>
+              <Text style={styles.tileValue}>{detections.length}</Text>
+              <Text style={styles.tileLabel}>Regions read</Text>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {detections.length > 0 && (
+        <View style={styles.results}>
+          <Text style={styles.resultsTitle}>Detected text ({detections.length})</Text>
+          {detections.map((d, i) => (
+            <View key={i} style={styles.resultRow}>
+              <Text style={styles.resultLabel} numberOfLines={1}>
+                {d.text}
+              </Text>
+              <Text style={styles.resultConfidence}>{Math.round(d.confidence * 100)}%</Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </ScrollView>
+  );
+}
+
+export default function OCRScreen() {
+  return (
+    <ScreenWrapper>
+      <OCRContent />
     </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  imageContainer: {
-    flex: 2,
-    borderRadius: 8,
+  statsCard: {
     width: '100%',
-  },
-  container: {
-    flex: 6,
-    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
     padding: 16,
+    marginVertical: 16,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
   },
-  image: {
-    width: '100%',
-    height: '100%',
+  statsTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: '#868e96',
+    textTransform: 'uppercase',
+    marginBottom: 12,
   },
+  statTiles: { flexDirection: 'row', gap: 12 },
+  tile: {
+    flex: 1,
+    backgroundColor: '#f2f4ff',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  tileValue: { fontSize: 24, fontWeight: '800', color: '#001A72', fontVariant: ['tabular-nums'] },
+  tileUnit: { fontSize: 14, fontWeight: '600', color: '#6b73a3' },
+  tileLabel: { fontSize: 11, color: '#868e96', marginTop: 4 },
   results: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    padding: 4,
-  },
-  resultHeader: {
-    fontSize: 18,
-    color: 'navy',
-  },
-  resultsList: {
-    flex: 1,
-  },
-  resultRecord: {
-    flexDirection: 'row',
     width: '100%',
-    justifyContent: 'space-between',
-    padding: 8,
-    borderBottomWidth: 1,
-  },
-  resultLabel: {
-    flex: 1,
-    marginRight: 4,
-  },
-  infoContainer: {
-    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
     padding: 16,
-    gap: 8,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
   },
-  infoTitle: {
-    fontSize: 18,
+  resultsTitle: {
+    fontSize: 16,
     fontWeight: '600',
-    color: 'navy',
+    color: ColorPalette.strongPrimary,
+    marginBottom: 12,
   },
-  infoText: {
-    fontSize: 14,
-    color: '#555',
-    textAlign: 'center',
-    lineHeight: 20,
+  resultRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f3f5',
   },
+  resultLabel: { fontSize: 14, color: '#333', flex: 1, marginRight: 8 },
+  resultConfidence: { fontSize: 14, fontWeight: '600', color: '#2b8a3e' },
 });
