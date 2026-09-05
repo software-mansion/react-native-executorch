@@ -36,9 +36,7 @@ import { models, usePrivacyFilter } from 'react-native-executorch';
 const model = usePrivacyFilter({ model: models.privacy_filter.openai() });
 
 try {
-  const entities = await model.generate(
-    'My name is Sarah Chen and my email is sarah@example.com.'
-  );
+  const entities = await model.generate('My name is Sarah Chen and my email is sarah@example.com.');
   console.log(entities);
   // [
   //   { label: 'private_person', text: 'Sarah Chen', startToken: 3, endToken: 5 },
@@ -53,7 +51,7 @@ try {
 
 `usePrivacyFilter` takes [`PrivacyFilterProps`](../../06-api-reference/interfaces/PrivacyFilterProps.md) that consists of:
 
-- `model` of type [`PrivacyFilterModelSources`](../../06-api-reference/type-aliases/PrivacyFilterModelSources.md) — a built-in preset (`modelName` + `modelSource` + `tokenizerSource`). The label list and Viterbi defaults are resolved from `modelName`; for custom fine-tunes use [`PrivacyFilterModule.fromCustomModel`](../../04-typescript-api/01-natural-language-processing/PrivacyFilterModule.md) directly.
+- `model` of type [`PrivacyFilterModelSources`](../../06-api-reference/interfaces/PrivacyFilterModelSources.md) — a built-in preset (`modelName` + `modelSource` + `tokenizerSource`). The label list and Viterbi defaults are resolved from `modelName`; for custom fine-tunes use [`PrivacyFilterModule.fromCustomModel`](../../04-typescript-api/01-natural-language-processing/PrivacyFilterModule.md) directly.
 - An optional flag [`preventLoad`](../../06-api-reference/interfaces/PrivacyFilterProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
@@ -114,16 +112,11 @@ export default function App() {
         onChangeText={setText}
         style={{ borderWidth: 1, padding: 8, minHeight: 120 }}
       />
-      <Button
-        onPress={handleScan}
-        title="Detect PII"
-        disabled={!model.isReady}
-      />
+      <Button onPress={handleScan} title="Detect PII" disabled={!model.isReady} />
       {entities.map((entity, idx) => (
         <View key={idx} style={{ paddingVertical: 4 }}>
           <Text>
-            {entity.label}:{' '}
-            <Text style={{ fontWeight: 'bold' }}>{entity.text}</Text>
+            {entity.label}: <Text style={{ fontWeight: 'bold' }}>{entity.text}</Text>
           </Text>
         </View>
       ))}

@@ -74,6 +74,19 @@ module.exports = {
       },
     },
     {
+      // Legacy code was written prior to v0.10 lint rules.
+      files: [
+        'packages/react-native-executorch/legacy/**/*.{js,jsx,ts,tsx}',
+        'packages/bare-resource-fetcher/**/*.{js,jsx,ts,tsx}',
+        'packages/expo-resource-fetcher/**/*.{js,jsx,ts,tsx}',
+      ],
+      rules: {
+        'jsdoc/match-description': 'off',
+        'camelcase': 'off',
+        'eslint-comments/no-unused-disable': 'off',
+      },
+    },
+    {
       // The JSDoc rules exist to keep the generated API reference complete.
       // Test helpers are not part of that surface, and requiring a tag per
       // parameter on a three-line fixture crowds out the prose that explains

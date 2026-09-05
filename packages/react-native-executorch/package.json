@@ -43,10 +43,16 @@
       "types": "./lib/typescript/src/core/schema.d.ts",
       "default": "./lib/module/core/schema.js"
     },
+    "./legacy": {
+      "source": "./legacy/src/index.ts",
+      "types": "./lib/typescript/legacy/src/index.d.ts",
+      "default": "./lib/module/legacy/src/index.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
     "src",
+    "legacy",
     "lib",
     "android",
     "ios",
@@ -77,7 +83,7 @@
   ],
   "scripts": {
     "clean": "del-cli lib",
-    "prepare": "bob build",
+    "prepare": "bob build && tsc -p legacy/tsconfig.json",
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
@@ -119,7 +125,11 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
-    "@huggingface/jinja": "^0.5.9"
+    "@huggingface/jinja": "^0.5.9",
+    "jsonrepair": "^3.12.0",
+    "jsonschema": "^1.5.0",
+    "react-native-device-info": "^15.0.2",
+    "zod": "^4.3.6"
   },
   "peerDependencies": {
     "@kesha-antonov/react-native-background-downloader": ">=4.4.0",

@@ -56,7 +56,7 @@ The code snippet above fetches the model from the specified URL, loads it into m
 
 `useLLM` takes [`LLMProps`](../../06-api-reference/interfaces/LLMProps.md) that consists of:
 
-- [model](../../06-api-reference/interfaces/LLMModel.md).
+- [`model`](../../06-api-reference/interfaces/LLMProps.md#model).
 - An optional flag [`preventLoad`](../../06-api-reference/interfaces/SpeechToTextProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
@@ -252,9 +252,7 @@ const getWeather = async (_call: ToolCall) => {
   return 'The weather is great!';
 };
 
-const executeTool: (call: ToolCall) => Promise<string | null> = async (
-  call
-) => {
+const executeTool: (call: ToolCall) => Promise<string | null> = async (call) => {
   switch (call.toolName) {
     case 'get_weather':
       return await getWeather(call);
@@ -414,12 +412,8 @@ const responseSchema: Schema = {
 // alternatively use Zod
 import * as z from 'zod/v4';
 const responseSchemaWithZod = z.object({
-  username: z
-    .string()
-    .meta({ description: 'Name of user, that is asking a question.' }),
-  question: z.optional(
-    z.string().meta({ description: 'Question that user asks.' })
-  ),
+  username: z.string().meta({ description: 'Name of user, that is asking a question.' }),
+  question: z.optional(z.string().meta({ description: 'Question that user asks.' })),
   bid: z.number().meta({ description: 'Amount of money, that user offers.' }),
   currency: z.optional(z.string().meta({ description: 'Currency of offer.' })),
 });
@@ -456,10 +450,7 @@ useEffect(() => {
       );
       console.log('Formatted output:', formattedOutput, formattedOutputWithZod);
     } catch (e) {
-      console.log(
-        "Error parsing output and/or output doesn't match required schema!",
-        e
-      );
+      console.log("Error parsing output and/or output doesn't match required schema!", e);
     }
   }
 }, [llm.messageHistory, llm.isGenerating]);
