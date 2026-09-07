@@ -2152,24 +2152,6 @@ export const models = {
         XNNPACK_FP32: RFDETR_KEYPOINT_XNNPACK_FP32,
         COREML_FP16: RFDETR_KEYPOINT_COREML_FP16,
       },
-      // No MLX variant. Measured on an iPhone 16 over 20 iterations after 3
-      // warmups, same 640px image: Core ML fp16 at 141.6 ms and 248 MB peak
-      // against MLX fp32 at 382.2 ms and 1153 MB, so 2.70x slower on 4.6x the
-      // memory. Core ML lowers the convolutional backbone to the ANE, which is
-      // what this workload wants; MLX is a Metal GPU path whose win is LLM
-      // decode.
-      //
-      // Quantizing MLX would not close it: the delegate can quantize matrix
-      // multiplies but has no quantized convolution, so int4 or int8 would
-      // shrink only the decoder's linear layers and leave the backbone, which
-      // dominates at this resolution, in fp32. The build was unpublished rather
-      // than left as a slower option nobody should pick.
-      //
-      // fp16 matches the fp32 build it replaced (landmarks to 1.04 px over 13
-      // photos) but only under the GPU-only compute unit and an iOS17
-      // deployment target — every other combination degrades it, and a macOS
-      // check passes builds the device gets wrong. See export-scripts MR !18
-      // before re-exporting.
       { ios: 'COREML_FP16' }
     ),
   },
