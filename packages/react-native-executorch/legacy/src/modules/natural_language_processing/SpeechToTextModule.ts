@@ -15,7 +15,9 @@ import { Logger } from '../../common/Logger';
 /**
  * Module for Speech to Text (STT) functionalities.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class SpeechToTextModule {
   private nativeModule: any;
   private modelConfig: SpeechToTextModelConfig;

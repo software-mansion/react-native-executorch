@@ -84,7 +84,9 @@ function mapPersonKeypoints<K extends LabelEnum>(
  * @typeParam T - Either a built-in model name (e.g. `'yolo26n-pose'`)
  *   or a custom {@link LabelEnum} keypoint map.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class PoseEstimationModule<
   T extends PoseEstimationModelName | LabelEnum,
 > extends VisionModule<PoseDetections<ResolveKeypoints<T>>> {

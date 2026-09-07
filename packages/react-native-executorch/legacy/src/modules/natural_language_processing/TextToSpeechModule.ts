@@ -12,7 +12,9 @@ import { Logger } from '../../common/Logger';
 /**
  * Module for Text to Speech (TTS) functionalities.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class TextToSpeechModule {
   private nativeModule: any;
   private isStreaming: boolean = false;

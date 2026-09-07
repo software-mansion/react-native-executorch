@@ -9,6 +9,7 @@ import { TextToImageProps, TextToImageType } from '../../types/tti';
  * @category Hooks
  * @param TextToImageProps - Configuration object containing `model` source, `inferenceCallback`, and optional `preventLoad` flag.
  * @returns Ready to use Text to Image model.
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
 export const useTextToImage = ({
   model,

@@ -69,7 +69,9 @@ type ResolveLabels<T extends SemanticSegmentationModelName | LabelEnum> = Resolv
  *   `'fcn-resnet50-quantized'`, `'fcn-resnet101'`, `'fcn-resnet101-quantized'`,
  *   `'selfie-segmentation'`) or a custom {@link LabelEnum} label map.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class SemanticSegmentationModule<
   T extends SemanticSegmentationModelName | LabelEnum,
 > extends VisionLabeledModule<

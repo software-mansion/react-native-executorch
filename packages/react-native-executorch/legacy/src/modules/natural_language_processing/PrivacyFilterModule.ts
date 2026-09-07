@@ -30,7 +30,9 @@ function packViterbiBiases(biases?: ViterbiBiases): number[] {
  * graph and a BIOES label space (the runner reads `labelNames` to map
  * predicted indices back to entity types).
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class PrivacyFilterModule extends BaseModule {
   private constructor(nativeModule: unknown) {
     super();

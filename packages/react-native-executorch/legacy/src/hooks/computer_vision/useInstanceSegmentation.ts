@@ -34,6 +34,7 @@ import { useModuleFactory } from '../useModuleFactory';
  * });
  * ```
  * @category Hooks
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
 export const useInstanceSegmentation = <C extends InstanceSegmentationModelSources>({
   model,

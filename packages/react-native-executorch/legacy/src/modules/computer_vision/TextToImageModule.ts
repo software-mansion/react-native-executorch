@@ -10,7 +10,9 @@ import { Logger } from '../../common/Logger';
 /**
  * Module for text-to-image generation tasks.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class TextToImageModule extends BaseModule {
   private inferenceCallback: (stepIdx: number) => void;
 

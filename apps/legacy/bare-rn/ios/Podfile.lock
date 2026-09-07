@@ -1752,14 +1752,15 @@ PODS:
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
     - SocketRocket
-  - react-native-background-downloader (4.5.2):
+  - react-native-background-downloader (4.6.2):
     - boost
     - DoubleConversion
     - fast_float
     - fmt
     - glog
     - hermes-engine
-    - MMKV
+    - "MMKV (!= 2.4.1, >= 1.2.0)"
+    - "MMKVCore (!= 2.4.1)"
     - RCT-Folly
     - RCT-Folly/Fabric
     - RCTRequired
@@ -1781,7 +1782,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-executorch (0.9.0):
+  - react-native-executorch (0.0.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -1810,7 +1811,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-safe-area-context (5.7.0):
+  - react-native-safe-area-context (5.9.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -1828,8 +1829,8 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-safe-area-context/common (= 5.7.0)
-    - react-native-safe-area-context/fabric (= 5.7.0)
+    - react-native-safe-area-context/common (= 5.9.1)
+    - react-native-safe-area-context/fabric (= 5.9.1)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -1840,7 +1841,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-safe-area-context/common (5.7.0):
+  - react-native-safe-area-context/common (5.9.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -1868,7 +1869,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-safe-area-context/fabric (5.7.0):
+  - react-native-safe-area-context/fabric (5.9.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -2402,7 +2403,7 @@ PODS:
     - React-perflogger (= 0.81.5)
     - React-utils (= 0.81.5)
     - SocketRocket
-  - ReactNativeFs (2.37.0):
+  - ReactNativeFs (2.40.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -2716,9 +2717,9 @@ SPEC CHECKSUMS:
   React-logger: a913317214a26565cd4c045347edf1bcacb80a3f
   React-Mapbuffer: 94f4264de2cb156960cd82b338a403f4653f2fd9
   React-microtasksnativemodule: 6c4ee39a36958c39c97b074d28f360246a335e84
-  react-native-background-downloader: 114f96122822fa97b06ea0f2250b8e8270696995
-  react-native-executorch: 273c1ffd131a92738c35267c7af737275e8b32a5
-  react-native-safe-area-context: befb5404eb8a16fdc07fa2bebab3568ecabcbb8a
+  react-native-background-downloader: e09c54beb8d17838707917e918371bc931b75c88
+  react-native-executorch: 8323cb8d9388cade609ab4e893779db74e63fb47
+  react-native-safe-area-context: 6cf08f4151132f9cf2adb948dc6c4ac387f8d30f
   React-NativeModulesApple: ebf2ce72b35870036900d6498b33724386540a71
   React-oscompat: eb0626e8ba1a2c61673c991bf9dc21834898475d
   React-perflogger: 509e1f9a3ee28df71b0a66de806ac515ce951246
@@ -2749,10 +2750,10 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: 1bcd3527ac0390a1c898c114f81ff954be35ed79
   ReactCodegen: 6c26f8c25d0b5ae66f86a1cce1777076ac8bcbd8
   ReactCommon: 5f0e5c09a64a2717215dd84380e1a747810406f2
-  ReactNativeFs: 5fc447c96bcf90d038b79695d721628fc7bb0170
+  ReactNativeFs: 36cd5a1531487afca7393ebafaf3ba854b945a79
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 728df40394d49f3f471688747cf558158b3a3bd1
 
-PODFILE CHECKSUM: 421dcdee6cbb1e2a032c3b2e3ffc9371849b2199
+PODFILE CHECKSUM: 3f9008ee1fb32bf8b4f65f3fba5576bf818a2d0f
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.17.0

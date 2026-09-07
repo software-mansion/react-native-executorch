@@ -9,7 +9,9 @@ import { Logger } from '../../common/Logger';
 /**
  * Module for generating text embeddings from input text.
  * @category Typescript API
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class TextEmbeddingsModule extends BaseModule {
   private constructor(nativeModule: unknown) {
     super();

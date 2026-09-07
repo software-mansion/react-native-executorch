@@ -9,6 +9,7 @@ import { OCRDetection, OCRType, VerticalOCRProps } from '../../types/ocr';
  * @category Hooks
  * @param VerticalOCRProps - Configuration object containing `model` sources, optional `independentCharacters` and `preventLoad` flag.
  * @returns Ready to use Vertical OCR model.
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
 export const useVerticalOCR = ({
   model,

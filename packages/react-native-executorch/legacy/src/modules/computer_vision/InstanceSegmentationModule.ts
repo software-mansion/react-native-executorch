@@ -143,7 +143,9 @@ type ResolveLabels<T extends InstanceSegmentationModelName | LabelEnum> = Resolv
  *   inputSize: 640,
  * });
  * ```
+ * @deprecated Use the new API from `react-native-executorch` instead.
  */
+
 export class InstanceSegmentationModule<
   T extends InstanceSegmentationModelName | LabelEnum,
 > extends VisionLabeledModule<SegmentedInstance<ResolveLabels<T>>[], ResolveLabels<T>> {
