@@ -1,179 +1,93 @@
 # Getting Started
 
+React Native ExecuTorch is an on-device AI inference library for React Native, powered by [ExecuTorch](https://executorch.ai) — Meta's on-device inference runtime and a project under the PyTorch Foundation. It lets you run machine learning models directly on the user's phone with zero network calls, full offline capability, and guaranteed privacy. No data ever leaves the device.
+
+The library ships with a curated set of pre-exported models covering computer vision, language models, text-to-speech, transcription, and more — all available in our [HuggingFace collection](https://huggingface.co/software-mansion/collections) and ready to use out of the box. You can also bring your own models and plug them into existing pipelines or build entirely custom ones from scratch.
+
 ## What is ExecuTorch?[​](#what-is-executorch "Direct link to What is ExecuTorch?")
 
-[ExecuTorch](https://executorch.ai) is a novel AI framework developed by Meta, designed to streamline deploying PyTorch models on a variety of devices, including mobile phones and microcontrollers. This framework enables exporting models into standalone binaries, allowing them to run locally without requiring API calls. ExecuTorch achieves state-of-the-art performance through optimizations and delegates such as Core ML and XNNPACK. It provides a seamless export process with robust debugging options, making it easier to resolve issues if they arise.
+[ExecuTorch](https://executorch.ai) is a PyTorch Core project — Meta's on-device inference runtime for deploying PyTorch models on edge devices. It takes standard PyTorch models and compiles them into an optimized `.pte` format that runs natively on mobile phones, AR/VR headsets, embedded systems, and custom accelerators.
 
-## React Native ExecuTorch[​](#react-native-executorch "Direct link to React Native ExecuTorch")
+The runtime supports hardware-accelerated backends for every major platform: XNNPACK for CPU acceleration across all platforms, Core ML and MLX on Apple devices, Vulkan for Android GPU, and more. It's a core part of the PyTorch ecosystem, with full support for the standard PyTorch model export workflow.
 
-React Native ExecuTorch is our way of bringing ExecuTorch into the React Native world. Our API is built to be simple, declarative, and efficient. Additionally, we provide a set of pre-exported models for common use cases, so you don't have to worry about handling exports yourself. With just a few lines of JavaScript, you can run AI models (even LLMs 👀) right on your device—keeping user data private and saving on cloud costs.
-
-## Compatibility[​](#compatibility "Direct link to Compatibility")
-
-React Native Executorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).
-
-If your app still runs on the old architecture, please consider upgrading to the New Architecture.
-
-For supported React Native and Expo versions, see the [Compatibility table](https://docs.swmansion.com/react-native-executorch/docs/other/compatibility.md).
+ExecuTorch handles the hard parts: memory planning, operator dispatch, and hardware delegate selection — so you don't have to. To learn more about the underlying runtime, check out the [ExecuTorch documentation](https://docs.pytorch.org/executorch/stable/index.html).
 
 ## Installation[​](#installation "Direct link to Installation")
 
-Installation takes two steps: install the core package, then install a resource fetcher adapter that matches your project type. If you want to implement your own model fetching logic instead, see [this document](https://docs.swmansion.com/react-native-executorch/docs/resource-fetcher/custom-adapter.md).
-
-### 1. Install the core package[​](#1-install-the-core-package "Direct link to 1. Install the core package")
+Install [`react-native-executorch`](https://www.npmjs.com/package/react-native-executorch) alongside its peer dependencies:
 
 * npm
-* pnpm
 * yarn
-
-```bash
-npm install react-native-executorch
-
-```
-
-```bash
-pnpm add react-native-executorch
-
-```
-
-```bash
-yarn add react-native-executorch
-
-```
-
-### 2. Install a resource fetcher[​](#2-install-a-resource-fetcher "Direct link to 2. Install a resource fetcher")
-
-Pick the adapter that matches your project. We recommend the Expo adapter when your app uses Expo; use the bare adapter for projects without Expo.
-
-#### Expo projects[​](#expo-projects "Direct link to Expo projects")
-
-* npm
 * pnpm
-* yarn
 
 ```bash
-npm install react-native-executorch-expo-resource-fetcher expo-file-system expo-asset
-
-```
-
-```bash
-pnpm add react-native-executorch-expo-resource-fetcher expo-file-system expo-asset
+npm install react-native-executorch react-native-worklets react-native-blob-util
 
 ```
 
 ```bash
-yarn add react-native-executorch-expo-resource-fetcher expo-file-system expo-asset
-
-```
-
-#### Bare React Native projects[​](#bare-react-native-projects "Direct link to Bare React Native projects")
-
-* npm
-* pnpm
-* yarn
-
-```bash
-npm install react-native-executorch-bare-resource-fetcher @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+yarn add react-native-executorch react-native-worklets react-native-blob-util
 
 ```
 
 ```bash
-pnpm add react-native-executorch-bare-resource-fetcher @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+pnpm add react-native-executorch react-native-worklets react-native-blob-util
 
 ```
 
-```bash
-yarn add react-native-executorch-bare-resource-fetcher @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)Requirements
 
-```
+React Native ExecuTorch requires:
 
-![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)warning
+* **New Architecture** enabled
+* **React Native 0.81+** or **Expo SDK 54+** with [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/) (**Expo Go is not supported** due to custom C++ native libraries)
+* **iOS 17.0+** / **Android 13+**
 
-Before using any other API, you must call `initExecutorch` with a resource fetcher adapter at the entry point of your app:
+For supported React Native versions, see the [Compatibility table](https://docs.swmansion.com/react-native-executorch/docs/other/compatibility.md).
 
-```js
-import { initExecutorch } from 'react-native-executorch';
-import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
-// or BareResourceFetcher for bare react-native projects
+### Selecting native libraries[​](#selecting-native-libraries "Direct link to Selecting native libraries")
 
-initExecutorch({ resourceFetcher: ExpoResourceFetcher });
+The native binaries — the ExecuTorch hardware backends (XNNPACK, Core ML, MLX, Vulkan), and third-party binaries — are downloaded on demand at install time. By default, **everything is downloaded and enabled**, so no configuration is required to get started.
 
-```
-
-Calling any library API without initializing first will throw a `ResourceFetcherAdapterNotInitialized` error.
-
-Our library offers support for both bare React Native and Expo projects. Please follow the instructions from [Loading models section](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md) to make sure you setup your project correctly. We encourage you to use Expo project if possible. If you are planning to migrate from bare React Native to Expo project, the link (<https://docs.expo.dev/bare/installing-expo-modules/>) offers a guidance on setting up Expo Modules in a bare React Native environment.
-
-If you plan on using your models via require() instead of fetching them from a url, you also need to add following lines to your `metro.config.js`:
+If you want a smaller app or faster installs, declare what you use in a `react-native-executorch` block in your `package.json`, e.g.:
 
 ```json
-// metro.config.js
-...
-    defaultConfig.resolver.assetExts.push('pte')
-    defaultConfig.resolver.assetExts.push('bin')
-...
+{
+  "react-native-executorch": {
+    "features": ["classification", "styleTransfer"]
+  }
+}
 
 ```
 
-This allows us to use binaries, such as exported models or tokenizers for LLMs.
+The available options are:
 
-![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)warning
+* **`features`** — high-level task names. Each one expands to the backends and native libs it needs.
+* **`backends`** — hardware backends directly, e.g. `xnnpack`, `coreml`, `vulkan`.
+* **`libs`** — extra native libraries, see [options](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/native-libraries.md#options).
 
-When using Expo, please note that you need to use a custom development build of your app, not the standard Expo Go app. This is because we rely on native modules, which Expo Go doesn’t support.
+The three lists are merged, so you can pair a `features` set with extra `backends` / `libs` entries. Re-run your package manager's install after editing. See [Native Libraries](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/native-libraries.md) for details.
 
-![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)info
+## Choose Your Path[​](#choose-your-path "Direct link to Choose Your Path")
 
-Because we are using ExecuTorch under the hood, you won't be able to build iOS app for release with simulator selected as the target device. Make sure to test release builds on real devices.
+Most mobile ML libraries force you into one of two extremes: opaque native black boxes that implement a fixed set of pipelines with no room for customization, or raw low-level bindings that leave you to wire up everything from preprocessing to memory management yourself.
 
-Running the app with the library:
+What if you need a bit of both? Ready-to-use pipelines for common tasks, but also the freedom to drop down and build something custom when the out-of-the-box solution doesn't quite fit. That's exactly how React Native ExecuTorch is designed. The library is built around a clean **two-layer architecture** where the higher-level layer is implemented entirely on top of the lower-level one — not as separate C++ code hidden behind abstractions. This means:
 
-* npm
-* pnpm
-* yarn
+* **Pipelines are transparent.** Every task pipeline (computer vision, LLM chat, etc.) is written in a few hundred lines of TypeScript — often less. You can read the full input/output contracts, preprocessing, and postprocessing logic in one place — no native code required.
 
-```bash
-npm run <ios|android> -- -d
+* **Custom models just work.** Plug your own `.pte` into any existing pipeline — computer vision, LLM, whatever. The schema DSL declares exactly what each pipeline expects (tensor shapes, data types, preprocessing), so there's no guessing. Everything is in one place, readable in TypeScript.
 
-```
+* **You can always drop down.** When built-in pipelines don't fit your use case, the lower-level API gives you direct access to ExecuTorch model execution, native tensor operations, high-performance math/vision operators, and worklet threading. You build custom orchestration pipelines entirely in TypeScript — no C++ required — with complete control over preprocessing, inference, postprocessing, and memory.
 
-```bash
-pnpm <ios|android> -d
+### High-Level Task Pipelines[​](#high-level-task-pipelines "Direct link to High-Level Task Pipelines")
 
-```
+Have a specific problem to solve — computer vision, LLM chat, speech transcription? Each task has a ready-made pipeline you can drop into your app. Hooks handle downloading, caching, and memory disposal automatically. Imperative APIs give you manual control. Both work with pre-exported models from our [HuggingFace collection](https://huggingface.co/software-mansion/collections) or your own `.pte` files — as long as they match the pipeline's schema.
 
-```bash
-yarn <ios|android> -d
+[Explore High-Level Pipelines →](https://docs.swmansion.com/react-native-executorch/docs/category/extensions.md)
 
-```
+### Lower-Level Runtime & Custom Pipelines[​](#lower-level-runtime--custom-pipelines "Direct link to Lower-Level Runtime & Custom Pipelines")
 
-## Building from source[​](#building-from-source "Direct link to Building from source")
+Working with a custom model or chaining multiple models together into a custom workflow? The lower-level API gives you direct access to ExecuTorch model execution, native tensor operations, native operators for vision, math, NLP, and audio, plus worklet-based multi-threading. You write the entire pipeline in TypeScript using the exact same building blocks and primitives we use to build the library's built-in extensions — no native C++ required.
 
-To build the library from source instead, clone the repository and initialize submodules:
-
-```bash
-git clone -b release/0.9 https://github.com/software-mansion/react-native-executorch.git
-cd react-native-executorch
-
-git submodule update --init --recursive packages/react-native-executorch/third-party/common
-
-yarn
-
-```
-
-## Supporting new models in React Native ExecuTorch[​](#supporting-new-models-in-react-native-executorch "Direct link to Supporting new models in React Native ExecuTorch")
-
-Adding new functionality to the library follows a consistent three-step integration pipeline:
-
-1. **Model Serialization:** Export PyTorch model for a specific task (e.g. object detection) into the `*.pte` format, which is optimized for the ExecuTorch runtime.
-
-2. **Native Implementation:** Develop a C++ execution layer that interfaces with the ExecuTorch runtime to handle inference. This layer also manages model-dependent logic, such as data pre-processing and post-processing.
-
-3. **TS Bindings:** Finally, implement a TypeScript API that bridges the JavaScript environment to the native C++ logic, providing a clean, typed interface for the end user.
-
-## Good reads[​](#good-reads "Direct link to Good reads")
-
-If you want to dive deeper into ExecuTorch or our previous work with the framework, we highly encourage you to check out the following resources:
-
-* [ExecuTorch docs](https://pytorch.org/executorch/stable/index.html)
-* [React Native RAG](https://blog.swmansion.com/introducing-react-native-rag-fbb62efa4991)
-* [Offline Text Recognition on Mobile: How We Brought EasyOCR to React Native ExecuTorch](https://blog.swmansion.com/bringing-easyocr-to-react-native-executorch-2401c09c2d0c)
+[Explore Lower-Level API →](https://docs.swmansion.com/react-native-executorch/docs/category/core--advanced.md)

@@ -11,19 +11,4 @@ React Native ExecuTorch supports only the [New Architecture](https://reactnative
 |                         | 0.78                 | 0.79 | 0.80 | 0.81 | 0.82 | 0.83 | 0.84 | 0.85 |
 | 0.8.x                   | no                   | no   | no   | yes  | yes  | yes  | yes  | yes  |
 | 0.9.x                   | no                   | no   | no   | yes  | yes  | yes  | yes  | yes  |
-
-## react-native-executorch-bare-resource-fetcher[​](#react-native-executorch-bare-resource-fetcher "Direct link to react-native-executorch-bare-resource-fetcher")
-
-| Bare Resource Fetcher | React Native version |      |      |      |      |      |      |      |
-| --------------------- | -------------------- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-|                       | 0.78                 | 0.79 | 0.80 | 0.81 | 0.82 | 0.83 | 0.84 | 0.85 |
-| 0.8.x                 | no                   | no   | no   | yes  | yes  | yes  | yes  | yes  |
-| 0.9.x                 | no                   | no   | no   | yes  | yes  | yes  | yes  | yes  |
-
-## react-native-executorch-expo-resource-fetcher[​](#react-native-executorch-expo-resource-fetcher "Direct link to react-native-executorch-expo-resource-fetcher")
-
-| Expo Resource Fetcher | Expo SDK version |    |     |     |
-| --------------------- | ---------------- | -- | --- | --- |
-|                       | 52               | 53 | 54  | 55  |
-| 0.8.x                 | no               | no | yes | yes |
-| 0.9.x                 | no               | no | yes | yes |
+| 0.10.x                  | no                   | no   | no   | yes  | yes  | yes  | yes  | yes  |
