@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.636d6614.css">
-<script src="/react-native-executorch/assets/js/runtime~main.fa0c5980.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.8adf37fa.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.e423d2d6.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.6e372b94.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -24,7 +24,7 @@
 <blockquote>
 <p><strong>Model</strong> = <code>object</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/core/model.ts#L38" target="_blank" rel="noopener noreferrer" class="">core/model.ts:38</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/core/model.ts#L38" target="_blank" rel="noopener noreferrer" class="">core/model.ts:38</a></p>
 <p>A compiled, ready-to-run ExecuTorch model loaded into native memory.</p>
 <p>A <code>Model</code> exposes the raw ExecuTorch execution interface. It is intentionally
 low-level and domain-agnostic; higher-level task pipelines build on top of
@@ -36,28 +36,28 @@ is no longer needed, call <a href="#dispose" class="">Model.dispose</a> to relea
 <blockquote>
 <p><code>readonly</code> <strong>backends</strong>: <code>Record</code>&lt;<code>string</code>, readonly <code>string</code>[]&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/core/model.ts#L44" target="_blank" rel="noopener noreferrer" class="">core/model.ts:44</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/core/model.ts#L44" target="_blank" rel="noopener noreferrer" class="">core/model.ts:44</a></p>
 <p>ExecuTorch backends used by a given method.</p>
 <hr>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="path">path<a href="#path" class="hash-link" aria-label="Direct link to path" title="Direct link to path" translate="no">​</a></h3>
 <blockquote>
 <p><code>readonly</code> <strong>path</strong>: <code>string</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/core/model.ts#L40" target="_blank" rel="noopener noreferrer" class="">core/model.ts:40</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/core/model.ts#L40" target="_blank" rel="noopener noreferrer" class="">core/model.ts:40</a></p>
 <p>The local filesystem path of the <code>.pte</code> model file.</p>
 <hr>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="schema">schema<a href="#schema" class="hash-link" aria-label="Direct link to schema" title="Direct link to schema" translate="no">​</a></h3>
 <blockquote>
 <p><code>readonly</code> <strong>schema</strong>: <a class="" href="/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/schema/type-aliases/ModelSpec"><code>ModelSpec</code></a>&lt;<a class="" href="/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/schema/type-aliases/ConcreteDim"><code>ConcreteDim</code></a>&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/core/model.ts#L42" target="_blank" rel="noopener noreferrer" class="">core/model.ts:42</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/core/model.ts#L42" target="_blank" rel="noopener noreferrer" class="">core/model.ts:42</a></p>
 <p>The exported schema of this model.</p>
 <h2 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="methods">Methods<a href="#methods" class="hash-link" aria-label="Direct link to Methods" title="Direct link to Methods" translate="no">​</a></h2>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="dispose">dispose()<a href="#dispose" class="hash-link" aria-label="Direct link to dispose()" title="Direct link to dispose()" translate="no">​</a></h3>
 <blockquote>
 <p><strong>dispose</strong>(): <code>void</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/core/model.ts#L70" target="_blank" rel="noopener noreferrer" class="">core/model.ts:70</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/core/model.ts#L70" target="_blank" rel="noopener noreferrer" class="">core/model.ts:70</a></p>
 <p>Releases the native ExecuTorch model and frees all associated resources.</p>
 <p>After calling <code>dispose</code>, this model instance must not be used again.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns">Returns<a href="#returns" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
@@ -67,7 +67,7 @@ is no longer needed, call <a href="#dispose" class="">Model.dispose</a> to relea
 <blockquote>
 <p><strong>execute</strong>(<code>methodName</code>, <code>inputs</code>, <code>outputTensors</code>): <a class="" href="/react-native-executorch/docs/api-reference/type-aliases/ModelOutput"><code>ModelOutput</code></a>[]</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/core/model.ts#L63" target="_blank" rel="noopener noreferrer" class="">core/model.ts:63</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/core/model.ts#L63" target="_blank" rel="noopener noreferrer" class="">core/model.ts:63</a></p>
 <p>Executes a named model method synchronously.</p>
 <p>Inputs are provided in the same order as the method&#x27;s input slots. Output
 tensors must be pre-allocated and passed in <code>outputTensors</code>; the runtime

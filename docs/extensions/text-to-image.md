@@ -144,4 +144,4 @@ The pipeline automatically verifies that the model's exported methods (`encode`,
 
 View the implementation on GitHub:
 
-* [`src/extensions/cv/tasks/sdxsTextToImage.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/cv/tasks/sdxsTextToImage.ts)
+* [`src/extensions/cv/tasks/sdxsTextToImage.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/cv/tasks/sdxsTextToImage.ts)

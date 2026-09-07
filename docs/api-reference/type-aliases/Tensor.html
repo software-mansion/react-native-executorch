@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.636d6614.css">
-<script src="/react-native-executorch/assets/js/runtime~main.fa0c5980.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.8adf37fa.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.e423d2d6.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.6e372b94.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -24,7 +24,7 @@
 <blockquote>
 <p><strong>Tensor</strong> = <code>object</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/core/tensor.ts#L30" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:30</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/core/tensor.ts#L30" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:30</a></p>
 <p>A native ExecuTorch tensor allocated in C++ memory.</p>
 <p>Tensors are the fundamental data containers used throughout the lower-level
 API. They carry a fixed data type, an immutable shape, and reside in native
@@ -36,28 +36,28 @@ heap memory — they must be explicitly released by calling
 <blockquote>
 <p><code>readonly</code> <strong>dtype</strong>: <a class="" href="/react-native-executorch/docs/api-reference/type-aliases/DType"><code>DType</code></a></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/core/tensor.ts#L32" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:32</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/core/tensor.ts#L32" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:32</a></p>
 <p>The element data type of the tensor.</p>
 <hr>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="numel">numel<a href="#numel" class="hash-link" aria-label="Direct link to numel" title="Direct link to numel" translate="no">​</a></h3>
 <blockquote>
 <p><code>readonly</code> <strong>numel</strong>: <code>number</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/core/tensor.ts#L36" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:36</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/core/tensor.ts#L36" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:36</a></p>
 <p>The total number of elements stored in the tensor.</p>
 <hr>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="shape">shape<a href="#shape" class="hash-link" aria-label="Direct link to shape" title="Direct link to shape" translate="no">​</a></h3>
 <blockquote>
 <p><code>readonly</code> <strong>shape</strong>: readonly <code>number</code>[]</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/core/tensor.ts#L34" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:34</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/core/tensor.ts#L34" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:34</a></p>
 <p>The concrete size of each dimension (e.g., <code>[1, 3, 224, 224]</code>).</p>
 <h2 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="methods">Methods<a href="#methods" class="hash-link" aria-label="Direct link to Methods" title="Direct link to Methods" translate="no">​</a></h2>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="copyto">copyTo()<a href="#copyto" class="hash-link" aria-label="Direct link to copyTo()" title="Direct link to copyTo()" translate="no">​</a></h3>
 <blockquote>
 <p><strong>copyTo</strong>(<code>dst</code>, <code>options?</code>): <code>Tensor</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/core/tensor.ts#L53" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:53</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/core/tensor.ts#L53" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:53</a></p>
 <p>Copies this tensor&#x27;s data into another tensor.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters">Parameters<a href="#parameters" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="dst">dst<a href="#dst" class="hash-link" aria-label="Direct link to dst" title="Direct link to dst" translate="no">​</a></h5>
@@ -87,7 +87,7 @@ disposed.</p>
 <blockquote>
 <p><strong>dispose</strong>(): <code>void</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/core/tensor.ts#L60" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:60</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/core/tensor.ts#L60" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:60</a></p>
 <p>Releases the underlying native C++ memory held by this tensor.</p>
 <p>After calling <code>dispose</code>, the tensor must not be used again.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-1">Returns<a href="#returns-1" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
@@ -97,7 +97,7 @@ disposed.</p>
 <blockquote>
 <p><strong>getData</strong>&lt;<code>T</code>&gt;(<code>dst</code>): <code>T</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/core/tensor.ts#L84" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:84</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/core/tensor.ts#L84" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:84</a></p>
 <p>Copies data out of this tensor&#x27;s native buffer into a typed array.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-parameters">Type Parameters<a href="#type-parameters" class="hash-link" aria-label="Direct link to Type Parameters" title="Direct link to Type Parameters" translate="no">​</a></h4>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="t">T<a href="#t" class="hash-link" aria-label="Direct link to T" title="Direct link to T" translate="no">​</a></h5>
@@ -120,7 +120,7 @@ use, or <code>RESOURCE_DISPOSED</code> if disposed.</p>
 <blockquote>
 <p><strong>setData</strong>(<code>src</code>): <code>Tensor</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/core/tensor.ts#L72" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:72</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/core/tensor.ts#L72" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:72</a></p>
 <p>Writes data from a typed array into this tensor&#x27;s native buffer.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-2">Parameters<a href="#parameters-2" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="src">src<a href="#src" class="hash-link" aria-label="Direct link to src" title="Direct link to src" translate="no">​</a></h5>
@@ -140,7 +140,7 @@ use, or <code>RESOURCE_DISPOSED</code> if disposed.</p>
 <blockquote>
 <p><strong>through</strong>&lt;<code>R</code>, <code>Args</code>&gt;(<code>fn</code>, ...<code>args</code>): <code>R</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/core/tensor.ts#L94" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:94</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/core/tensor.ts#L94" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:94</a></p>
 <p>Passes <code>this</code> tensor as the first argument to <code>fn</code> and returns the result.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-parameters-1">Type Parameters<a href="#type-parameters-1" class="hash-link" aria-label="Direct link to Type Parameters" title="Direct link to Type Parameters" translate="no">​</a></h4>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="r">R<a href="#r" class="hash-link" aria-label="Direct link to R" title="Direct link to R" translate="no">​</a></h5>
@@ -164,7 +164,7 @@ use, or <code>RESOURCE_DISPOSED</code> if disposed.</p>
 <blockquote>
 <p><strong>throughIf</strong>&lt;<code>Args</code>&gt;(<code>pred</code>, <code>fn</code>, ...<code>args</code>): <code>Tensor</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/core/tensor.ts#L106" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:106</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/core/tensor.ts#L106" target="_blank" rel="noopener noreferrer" class="">core/tensor.ts:106</a></p>
 <p>Conditionally applies <code>fn</code> to <code>this</code> tensor when <code>pred</code> is <code>true</code>,
 otherwise returns <code>this</code> unchanged.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-parameters-2">Type Parameters<a href="#type-parameters-2" class="hash-link" aria-label="Direct link to Type Parameters" title="Direct link to Type Parameters" translate="no">​</a></h4>

@@ -186,4 +186,4 @@ The library provides ready-to-use Whisper models from the [Software Mansion Hugg
 
 View the implementation on GitHub:
 
-* [`src/extensions/speech/tasks/whisperSpeechToText.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts)
+* [`src/extensions/speech/tasks/whisperSpeechToText.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts)

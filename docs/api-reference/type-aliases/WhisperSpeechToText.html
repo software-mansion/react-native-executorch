@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.636d6614.css">
-<script src="/react-native-executorch/assets/js/runtime~main.fa0c5980.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.8adf37fa.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.e423d2d6.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.6e372b94.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -24,7 +24,7 @@
 <blockquote>
 <p><strong>WhisperSpeechToText</strong>&lt;<code>L</code>&gt; = <code>object</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts#L108" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/whisperSpeechToText.ts:108</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts#L108" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/whisperSpeechToText.ts:108</a></p>
 <p>Whisper speech-to-text task runner.</p>
 <h2 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-parameters">Type Parameters<a href="#type-parameters" class="hash-link" aria-label="Direct link to Type Parameters" title="Direct link to Type Parameters" translate="no">​</a></h2>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="l">L<a href="#l" class="hash-link" aria-label="Direct link to L" title="Direct link to L" translate="no">​</a></h3>
@@ -35,7 +35,7 @@
 <blockquote>
 <p><code>readonly</code> <strong>dispose</strong>: () =&gt; <code>void</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts#L112" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/whisperSpeechToText.ts:112</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts#L112" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/whisperSpeechToText.ts:112</a></p>
 <p>Releases all allocated native resources.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns">Returns<a href="#returns" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
 <p><code>void</code></p>
@@ -44,7 +44,7 @@
 <blockquote>
 <p><code>readonly</code> <strong>stream</strong>: (<code>options</code>) =&gt; <code>AsyncGenerator</code>&lt;{ <code>committed</code>: <code>string</code>; <code>nonCommitted</code>: <code>string</code>; }&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts#L160" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/whisperSpeechToText.ts:160</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts#L160" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/whisperSpeechToText.ts:160</a></p>
 <p>Async generator for real-time microphone transcription. Feed audio with
 <a href="#streaminsert" class="">streamInsert</a> and stop with <a href="#streamstop" class="">streamStop</a>. Yields <code>{ committed, nonCommitted }</code> on every VAD or transcription event: <code>committed</code> is the
 finalized transcript so far; <code>nonCommitted</code> is the in-progress text that
@@ -66,7 +66,7 @@ if disposed.</p>
 <blockquote>
 <p><code>readonly</code> <strong>streamInsert</strong>: (<code>audioChunk</code>) =&gt; <code>void</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts#L176" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/whisperSpeechToText.ts:176</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts#L176" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/whisperSpeechToText.ts:176</a></p>
 <p>Appends a new PCM chunk to the live streaming buffer consumed by
 <a href="#stream" class="">stream</a>. Ignored when streaming is not active.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-1">Parameters<a href="#parameters-1" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
@@ -81,7 +81,7 @@ PCM).</p>
 <blockquote>
 <p><code>readonly</code> <strong>streamStop</strong>: () =&gt; <code>void</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts#L168" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/whisperSpeechToText.ts:168</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts#L168" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/whisperSpeechToText.ts:168</a></p>
 <p>Signals the <a href="#stream" class="">stream</a> generator to finalize the current segment and
 return. Safe to call even when streaming is not active.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-3">Returns<a href="#returns-3" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
@@ -91,7 +91,7 @@ return. Safe to call even when streaming is not active.</p>
 <blockquote>
 <p><code>readonly</code> <strong>transcribe</strong>: (<code>audio</code>, <code>options</code>, <code>onToken?</code>) =&gt; <code>Promise</code>&lt;<code>string</code>&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts#L126" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/whisperSpeechToText.ts:126</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts#L126" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/whisperSpeechToText.ts:126</a></p>
 <p>Asynchronously transcribes a pre-recorded mono waveform sampled at
 <a class="" href="/react-native-executorch/docs/api-reference/variables/WHISPER_SAMPLE_RATE_HZ">WHISPER_SAMPLE_RATE_HZ</a>.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-2">Parameters<a href="#parameters-2" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
@@ -117,7 +117,7 @@ if disposed.</p>
 <blockquote>
 <p><code>readonly</code> <strong>transcribeStop</strong>: () =&gt; <code>void</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts#L145" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/whisperSpeechToText.ts:145</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts#L145" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/whisperSpeechToText.ts:145</a></p>
 <p>Interrupts and stops any active transcription call.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-5">Returns<a href="#returns-5" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
 <p><code>void</code></p>
@@ -126,7 +126,7 @@ if disposed.</p>
 <blockquote>
 <p><code>readonly</code> <strong>transcribeWorklet</strong>: (<code>audio</code>, <code>options</code>, <code>onToken?</code>) =&gt; <code>string</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts#L136" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/whisperSpeechToText.ts:136</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts#L136" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/whisperSpeechToText.ts:136</a></p>
 <p>Synchronous version of <a href="#transcribe" class="">transcribe</a> to be executed directly on the
 caller or worklet thread.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-3">Parameters<a href="#parameters-3" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>

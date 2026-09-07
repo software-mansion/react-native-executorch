@@ -183,4 +183,4 @@ The pipeline automatically verifies that the model's exported input and output s
 
 View the implementation on GitHub:
 
-* [`src/extensions/cv/tasks/instanceSegmentation.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/cv/tasks/instanceSegmentation.ts)
+* [`src/extensions/cv/tasks/instanceSegmentation.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/cv/tasks/instanceSegmentation.ts)

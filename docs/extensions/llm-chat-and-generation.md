@@ -312,5 +312,5 @@ The pipeline automatically verifies that the model's exported methods and KV cac
 
 View the implementation on GitHub:
 
-* [`src/extensions/llm/tasks/llmChatSession.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/llm/tasks/llmChatSession.ts)
-* [`src/extensions/llm/llmRunner.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/llm/llmRunner.ts)
+* [`src/extensions/llm/tasks/llmChatSession.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/llm/tasks/llmChatSession.ts)
+* [`src/extensions/llm/llmRunner.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/llm/llmRunner.ts)
