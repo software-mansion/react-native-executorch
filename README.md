@@ -39,7 +39,6 @@ To explore all on-device capabilities in an interactive showcase app, check out 
 - [Quickstart](#quickstart)
   - [1. Installation](#1-installation)
   - [2. Run the Model](#2-run-the-model)
-- [Interactive Gallery App](#interactive-gallery-app)
 - [Documentation](#documentation)
 - [Powered by React Native ExecuTorch](#powered-by-react-native-executorch)
 - [Created by Software Mansion](#created-by-software-mansion)
