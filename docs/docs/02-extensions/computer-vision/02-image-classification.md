@@ -220,5 +220,5 @@ Models](../../03-core-and-advanced/07-exporting-custom-models.md#using-a-built-i
 :::info Source Code
 View the implementation on GitHub:
 
-- [`src/extensions/cv/tasks/classification.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/cv/tasks/classification.ts)
+- [`src/extensions/cv/tasks/classification.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/cv/tasks/classification.ts)
   :::

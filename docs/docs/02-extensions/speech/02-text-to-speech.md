@@ -212,6 +212,6 @@ Because Text-to-Speech architectures require distinct multi-model orchestration 
 :::info Source Code
 View the implementation on GitHub:
 
-- [`src/extensions/speech/tasks/kokoroTextToSpeech.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/speech/tasks/kokoroTextToSpeech.ts)
-- [`src/extensions/speech/tasks/supertonicTextToSpeech.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/speech/tasks/supertonicTextToSpeech.ts)
+- [`src/extensions/speech/tasks/kokoroTextToSpeech.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/speech/tasks/kokoroTextToSpeech.ts)
+- [`src/extensions/speech/tasks/supertonicTextToSpeech.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/speech/tasks/supertonicTextToSpeech.ts)
   :::

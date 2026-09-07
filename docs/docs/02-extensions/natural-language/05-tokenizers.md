@@ -153,5 +153,5 @@ The native tokenizer automatically handles the model type, vocabulary tables, re
 :::info Source Code
 View the implementation on GitHub:
 
-- [`src/extensions/nlp/tasks/tokenization.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/nlp/tasks/tokenization.ts)
+- [`src/extensions/nlp/tasks/tokenization.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/nlp/tasks/tokenization.ts)
   :::

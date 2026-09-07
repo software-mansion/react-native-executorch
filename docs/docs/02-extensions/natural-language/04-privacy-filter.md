@@ -234,5 +234,5 @@ The pipeline automatically verifies that the model exports `forward(input_ids, a
 :::info Source Code
 View the implementation on GitHub:
 
-- [`src/extensions/nlp/tasks/privacyFilter.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/nlp/tasks/privacyFilter.ts)
+- [`src/extensions/nlp/tasks/privacyFilter.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/nlp/tasks/privacyFilter.ts)
   :::
