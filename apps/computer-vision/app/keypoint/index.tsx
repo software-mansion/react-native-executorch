@@ -31,11 +31,6 @@ const MODEL_OPTIONS: ModelOption[] = [
     value: models.keypointDetection.RFDETR_KEYPOINT.COREML_FP16,
     disabled: Platform.OS !== 'ios',
   },
-  {
-    label: 'RF-DETR Keypoint (MLX FP32)',
-    value: models.keypointDetection.RFDETR_KEYPOINT.MLX_FP32,
-    disabled: Platform.OS !== 'ios',
-  },
 ];
 
 const VIEW_WIDTH = Dimensions.get('window').width - 32;
