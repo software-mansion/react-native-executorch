@@ -372,3 +372,8 @@ subpath
 subpaths
 resizer
 Resizer
+touchpoint
+jsonrepair
+SRCROOT
+fbjni
+reactnative

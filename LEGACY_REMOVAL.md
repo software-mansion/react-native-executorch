@@ -43,7 +43,12 @@ In the rewrite, resource fetching/caching was moved directly into core (`package
   rm -rf docs/versioned_sidebars/version-0.10.0-legacy-sidebars.json
   ```
 - [ ] In `docs/versions.json`, remove `"0.10.0-legacy"`.
-- [ ] In `docs/docusaurus.config.js`, remove the `'0.10.0-legacy'` entry in `versions`.
+- [ ] In `docs/docusaurus.config.js`, remove:
+  - `lastVersion: 'current'` (or revert to standard versioning)
+  - `'0.10.0-legacy'` entry and comment under `versions`
+  - The `current` label override if no longer needed
+- [ ] In `docs/docs/01-fundamentals/03-migrating-from-v0-9.md`, remove the legacy migration path Option A and link to `0.10.0-legacy`.
+- [ ] In `.gitattributes`, remove `**/legacy/** linguist-vendored` and `docs/versioned_docs/version-0.10.0-legacy/** linguist-vendored` if present.
 
 ---
 
@@ -82,7 +87,10 @@ In the rewrite, resource fetching/caching was moved directly into core (`package
 - [ ] In `"exports"`, remove:
   - `"./legacy": { ... }`
   - `"// === LEGACY SUPPORT: exports ==="`
-- [ ] In `"files"`, remove `"legacy"`.
+- [ ] In `"files"`, remove:
+  - `"legacy"`
+  - `"!legacy/cpp/**/tests"`
+  - `"// === LEGACY SUPPORT: files ==="`
 - [ ] In `"scripts"`, change `"prepare"` from:
   ```json
   "prepare": "bob build && tsc -p legacy/tsconfig.json"
@@ -159,11 +167,11 @@ In the rewrite, resource fetching/caching was moved directly into core (`package
 
 ## 4. Git Diff Verification Against `rne-rewrite`
 
-Once the legacy support code and configurations have been removed, run a git diff against the `rne-rewrite` branch. These modified configuration and build files should match `rne-rewrite` (or only differ by legitimate subsequent bugfixes/updates):
+Once the legacy support code and configurations have been removed, run a git diff against the `rne-rewrite` branch. **These modified configuration and build files should be identical to `rne-rewrite` (i.e. produce zero diff)**:
 
 ```bash
-# Check diff of all modified configuration/build files against rne-rewrite:
-git diff origin/rne-rewrite -- \
+# Verify modified configuration/build files are identical to rne-rewrite (must return 0 diff):
+git diff --exit-code origin/rne-rewrite -- \
   package.json \
   .gitignore \
   .eslintrc.js \
@@ -174,7 +182,7 @@ git diff origin/rne-rewrite -- \
   packages/react-native-executorch/android/CMakeLists.txt \
   packages/react-native-executorch/android/src/main/java/com/swmansion/rnexecutorch/RnExecutorchPackage.kt
 
-# Check overall branch diff (excluding newly added docs/features):
+# Check overall branch diff (should only show newly added docs or subsequent bugfixes):
 git diff --stat origin/rne-rewrite
 ```
 
