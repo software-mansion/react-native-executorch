@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "computer-vision",
-    "slug": "computer-vision",
+    "name": "legacy-computer-vision",
+    "slug": "legacy-computer-vision",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icons/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "scheme": "rne-computer-vision",
+    "scheme": "rne-legacy-computer-vision",
     "splash": {
       "image": "./assets/icons/splash.png",
       "resizeMode": "contain",
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.computervision",
+      "bundleIdentifier": "com.anonymous.legacycomputervision",
       "infoPlist": {
         "NSCameraUsageDescription": "Process photo from camera"
       }
@@ -25,7 +25,7 @@
         "foregroundImage": "./assets/icons/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.computervision",
+      "package": "com.anonymous.legacycomputervision",
       "permissions": ["android.permission.CAMERA"]
     },
     "web": {

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "text-embeddings",
-    "slug": "text-embeddings",
+    "name": "legacy-text-embeddings",
+    "slug": "legacy-text-embeddings",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
