@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "../lib/module/legacy/src",
+    "declarationDir": "../lib/typescript/legacy/src",
+    "declaration": true,
+    "stripInternal": false,
+    "emitDeclarationOnly": false,
+    "noEmit": false
+  },
+  "include": ["src/**/*"]
+}

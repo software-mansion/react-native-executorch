@@ -2,6 +2,25 @@ require "json"
 
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
+# Read the build config written by the postinstall script (scripts/download-libs.js).
+# Falls back to all features enabled if the file doesn't exist (e.g. a fresh
+# checkout where the native libs were provisioned manually).
+rne_build_config_path = File.join(__dir__, "rne-build-config.json")
+if File.exist?(rne_build_config_path)
+  rne_build_config = JSON.parse(File.read(rne_build_config_path))
+  enable_opencv   = rne_build_config["enableOpencv"]   != false
+  enable_phonemis = rne_build_config["enablePhonemis"] != false
+  enable_xnnpack  = rne_build_config["enableXnnpack"]  != false
+  enable_coreml   = rne_build_config["enableCoreml"]   != false
+  enable_mlx      = rne_build_config["enableMlx"]      != false
+else
+  enable_opencv   = true
+  enable_phonemis = true
+  enable_xnnpack  = true
+  enable_coreml   = true
+  enable_mlx      = true
+end
+
 Pod::Spec.new do |s|
   s.name         = "react-native-executorch"
   s.version      = package["version"]
@@ -10,81 +29,173 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
+  # ExecuTorch (and the MLX backend) require iOS 17.
   s.platforms    = { :ios => '17.0' }
   s.source       = { :git => "https://github.com/software-mansion/react-native-executorch.git", :tag => "#{s.version}" }
 
+  # libthreadpool_*.a ships pthreadpool (incl. the v2 API libXnnpackBackend
+  # depends on) plus cpuinfo in one archive. We link it directly here because
+  # ExecutorchLib.framework keeps those symbols local-only (not exported), so
+  # split-out backend xcframeworks can't resolve them through the framework.
+  # These paths feed `-force_load` entries in OTHER_LDFLAGS, which are applied at
+  # the CONSUMING app target's link step. `$(PODS_TARGET_SRCROOT)` is a pod-scoped
+  # build variable — undefined in the app target — so it would expand to empty and
+  # produce `/third-party/ios/.../lib*.a` (build-input-not-found). Bake the absolute
+  # path at podspec-eval time via __dir__ instead. (HEADER_SEARCH_PATHS below stay
+  # on $(PODS_TARGET_SRCROOT): those are the pod's own compile settings, where it
+  # resolves correctly.)
+  executorch_binaries_path = "#{__dir__}/third-party/ios/libs/executorch"
 
-  pthreadpool_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/pthreadpool', __dir__)
-  cpuinfo_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/cpuinfo', __dir__)
+  # --- Sources ---
+  # OpenCV-dependent sources live under the cv extension. When more tasks land
+  # that need opencv (e.g. the multimodal-LLM vision encoder under nlp), add
+  # their paths to this list so they are excluded together when opencv is off.
+  opencv_source_files = [
+    "cpp/extensions/cv/**/*.{cpp,c,h,hpp}",
+  ]
+
+  # phonemis is built from in-tree source (third-party/common/phonemis submodule);
+  # its runner entrypoint is excluded so only the library sources compile.
+  phonemis_source_files = [
+    "cpp/extensions/speech/phonemizer.{cpp,h}",
+    "third-party/common/phonemis/src/**/*.{cpp,hpp,h}",
+  ]
+
+  source_files = [
+    "ios/**/*.{h,m,mm}",
+    "cpp/**/*.{cpp,c,h,hpp}",
+  ]
+  # ==============================================================================
+  # LEGACY SUPPORT: include legacy sources (Remove when react-native-executorch/legacy is dropped)
+  # ==============================================================================
+  source_files += [
+    "legacy/ios/**/*.{h,m,mm}",
+    "legacy/cpp/**/*.{cpp,c,h,hpp}",
+  ]
+  # ==============================================================================
+  source_files += phonemis_source_files if enable_phonemis
+  s.source_files = source_files
+
+  # cpp/tests holds the host GoogleTest suites, built by cpp/tests/CMakeLists.txt
+  # and never by the app: `cpp/**` above sweeps them in, and the pod carries no
+  # googletest headers, so an app build fails on <gmock/gmock.h>.
+  exclude_files = [
+    "third-party/common/phonemis/src/phonemis/main.cpp",
+    "cpp/tests/**/*",
+  ]
+  # ==============================================================================
+  # LEGACY SUPPORT: exclude legacy tests and preserve jsi headers
+  # (Remove when react-native-executorch/legacy is dropped)
+  # ==============================================================================
+  exclude_files += [
+    "legacy/cpp/rnexecutorch/tests/**/*",
+    "legacy/cpp/rnexecutorch/jsi/*.{h,hpp}",
+  ]
+  s.preserve_paths = "legacy/cpp/rnexecutorch/jsi/*.{h,hpp}"
+  # ==============================================================================
+  exclude_files += opencv_source_files unless enable_opencv
+  exclude_files += phonemis_source_files unless enable_phonemis
+  s.exclude_files = exclude_files
+
+  # --- Preprocessor flags ---
+  extra_compiler_flags = []
+  extra_compiler_flags << "-DRNE_ENABLE_OPENCV"   if enable_opencv
+  # ET_ON lets phonemis detect the available ExecuTorch build (NeuralPhonemizer).
+  extra_compiler_flags += ["-DRNE_ENABLE_PHONEMIS", "-DET_ON"] if enable_phonemis
+  extra_compiler_flags << "-DRNE_ENABLE_XNNPACK"  if enable_xnnpack
+  extra_compiler_flags << "-DRNE_ENABLE_COREML"   if enable_coreml
+  extra_compiler_flags << "-DRNE_ENABLE_MLX"      if enable_mlx
+
+  # --- Link flags ---
+  physical_ldflags = [
+    '$(inherited)',
+    "\"#{executorch_binaries_path}/libthreadpool_ios.a\"",
+  ]
+  simulator_ldflags = [
+    '$(inherited)',
+    "\"#{executorch_binaries_path}/libthreadpool_simulator.a\"",
+  ]
+
+  xnnpack_xcframework_path = "#{__dir__}/third-party/ios/XnnpackBackend.xcframework"
+  coreml_xcframework_path  = "#{__dir__}/third-party/ios/CoreMLBackend.xcframework"
+  mlx_xcframework_path     = "#{__dir__}/third-party/ios/MLXBackend.xcframework"
+
+  if enable_xnnpack
+    physical_ldflags  << "-force_load \"#{xnnpack_xcframework_path}/ios-arm64/libXnnpackBackend.a\""
+    simulator_ldflags << "-force_load \"#{xnnpack_xcframework_path}/ios-arm64-simulator/libXnnpackBackend.a\""
+  end
+
+  if enable_coreml
+    physical_ldflags  << "-force_load \"#{coreml_xcframework_path}/ios-arm64/libCoreMLBackend.a\""
+    simulator_ldflags << "-force_load \"#{coreml_xcframework_path}/ios-arm64-simulator/libCoreMLBackend.a\""
+  end
+
+  # MLX backend uses Metal APIs (`MTLTensorDomain`, `MTLIOErrorDomain`) that ship
+  # in iPhoneOS.sdk but NOT iPhoneSimulator.sdk, and the iOS simulator can't drive
+  # MLX-on-Metal anyway. MLX ships the device slice only — link it on device only.
+  if enable_mlx
+    physical_ldflags << "-force_load \"#{mlx_xcframework_path}/ios-arm64/libMLXBackend.a\""
+  end
 
   s.user_target_xcconfig = {
-    "HEADER_SEARCH_PATHS" =>
-      '"$(PODS_TARGET_SRCROOT)/third-party/include" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/include/cpuinfo" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/include/pthreadpool"',
-
-    "OTHER_LDFLAGS[sdk=iphoneos*]" => [
-      '$(inherited)',
-      "\"#{pthreadpool_binaries_path}/physical-arm64-release/libpthreadpool.a\"",
-      "\"#{cpuinfo_binaries_path}/libcpuinfo.a\"",
-
-    ].join(' '),
-
-    "OTHER_LDFLAGS[sdk=iphonesimulator*]" => [
-      '$(inherited)',
-      "\"#{pthreadpool_binaries_path}/simulator-arm64-debug/libpthreadpool.a\"",
-      "\"#{cpuinfo_binaries_path}/libcpuinfo.a\"",
-    ].join(' '),
-
+    "OTHER_LDFLAGS[sdk=iphoneos*]"        => physical_ldflags.join(' '),
+    "OTHER_LDFLAGS[sdk=iphonesimulator*]" => simulator_ldflags.join(' '),
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
   }
 
   s.pod_target_xcconfig = {
     "USE_HEADERMAP" => "YES",
-    "HEADER_SEARCH_PATHS" =>
-      '"$(PODS_TARGET_SRCROOT)/ios" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/include" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/include" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/include/cpuinfo" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/include/pthreadpool" '+
-      '"$(PODS_TARGET_SRCROOT)/common" ' +
-      '"$(PODS_TARGET_SRCROOT)/third-party/common/phonemis/src" ',
-    "GCC_PREPROCESSOR_DEFINITIONS" => '$(inherited) ET_ON=1',
     "CLANG_CXX_LANGUAGE_STANDARD" => "c++20",
+    "OTHER_CPLUSPLUSFLAGS" => extra_compiler_flags.join(' '),
+    "GCC_PREPROCESSOR_DEFINITIONS" => [
+      "$(inherited)",
+      "EXECUTORCH_ENABLE_EXECUTION_PROFILING=1",
+    ].join(' '),
+    "HEADER_SEARCH_PATHS" => [
+      "\"$(PODS_TARGET_SRCROOT)/cpp\"",
+      # ==============================================================================
+      # LEGACY SUPPORT: legacy header search path (Remove when react-native-executorch/legacy is dropped)
+      # ==============================================================================
+      "\"$(PODS_TARGET_SRCROOT)/legacy/cpp\"",
+      # ==============================================================================
+      "\"$(PODS_TARGET_SRCROOT)/third-party/include\"",
+      "\"$(PODS_TARGET_SRCROOT)/third-party/include/cpuinfo\"",
+      "\"$(PODS_TARGET_SRCROOT)/third-party/include/pthreadpool\"",
+      "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/include\"",
+      "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/json/include\"",
+      "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/re2\"",
+      "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/abseil-cpp\"",
+      "\"$(PODS_TARGET_SRCROOT)/third-party/common/phonemis/src\"",
+    ].join(' '),
+    "WARNING_CFLAGS" => "-Wno-documentation",
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
   }
 
-  s.source_files = [
-    "ios/**/*.{m,mm,h}",
-    "common/**/*.{cpp,c,h,hpp}",
-    "third-party/common/phonemis/src/**/*.{cpp,hpp,h}",
-  ]
+  libs = ["z"]
+  libs << "sqlite3" if enable_coreml
+  s.libraries = libs
 
-  s.libraries = "z"
-  s.ios.vendored_frameworks = "third-party/ios/ExecutorchLib.xcframework"
+  system_frameworks = ["Accelerate"]
+  system_frameworks << "CoreML" if enable_coreml
+  # MLX needs Metal at runtime; the GPU kernels in mlx.metallib are compiled
+  # against the Metal toolchain.
+  system_frameworks += ["Metal", "MetalKit", "MetalPerformanceShaders"] if enable_mlx
+  s.frameworks = system_frameworks
 
-  # NOTE: mlx.metallib (the MLX GPU kernels) is bundled INSIDE
-  # ExecutorchLib.framework, colocated with the binary that contains the MLX
-  # code. MLX's runtime loader resolves the metallib relative to that binary
-  # (via dladdr), so it must live next to it in the framework — not at the app
-  # bundle root.
-  # Exclude file with tests to not introduce gtest dependency.
-  # Do not include the headers from common/rnexecutorch/jsi/ as source files.
-  # Xcode/Cocoapods leaks them to other pods that an app also depends on, so if
-  # another pod includes a header with the same name without a path by
-  # #include "Header.h" we get a conflict. Here, headers in jsi/ collide with
-  # react-native-skia. The headers are preserved by preserve_paths and
-  # then made available by HEADER_SEARCH_PATHS.
-  s.exclude_files = [
-    "common/rnexecutorch/tests/**/*",
-    "common/rnexecutorch/jsi/*.{h,hpp}",
-    "third-party/common/phonemis/src/phonemis/main.cpp" # Exclude the phonemis runner
-  ]
-  s.header_mappings_dir = "common/rnexecutorch"
-  s.header_dir = "rnexecutorch"
-  s.preserve_paths = "common/rnexecutorch/jsi/*.{h,hpp}"
+  # MLX runtime resolves its compiled GPU kernels via dladdr on a function symbol
+  # from libMLXBackend.a, then loads `mlx.metallib` from the same directory as
+  # that symbol's host binary. Because libMLXBackend.a is force-loaded into the
+  # app's main executable, the metallib has to land in the app bundle's main
+  # resource path. `s.ios.resource` achieves that via CocoaPods' resource copy.
+  s.ios.resource = "third-party/ios/libs/executorch/mlx.metallib" if enable_mlx
 
-  s.dependency "opencv-rne", "~> 4.11.0"
+  # Backend xcframeworks are linked via force_load in OTHER_LDFLAGS (needed to
+  # preserve __attribute__((constructor)) backend registrations). Only
+  # ExecutorchLib goes in vendored_frameworks to avoid duplicate symbol errors.
+  s.ios.vendored_frameworks = ["third-party/ios/ExecutorchLib.xcframework"]
+
+  # iOS OpenCV is provided by the opencv-rne CocoaPod (not a downloaded tarball).
+  s.dependency "opencv-rne", "~> 4.11.0" if enable_opencv
 
   install_modules_dependencies(s)
 end

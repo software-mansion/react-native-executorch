@@ -1,3 +1,6 @@
+// ==============================================================================
+// LEGACY SUPPORT: Android TurboModule for legacy ETInstaller (remove when legacy API is dropped)
+// ==============================================================================
 package com.swmansion.rnexecutorch
 
 import com.facebook.jni.HybridData
@@ -50,7 +53,11 @@ class ETInstaller(
   init {
     try {
       System.loadLibrary("executorch")
-      System.loadLibrary("react-native-executorch")
+      try {
+        System.loadLibrary("RnExecutorch")
+      } catch (e: UnsatisfiedLinkError) {
+        System.loadLibrary("react-native-executorch")
+      }
       val jsCallInvokerHolder = reactContext.jsCallInvokerHolder as CallInvokerHolderImpl
       mHybridData = initHybrid(reactContext.javaScriptContextHolder!!.get(), jsCallInvokerHolder)
     } catch (exception: UnsatisfiedLinkError) {

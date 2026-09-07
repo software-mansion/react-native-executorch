@@ -1,21 +1,33 @@
 #!/bin/bash
 
-# Builds ExecutorchLib.xcframework for iOS and iOS Simulator
+# Builds ExecutorchLib.xcframework for iOS and iOS Simulator, plus separate
+# static xcframeworks for optional backends (xnnpack, coreml, mlx).
 #
 # This script:
 # 1. Cleans previous builds
 # 2. Archives the framework for iOS device (arm64)
 # 3. Archives the framework for iOS Simulator (arm64)
 # 4. Combines both archives into a single .xcframework
+# 5. Creates XnnpackBackend.xcframework from the backend .a files
+# 6. Creates CoreMLBackend.xcframework from the backend .a files
+# 7. Creates MLXBackend.xcframework from the backend .a file (iOS device only —
+#    the iOS simulator cannot drive MLX-on-Metal, so no simulator slice is built)
 #
-# Output: ./output/ExecutorchLib.xcframework
+# Output:
+#   ./output/ExecutorchLib.xcframework
+#   ./output/XnnpackBackend.xcframework
+#   ./output/CoreMLBackend.xcframework
+#   ./output/MLXBackend.xcframework
 #
 # Usage: ./build.sh
 
+set -euo pipefail
+
 # --- Configuration ---
-PROJECT_NAME="ExecutorchLib" # Replace with your Xcode project name
-SCHEME_NAME="ExecutorchLib"  # Replace with your scheme name
-OUTPUT_FOLDER="output"       # Choose your desired output folder
+PROJECT_NAME="ExecutorchLib"
+SCHEME_NAME="ExecutorchLib"
+OUTPUT_FOLDER="output"
+LIBS_DIR="$(pwd)/../../../third-party/ios/libs/executorch"
 
 # --- Derived Variables ---
 BUILD_FOLDER="build"
@@ -25,8 +37,40 @@ FRAMEWORK_NAME="$SCHEME_NAME.framework"
 XCFRAMEWORK_NAME="$SCHEME_NAME.xcframework"
 XCFRAMEWORK_PATH="$OUTPUT_FOLDER/$XCFRAMEWORK_NAME"
 
+# --- KleidiAI ---
+# libkernels_torchao references kai_* symbols, and the framework is a dylib, so
+# they have to resolve at link time. ExecuTorch used to ship a standalone
+# libkleidiai_<platform>.a but no longer does: as of 1.4.1 the kai_* objects are
+# folded into libbackend_xnnpack, which ships as its own force_loaded
+# xcframework and is deliberately NOT linked here. Rebuild the standalone
+# archive from those objects when it is missing so the framework still links.
+for platform in ios simulator; do
+  kleidiai="$LIBS_DIR/libkleidiai_$platform.a"
+  xnnpack="$LIBS_DIR/libbackend_xnnpack_$platform.a"
+
+  if [ -f "$kleidiai" ] || [ ! -f "$xnnpack" ]; then
+    continue
+  fi
+
+  echo "Rebuilding $(basename "$kleidiai") from $(basename "$xnnpack")"
+  staging=$(mktemp -d)
+  (
+    cd "$staging"
+    ar x "$xnnpack"
+    kai_objects=$(ls | grep -i '^kai_' || true)
+    if [ -z "$kai_objects" ]; then
+      echo "  No kai_* objects found; leaving it to the linker to complain." >&2
+      exit 0
+    fi
+    # shellcheck disable=SC2086
+    xcrun ar rcs "$kleidiai" $kai_objects
+  )
+  rm -rf "$staging"
+done
+
 # --- Script ---
 rm -rf "$BUILD_FOLDER" "$OUTPUT_FOLDER"
+mkdir -p "$OUTPUT_FOLDER"
 
 xcodebuild clean -project "$PROJECT_NAME.xcodeproj" -scheme "$SCHEME_NAME"
 
@@ -54,3 +98,42 @@ xcodebuild -create-xcframework \
   -framework "$ARCHIVE_PATH_IOS.xcarchive/Products/Library/Frameworks/$FRAMEWORK_NAME" \
   -framework "$ARCHIVE_PATH_SIMULATOR.xcarchive/Products/Library/Frameworks/$FRAMEWORK_NAME" \
   -output "$XCFRAMEWORK_PATH"
+
+# --- Build XnnpackBackend.xcframework ---
+# CocoaPods requires matching binary names across slices
+STAGING=$(mktemp -d)
+mkdir -p "$STAGING/ios" "$STAGING/sim"
+cp "$LIBS_DIR/libbackend_xnnpack_ios.a" "$STAGING/ios/libXnnpackBackend.a"
+cp "$LIBS_DIR/libbackend_xnnpack_simulator.a" "$STAGING/sim/libXnnpackBackend.a"
+xcodebuild -create-xcframework \
+  -library "$STAGING/ios/libXnnpackBackend.a" \
+  -library "$STAGING/sim/libXnnpackBackend.a" \
+  -output "$OUTPUT_FOLDER/XnnpackBackend.xcframework"
+
+# --- Build CoreMLBackend.xcframework ---
+cp "$LIBS_DIR/libbackend_coreml_ios.a" "$STAGING/ios/libCoreMLBackend.a"
+cp "$LIBS_DIR/libbackend_coreml_simulator.a" "$STAGING/sim/libCoreMLBackend.a"
+xcodebuild -create-xcframework \
+  -library "$STAGING/ios/libCoreMLBackend.a" \
+  -library "$STAGING/sim/libCoreMLBackend.a" \
+  -output "$OUTPUT_FOLDER/CoreMLBackend.xcframework"
+
+# --- Build MLXBackend.xcframework (iOS device only) ---
+# MLX uses Metal APIs absent from iPhoneSimulator.sdk and the iOS simulator
+# cannot drive MLX-on-Metal, so we build and ship the device slice only.
+if [ -f "$LIBS_DIR/libbackend_mlx_ios.a" ]; then
+  cp "$LIBS_DIR/libbackend_mlx_ios.a" "$STAGING/ios/libMLXBackend.a"
+  xcodebuild -create-xcframework \
+    -library "$STAGING/ios/libMLXBackend.a" \
+    -output "$OUTPUT_FOLDER/MLXBackend.xcframework"
+  echo "Built MLXBackend.xcframework (device slice only)"
+else
+  echo "Skipped MLXBackend.xcframework (libbackend_mlx_ios.a not present)"
+fi
+rm -rf "$STAGING"
+
+echo "Done! Output:"
+echo "  $OUTPUT_FOLDER/ExecutorchLib.xcframework"
+echo "  $OUTPUT_FOLDER/XnnpackBackend.xcframework"
+echo "  $OUTPUT_FOLDER/CoreMLBackend.xcframework"
+[ -d "$OUTPUT_FOLDER/MLXBackend.xcframework" ] && echo "  $OUTPUT_FOLDER/MLXBackend.xcframework" || true

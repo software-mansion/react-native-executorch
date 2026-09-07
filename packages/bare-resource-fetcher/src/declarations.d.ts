@@ -40,11 +40,7 @@ declare module '@kesha-antonov/react-native-background-downloader' {
   export function completeHandler(jobId: string): void;
 
   const RNBackgroundDownloader: {
-    download(options: {
-      id: string;
-      url: string;
-      destination: string;
-    }): DownloadTask;
+    download(options: { id: string; url: string; destination: string }): DownloadTask;
     directories: { documents: string; library: string; temp: string };
   };
   export default RNBackgroundDownloader;

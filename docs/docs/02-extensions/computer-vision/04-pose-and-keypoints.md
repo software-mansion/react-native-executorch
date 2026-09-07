@@ -1,0 +1,243 @@
+---
+title: Pose & Keypoints
+slug: /extensions/pose-and-keypoints
+description: 'Detect skeletal body keypoints and facial landmarks in real time with bounding boxes using models like YOLO26 Pose and BlazeFace.'
+keywords:
+  [
+    react native,
+    pose estimation,
+    keypoint detection,
+    facial landmarks,
+    body tracking,
+    blazeface,
+    yolo26 pose,
+    coco landmarks,
+    mobile ml,
+    on-device ai,
+  ]
+---
+
+# Pose & Keypoints
+
+Pose estimation and keypoint detection locate specific anatomical landmarks on detected subjects — such as human skeletal joints (eyes, shoulders, elbows, wrists, hips, knees, ankles) or facial landmarks (eyes, nose tip, mouth, ears). Each prediction outputs a subject bounding box, detection confidence, and landmark coordinates scaled to the input image with individual landmark confidence scores.
+
+Unlike basic object detection (which only returns box boundaries), keypoint detection tracks body posture, movement, and facial alignment. Common use cases include fitness/workout tracking, gesture controls, motion analysis, face alignment, and AR filters.
+
+<table className="showcase-table">
+  <thead>
+    <tr>
+      <th>iOS</th>
+      <th>Android</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div className="device-phone iphone-chassis">
+          <div className="device-screen iphone-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/pose-and-keypoints-ios.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+      <td>
+        <div className="device-phone s24-chassis">
+          <div className="s24-camera-hole"></div>
+          <div className="device-screen s24-screen">
+            <video
+              className="device-video"
+              src="/react-native-executorch/media/pose-and-keypoints-android.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+## Quick Start
+
+The [`useKeypointDetector`](../../06-api-reference/functions/useKeypointDetector.md) hook manages model downloading, initialization, and lifecycle:
+
+```tsx
+import { models, useKeypointDetector } from 'react-native-executorch';
+import type { ImageBuffer } from 'react-native-executorch/cv';
+
+function MyComponent() {
+  const detector = useKeypointDetector(models.keypointDetection.YOLO26_POSE.DEFAULT);
+
+  // Hook state:
+  // detector.isReady          — true once model is downloaded and loaded in memory
+  // detector.downloadProgress — 0 to 100 download progress
+  // detector.error            — Error instance if download or load failed
+  // detector.resource         — resolved config with all URLs replaced by local file paths
+
+  const handleDetect = async (imageBuffer: ImageBuffer) => {
+    if (!detector.isReady || !detector.detectKeypoints) return;
+
+    // Run inference on background thread
+    const detections = await detector.detectKeypoints(imageBuffer, {
+      confidenceThreshold: 0.25,
+      iouThreshold: 0.7,
+    });
+    console.log('Detected poses:', detections);
+  };
+
+  // Trigger handleDetect from an image picker, button press, or camera frame
+}
+```
+
+:::tip Full Interactive Example in Gallery App
+See [`src/app/(screens)/keypoint-detection.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/keypoint-detection.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen with photo picker, skeleton keypoint overlays, and latency tracking.
+:::
+
+## Output Format
+
+[`detectKeypoints()`](../../06-api-reference/type-aliases/KeypointDetector.md#detectkeypoints) returns an array of [`KeypointDetection`](../../06-api-reference/type-aliases/KeypointDetection.md) objects:
+
+```typescript
+type KeypointDetection<F extends BoxFormat = 'xyxy', L extends PropertyKey = string> = {
+  /** Scaled bounding box coordinates matching the input image resolution */
+  readonly box: BoundingBox<F>;
+  /** Overall detection confidence score (between 0.0 and 1.0) */
+  readonly confidence: number;
+  /** Map of landmark names to their pixel coordinates and confidence scores */
+  readonly landmarks: Record<L, { x: number; y: number; confidence: number }>;
+};
+```
+
+For human pose models ([`YOLO26_POSE`](../../06-api-reference/variables/models.md#keypointdetectionyolo26_pose)), [`landmarks`](../../06-api-reference/type-aliases/KeypointDetection.md#landmarks) includes 17 [`COCO_LANDMARKS`](../../06-api-reference/variables/COCO_LANDMARKS.md) body points:
+
+```typescript
+[
+  {
+    box: { format: 'xyxy', xmin: 45.2, ymin: 12.0, xmax: 310.5, ymax: 580.0 },
+    confidence: 0.93,
+    landmarks: {
+      nose: { x: 178.4, y: 85.2, confidence: 0.97 },
+      leftEye: { x: 190.1, y: 75.4, confidence: 0.95 },
+      rightEye: { x: 165.8, y: 76.0, confidence: 0.94 },
+      leftEar: { x: 205.3, y: 80.1, confidence: 0.91 },
+      rightEar: { x: 150.2, y: 81.0, confidence: 0.9 },
+      // ... 12 more COCO landmarks (shoulders → ankles)
+    },
+  },
+];
+```
+
+For face models ([`BLAZEFACE`](../../06-api-reference/variables/models.md#keypointdetectionblazeface)), [`landmarks`](../../06-api-reference/type-aliases/KeypointDetection.md#landmarks) includes 6 facial points from [`BLAZEFACE_LANDMARKS`](../../06-api-reference/variables/BLAZEFACE_LANDMARKS.md): `leftEye`, `rightEye`, `noseTip`, `mouthCenter`, `leftEar`, `rightEar`.
+
+## Configuration & Options
+
+Pass a [`DetectKeypointsOptions`](../../06-api-reference/type-aliases/DetectKeypointsOptions.md) object to [`detectKeypoints()`](../../06-api-reference/type-aliases/KeypointDetector.md#detectkeypoints) to override model defaults:
+
+| Option                                                                                                     | Type     | Default                     | Description                                                     |
+| :--------------------------------------------------------------------------------------------------------- | :------- | :-------------------------- | :-------------------------------------------------------------- |
+| [`confidenceThreshold`](../../06-api-reference/type-aliases/DetectKeypointsOptions.md#confidencethreshold) | `number` | Model default (e.g. `0.25`) | Minimum confidence score for a detected subject to be retained. |
+| [`iouThreshold`](../../06-api-reference/type-aliases/DetectKeypointsOptions.md#iouthreshold)               | `number` | Model default (e.g. `0.7`)  | Non-Maximum Suppression (NMS) IoU overlap threshold.            |
+
+## Imperative API
+
+For background tasks, headless services, or manual lifecycle management outside React components, create the detector using [`createKeypointDetector`](../../06-api-reference/functions/createKeypointDetector.md):
+
+```typescript
+import { createKeypointDetector, download, models } from 'react-native-executorch';
+
+// Download and cache model assets before creating the pipeline
+const model = await download(models.keypointDetection.YOLO26_POSE.DEFAULT);
+const detector = await createKeypointDetector(model);
+
+try {
+  const poses = await detector.detectKeypoints(imageBuffer, {
+    confidenceThreshold: 0.3,
+  });
+  console.log('Detected poses:', poses);
+} finally {
+  // Always release native resources when finished
+  detector.dispose();
+}
+```
+
+## Synchronous Execution
+
+For real-time camera tracking and live fitness apps, [`createKeypointDetector`](../../06-api-reference/functions/createKeypointDetector.md) exposes a synchronous [`detectKeypointsWorklet`](../../06-api-reference/type-aliases/KeypointDetector.md#detectkeypointsworklet) function. This runs directly on the worklet thread with zero Promise scheduling overhead:
+
+```typescript
+// Called synchronously inside a VisionCamera frame processor on the UI worklet thread
+const poses = detector.detectKeypointsWorklet(frameBuffer, {
+  confidenceThreshold: 0.3,
+});
+```
+
+See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.md) for details on worklet execution contexts and zero-copy host objects.
+
+## Available Models
+
+The library provides ready-to-use pose and landmark detectors from the [Software Mansion HuggingFace Pose Estimation Collection](https://huggingface.co/collections/software-mansion/keypoint-detection), available in [`models.keypointDetection`](../../06-api-reference/variables/models.md#keypointdetection):
+
+| Model Family            | Variants                                                                           | Keypoints Detected                                                                                          | Size Range          | Supported Backends                          | Notes                                                                                         |
+| :---------------------- | :--------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- | :------------------ | :------------------------------------------ | :-------------------------------------------------------------------------------------------- |
+| **MediaPipe BlazeFace** | [See](../../06-api-reference/variables/models.md#keypointdetectionblazeface)       | [`BLAZEFACE_LANDMARKS`](../../06-api-reference/variables/BLAZEFACE_LANDMARKS.md) (6 facial landmarks + box) | 0.6 MB              | XNNPACK (CPU)                               | Ultra-lightweight face bounding box & eye/ear/nose/mouth keypoint tracking (sub-millisecond). |
+| **YOLO26 Pose**         | [See](../../06-api-reference/variables/models.md#keypointdetectionyolo26_pose)     | [`COCO_LANDMARKS`](../../06-api-reference/variables/COCO_LANDMARKS.md) (17 body keypoints)                  | 11.4 MB             | XNNPACK (CPU), Core ML (Apple)              | Real-time multi-person full-body skeletal tracking across multiple input resolutions.         |
+| **RF-DETR Keypoint**    | [See](../../06-api-reference/variables/models.md#keypointdetectionrfdetr_keypoint) | [`COCO_LANDMARKS`](../../06-api-reference/variables/COCO_LANDMARKS.md) (17 body keypoints)                  | 138.6 MB – 140.9 MB | XNNPACK (CPU), Core ML (Apple), MLX (Apple) | High-accuracy body keypoint detection transformer for complex, occluded poses.                |
+
+:::tip Using Custom Models
+To use your own fine-tuned pose or landmark detection `.pte` model, pass a [`KeypointDetectorModel`](../../06-api-reference/type-aliases/KeypointDetectorModel.md) configuration object to [`useKeypointDetector`](../../06-api-reference/functions/useKeypointDetector.md) or [`createKeypointDetector`](../../06-api-reference/functions/createKeypointDetector.md):
+
+```typescript
+const customDetector = await createKeypointDetector({
+  modelPath: 'https://example.com/my-pose-model.pte',
+  modelOpts: {
+    landmarks: ['head', 'leftHand', 'rightHand'],
+    boxFormat: 'xyxy',
+    resizeMode: 'letterbox',
+    interpolation: 'linear',
+    normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
+    defaultConfidenceThreshold: 0.3,
+    defaultIouThreshold: 0.6,
+  },
+});
+```
+
+The pipeline automatically verifies that the model's exported input and output shapes match its requirements. To prepare and export your own `.pte` model to match this pipeline, see [Exporting Custom Models](../../03-core-and-advanced/07-exporting-custom-models.md#using-a-built-in-pipeline).
+:::
+
+## API Reference
+
+### Hooks & Pipelines
+
+- [`useKeypointDetector()`](../../06-api-reference/functions/useKeypointDetector.md) — React hook for keypoint detector downloading, state, and lifecycle.
+- [`createKeypointDetector()`](../../06-api-reference/functions/createKeypointDetector.md) — Imperative factory for keypoint and pose detection pipelines.
+
+### Types & Options
+
+- [`KeypointDetector`](../../06-api-reference/type-aliases/KeypointDetector.md) — Keypoint detector runner interface (`detectKeypoints`, [`detectKeypointsWorklet`](../../06-api-reference/type-aliases/KeypointDetector.md#detectkeypointsworklet)).
+- [`KeypointDetection`](../../06-api-reference/type-aliases/KeypointDetection.md) — Detection result structure containing `box`, `confidence`, and `landmarks`.
+- [`DetectKeypointsOptions`](../../06-api-reference/type-aliases/DetectKeypointsOptions.md) — Detection options (`confidenceThreshold`, `iouThreshold`).
+- [`KeypointDetectorModel`](../../06-api-reference/type-aliases/KeypointDetectorModel.md) — Model configuration spec for pose and landmark models.
+- [`KeypointDetectorOptions`](../../06-api-reference/type-aliases/KeypointDetectorOptions.md) — Options defining landmark names, box format, and normalization.
+- [`Landmarks`](../../06-api-reference/type-aliases/Landmarks.md) — Record of landmark names mapped to `{ x, y, confidence }`.
+- [`BoundingBox`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/BoundingBox.md) — Bounding box structure.
+- [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) — Input image buffer structure.
+
+### Model Presets & Constants
+
+- [`models.keypointDetection`](../../06-api-reference/variables/models.md#keypointdetection) — Pre-configured keypoint and pose models registry.
+- [`COCO_LANDMARKS`](../../06-api-reference/variables/COCO_LANDMARKS.md) — List of 17 standard COCO skeletal body keypoints.
+- [`BLAZEFACE_LANDMARKS`](../../06-api-reference/variables/BLAZEFACE_LANDMARKS.md) — List of 6 standard BlazeFace facial landmarks.
+
+:::info Source Code
+View the implementation on GitHub:
+
+- [`src/extensions/cv/tasks/keypointDetection.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/cv/tasks/keypointDetection.ts)
+  :::

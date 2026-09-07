@@ -41,12 +41,8 @@ import {
   RnExecutorchErrorCode,
   RnExecutorchError,
   BaseResourceFetcherClass,
-} from 'react-native-executorch';
-import {
-  ResourceFetcherUtils,
-  HTTP_CODE,
-  DownloadStatus,
-} from './ResourceFetcherUtils';
+} from 'react-native-executorch/legacy';
+import { ResourceFetcherUtils, HTTP_CODE, DownloadStatus } from './ResourceFetcherUtils';
 import {
   type ActiveDownload,
   handleObject,
@@ -113,8 +109,7 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
 
     if (
       !result ||
-      (result.status !== HTTP_CODE.OK &&
-        result.status !== HTTP_CODE.PARTIAL_CONTENT)
+      (result.status !== HTTP_CODE.OK && result.status !== HTTP_CODE.PARTIAL_CONTENT)
     ) {
       this.downloads.delete(source);
       downloadHandle.reject(
@@ -131,9 +126,7 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
       to: downloadHandle.fileUri,
     });
     this.downloads.delete(source);
-    downloadHandle.resolve(
-      ResourceFetcherUtils.removeFilePrefix(downloadHandle.fileUri)
-    );
+    downloadHandle.resolve(ResourceFetcherUtils.removeFilePrefix(downloadHandle.fileUri));
   }
 
   protected async cancel(source: ResourceSource): Promise<void> {
@@ -141,10 +134,7 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
     await downloadHandle.downloadResumable.cancelAsync();
     this.downloads.delete(source);
     downloadHandle.reject(
-      new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'Download was canceled.'
-      )
+      new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted, 'Download was canceled.')
     );
   }
 
@@ -174,9 +164,7 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
    */
   async deleteResources(...sources: ResourceSource[]): Promise<void> {
     for (const source of sources) {
-      const filename = ResourceFetcherUtils.getFilenameFromUri(
-        source as string
-      );
+      const filename = ResourceFetcherUtils.getFilenameFromUri(source as string);
       const fileUri = `${RNEDirectory}${filename}`;
       if (await ResourceFetcherUtils.checkFileExists(fileUri)) {
         await deleteAsync(fileUri);

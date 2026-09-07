@@ -1,106 +1,74 @@
 import { useRouter } from 'expo-router';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import ColorPalette from '../colors';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ColorPalette } from '../theme';
 import ExecutorchLogo from '../assets/icons/executorch.svg';
 
 export default function Home() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.container}>
+    // The list is taller than the viewport on shorter phones, so it scrolls
+    // rather than running under the system navigation bar.
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[styles.container, { paddingBottom: insets.bottom + 20 }]}
+    >
       <ExecutorchLogo width={64} height={64} />
       <Text style={styles.headerText}>Select a demo model</Text>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('vision_camera/')}
-        >
-          <Text style={styles.buttonText}>Vision Camera</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('classification/')}
-        >
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('classification/')}>
           <Text style={styles.buttonText}>Classification</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('semantic_segmentation/')}
-        >
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('imageEmbeddings/')}>
+          <Text style={styles.buttonText}>Image Embeddings</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('detection/')}>
+          <Text style={styles.buttonText}>Object Detection</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('styleTransfer/')}>
+          <Text style={styles.buttonText}>Style Transfer</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('textToImage/')}>
+          <Text style={styles.buttonText}>Text to Image</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('segmentation/')}>
           <Text style={styles.buttonText}>Semantic Segmentation</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.navigate('object_detection/')}
-        >
-          <Text style={styles.buttonText}>Object Detection</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('instance_segmentation/')}
+          onPress={() => router.navigate('instanceSegmentation/')}
         >
           <Text style={styles.buttonText}>Instance Segmentation</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('pose_estimation/')}
-        >
-          <Text style={styles.buttonText}>Pose Estimation</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('keypoint/')}>
+          <Text style={styles.buttonText}>Keypoint Detection</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('segment_anything/')}
-        >
-          <Text style={styles.buttonText}>Segment Anything</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('ocr/')}
-        >
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('ocr/')}>
           <Text style={styles.buttonText}>OCR</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('ocr_vertical/')}
-        >
-          <Text style={styles.buttonText}>OCR Vertical</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('style_transfer/')}
-        >
-          <Text style={styles.buttonText}>Style Transfer</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('text_to_image/')}
-        >
-          <Text style={styles.buttonText}>Image Generation</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('inspect/')}>
+          <Text style={styles.buttonText}>Model Inspector</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
-export const fontSizes = {
-  xxl: 34,
-  xl: 22,
-  lg: 18,
-  md: 16,
-  sm: 14,
-  xs: 12,
-  xxs: 10,
-};
-
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#fff',
   },
+  container: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 20,
+  },
   headerText: {
-    fontSize: fontSizes.lg,
+    fontSize: 18,
     color: ColorPalette.strongPrimary,
     margin: 20,
   },
@@ -112,12 +80,13 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: ColorPalette.strongPrimary,
     borderRadius: 8,
-    padding: 10,
+    padding: 14,
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   buttonText: {
     color: 'white',
-    fontSize: fontSizes.md,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

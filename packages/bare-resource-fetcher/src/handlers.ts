@@ -11,7 +11,7 @@ import {
   ResourceSource,
   RnExecutorchErrorCode,
   RnExecutorchError,
-} from 'react-native-executorch';
+} from 'react-native-executorch/legacy';
 import { RNEDirectory } from './constants/directories';
 import { ResourceFetcherUtils, DownloadStatus } from './ResourceFetcherUtils';
 
@@ -91,16 +91,7 @@ export async function handleAsset(
 }
 
 function startAndroidDownload(ctx: DownloadContext): void {
-  const {
-    uri,
-    source,
-    fileUri,
-    cacheFileUri,
-    progressCallback,
-    downloads,
-    resolve,
-    reject,
-  } = ctx;
+  const { uri, source, fileUri, cacheFileUri, progressCallback, downloads, resolve, reject } = ctx;
 
   const rnfsDownload = RNFS.downloadFile({
     fromUrl: uri,
@@ -162,16 +153,7 @@ function startAndroidDownload(ctx: DownloadContext): void {
 }
 
 function startIOSDownload(ctx: DownloadContext): void {
-  const {
-    uri,
-    source,
-    fileUri,
-    cacheFileUri,
-    progressCallback,
-    downloads,
-    resolve,
-    reject,
-  } = ctx;
+  const { uri, source, fileUri, cacheFileUri, progressCallback, downloads, resolve, reject } = ctx;
   const filename = cacheFileUri.split('/').pop()!;
 
   const task = createDownloadTask({
@@ -186,8 +168,7 @@ function startIOSDownload(ctx: DownloadContext): void {
     .done(async () => {
       const downloadHandle = downloads.get(source);
       // If paused or canceled, resolve/reject will be called externally — do nothing here.
-      if (!downloadHandle || downloadHandle.status === DownloadStatus.PAUSED)
-        return;
+      if (!downloadHandle || downloadHandle.status === DownloadStatus.PAUSED) return;
 
       try {
         await RNFS.moveFile(cacheFileUri, fileUri);

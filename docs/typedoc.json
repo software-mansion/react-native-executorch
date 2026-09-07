@@ -1,8 +1,43 @@
 {
-  "gitRevision": "main",
+  "_todo": "Switch back to main once the rne-rewrite branch is merged into main",
+  "gitRevision": "rne-rewrite",
   "skipErrorChecking": true,
   "compilerOptions": {
     "skipLibCheck": true
   },
-  "excludeExternals": true
+  "excludeExternals": true,
+  "validation": {
+    "invalidLink": true,
+    "notExported": true
+  },
+  "categoryOrder": [
+    "Hooks",
+    "Models",
+    "Modules",
+    "Core / Functions",
+    "Core / Types",
+    "Core / Constants",
+    "Core / Schema / Functions",
+    "Core / Schema / Types",
+    "CV / Tasks",
+    "CV / Functions",
+    "CV / Types",
+    "CV / Constants",
+    "LLM / Tasks",
+    "LLM / Functions",
+    "LLM / Types",
+    "NLP / Tasks",
+    "NLP / Functions",
+    "NLP / Types",
+    "NLP / Constants",
+    "Speech / Tasks",
+    "Speech / Functions",
+    "Speech / Types",
+    "Speech / Constants",
+    "Math / Functions",
+    "Math / Types",
+    "Utils / Functions",
+    "Utils / Types",
+    "*"
+  ]
 }

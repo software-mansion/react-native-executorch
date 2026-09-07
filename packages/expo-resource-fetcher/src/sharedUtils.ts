@@ -11,14 +11,13 @@ import {
   Logger,
   ResourceFetcherUtils as CoreUtils,
   SourceType,
-} from 'react-native-executorch';
+} from 'react-native-executorch/legacy';
 import { Asset } from 'expo-asset';
 
 export const removeFilePrefix = CoreUtils.removeFilePrefix;
 export const hashObject = CoreUtils.hashObject;
 export const calculateDownloadProgress = CoreUtils.calculateDownloadProgress;
-export const triggerHuggingFaceDownloadCounter =
-  CoreUtils.triggerHuggingFaceDownloadCounter;
+export const triggerHuggingFaceDownloadCounter = CoreUtils.triggerHuggingFaceDownloadCounter;
 export const triggerDownloadEvent = CoreUtils.triggerDownloadEvent;
 export const getFilenameFromUri = CoreUtils.getFilenameFromUri;
 

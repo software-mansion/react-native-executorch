@@ -192,3 +192,171 @@ table thead tr {
 .hide-api-items .menu__link--sublist::after {
   display: none !important;
 }
+
+/* ==========================================================================
+   Showcase Device Frames (Table with no borders)
+   ========================================================================== */
+
+table.showcase-table,
+.showcase-table table,
+.markdown table.showcase-table {
+  border: none !important;
+  background: none !important;
+  background-color: transparent !important;
+  margin: 1.5rem auto 2.5rem auto !important;
+  border-collapse: separate !important;
+  border-spacing: 2.5rem 0 !important;
+  display: table !important;
+  width: auto !important;
+}
+
+table.showcase-table thead,
+table.showcase-table tbody,
+table.showcase-table tr,
+table.showcase-table th,
+table.showcase-table td,
+.showcase-table thead,
+.showcase-table tbody,
+.showcase-table tr,
+.showcase-table th,
+.showcase-table td,
+.markdown table.showcase-table thead,
+.markdown table.showcase-table tbody,
+.markdown table.showcase-table tr,
+.markdown table.showcase-table th,
+.markdown table.showcase-table td,
+.markdown table.showcase-table tr:nth-child(2n) {
+  border: none !important;
+  background: none !important;
+  background-color: transparent !important;
+  padding: 0.5rem 1rem !important;
+  text-align: center !important;
+  vertical-align: top !important;
+  box-shadow: none !important;
+}
+
+table.showcase-table thead tr,
+.showcase-table thead tr,
+.markdown table.showcase-table thead tr {
+  border: none !important;
+  border-bottom: none !important;
+  background: none !important;
+  background-color: transparent !important;
+}
+
+table.showcase-table th,
+.showcase-table th,
+.markdown table.showcase-table th {
+  border: none !important;
+  background: none !important;
+  background-color: transparent !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  color: var(--ifm-color-emphasis-800) !important;
+  padding-bottom: 0.85rem !important;
+}
+
+/* Base phone chassis */
+.device-phone {
+  position: relative;
+  width: 216px;
+  height: 468px;
+  box-sizing: border-box;
+  background-color: #121418;
+  box-shadow:
+    0 12px 36px rgba(0, 0, 0, 0.45),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* iPhone 16 Pro Natural Titanium Chassis */
+.iphone-chassis {
+  border-radius: 40px;
+  border: 2px solid #8e95a5;
+  padding: 6px;
+  background: #232730;
+}
+
+/* Side button accents for iPhone */
+.iphone-chassis::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 90px;
+  width: 3px;
+  height: 24px;
+  background: #656c7c;
+  border-radius: 2px;
+  box-shadow:
+    0 35px 0 #656c7c,
+    0 80px 0 #656c7c;
+}
+.iphone-chassis::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 120px;
+  width: 3px;
+  height: 42px;
+  background: #656c7c;
+  border-radius: 2px;
+}
+
+/* Samsung Galaxy S24 Flat Armor Aluminum Chassis */
+.s24-chassis {
+  border-radius: 26px;
+  border: 2px solid #7e8594;
+  padding: 6px;
+  background: #1e2024;
+}
+
+/* S24 Buttons on Right Edge */
+.s24-chassis::before {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 110px;
+  width: 3px;
+  height: 48px;
+  background: #656c7c;
+  border-radius: 2px;
+  box-shadow: 0 65px 0 #656c7c;
+}
+
+/* Screen viewport clipping */
+.device-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #000000;
+}
+
+.iphone-screen {
+  border-radius: 34px;
+}
+
+.s24-screen {
+  border-radius: 20px;
+}
+
+.device-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* S24 Center Camera Hole-punch */
+.s24-camera-hole {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  background-color: #000000;
+  border: 1px solid #14171d;
+  border-radius: 50%;
+  z-index: 10;
+  pointer-events: none;
+}

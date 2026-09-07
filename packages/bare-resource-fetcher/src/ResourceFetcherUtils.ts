@@ -8,7 +8,7 @@ import {
   SourceType,
   RnExecutorchError,
   RnExecutorchErrorCode,
-} from 'react-native-executorch';
+} from 'react-native-executorch/legacy';
 import { Image } from 'react-native';
 import * as RNFS from '@dr.pogodin/react-native-fs';
 
@@ -22,8 +22,7 @@ export namespace ResourceFetcherUtils {
   export const removeFilePrefix = CoreUtils.removeFilePrefix;
   export const hashObject = CoreUtils.hashObject;
   export const calculateDownloadProgress = CoreUtils.calculateDownloadProgress;
-  export const triggerHuggingFaceDownloadCounter =
-    CoreUtils.triggerHuggingFaceDownloadCounter;
+  export const triggerHuggingFaceDownloadCounter = CoreUtils.triggerHuggingFaceDownloadCounter;
   export const triggerDownloadEvent = CoreUtils.triggerDownloadEvent;
   export const getFilenameFromUri = CoreUtils.getFilenameFromUri;
 
@@ -60,9 +59,7 @@ export namespace ResourceFetcherUtils {
         if (type === SourceType.REMOTE_FILE && typeof source === 'string') {
           const response = await fetch(source, { method: 'HEAD' });
           if (!response.ok) {
-            Logger.warn(
-              `Failed to fetch HEAD for ${source}: ${response.status}`
-            );
+            Logger.warn(`Failed to fetch HEAD for ${source}: ${response.status}`);
             continue;
           }
 

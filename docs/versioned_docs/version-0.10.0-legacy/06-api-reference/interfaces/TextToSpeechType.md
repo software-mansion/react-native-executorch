@@ -1,0 +1,146 @@
+# Interface: TextToSpeechType
+
+Defined in: [types/tts.ts:99](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/types/tts.ts#L99)
+
+Return type for the `useTextToSpeech` hook.
+Manages the state and operations for Text-to-Speech generation.
+
+## Properties
+
+### downloadProgress
+
+> **downloadProgress**: `number`
+
+Defined in: [types/tts.ts:118](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/types/tts.ts#L118)
+
+Represents the download progress of the model and voice assets as a value between 0 and 1.
+
+---
+
+### error
+
+> **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
+
+Defined in: [types/tts.ts:103](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/types/tts.ts#L103)
+
+Contains the error object if the model failed to load or encountered an error during inference.
+
+---
+
+### forward()
+
+> **forward**: (`input`) => `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
+
+Defined in: [types/tts.ts:126](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/types/tts.ts#L126)
+
+Runs the model to convert the provided text into speech audio in a single pass.
+
+#### Parameters
+
+##### input
+
+[`TextToSpeechInput`](TextToSpeechInput.md)
+
+The `TextToSpeechInput` object containing the `text` to synthesize and optional `speed`.
+
+#### Returns
+
+`Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
+
+A Promise that resolves with the generated audio data (typically a `Float32Array`).
+
+#### Throws
+
+If the model is not loaded or is currently generating.
+
+---
+
+### isGenerating
+
+> **isGenerating**: `boolean`
+
+Defined in: [types/tts.ts:113](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/types/tts.ts#L113)
+
+Indicates whether the model is currently generating audio.
+
+---
+
+### isReady
+
+> **isReady**: `boolean`
+
+Defined in: [types/tts.ts:108](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/types/tts.ts#L108)
+
+Indicates whether the Text-to-Speech model is loaded and ready to accept inputs.
+
+---
+
+### stream()
+
+> **stream**: (`input`) => `Promise`\<`void`\>
+
+Defined in: [types/tts.ts:135](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/types/tts.ts#L135)
+
+Streams the generated audio data incrementally.
+This is optimal for real-time playback, allowing audio to start playing before the full text is synthesized.
+
+#### Parameters
+
+##### input
+
+[`TextToSpeechStreamingInput`](TextToSpeechStreamingInput.md)
+
+The `TextToSpeechStreamingInput` object containing `text`, optional `speed`, and lifecycle callbacks (`onBegin`, `onNext`, `onEnd`).
+
+#### Returns
+
+`Promise`\<`void`\>
+
+A Promise that resolves when the streaming process is complete.
+
+#### Throws
+
+If the model is not loaded or is currently generating.
+
+---
+
+### streamInsert()
+
+> **streamInsert**: (`textChunk`) => `void`
+
+Defined in: [types/tts.ts:140](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/types/tts.ts#L140)
+
+Inserts new text chunk into the buffer to be processed in streaming mode.
+
+#### Parameters
+
+##### textChunk
+
+`string`
+
+#### Returns
+
+`void`
+
+---
+
+### streamStop()
+
+> **streamStop**: (`instant?`) => `void`
+
+Defined in: [types/tts.ts:147](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/types/tts.ts#L147)
+
+Interrupts and stops the currently active audio generation stream.
+
+#### Parameters
+
+##### instant?
+
+`boolean`
+
+If true, stops the streaming as soon as possible. Otherwise
+allows the module to complete processing for the remains of the buffer.
+
+#### Returns
+
+`void`

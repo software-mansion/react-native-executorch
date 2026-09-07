@@ -1,0 +1,72 @@
+import { useRouter } from 'expo-router';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { ColorPalette } from '../theme';
+import ExecutorchLogo from '../assets/icons/executorch.svg';
+
+export default function Home() {
+  const router = useRouter();
+
+  return (
+    <View style={styles.container}>
+      <ExecutorchLogo width={64} height={64} />
+      <Text style={styles.headerText}>Select a demo</Text>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('vad/')}>
+          <Text style={styles.buttonText}>Voice Activity Detection</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.navigate('microphone-transcription/')}
+        >
+          <Text style={styles.buttonText}>Live Transcription (Mic)</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.navigate('audio-file-transcription/')}
+        >
+          <Text style={styles.buttonText}>Transcribe Audio File</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('text-to-speech/')}>
+          <Text style={styles.buttonText}>Text-to-Speech (SuperTonic)</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.navigate('kokoro-text-to-speech/')}
+        >
+          <Text style={styles.buttonText}>Text-to-Speech (Kokoro)</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  headerText: {
+    fontSize: 18,
+    color: ColorPalette.strongPrimary,
+    margin: 20,
+  },
+  buttonContainer: {
+    width: '80%',
+    justifyContent: 'space-evenly',
+    marginBottom: 20,
+  },
+  button: {
+    backgroundColor: ColorPalette.strongPrimary,
+    borderRadius: 8,
+    padding: 14,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
