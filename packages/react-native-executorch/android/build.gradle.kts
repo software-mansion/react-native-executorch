@@ -2,8 +2,16 @@ import groovy.json.JsonSlurper
 
 plugins {
     id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    // Kept on the classpath but not applied here: AGP 9 ships built-in Kotlin
+    // support and registers the `kotlin` extension itself, so applying the
+    // Kotlin plugin on top fails with "Cannot add extension with name
+    // 'kotlin'". Applied conditionally below instead.
+    id("org.jetbrains.kotlin.android") apply false
     id("com.facebook.react")
+}
+
+if (project.extensions.findByName("kotlin") == null) {
+    apply(plugin = "org.jetbrains.kotlin.android")
 }
 
 /**
@@ -116,9 +124,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
+    // No `kotlinOptions` block: its type-safe accessor is generated only when
+    // the Kotlin plugin is applied from the `plugins` block, which it no longer
+    // always is. Both AGP 8 and AGP 9 take the Kotlin jvmTarget from
+    // `compileOptions` above; verified to emit Java 17 bytecode on AGP 8.13.2
+    // and AGP 9.4.0.
 }
 
 repositories {
