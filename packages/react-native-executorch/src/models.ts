@@ -1629,6 +1629,21 @@ const SMOLLM2_1_7B_8DA8W: LLMModel = {
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
+const SMOLLM2_135M_MLX_INT8: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/135m/mlx/smollm2_135m_mlx_int8.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
+};
+const SMOLLM2_360M_MLX_INT8: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/360m/mlx/smollm2_360m_mlx_int8.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
+};
+const SMOLLM2_1_7B_MLX_INT8: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/1_7b/mlx/smollm2_1_7b_mlx_int8.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
+};
 
 const HAMMER2_1_BASE_URL = `${BASE_URL}-hammer-2.1/${NEXT_VERSION_TAG}`;
 
@@ -1662,6 +1677,21 @@ const HAMMER2_1_3B_XNNPACK_BF16: LLMModel = {
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
+const HAMMER2_1_0_5B_MLX_INT4: LLMModel = {
+  modelPath: `${HAMMER2_1_BASE_URL}/0_5b/mlx/hammer_2_1_0_5b_mlx_int4.pte`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
+};
+const HAMMER2_1_1_5B_MLX_INT4: LLMModel = {
+  modelPath: `${HAMMER2_1_BASE_URL}/1_5b/mlx/hammer_2_1_1_5b_mlx_int4.pte`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
+};
+const HAMMER2_1_3B_MLX_INT4: LLMModel = {
+  modelPath: `${HAMMER2_1_BASE_URL}/3b/mlx/hammer_2_1_3b_mlx_int4.pte`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
+};
 
 const PHI4_MINI_BASE_URL = `${BASE_URL}-phi-4-mini/${NEXT_VERSION_TAG}`;
 
@@ -1672,6 +1702,11 @@ const PHI4_MINI_XNNPACK_8DA4W: LLMModel = {
 };
 const PHI4_MINI_XNNPACK_BF16: LLMModel = {
   modelPath: `${PHI4_MINI_BASE_URL}/xnnpack/phi_4_mini_xnnpack_bf16.pte`,
+  tokenizerPath: `${PHI4_MINI_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${PHI4_MINI_BASE_URL}/tokenizer_config.json`,
+};
+const PHI4_MINI_MLX_INT4: LLMModel = {
+  modelPath: `${PHI4_MINI_BASE_URL}/mlx/phi_4_mini_mlx_int4.pte`,
   tokenizerPath: `${PHI4_MINI_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${PHI4_MINI_BASE_URL}/tokenizer_config.json`,
 };
@@ -1705,6 +1740,21 @@ const QWEN2_5_3B_XNNPACK_8DA4W: LLMModel = {
 };
 const QWEN2_5_3B_XNNPACK_BF16: LLMModel = {
   modelPath: `${QWEN2_5_BASE_URL}/3b/xnnpack/qwen_2_5_3b_xnnpack_bf16.pte`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN2_5_0_5B_MLX_INT4: LLMModel = {
+  modelPath: `${QWEN2_5_BASE_URL}/0_5b/mlx/qwen_2_5_0_5b_mlx_int4.pte`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN2_5_1_5B_MLX_INT4: LLMModel = {
+  modelPath: `${QWEN2_5_BASE_URL}/1_5b/mlx/qwen_2_5_1_5b_mlx_int4.pte`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN2_5_3B_MLX_INT4: LLMModel = {
+  modelPath: `${QWEN2_5_BASE_URL}/3b/mlx/qwen_2_5_3b_mlx_int4.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
@@ -1756,6 +1806,21 @@ const QWEN3_4B_XNNPACK_8DA4W: LLMModel = {
 };
 const QWEN3_4B_XNNPACK_BF16: LLMModel = {
   modelPath: `${QWEN3_BASE_URL}/4b/xnnpack/qwen_3_4b_xnnpack_bf16.pte`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN3_0_6B_MLX_INT4: LLMModel = {
+  modelPath: `${QWEN3_BASE_URL}/0_6b/mlx/qwen_3_0_6b_mlx_int4.pte`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN3_1_7B_MLX_INT4: LLMModel = {
+  modelPath: `${QWEN3_BASE_URL}/1_7b/mlx/qwen_3_1_7b_mlx_int4.pte`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN3_4B_MLX_INT4: LLMModel = {
+  modelPath: `${QWEN3_BASE_URL}/4b/mlx/qwen_3_4b_mlx_int4.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
@@ -2462,6 +2527,7 @@ export const models = {
      */
     SMOLLM2_135M: variants({
       XNNPACK_8DA8W: SMOLLM2_135M_8DA8W,
+      MLX_INT8: SMOLLM2_135M_MLX_INT8,
     }),
     /**
      * Hugging Face SmolLM2 360M compact instruction-tuned model. Provides a
@@ -2471,6 +2537,7 @@ export const models = {
      */
     SMOLLM2_360M: variants({
       XNNPACK_8DA8W: SMOLLM2_360M_8DA8W,
+      MLX_INT8: SMOLLM2_360M_MLX_INT8,
     }),
     /**
      * Hugging Face SmolLM2 1.7B language model trained on curated educational,
@@ -2480,6 +2547,7 @@ export const models = {
      */
     SMOLLM2_1_7B: variants({
       XNNPACK_8DA8W: SMOLLM2_1_7B_8DA8W,
+      MLX_INT8: SMOLLM2_1_7B_MLX_INT8,
     }),
     /**
      * Hammer 2.1 0.5B specialized function-calling model. Fine-tuned
@@ -2490,6 +2558,7 @@ export const models = {
     HAMMER2_1_0_5B: variants({
       XNNPACK_8DA4W: HAMMER2_1_0_5B_XNNPACK_8DA4W,
       XNNPACK_BF16: HAMMER2_1_0_5B_XNNPACK_BF16,
+      MLX_INT4: HAMMER2_1_0_5B_MLX_INT4,
     }),
     /**
      * Hammer 2.1 1.5B function-calling language model. Optimized for multi-tool
@@ -2499,6 +2568,7 @@ export const models = {
     HAMMER2_1_1_5B: variants({
       XNNPACK_8DA4W: HAMMER2_1_1_5B_XNNPACK_8DA4W,
       XNNPACK_BF16: HAMMER2_1_1_5B_XNNPACK_BF16,
+      MLX_INT4: HAMMER2_1_1_5B_MLX_INT4,
     }),
     /**
      * Hammer 2.1 3B high-capacity function-calling model. Provides top-tier
@@ -2509,6 +2579,7 @@ export const models = {
     HAMMER2_1_3B: variants({
       XNNPACK_8DA4W: HAMMER2_1_3B_XNNPACK_8DA4W,
       XNNPACK_BF16: HAMMER2_1_3B_XNNPACK_BF16,
+      MLX_INT4: HAMMER2_1_3B_MLX_INT4,
     }),
     /**
      * Microsoft Phi-4 Mini 3.8B high-density reasoning model. Trained on
@@ -2519,6 +2590,7 @@ export const models = {
     PHI4_MINI: variants({
       XNNPACK_8DA4W: PHI4_MINI_XNNPACK_8DA4W,
       XNNPACK_BF16: PHI4_MINI_XNNPACK_BF16,
+      MLX_INT4: PHI4_MINI_MLX_INT4,
     }),
     /**
      * Alibaba Qwen 2.5 0.5B ultra-lightweight multilingual model. Trained on
@@ -2529,6 +2601,7 @@ export const models = {
     QWEN2_5_0_5B: variants({
       XNNPACK_8DA4W: QWEN2_5_0_5B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN2_5_0_5B_XNNPACK_BF16,
+      MLX_INT4: QWEN2_5_0_5B_MLX_INT4,
     }),
     /**
      * Alibaba Qwen 2.5 1.5B multilingual instruction model. Combines broad
@@ -2539,6 +2612,7 @@ export const models = {
     QWEN2_5_1_5B: variants({
       XNNPACK_8DA4W: QWEN2_5_1_5B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN2_5_1_5B_XNNPACK_BF16,
+      MLX_INT4: QWEN2_5_1_5B_MLX_INT4,
     }),
     /**
      * Alibaba Qwen 2.5 3B high-capability multilingual model. Delivers strong
@@ -2548,6 +2622,7 @@ export const models = {
     QWEN2_5_3B: variants({
       XNNPACK_8DA4W: QWEN2_5_3B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN2_5_3B_XNNPACK_BF16,
+      MLX_INT4: QWEN2_5_3B_MLX_INT4,
     }),
     /**
      * Alibaba Qwen 3 0.6B next-generation compact language model. Features
@@ -2558,6 +2633,7 @@ export const models = {
     QWEN3_0_6B: variants({
       XNNPACK_8DA4W: QWEN3_0_6B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN3_0_6B_XNNPACK_BF16,
+      MLX_INT4: QWEN3_0_6B_MLX_INT4,
     }),
     /**
      * Alibaba Qwen 3 1.7B next-generation multilingual language model. Balances
@@ -2567,6 +2643,7 @@ export const models = {
     QWEN3_1_7B: variants({
       XNNPACK_8DA4W: QWEN3_1_7B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN3_1_7B_XNNPACK_BF16,
+      MLX_INT4: QWEN3_1_7B_MLX_INT4,
     }),
     /**
      * Alibaba Qwen 3 4B high-capacity generative model. Delivers advanced
@@ -2577,6 +2654,7 @@ export const models = {
     QWEN3_4B: variants({
       XNNPACK_8DA4W: QWEN3_4B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN3_4B_XNNPACK_BF16,
+      MLX_INT4: QWEN3_4B_MLX_INT4,
     }),
     /**
      * Google Gemma 4 E2B generative language model. Built on Google's Gemini
