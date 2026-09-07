@@ -620,10 +620,6 @@ const RFDETR_KEYPOINT_COREML_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> =
   modelPath: `${BASE_URL}-rfdetr-keypoint/${NEXT_VERSION_TAG}/coreml/rfdetr_keypoint_preview_coreml_fp16.pte`,
   modelOpts: RFDETR_KEYPOINT_OPTS,
 };
-const RFDETR_KEYPOINT_MLX_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}-rfdetr-keypoint/${NEXT_VERSION_TAG}/mlx/rfdetr_keypoint_preview_mlx_fp32.pte`,
-  modelOpts: RFDETR_KEYPOINT_OPTS,
-};
 
 // =============================================================================
 // Instance Segmentation
@@ -1611,6 +1607,16 @@ const LLAMA3_2_1B_BF16: LLMModel = {
   tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
 };
+const LLAMA3_2_1B_MLX_INT4: LLMModel = {
+  modelPath: `${LLAMA3_2_BASE_URL}/1b/mlx/llama_3_2_1b_mlx_int4.pte`,
+  tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
+};
+const LLAMA3_2_3B_MLX_INT4: LLMModel = {
+  modelPath: `${LLAMA3_2_BASE_URL}/3b/mlx/llama_3_2_3b_mlx_int4.pte`,
+  tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
+};
 
 const SMOLLM2_BASE_URL = `${BASE_URL}-smolLm-2/${NEXT_VERSION_TAG}`;
 
@@ -2145,14 +2151,7 @@ export const models = {
       {
         XNNPACK_FP32: RFDETR_KEYPOINT_XNNPACK_FP32,
         COREML_FP16: RFDETR_KEYPOINT_COREML_FP16,
-        MLX_FP32: RFDETR_KEYPOINT_MLX_FP32,
       },
-      // Core ML over MLX: 144.0 ms against 272.3 on an iPhone 16, at 263 MB
-      // against 1304 MB. fp16 matches the fp32 build it replaced (landmarks to
-      // 1.04 px over 13 photos) but only under the GPU-only compute unit and an
-      // iOS17 deployment target — every other combination degrades it, and a
-      // macOS check passes builds the device gets wrong. See export-scripts
-      // MR !18 before re-exporting.
       { ios: 'COREML_FP16' }
     ),
   },
@@ -2509,6 +2508,7 @@ export const models = {
     LLAMA3_2_1B: variants({
       XNNPACK_SPINQUANT: LLAMA3_2_1B_SPINQUANT,
       XNNPACK_BF16: LLAMA3_2_1B_BF16,
+      MLX_INT4: LLAMA3_2_1B_MLX_INT4,
     }),
     /**
      * Meta Llama 3.2 3B instruction-tuned multilingual language model. Delivers
@@ -2519,6 +2519,7 @@ export const models = {
     LLAMA3_2_3B: variants({
       XNNPACK_SPINQUANT: LLAMA3_2_3B_SPINQUANT,
       XNNPACK_BF16: LLAMA3_2_3B_BF16,
+      MLX_INT4: LLAMA3_2_3B_MLX_INT4,
     }),
     /**
      * Hugging Face SmolLM2 135M ultra-compact language model. Engineered for
