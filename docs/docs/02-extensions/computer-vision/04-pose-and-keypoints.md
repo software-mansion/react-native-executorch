@@ -239,5 +239,5 @@ The pipeline automatically verifies that the model's exported input and output s
 :::info Source Code
 View the implementation on GitHub:
 
-- [`src/extensions/cv/tasks/keypointDetection.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/rne-rewrite/packages/react-native-executorch/src/extensions/cv/tasks/keypointDetection.ts)
+- [`src/extensions/cv/tasks/keypointDetection.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/cv/tasks/keypointDetection.ts)
   :::
