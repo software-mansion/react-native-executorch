@@ -902,12 +902,23 @@ export async function download<T>(source: T, options: DownloadOptions = {}): Pro
   // that is corrected the moment its transfer reports a real length.
   const weights = measured.map((m) => m.size);
   const fractions: number[] = measured.map((m) => (m.cached ? 1 : 0));
-  const known = weights.filter((weight) => weight > 0);
-  const fallbackWeight = known.length ? known.reduce((a, b) => a + b, 0) / known.length : 1;
+  // A length lookup still in flight is not the same as one that failed. While
+  // any is outstanding every unmeasured file weighs the fallback, so the first
+  // small file to finish reads as a large share of the job: a tokenizer landing
+  // before a 3 GB model's HEAD comes back reported half the download complete,
+  // and the monotonic guard below then pinned the bar there until the model
+  // genuinely caught up. Say nothing until the sizes are actually in.
+  const settled = measured.map((m) => !m.pending);
 
   let reported = 0;
   const report = () => {
     if (!options.onProgress) return;
+    if (!settled.every(Boolean)) return;
+    // Recomputed per report rather than once: a file measured mid-flight has to
+    // stop counting as the fallback, and only files that stayed unmeasurable
+    // keep it.
+    const known = weights.filter((weight) => weight > 0);
+    const fallbackWeight = known.length ? known.reduce((a, b) => a + b, 0) / known.length : 1;
     let done = 0;
     let total = 0;
     for (let i = 0; i < weights.length; i++) {
@@ -929,10 +940,12 @@ export async function download<T>(source: T, options: DownloadOptions = {}): Pro
   // the HEAD, for a file whose download has not started yet.
   measured.forEach((m, i) => {
     m.pending?.then((size) => {
-      if (size > 0 && weights[i] === 0) {
-        weights[i] = size;
-        report();
-      }
+      if (size > 0 && weights[i] === 0) weights[i] = size;
+      // Settles either way: a HEAD that came back empty has still answered, and
+      // holding every other file's progress hostage to it would be worse than
+      // weighting this one by the fallback.
+      settled[i] = true;
+      report();
     });
   });
 
