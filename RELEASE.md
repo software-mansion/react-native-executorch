@@ -79,13 +79,6 @@ The release process of new minor version consists of the following steps:
 8. Once all tests are passed, tag the release branch with proper version tag `v{MAJOR}.{MINOR}.0` and run the following publish workflows. Both take a `dry-run` input; a dry run builds and packs without publishing, which is worth doing first since a failed publish cannot be taken back:
    - [npm publish (core)](https://github.com/software-mansion/react-native-executorch/actions/workflows/npm-publish.yml)
    - [npm publish satellite packages](https://github.com/software-mansion/react-native-executorch/actions/workflows/npm-publish-satellites.yml) — run once per satellite package, selecting it via the `package` input (`react-native-executorch-bare-resource-fetcher`, `react-native-executorch-expo-resource-fetcher`, `react-native-executorch-webrtc`)
-
-   The three satellite runs are independent and can be dispatched at the same
-   time: the workflow's concurrency group keys on the `package` input, so they
-   do not cancel each other. Leave `perform-git-operations` off. It makes every
-   run create and push the tag `v{MAJOR}.{MINOR}.0`, which already exists by
-   this point, so concurrent runs race on the same tag and the losers fail after
-   they have already published.
 9. Move the `legacy` dist-tag on npm to the previous minor line, for the core package and every satellite:
 
    ```
