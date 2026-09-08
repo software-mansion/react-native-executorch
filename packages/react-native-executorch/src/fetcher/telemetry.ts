@@ -10,7 +10,7 @@ const DOWNLOAD_EVENT_ENDPOINT = 'https://ai.swmansion.com/telemetry/downloads/ap
 // self-referencing import would need package `exports` support in the consuming
 // bundler to load at all. A wrong value here is analytics noise; a failed
 // import would break the bundle.
-const LIB_VERSION = '0.10.0';
+const LIB_VERSION = '0.11.0';
 
 // Anonymous analytics are on by default; apps opt out via setTelemetryEnabled.
 let telemetryEnabled = true;

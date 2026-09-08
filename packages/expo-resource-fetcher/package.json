@@ -1,6 +1,6 @@
 {
   "name": "react-native-executorch-expo-resource-fetcher",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Expo resource fetcher for react-native-executorch",
   "main": "lib/index.js",
   "// === LEGACY SUPPORT: exports ===": "exports['./legacy'] provides legacy resource fetcher support (remove when legacy API is dropped)",
