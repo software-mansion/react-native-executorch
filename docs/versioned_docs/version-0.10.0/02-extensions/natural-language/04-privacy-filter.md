@@ -95,7 +95,7 @@ function MyComponent() {
 ```
 
 :::tip Full Interactive Example in Gallery App
-See [`src/app/(screens)/privacy-filter.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/3f13b59a1822638b61c565b9a47fd48a19c45551/src/app/(screens)/privacy-filter.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for an interactive redaction demo with highlighted spans and entity replacement.
+See [`src/app/(screens)/privacy-filter.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/privacy-filter.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for an interactive redaction demo with highlighted spans and entity replacement.
 :::
 
 ## Output Format
