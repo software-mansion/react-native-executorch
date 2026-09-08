@@ -17,7 +17,7 @@ on:
         options: [stable, nightly, beta, alpha, rc]
         default: stable
       version:
-        description: Explicit version in x.y.z format (leave empty to infer automatically).
+        description: Explicit version in x.y.z format (leave empty to use the version in the package's package.json).
         type: string
         required: false
         default: ''
@@ -57,6 +57,40 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org/
 
+      # The action infers a stable version from the branch name, matching
+      # /^(\d+)\.(\d+)-stable$/ (see version-utils.js). This repo names its
+      # release branches release/0.9, so inference throws "Failed to parse
+      # stable version from branch" on every branch it could run from, main
+      # included. Resolve it here instead: the package.json version is what
+      # RELEASE.md already tells you to set, and it is what the core publish
+      # workflow uses. An explicit input still wins.
+      - name: Resolve the version to publish
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          PACKAGE: ${{ inputs.package }}
+        run: |
+          case "$PACKAGE" in
+            react-native-executorch-bare-resource-fetcher) DIR=packages/bare-resource-fetcher ;;
+            react-native-executorch-expo-resource-fetcher) DIR=packages/expo-resource-fetcher ;;
+            react-native-executorch-webrtc)                DIR=packages/react-native-executorch-webrtc ;;
+            *) echo "::error::unknown package: $PACKAGE"; exit 1 ;;
+          esac
+
+          if [ -n "$INPUT_VERSION" ]; then
+            VERSION="$INPUT_VERSION"
+            echo "using the version input: $VERSION"
+          else
+            VERSION=$(jq -r .version "$DIR/package.json")
+            echo "using $DIR/package.json: $VERSION"
+          fi
+
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::expected x.y.z, got '$VERSION'"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Publish react-native-executorch-bare-resource-fetcher
         if: ${{ inputs.package == 'react-native-executorch-bare-resource-fetcher' }}
         uses: software-mansion/npm-package-publish@22b6e632b4310c5c061a047bccc99d0cea88d2bb
@@ -67,7 +101,7 @@ jobs:
           # declarations, so build it before packing the satellite.
           install-dependencies-command: 'yarn install --immutable && yarn workspace react-native-executorch prepare'
           release-type: ${{ inputs.release-type }}
-          version: ${{ inputs.version }}
+          version: ${{ steps.version.outputs.version }}
           perform-git-operations: ${{ inputs.perform-git-operations }}
           dry-run: ${{ inputs.dry-run }}
 
@@ -79,7 +113,7 @@ jobs:
           package-json-path: 'packages/expo-resource-fetcher/package.json'
           install-dependencies-command: 'yarn install --immutable && yarn workspace react-native-executorch prepare'
           release-type: ${{ inputs.release-type }}
-          version: ${{ inputs.version }}
+          version: ${{ steps.version.outputs.version }}
           perform-git-operations: ${{ inputs.perform-git-operations }}
           dry-run: ${{ inputs.dry-run }}
 
@@ -91,6 +125,6 @@ jobs:
           package-json-path: 'packages/react-native-executorch-webrtc/package.json'
           install-dependencies-command: 'yarn install --immutable && yarn workspace react-native-executorch prepare'
           release-type: ${{ inputs.release-type }}
-          version: ${{ inputs.version }}
+          version: ${{ steps.version.outputs.version }}
           perform-git-operations: ${{ inputs.perform-git-operations }}
           dry-run: ${{ inputs.dry-run }}
