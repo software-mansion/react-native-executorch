@@ -114,7 +114,7 @@ function MyChatComponent() {
 ```
 
 :::tip Full Interactive Example in Gallery App
-See [`src/app/(screens)/llm-chat.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/3f13b59a1822638b61c565b9a47fd48a19c45551/src/app/(screens)/llm-chat.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable chat UI with token streaming, token/sec benchmarking, and message history.
+See [`src/app/(screens)/llm-chat.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/llm-chat.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable chat UI with token streaming, token/sec benchmarking, and message history.
 :::
 
 ## Understanding the Output & Turn Result
