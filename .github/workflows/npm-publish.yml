@@ -15,7 +15,7 @@ on:
           - legacy # maintenance release of an older line
         default: nightly
       dist-tag:
-        description: 'Publish under this exact dist-tag instead, e.g. v0.8 for a maintenance line (leave empty to use release-type)'
+        description: 'npm dist-tag to publish under instead of the one release-type implies, e.g. v0-8 for a maintenance line. NOT the git tag. Leave empty for a normal release.'
         required: false
         type: string
         default: ''
@@ -101,10 +101,12 @@ jobs:
               echo "dist-tag override needs a stable build: set release-type to latest or legacy." >&2
               exit 1
             fi
-            # npm rejects a dist-tag that parses as a semver range, so require a
-            # leading letter. That also rules out bare versions like `0.8`.
-            if [[ ! "$DIST_TAG_OVERRIDE" =~ ^[a-zA-Z][a-zA-Z0-9._-]*$ ]]; then
-              echo "Invalid dist-tag: '$DIST_TAG_OVERRIDE' (expected e.g. v0.8)" >&2
+            # npm's rule is that a dist-tag must not parse as a semver range,
+            # so ask semver rather than approximate it. The previous check only
+            # required a leading letter, which let through every tag this input
+            # documented: `v0.8` parses as `>=0.8.0 <0.9.0-0`, `v0.10.0` as
+            # `0.10.0`. Both reached npm and failed there instead of here.
+            if ! node -e 'const r=require("semver").validRange(process.argv[1]); if (r) { console.error(`Invalid dist-tag: ${process.argv[1]} parses as the semver range ${r}, and npm rejects those. Use a form that is not a version, e.g. v0-8 for the 0.8 line.`); process.exit(1); }' "$DIST_TAG_OVERRIDE"; then
               exit 1
             fi
             echo "TAG=$DIST_TAG_OVERRIDE" >> $GITHUB_ENV
