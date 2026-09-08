@@ -33,7 +33,11 @@ trap cleanup EXIT
 rm -rf "$PHONEMIS_DIR/data" "$PHONEMIS_DIR/test" "$PHONEMIS_DIR/scripts"
 rm -f "$PHONEMIS_DIR/requirements.txt"
 
-yarn install --immutable
+# The publish workflow installs before calling this script, so it sets
+# RNE_SKIP_INSTALL to avoid a second pass. A local run still installs.
+if [ -z "${RNE_SKIP_INSTALL:-}" ]; then
+  yarn install --immutable
+fi
 
 # Match the version line by pattern, not by line number: `nativeLibsVersion`
 # sits next to it, so a positional edit rewrites the wrong field if either
