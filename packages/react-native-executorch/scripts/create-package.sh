@@ -17,10 +17,19 @@ git -C "$(git rev-parse --show-toplevel)" submodule update --init --recursive \
 # `!scripts/build*` which npm-packlist honors and re-includes those files
 # despite our exclusion rules. Restore on exit so the working tree stays clean.
 PHONEMIS_DIR="third-party/common/phonemis"
-restore_phonemis() {
+
+# npm only picks up a LICENSE that sits in the package directory, and ours
+# lives at the repo root, so the published tarball carried no license text at
+# all. Several of the notices it now reproduces (ExecuTorch, pffft, OpenCV)
+# require that in a redistribution. Copy it in for the pack and drop it again
+# so the working tree stays clean.
+cp "$(git rev-parse --show-toplevel)/LICENSE" LICENSE
+
+cleanup() {
   git -C "$PHONEMIS_DIR" checkout -- data test scripts requirements.txt 2>/dev/null || true
+  rm -f LICENSE
 }
-trap restore_phonemis EXIT
+trap cleanup EXIT
 rm -rf "$PHONEMIS_DIR/data" "$PHONEMIS_DIR/test" "$PHONEMIS_DIR/scripts"
 rm -f "$PHONEMIS_DIR/requirements.txt"
 

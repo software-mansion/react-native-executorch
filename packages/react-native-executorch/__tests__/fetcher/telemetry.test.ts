@@ -8,6 +8,7 @@ import {
 import { fakeJsi } from '../support/fakeJsi';
 import { flush } from '../support/async';
 import { fakeNet } from '../support/blobUtilMock';
+import pkg from '../../package.json';
 
 const ANALYTICS = 'https://ai.swmansion.com/telemetry/downloads/api/downloads';
 const SWM_MODEL = 'https://huggingface.co/software-mansion/whisper-tiny/resolve/v1/model.pte';
@@ -74,6 +75,17 @@ describe('triggerDownloadEvent', () => {
     await flush();
 
     expect(postedPayload().modelName).toBe('model');
+  });
+
+  // LIB_VERSION is a literal in telemetry.ts rather than an import: see the
+  // comment there for why. This is what keeps it honest, so a release that
+  // forgets to bump it fails CI instead of reporting the previous version for
+  // its whole lifetime.
+  it('reports the published package version', async () => {
+    triggerDownloadEvent(SWM_MODEL);
+    await flush();
+
+    expect(postedPayload().libVersion).toBe(pkg.version);
   });
 
   it('reports the platform and the emulator flag from the native installer', async () => {

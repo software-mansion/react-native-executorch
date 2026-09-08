@@ -377,3 +377,10 @@ jsonrepair
 SRCROOT
 fbjni
 reactnative
+colormaps
+chunker
+hermesversion
+libtokenizers
+pretokenizer
+repoint
+repoints

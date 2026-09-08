@@ -172,7 +172,10 @@ function family<V extends Record<string, { readonly DEFAULT: unknown }>>(
 }
 
 const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorch';
-const VERSION_TAG = 'resolve/v0.9.0';
+// Every model in this release resolves through NEXT_VERSION_TAG. The
+// previous-release constant is reintroduced by the post-release bump (RELEASE.md
+// step 10) for the models that do not get re-exported next cycle; it is absent
+// rather than unused because noUnusedLocals rejects a constant nothing reads.
 const NEXT_VERSION_TAG = 'resolve/v0.10.0';
 
 // =============================================================================
@@ -1442,7 +1445,7 @@ const PRIVACY_FILTER_NEMOTRON_MLX_INT8: PrivacyFilterModel<PrivacyFilterNemotron
 // =============================================================================
 // Tokenizers
 // =============================================================================
-const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
+const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/tokenizer.json`;
 
 // =============================================================================
 // OCR
