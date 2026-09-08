@@ -50,6 +50,13 @@ jobs:
       RELEASE_TYPE: ${{ inputs.release-type || 'nightly' }}
       DRY_RUN: ${{ inputs.dry-run || false }}
       DIST_TAG_OVERRIDE: ${{ inputs.dist-tag || '' }}
+      # Nothing this job does needs the native artifacts: it runs bob and tsc,
+      # and the "files" list excludes third-party/include from the tarball. The
+      # postinstall download only cost time and printed iOS-backend warnings on
+      # a Linux runner.
+      RNET_SKIP_DOWNLOAD: 1
+      # create-package.sh installs too; the focused install below covers it.
+      RNE_SKIP_INSTALL: 1
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -71,8 +78,17 @@ jobs:
         if: ${{ env.EXECUTORCH_VERSION == 'PLACEHOLDER' }}
         run: exit 1 # this should never happen
 
-      - name: Install monorepo dependencies
-        run: yarn install --immutable
+      # The root workspaces glob is packages/* + apps/* + apps/legacy/*, so a
+      # plain `yarn install` pulled 1659 packages (597 MiB) to build one of
+      # them: 164s of a 197s job, against 19s for the actual build. `workspaces
+      # focus` installs only this package's tree; it is built into Yarn 4, the
+      # same command family as the `workspaces foreach` already used in CI.
+      #
+      # This drops --immutable, which `focus` does not accept. The lockfile is
+      # already asserted immutable by the CI workflow on every pull request, and
+      # a release publishes from a branch that passed it.
+      - name: Install the core package's dependencies
+        run: yarn workspaces focus react-native-executorch
 
       - name: Set tag
         run: |
