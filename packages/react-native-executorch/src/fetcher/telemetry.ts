@@ -4,10 +4,13 @@ import { rnexecutorchJsi } from '../native/bridge';
 // Anonymous download analytics endpoint.
 const DOWNLOAD_EVENT_ENDPOINT = 'https://ai.swmansion.com/telemetry/downloads/api/downloads';
 
-// Informational only.
-// TODO: source this from the package version once version handling lands.
-// See https://github.com/software-mansion/react-native-executorch/issues/1291
-const LIB_VERSION = '0.0.0';
+// Informational only. Kept in step with package.json by a unit test rather than
+// imported from it: the emitted module sits under lib/module/, where a relative
+// path to the manifest resolves to bob's `{"type":"module"}` stub, and a
+// self-referencing import would need package `exports` support in the consuming
+// bundler to load at all. A wrong value here is analytics noise; a failed
+// import would break the bundle.
+const LIB_VERSION = '0.10.0';
 
 // Anonymous analytics are on by default; apps opt out via setTelemetryEnabled.
 let telemetryEnabled = true;

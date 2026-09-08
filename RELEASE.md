@@ -82,8 +82,9 @@ The release process of new minor version consists of the following steps:
 9. Create the release notes on GitHub.
 10. Bump `main` to the next development cycle in a single PR:
    - Bump `version` in `package.json` to `{MAJOR}.{NEXT_MINOR}.0` for the core package and both adapter packages.
-   - In `models.ts`, set `VERSION_TAG` to `resolve/v{MAJOR}.{MINOR}.0` (the version just published) and `NEXT_VERSION_TAG` to `resolve/v{MAJOR}.{NEXT_MINOR}.0`.
-   - Leave individual model URLs alone: those that shipped this cycle now resolve through `VERSION_TAG`, and only models re-exported next cycle move to `NEXT_VERSION_TAG`.
+   - In `models.ts`, add `VERSION_TAG` back as `resolve/v{MAJOR}.{MINOR}.0` (the version just published) and set `NEXT_VERSION_TAG` to `resolve/v{MAJOR}.{NEXT_MINOR}.0`. `VERSION_TAG` is absent between releases: every model resolves through `NEXT_VERSION_TAG` by the time one ships, which leaves the constant with no reader, and `noUnusedLocals` rejects that.
+   - Rewrite `${NEXT_VERSION_TAG}` to `${VERSION_TAG}` in every model URL that shipped this cycle. They cannot be left alone: the URLs name the constant, not the tag, so bumping `NEXT_VERSION_TAG` alone would silently repoint every model at a release that does not exist yet. Only a model re-exported next cycle moves back to `${NEXT_VERSION_TAG}`.
+   - Bump `LIB_VERSION` in `packages/react-native-executorch/src/fetcher/telemetry.ts` to match. A unit test asserts it equals the package version, so a missed bump fails CI rather than mislabelling every download event for the release.
    - Commit with the message 'Bump version to v{MAJOR}.{NEXT_MINOR}.0'.
 11. Create versioned docs by running from repo root `(cd docs && yarn docs:version {MAJOR}.{MINOR}.x)` (the 'x' part is intentional and is not to be substituted). Also, make sure that all the links in `api-reference` are not broken.
 12. Create a PR with the updated docs.
