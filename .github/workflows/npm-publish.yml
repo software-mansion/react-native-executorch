@@ -19,6 +19,11 @@ on:
         required: false
         type: string
         default: ''
+      dry-run:
+        description: 'Build and pack, but do not publish to npm. Everything up to the publish step runs unchanged.'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   id-token: write
@@ -43,6 +48,7 @@ jobs:
       TAG: PLACEHOLDER
       # `inputs` is empty on the scheduled run, which is always a nightly.
       RELEASE_TYPE: ${{ inputs.release-type || 'nightly' }}
+      DRY_RUN: ${{ inputs.dry-run || false }}
       DIST_TAG_OVERRIDE: ${{ inputs.dist-tag || '' }}
     steps:
       - name: Checkout
@@ -144,4 +150,12 @@ jobs:
         run: mv ${{ env.EXECUTORCH_DIR }}/${{ env.PACKAGE_NAME }} .
 
       - name: Publish package to npm
+        if: ${{ env.DRY_RUN != 'true' }}
         run: npm publish $PACKAGE_NAME --tag ${{ env.TAG }} --provenance
+
+      # --provenance is omitted here on purpose: it needs the OIDC exchange,
+      # which a dry run should not perform. Everything before this point,
+      # including the build and the packed tarball, has already run unchanged.
+      - name: Publish package to npm (dry run)
+        if: ${{ env.DRY_RUN == 'true' }}
+        run: npm publish $PACKAGE_NAME --tag ${{ env.TAG }} --dry-run
