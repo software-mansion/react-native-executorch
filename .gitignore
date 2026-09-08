@@ -112,3 +112,6 @@ Makefile
 .claude
 skills-lock.json
 
+
+# copied in by scripts/create-package.sh so npm packs it, removed again after
+packages/react-native-executorch/LICENSE
