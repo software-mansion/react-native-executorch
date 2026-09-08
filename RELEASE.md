@@ -79,17 +79,33 @@ The release process of new minor version consists of the following steps:
 8. Once all tests are passed, tag the release branch with proper version tag `v{MAJOR}.{MINOR}.0` and run the following publish workflows. Both take a `dry-run` input; a dry run builds and packs without publishing, which is worth doing first since a failed publish cannot be taken back:
    - [npm publish (core)](https://github.com/software-mansion/react-native-executorch/actions/workflows/npm-publish.yml)
    - [npm publish satellite packages](https://github.com/software-mansion/react-native-executorch/actions/workflows/npm-publish-satellites.yml) — run once per satellite package, selecting it via the `package` input (`react-native-executorch-bare-resource-fetcher`, `react-native-executorch-expo-resource-fetcher`, `react-native-executorch-webrtc`)
-9. Create the release notes on GitHub.
-10. Bump `main` to the next development cycle in a single PR:
-   - Bump `version` in `package.json` to `{MAJOR}.{NEXT_MINOR}.0` for the core package and both adapter packages.
-   - In `models.ts`, add `VERSION_TAG` back as `resolve/v{MAJOR}.{MINOR}.0` (the version just published) and set `NEXT_VERSION_TAG` to `resolve/v{MAJOR}.{NEXT_MINOR}.0`. `VERSION_TAG` is absent between releases: every model resolves through `NEXT_VERSION_TAG` by the time one ships, which leaves the constant with no reader, and `noUnusedLocals` rejects that.
-   - Rewrite `${NEXT_VERSION_TAG}` to `${VERSION_TAG}` in every model URL that shipped this cycle. They cannot be left alone: the URLs name the constant, not the tag, so bumping `NEXT_VERSION_TAG` alone would silently repoint every model at a release that does not exist yet. Only a model re-exported next cycle moves back to `${NEXT_VERSION_TAG}`.
+9. Move the `legacy` dist-tag on npm to the previous minor line, for the core package and every satellite:
+
+   ```
+   npm dist-tag add react-native-executorch@{PREV_MAJOR}.{PREV_MINOR}.{HIGHEST_PATCH} legacy
+   ```
+
+   Use the previous line's **highest published patch**, not its `.0`. Repeat for
+   each satellite, whose patch numbers advance independently of the core (a
+   satellite may have no release on that line at all, in which case it has no
+   `legacy` tag to move).
+
+   This is manual on purpose. The publish action derives a tag itself, but only
+   ever as `latest` for the newest version or `legacy` for an older one, and
+   when it picks `legacy` it then runs `npm dist-tag rm <pkg> legacy` on the way
+   out. Nothing in the automation repoints `legacy` at the outgoing line, so
+   skipping this step leaves it on whichever release last set it by hand.
+10. Create the release notes on GitHub.
+11. Bump `main` to the next development cycle in a single PR:
+   - Bump `version` in `package.json` to `{MAJOR}.{NEXT_MINOR}.0` for all four published packages. Leave `nativeLibsVersion` alone; it names the GitHub artifacts release that exists today, and moving it ahead breaks every consumer's `postinstall`.
+   - In `models.ts`, rename `NEXT_VERSION_TAG` to `VERSION_TAG`, keeping its value at `resolve/v{MAJOR}.{MINOR}.0` (the version just published). This rewrites every model URL by construction, which is what you want: the URLs name the constant, not the tag, so bumping the value alone would silently repoint every model at a release that does not exist yet.
+   - Do **not** add `NEXT_VERSION_TAG` back yet. Exactly one of the two constants exists at a time: whichever has no reader fails `noUnusedLocals`. The first model re-exported for the next release declares `NEXT_VERSION_TAG = 'resolve/v{MAJOR}.{NEXT_MINOR}.0'` and points its own URL at it; the rest stay on `VERSION_TAG`.
    - Bump `LIB_VERSION` in `packages/react-native-executorch/src/fetcher/telemetry.ts` to match. A unit test asserts it equals the package version, so a missed bump fails CI rather than mislabelling every download event for the release.
    - Commit with the message 'Bump version to v{MAJOR}.{NEXT_MINOR}.0'.
-11. Create versioned docs by running from repo root `(cd docs && yarn docs:version {MAJOR}.{MINOR}.x)` (the 'x' part is intentional and is not to be substituted). Also, make sure that all the links in `api-reference` are not broken.
-12. Create a PR with the updated docs.
-13. Update README.md with release video, if available.
-14. Update README.md links to release branch.
+12. Create versioned docs by running from repo root `(cd docs && yarn docs:version {MAJOR}.{MINOR}.x)` (the 'x' part is intentional and is not to be substituted). Also, make sure that all the links in `api-reference` are not broken.
+13. Create a PR with the updated docs.
+14. Update README.md with release video, if available.
+15. Update README.md links to release branch.
 
 ## Patch release
 
@@ -105,6 +121,10 @@ After the release branch is created and the version is published to npm we only 
 4. Tag release branch with proper version tag `v{MAJOR}.{MINOR}.{REVISION}` and run the relevant publish workflows:
    - [npm publish (core)](https://github.com/software-mansion/react-native-executorch/actions/workflows/npm-publish.yml)
    - [npm publish satellite packages](https://github.com/software-mansion/react-native-executorch/actions/workflows/npm-publish-satellites.yml) — run once per affected satellite package via the `package` input _(if applicable)_
+
+   A patch on an **older** line needs the `legacy` dist-tag re-added afterwards.
+   The action publishes such a version under `legacy` and then deletes the tag,
+   so the line is left with no `legacy` pointer at all.
 5. Create release notes on GitHub.
 
 ## Docs update
