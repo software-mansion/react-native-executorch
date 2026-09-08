@@ -146,7 +146,7 @@ When adding or changing code under `src/`, verify that:
       every code `src/` raises out of the source and checks it is listed.
 - [ ] A new export is reflected in the `api/apiSurface` snapshot, and the change
       is intentional (a removal or rename is a breaking change).
-- [ ] Any new fake behaviour in `__tests__/support/` is faithful where fidelity
+- [ ] Any new fake behavior in `__tests__/support/` is faithful where fidelity
       changes an assertion, and its simplifications are commented.
 - [ ] A new `create<Task>` allocates through `createResourceScope()` and is
       listed in `__tests__/tasks/constructionFailure.test.ts`.

@@ -125,7 +125,7 @@ automatically; they land in `fixtures/` and are gitignored rather than committed
 The useful part is that this needs **no XNNPACK delegate**, even though the
 fixture is XNNPACK-delegated. `ModelHostObject`'s constructor only calls
 `Module::load()` and `Module::method_meta()`, and in ExecuTorch both parse the
-program without initialising delegates — only `load_method()` resolves backends
+program without initializing delegates — only `load_method()` resolves backends
 (it fails with error 32, `NotFound`, in this build). So the entire load path is
 testable on the host:
 
