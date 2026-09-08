@@ -43,6 +43,11 @@ jobs:
     if: github.repository == 'software-mansion/react-native-executorch'
     runs-on: ubuntu-latest
     environment: deployment
+    env:
+      # The core package's postinstall downloads the native artifacts. Packing a
+      # satellite runs tsc against the core's type declarations and needs none
+      # of them.
+      RNET_SKIP_DOWNLOAD: 1
     permissions:
       # `contents: write` is required when perform-git-operations pushes a tag.
       contents: write
@@ -63,9 +68,12 @@ jobs:
         with:
           package-name: 'react-native-executorch-bare-resource-fetcher'
           package-json-path: 'packages/bare-resource-fetcher/package.json'
-          # Satellites type-check against the core package's published type
-          # declarations, so build it before packing the satellite.
-          install-dependencies-command: 'yarn install --immutable && yarn workspace react-native-executorch prepare'
+          # `workspaces focus` installs this satellite and the workspaces it
+          # depends on, instead of the whole monorepo: the root globs pull in
+          # eight React Native example apps, 1660 packages and 597 MiB, to build
+          # one small package. Satellites type-check against the core package's
+          # type declarations, so it still gets built before the satellite packs.
+          install-dependencies-command: 'yarn workspaces focus react-native-executorch-bare-resource-fetcher && yarn workspace react-native-executorch prepare'
           release-type: ${{ inputs.release-type }}
           version: ${{ inputs.version }}
           perform-git-operations: ${{ inputs.perform-git-operations }}
@@ -77,7 +85,8 @@ jobs:
         with:
           package-name: 'react-native-executorch-expo-resource-fetcher'
           package-json-path: 'packages/expo-resource-fetcher/package.json'
-          install-dependencies-command: 'yarn install --immutable && yarn workspace react-native-executorch prepare'
+          # See the first satellite above for why this is a focused install.
+          install-dependencies-command: 'yarn workspaces focus react-native-executorch-expo-resource-fetcher && yarn workspace react-native-executorch prepare'
           release-type: ${{ inputs.release-type }}
           version: ${{ inputs.version }}
           perform-git-operations: ${{ inputs.perform-git-operations }}
@@ -89,7 +98,8 @@ jobs:
         with:
           package-name: 'react-native-executorch-webrtc'
           package-json-path: 'packages/react-native-executorch-webrtc/package.json'
-          install-dependencies-command: 'yarn install --immutable && yarn workspace react-native-executorch prepare'
+          # See the first satellite above for why this is a focused install.
+          install-dependencies-command: 'yarn workspaces focus react-native-executorch-webrtc && yarn workspace react-native-executorch prepare'
           release-type: ${{ inputs.release-type }}
           version: ${{ inputs.version }}
           perform-git-operations: ${{ inputs.perform-git-operations }}
