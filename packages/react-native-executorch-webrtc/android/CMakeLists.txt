@@ -26,7 +26,7 @@ find_package(react-native-executorch REQUIRED CONFIG)
 target_include_directories(
   ${CMAKE_PROJECT_NAME}
   PRIVATE
-  "${RN_EXECUTORCH_DIR}/common"
+  "${RN_EXECUTORCH_DIR}/legacy/cpp"
   "${RN_EXECUTORCH_THIRD_PARTY}"
 )
 
