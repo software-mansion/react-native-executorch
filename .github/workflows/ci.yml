@@ -10,8 +10,85 @@ on:
     types:
       - checks_requested
   workflow_dispatch:
+
+# Superseded runs on a pull request are pointless; runs on main and in the
+# merge queue are the record of what was actually tested, so they finish.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      ts: ${{ steps.filter.outputs.ts }}
+      native: ${{ steps.filter.outputs.native }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          # A pull_request run checks out the merge commit, whose first parent
+          # is the base, so one extra commit is the whole diff.
+          fetch-depth: 2
+
+      - name: Classify the changed paths
+        id: filter
+        run: |
+          run_everything() {
+            echo "$1"
+            {
+              echo "ts=true"
+              echo "native=true"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          }
+
+          # Only a pull request has a base to diff against. A push to main, a
+          # merge-queue check and a manual dispatch all run the full suite
+          # rather than guess at one.
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            run_everything "${{ github.event_name }} run: no base to diff against"
+          fi
+
+          if ! files=$(git diff --name-only HEAD^ HEAD); then
+            run_everything "::warning::could not diff against the base"
+          fi
+          if [ -z "$files" ]; then
+            run_everything "::warning::empty diff"
+          fi
+
+          echo "changed files:"
+          echo "$files" | sed 's/^/  /'
+
+          # Both filters below are written as "does anything fall OUTSIDE the
+          # set this job provably cannot be affected by", so a path nobody
+          # thought of runs the job instead of silently skipping it.
+
+          # eslint, tsc and jest read none of the C++ trees, and none of the
+          # documentation.
+          ts_irrelevant='^(docs/|[^/]+\.md$|packages/react-native-executorch/(cpp|legacy/cpp)/)'
+          if echo "$files" | grep -qvE "$ts_irrelevant"; then ts=true; else ts=false; fi
+
+          # The C++ suite compiles cpp/ only (cpp/tests/CMakeLists.txt globs
+          # core/ and extensions/, never legacy/). The rest of this list is what
+          # decides which ExecuTorch release it builds and links against:
+          # package.json carries nativeLibsVersion, which download-libs.js reads
+          # to pick the headers release, and the CI job cross-checks that
+          # against the tag build-native-test-deps.sh pins.
+          native_relevant='^(packages/react-native-executorch/(cpp/|package\.json$|third-party/|scripts/(build-native-test-deps\.sh|run-native-tests\.sh|fetch-test-fixtures\.sh|download-libs\.js)$)|\.gitmodules$|\.nvmrc$|\.github/workflows/ci\.yml$)'
+          if echo "$files" | grep -qE "$native_relevant"; then native=true; else native=false; fi
+
+          echo "ts=$ts native=$native"
+          {
+            echo "ts=$ts"
+            echo "native=$native"
+          } >> "$GITHUB_OUTPUT"
+
   lint:
+    needs: changes
+    if: needs.changes.outputs.ts == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -27,6 +104,8 @@ jobs:
         run: yarn workspaces foreach --all --exclude react-native-executorch-webrtc --topological-dev run prepare && yarn typecheck
 
   build-library:
+    needs: changes
+    if: needs.changes.outputs.ts == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,6 +119,8 @@ jobs:
 
   native-tests:
     name: C++ unit tests
+    needs: changes
+    if: needs.changes.outputs.native == 'true'
     runs-on: ubuntu-latest
     # Well clear of a cold run (the Hermes + ExecuTorch dependency build is the
     # bulk of it) but far below the 6 h default, so a stalled download fails
@@ -151,6 +232,8 @@ jobs:
 
   api-tests:
     name: TypeScript API tests
+    needs: changes
+    if: needs.changes.outputs.ts == 'true'
     runs-on: ubuntu-latest
     # A full run takes a few seconds; this only has to catch a hang.
     timeout-minutes: 15
