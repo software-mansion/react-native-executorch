@@ -1,0 +1,8 @@
+{
+  "label": "Core & Advanced",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "Lower-level APIs for direct ExecuTorch model execution, tensor operations, and custom pipelines."
+  }
+}
