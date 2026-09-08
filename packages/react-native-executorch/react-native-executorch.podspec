@@ -97,6 +97,34 @@ Pod::Spec.new do |s|
   exclude_files += phonemis_source_files unless enable_phonemis
   s.exclude_files = exclude_files
 
+  # --- Public headers ---
+  # `use_frameworks!` - set directly for Firebase, or through
+  # expo-build-properties' `useFrameworks: "static"` - makes CocoaPods build
+  # this pod as a framework, and Xcode's Headers build phase copies every
+  # *public* header into one flat `Headers/` directory. With no
+  # `public_header_files` every header in `source_files` is public, and the
+  # tree has 21 basenames that occur more than once (`Types.h` in eleven task
+  # directories, `constants.h` in thirteen phonemis ones), so the build fails
+  # at planning with `Multiple commands produce .../Headers/Types.h` before a
+  # single file compiles. See discussion #203.
+  #
+  # Only the Objective-C entry points have to be visible to the app. The C++
+  # headers are reached through the HEADER_SEARCH_PATHS below, so narrowing the
+  # public set costs nothing, and `__tests__/api/podspecPublicHeaders.test.ts`
+  # keeps it collision-free.
+  public_header_files = [
+    "ios/**/*.h",
+  ]
+  # ==============================================================================
+  # LEGACY SUPPORT: include the legacy entry point
+  # (Remove when react-native-executorch/legacy is dropped)
+  # ==============================================================================
+  public_header_files += [
+    "legacy/ios/**/*.h",
+  ]
+  # ==============================================================================
+  s.public_header_files = public_header_files
+
   # --- Preprocessor flags ---
   extra_compiler_flags = []
   extra_compiler_flags << "-DRNE_ENABLE_OPENCV"   if enable_opencv
