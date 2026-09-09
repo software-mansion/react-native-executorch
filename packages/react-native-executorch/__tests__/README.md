@@ -79,7 +79,7 @@ because a factory that throws part-way now releases what it had allocated
 | `tasks/` | One suite per task pipeline, plus the shared construction-failure behavior. `remainingTasks.ts` holds the pipelines that only get schema acceptance and disposal |
 | `hooks/` | `useModel`, `useResourceDownload`, and the task hooks end to end |
 | `extensions/` | The pure-TypeScript helpers: box/point scaling, seeded generators |
-| `api/` | Export snapshot, model registry rules, label constants, source-level conventions |
+| `api/` | Export snapshot, model registry rules, label constants, source-level conventions, the podspec's public headers |
 | `support/` | The fake runtime, the mocks, and the fixtures |
 
 ## What is deliberately not covered

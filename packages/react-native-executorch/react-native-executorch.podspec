@@ -97,6 +97,34 @@ Pod::Spec.new do |s|
   exclude_files += phonemis_source_files unless enable_phonemis
   s.exclude_files = exclude_files
 
+  # --- Public headers ---
+  # `use_frameworks!` - set directly for Firebase, or through
+  # expo-build-properties' `useFrameworks: "static"` - makes CocoaPods build
+  # this pod as a framework, and Xcode's Headers build phase copies every
+  # *public* header into one flat `Headers/` directory. With no
+  # `public_header_files` every header in `source_files` is public, and the
+  # tree has 21 basenames that occur more than once (`Types.h` in eleven task
+  # directories, `constants.h` in thirteen phonemis ones), so the build fails
+  # at planning with `Multiple commands produce .../Headers/Types.h` before a
+  # single file compiles. See discussion #203.
+  #
+  # Only the Objective-C entry points have to be visible to the app. The C++
+  # headers are reached through the HEADER_SEARCH_PATHS below, so narrowing the
+  # public set costs nothing, and `__tests__/api/podspecPublicHeaders.test.ts`
+  # keeps it collision-free.
+  public_header_files = [
+    "ios/**/*.h",
+  ]
+  # ==============================================================================
+  # LEGACY SUPPORT: include the legacy entry point
+  # (Remove when react-native-executorch/legacy is dropped)
+  # ==============================================================================
+  public_header_files += [
+    "legacy/ios/**/*.h",
+  ]
+  # ==============================================================================
+  s.public_header_files = public_header_files
+
   # --- Preprocessor flags ---
   extra_compiler_flags = []
   extra_compiler_flags << "-DRNE_ENABLE_OPENCV"   if enable_opencv
@@ -188,6 +216,19 @@ Pod::Spec.new do |s|
   # app's main executable, the metallib has to land in the app bundle's main
   # resource path. `s.ios.resource` achieves that via CocoaPods' resource copy.
   s.ios.resource = "third-party/ios/libs/executorch/mlx.metallib" if enable_mlx
+
+  # An app that turns on `use_frameworks!` without naming a linkage gets the
+  # default, dynamic - which is what Firebase's own setup instructions show.
+  # CocoaPods then refuses to install at all, because a dynamic framework may
+  # not carry statically linked binaries and opencv-rne vendors one:
+  #
+  #   [!] The 'Pods-YourApp' target has transitive dependencies that include
+  #   statically linked binaries: (.../opencv-rne/opencv2.xcframework)
+  #
+  # Declaring the pod a static framework resolves that without the app having
+  # to spell out `:linkage => :static`, and is inert when the pod is built as a
+  # static library, which is what happens with no `use_frameworks!` at all.
+  s.static_framework = true
 
   # Backend xcframeworks are linked via force_load in OTHER_LDFLAGS (needed to
   # preserve __attribute__((constructor)) backend registrations). Only
