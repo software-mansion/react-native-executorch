@@ -7,20 +7,17 @@ package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 # Falls back to all features enabled if the file doesn't exist (e.g. a fresh
 # checkout where the native libs were provisioned manually).
 rne_build_config_path = File.join(__dir__, "rne-build-config.json")
-if File.exist?(rne_build_config_path)
-  rne_build_config = JSON.parse(File.read(rne_build_config_path))
-  enable_opencv   = rne_build_config["enableOpencv"]   != false
-  enable_phonemis = rne_build_config["enablePhonemis"] != false
-  enable_xnnpack  = rne_build_config["enableXnnpack"]  != false
-  enable_coreml   = rne_build_config["enableCoreml"]   != false
-  enable_mlx      = rne_build_config["enableMlx"]      != false
-else
-  enable_opencv   = true
-  enable_phonemis = true
-  enable_xnnpack  = true
-  enable_coreml   = true
-  enable_mlx      = true
-end
+rne_build_config =
+  File.exist?(rne_build_config_path) ? JSON.parse(File.read(rne_build_config_path)) : {}
+
+# Every flag reads `!= false`, so an absent file and an absent key both mean
+# enabled. Keep the hash rather than branching on the file: `opencvPod` below
+# is read from it too, and a nil `rne_build_config` there is a NoMethodError.
+enable_opencv   = rne_build_config["enableOpencv"]   != false
+enable_phonemis = rne_build_config["enablePhonemis"] != false
+enable_xnnpack  = rne_build_config["enableXnnpack"]  != false
+enable_coreml   = rne_build_config["enableCoreml"]   != false
+enable_mlx      = rne_build_config["enableMlx"]      != false
 
 # The native artifacts are not in the npm tarball - `package.json` excludes
 # them and `scripts/download-libs.js` fetches them from the matching GitHub
@@ -249,6 +246,7 @@ Pod::Spec.new do |s|
       s.dependency opencv_pod
       external_opencv = true
     end
+  end
 
   # Our own OpenCV headers ship under third-party/include and are newer than
   # what another OpenCV pod vendors: react-native-fast-opencv carries 4.9, and
@@ -335,8 +333,6 @@ Pod::Spec.new do |s|
   # preserve __attribute__((constructor)) backend registrations). Only
   # ExecutorchLib goes in vendored_frameworks to avoid duplicate symbol errors.
   s.ios.vendored_frameworks = ["third-party/ios/ExecutorchLib.xcframework"]
-
-  end
 
   install_modules_dependencies(s)
 end
