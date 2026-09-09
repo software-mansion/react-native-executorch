@@ -347,6 +347,68 @@ describe('createLLMChatSession — tool calling', () => {
   });
 });
 
+describe('createLLMChatSession — bounded prefill window', () => {
+  // A dynamic-shape export bounds one prefill call to a window well below the
+  // context it advertises: the Vulkan LFM2.5-VL builds ship 256 against 2048,
+  // Gemma4 128. A conversation comfortably inside its context therefore still
+  // overflows a single call, which the runtime rejects outright.
+  const WINDOW = 4;
+
+  // The session tokenizes only to split, so any vocabulary that yields one id
+  // per word is enough; unknown words already map to 0.
+  beforeEach(() => {
+    fakeJsi.registerTokenizer(TOKENIZER_PATH, { tokens: [] });
+  });
+
+  it('splits a prompt that overflows the window across several calls', async () => {
+    fakeJsi.registerLLMRunner(MODEL_PATH, {
+      maxPrefillLen: WINDOW,
+      generations: [{ response: 'ok ' }],
+    });
+    const session = tracked(await createLLMChatSession(config));
+
+    // Long enough that the rendered prompt cannot fit one call.
+    await expect(
+      session.sendMessage('one two three four five six seven eight nine ten')
+    ).resolves.toBeDefined();
+
+    const prefills = fakeJsi.runnerCalls().filter((call) => call.kind === 'prefill');
+    expect(prefills.length).toBeGreaterThan(1);
+  });
+
+  it('keeps the conversation going past the window across turns', async () => {
+    // With `resetOnTurn` every turn re-prefills the whole conversation, so the
+    // prompt grows turn on turn and crosses the window partway through. That is
+    // how this failed on device: three turns fine, the fourth rejected.
+    fakeJsi.registerLLMRunner(MODEL_PATH, {
+      maxPrefillLen: WINDOW,
+      generations: [{ response: 'ok ' }],
+    });
+    const session = tracked(await createLLMChatSession(config, { resetOnTurn: true }));
+
+    for (const message of [
+      'first question here',
+      'second question here',
+      'third question here',
+      'fourth question here',
+    ]) {
+      await expect(session.sendMessage(message)).resolves.toBeDefined();
+    }
+  });
+
+  it('sends a prompt in one call when the model declares no window', async () => {
+    // Every model whose window covers its context keeps today's exact path, and
+    // pays for no tokenizer.
+    const session = tracked(await createLLMChatSession(config));
+
+    await session.sendMessage('one two three four five six seven eight nine ten');
+
+    // Text, not token chunks: a chunked call carries no text at all.
+    const prefills = fakeJsi.runnerCalls().filter((call) => call.kind === 'prefill');
+    expect(prefills.every((call) => (call as { text: string }).text.length > 0)).toBe(true);
+  });
+});
+
 describe('createLLMChatSession — failure', () => {
   it('rolls the history and the KV cache back when a turn fails', async () => {
     const session = tracked(await createLLMChatSession(config));

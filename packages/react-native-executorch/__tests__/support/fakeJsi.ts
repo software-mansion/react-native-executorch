@@ -181,6 +181,11 @@ export type FakeRunnerProgram = {
   /** Context window the runner reports. Defaults to `128`. */
   maxSeqLen?: number;
   /**
+   * Per-call prefill window, as a dynamic-shape export declares. Defaults to
+   * `0`, meaning the model declares none and a prompt goes in one call.
+   */
+  maxPrefillLen?: number;
+  /**
    * Responses handed out in order, one per `generate` call. A runner that runs
    * past the end of the list repeats the last entry, so a test only has to
    * script the turns it cares about.
@@ -207,6 +212,17 @@ const promptText = (prompt: unknown): string =>
       ? prompt.filter((part) => typeof part === 'string').join('')
       : '';
 
+/** Token ids carried by a prompt's `tokens` parts, which text parts do not cover. */
+const promptTokenCount = (prompt: unknown): number =>
+  Array.isArray(prompt)
+    ? prompt.reduce(
+        (sum, part) =>
+          sum +
+          (part && typeof part === 'object' && part.kind === 'tokens' ? part.tokens.length : 0),
+        0
+      )
+    : 0;
+
 /**
  * Builds a fake LLM runner.
  *
@@ -228,6 +244,7 @@ function createFakeRunner(
   program: FakeRunnerProgram
 ) {
   const maxSeqLen = program.maxSeqLen ?? 128;
+  const maxPrefillLen = program.maxPrefillLen ?? 0;
   let disposed = false;
   let pos = 0;
   let generationIndex = 0;
@@ -249,7 +266,16 @@ function createFakeRunner(
     prefill: (prompt: unknown): void => {
       assertLive('prefill');
       const text = promptText(prompt);
-      pos = Math.min(maxSeqLen, pos + countTokens(text));
+      const tokens = countTokens(text) + promptTokenCount(prompt);
+      // A dynamic-shape export bounds the prefill tensor to its per-call window
+      // and the runtime rejects a longer prompt outright, so a fake that quietly
+      // accepts one cannot show whether the caller stayed inside it.
+      if (maxPrefillLen > 0 && tokens > maxPrefillLen) {
+        throw new Error(
+          `LLMRunner.prefill: Failed: Error::NotSupported (${tokens} tokens over the ${maxPrefillLen} window)`
+        );
+      }
+      pos = Math.min(maxSeqLen, pos + tokens);
       runnerCalls.push({ kind: 'prefill', text, pos });
     },
 
@@ -307,6 +333,7 @@ function createFakeRunner(
     getKVCacheState: () => ({
       pos,
       maxSeqLen,
+      maxPrefillLen,
       remainingTokens: maxSeqLen - pos,
       usageRatio: pos / maxSeqLen,
     }),

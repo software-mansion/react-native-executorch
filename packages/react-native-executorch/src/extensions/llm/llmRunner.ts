@@ -68,7 +68,30 @@ export type Modality = MediaInput['kind'];
  * @experimental This API is experimental and might change in future releases.
  * @category LLM / Types
  */
-export type Prompt = string | readonly (string | MediaInput)[];
+export type Prompt = string | readonly PromptPart[];
+
+/**
+ * One element of an interleaved prompt: text, already-encoded text, or media.
+ * @experimental This API is experimental and might change in future releases.
+ * @category LLM / Types
+ */
+export type PromptPart = string | MediaInput | TokensInput;
+
+/**
+ * Already-encoded text.
+ *
+ * Text and tokens describe the same input, so a runner accepts this whatever
+ * its modalities. It exists for callers that must split a prompt across several
+ * prefill calls: a split is only faithful on token boundaries, because BPE
+ * merges across a cut in the string.
+ * @experimental This API is experimental and might change in future releases.
+ * @category LLM / Types
+ */
+export type TokensInput = {
+  readonly kind: 'tokens';
+  /** Token ids, as returned by a {@link Tokenizer}'s `encode`. */
+  readonly tokens: Int32Array;
+};
 
 /**
  * Current KV cache state and capacity metrics for an LLM runner.
@@ -80,6 +103,16 @@ export type LLMKVCacheState = {
   readonly pos: number;
   /** Maximum token capacity (context window) supported by the model. */
   readonly maxSeqLen: number;
+  /**
+   * Longest prompt a single `prefill` call may carry, in tokens, or 0 when the
+   * model does not declare one.
+   *
+   * On a dynamic-shape export this is smaller than {@link maxSeqLen}: the
+   * context is the KV budget for the conversation, while this is the decoder's
+   * per-call window, and the prefill tensor is bounded to it. A longer prompt
+   * has to be delivered as several calls.
+   */
+  readonly maxPrefillLen: number;
   /** Remaining token capacity before the context window is full. */
   readonly remainingTokens: number;
   /** Fraction of the context window currently occupied (0.0 to 1.0). */

@@ -143,6 +143,40 @@ int64_t getRunnerMaxSeqLen(executorch::extension::llm::IRunner *runner, bool isM
     return 0;
 }
 
+/**
+ * The longest prompt one prefill call may carry, or 0 when the model does not
+ * say.
+ *
+ * This is `get_max_seq_len`, and it is deliberately not what `getRunnerMaxSeqLen`
+ * reports. On a dynamic-shape export the two differ: `get_max_context_len` is the
+ * KV budget for the whole conversation, while `get_max_seq_len` is the decoder's
+ * per-call window, and the prefill tensor is bounded to it. A prompt longer than
+ * this must be split across calls, so a caller that cannot see the smaller number
+ * has no way to stay inside it.
+ */
+int64_t getRunnerMaxPrefillLen(executorch::extension::llm::IRunner *runner, bool isMultimodal) {
+    if (runner == nullptr) {
+        return 0;
+    }
+    const std::unordered_map<std::string, int64_t> *meta = nullptr;
+    if (isMultimodal) {
+        auto *r = dynamic_cast<MultimodalRunner *>(runner);
+        if (r != nullptr) {
+            meta = &(r->*getPrivateMember(MMRunnerMetadataTag{}));
+        }
+    } else {
+        auto *r = dynamic_cast<TextLLMRunner *>(runner);
+        if (r != nullptr) {
+            meta = &(r->*getPrivateMember(TextRunnerMetadataTag{}));
+        }
+    }
+    if (meta == nullptr) {
+        return 0;
+    }
+    auto it = meta->find(executorch::extension::llm::kMaxSeqLen);
+    return it != meta->end() ? it->second : 0;
+}
+
 void setRunnerPos(executorch::extension::llm::IRunner *runner, bool isMultimodal, int64_t targetPos) {
     if (runner == nullptr) {
         return;
@@ -200,6 +234,26 @@ std::vector<executorch::extension::llm::MultimodalInput> parsePrompt(
         }
         auto mediaObj = conversions::asType<jsi::Object>(rt, itemCtx, elem);
         auto kind = conversions::getRequiredProperty<std::string>(rt, itemCtx, mediaObj, "kind");
+
+        // Already-encoded text, not a modality: every runner accepts it, so this
+        // is checked before the modality gate. It exists so a caller that must
+        // split a prompt can split it on token boundaries. Re-encoding decoded
+        // text is not equivalent: BPE merges across a cut, so the pieces need
+        // not sum back to the same ids, or the same count.
+        if (kind == "tokens") {
+            auto tokensJs = conversions::getRequiredProperty<jsi::Value>(rt, itemCtx, mediaObj, "tokens");
+            auto ids = conversions::fromJsiTypedArray<int32_t>(rt, itemCtx, tokensJs);
+            std::vector<uint64_t> tokens;
+            tokens.reserve(ids.size());
+            for (auto id : ids) {
+                if (id < 0) {
+                    throw error::InvalidArgument(std::format("{}: token id {} is negative", itemCtx, id));
+                }
+                tokens.push_back(static_cast<uint64_t>(id));
+            }
+            inputs.emplace_back(std::move(tokens));
+            continue;
+        }
 
         if (std::ranges::find(supportedModalities, kind) == supportedModalities.end()) {
             throw error::InvalidArgument(std::format("{}: Modality '{}' is not supported "
@@ -427,6 +481,7 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
             jsi::Object obj(rt);
             obj.setProperty(rt, "pos", static_cast<double>(pos));
             obj.setProperty(rt, "maxSeqLen", static_cast<double>(maxSeqLen));
+            obj.setProperty(rt, "maxPrefillLen", static_cast<double>(getRunnerMaxPrefillLen(self->runner_.get(), isMultimodal)));
             obj.setProperty(rt, "remainingTokens", static_cast<double>(remaining));
             obj.setProperty(rt, "usageRatio", usageRatio);
             return obj;

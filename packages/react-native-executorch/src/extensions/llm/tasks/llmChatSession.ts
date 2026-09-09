@@ -18,6 +18,8 @@ import {
   type Prompt,
 } from '../llmRunner';
 import { parseTokenizerConfig } from '../utils/tokenizerConfig';
+import { chunkPrompt } from '../utils/prefillChunking';
+import { loadTokenizer } from '../../nlp/tokenizer';
 import {
   createChatPreprocessor,
   type ChatMessageContent,
@@ -206,7 +208,24 @@ export async function createLLMChatSession(
     const runner = scope.track(
       await wrapAsync(createLLMRunner, runtime)(modelPath, tokenizerPath, modalities)
     );
-    const prefill = wrapAsync(runner.prefill, runtime);
+    const prefillOnce = wrapAsync(runner.prefill, runtime);
+
+    // A dynamic-shape export bounds one prefill call to a window smaller than
+    // its context, so a prompt that fits the conversation can still overflow a
+    // single call. Splitting needs the tokenizer, which is only loaded if a
+    // model actually declares such a window.
+    const maxPrefillLen = runner.getKVCacheState().maxPrefillLen;
+    const tokenizer = maxPrefillLen > 0 ? scope.track(loadTokenizer(tokenizerPath)) : undefined;
+
+    const prefill = async (prompt: Prompt): Promise<void> => {
+      if (!tokenizer) {
+        await prefillOnce(prompt);
+        return;
+      }
+      for (const call of chunkPrompt(prompt, maxPrefillLen, (text) => tokenizer.encode(text))) {
+        await prefillOnce(call);
+      }
+    };
 
     const history: ChatMessage[] = [];
 
