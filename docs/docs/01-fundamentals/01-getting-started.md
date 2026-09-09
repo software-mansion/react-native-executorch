@@ -85,9 +85,7 @@ React Native ExecuTorch requires:
 
 - **New Architecture** enabled
 - **React Native 0.83+** or **Expo SDK 55+** with [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/) (**Expo Go is not supported** due to custom C++ native libraries)
-- **`react-native-worklets` 0.10 or newer** (`>=0.10.0 <0.13.0`), which is what
-  sets that floor: 0.10 is the first release to serialize an `ArrayBufferView`
-  natively, and it requires React Native 0.83+
+- **`react-native-worklets` 0.10 or newer** (`>=0.10.0 <0.13.0`)
 - **iOS 17.0+** / **Android 13+**
 
 For supported React Native versions, see the [Compatibility
