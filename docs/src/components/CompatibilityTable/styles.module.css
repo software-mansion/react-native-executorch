@@ -56,3 +56,22 @@
   background-color: var(--swm-red-dark-140);
   color: var(--swm-red-dark-80);
 }
+
+.partial {
+  background-color: var(--swm-yellow-light-40);
+  color: var(--swm-yellow-dark-120);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+[data-theme='dark'] .partial {
+  background-color: var(--swm-yellow-dark-140);
+  color: var(--swm-yellow-dark-80);
+}
+
+.footnote {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+}

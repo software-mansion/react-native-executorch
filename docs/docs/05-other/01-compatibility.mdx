@@ -17,7 +17,7 @@ React Native ExecuTorch supports only the [New Architecture](https://reactnative
     <thead>
       <tr>
         <th rowSpan={2}>React Native ExecuTorch</th>
-        <th colSpan={8}>React Native version</th>
+        <th colSpan={9}>React Native version</th>
       </tr>
       <tr>
         <th>0.78</th>
@@ -28,6 +28,7 @@ React Native ExecuTorch supports only the [New Architecture](https://reactnative
         <th>0.83</th>
         <th>0.84</th>
         <th>0.85</th>
+        <th>0.86</th>
       </tr>
     </thead>
     <tbody>
@@ -41,6 +42,7 @@ React Native ExecuTorch supports only the [New Architecture](https://reactnative
         <td><div className={styles.supported}>yes</div></td>
         <td><div className={styles.supported}>yes</div></td>
         <td><div className={styles.supported}>yes</div></td>
+        <td><div className={styles.partial}>untested&#8224;</div></td>
       </tr>
       <tr>
         <td><div className={styles.version}>0.9.x</div></td>
@@ -52,13 +54,15 @@ React Native ExecuTorch supports only the [New Architecture](https://reactnative
         <td><div className={styles.supported}>yes</div></td>
         <td><div className={styles.supported}>yes</div></td>
         <td><div className={styles.supported}>yes</div></td>
+        <td><div className={styles.partial}>untested&#8224;</div></td>
       </tr>
       <tr>
         <td><div className={styles.version}>0.10.x</div></td>
         <td><div className={styles.notSupported}>no</div></td>
         <td><div className={styles.notSupported}>no</div></td>
         <td><div className={styles.notSupported}>no</div></td>
-        <td><div className={styles.supported}>yes</div></td>
+        <td><div className={styles.notSupported}>no*</div></td>
+        <td><div className={styles.notSupported}>no*</div></td>
         <td><div className={styles.supported}>yes</div></td>
         <td><div className={styles.supported}>yes</div></td>
         <td><div className={styles.supported}>yes</div></td>
@@ -66,4 +70,78 @@ React Native ExecuTorch supports only the [New Architecture](https://reactnative
       </tr>
     </tbody>
   </table>
+</div>
+
+<div className={styles.footnote}>
+
+**\*** `react-native-executorch` 0.10 needs `react-native-worklets`
+`>=0.10.0 <0.13.0`, and worklets 0.10 is the first release to serialize an
+`ArrayBufferView` natively ([reanimated
+#9475](https://github.com/software-mansion/react-native-reanimated/pull/9475));
+older ones rebuild the view over its whole backing buffer, losing `byteOffset`
+and `length`. Worklets 0.10 in turn requires React Native 0.83+, which is what
+rules out 0.81 and 0.82.
+
+**†** Not verified. 0.8.x and 0.9.x were released before React Native 0.86 and
+are maintained on the `legacy` dist-tag only.
+
+</div>
+
+## Expo SDK
+
+`npx expo install` picks the `react-native-worklets` an SDK bundles, which is
+older than this library needs on SDK 55 and 56. Both work once you ask for the
+versions below explicitly — Reanimated pins worklets exactly, so it moves with
+it.
+
+<div className={styles.compatibility}>
+  <table>
+    <thead>
+      <tr>
+        <th>Expo SDK</th>
+        <th>React Native</th>
+        <th>Bundled worklets</th>
+        <th>react-native-executorch 0.10.x</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><div className={styles.version}>54</div></td>
+        <td>0.81</td>
+        <td>0.5.1</td>
+        <td><div className={styles.notSupported}>no</div></td>
+      </tr>
+      <tr>
+        <td><div className={styles.version}>55</div></td>
+        <td>0.83</td>
+        <td>0.7.4</td>
+        <td><div className={styles.partial}>needs explicit versions</div></td>
+      </tr>
+      <tr>
+        <td><div className={styles.version}>56</div></td>
+        <td>0.85</td>
+        <td>0.8.3</td>
+        <td><div className={styles.partial}>needs explicit versions</div></td>
+      </tr>
+      <tr>
+        <td><div className={styles.version}>57</div></td>
+        <td>0.86</td>
+        <td>0.10.1</td>
+        <td><div className={styles.supported}>yes</div></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div className={styles.footnote}>
+
+On SDK 55 and 56, install both:
+
+```bash
+npm install react-native-worklets@^0.10.0 react-native-reanimated@^4.5.0
+```
+
+SDK 54 is React Native 0.81, below what worklets 0.10 accepts, so no
+combination of versions works there.
+
 </div>
