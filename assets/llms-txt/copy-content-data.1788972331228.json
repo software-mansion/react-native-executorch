@@ -25775,6 +25775,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/other/troubleshooting": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/api-reference": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -29736,6 +29748,18 @@
     ]
   },
   "/react-native-executorch/docs/other/compatibility": {
+    "shouldDisplay": true,
+    "hasMarkdown": true,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/other/troubleshooting": {
     "shouldDisplay": true,
     "hasMarkdown": true,
     "contentSelectors": [

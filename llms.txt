@@ -42,6 +42,7 @@
 ## Other
 
 - [Compatibility](https://docs.swmansion.com/react-native-executorch/docs/other/compatibility.md): React Native ExecuTorch compatibility table showing which versions of React Native are supported.
+- [Troubleshooting](https://docs.swmansion.com/react-native-executorch/docs/other/troubleshooting.md): Build and install failures caused by a project setup React Native ExecuTorch cannot control, and what to do about each.
 
 ## Category
 
