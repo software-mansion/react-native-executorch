@@ -17,7 +17,7 @@ React Native ExecuTorch supports only the [New Architecture](https://reactnative
     <thead>
       <tr>
         <th rowSpan={2}>React Native ExecuTorch</th>
-        <th colSpan={8}>React Native version</th>
+        <th colSpan={9}>React Native version</th>
       </tr>
       <tr>
         <th>0.78</th>
@@ -28,6 +28,7 @@ React Native ExecuTorch supports only the [New Architecture](https://reactnative
         <th>0.83</th>
         <th>0.84</th>
         <th>0.85</th>
+        <th>0.86</th>
       </tr>
     </thead>
     <tbody>
@@ -41,6 +42,7 @@ React Native ExecuTorch supports only the [New Architecture](https://reactnative
         <td><div className={styles.supported}>yes</div></td>
         <td><div className={styles.supported}>yes</div></td>
         <td><div className={styles.supported}>yes</div></td>
+        <td><div className={styles.partial}>untested&#8224;</div></td>
       </tr>
       <tr>
         <td><div className={styles.version}>0.9.x</div></td>
@@ -52,13 +54,15 @@ React Native ExecuTorch supports only the [New Architecture](https://reactnative
         <td><div className={styles.supported}>yes</div></td>
         <td><div className={styles.supported}>yes</div></td>
         <td><div className={styles.supported}>yes</div></td>
+        <td><div className={styles.partial}>untested&#8224;</div></td>
       </tr>
       <tr>
         <td><div className={styles.version}>0.10.x</div></td>
         <td><div className={styles.notSupported}>no</div></td>
         <td><div className={styles.notSupported}>no</div></td>
         <td><div className={styles.notSupported}>no</div></td>
-        <td><div className={styles.supported}>yes</div></td>
+        <td><div className={styles.partial}>yes*</div></td>
+        <td><div className={styles.partial}>yes*</div></td>
         <td><div className={styles.supported}>yes</div></td>
         <td><div className={styles.supported}>yes</div></td>
         <td><div className={styles.supported}>yes</div></td>
@@ -66,4 +70,25 @@ React Native ExecuTorch supports only the [New Architecture](https://reactnative
       </tr>
     </tbody>
   </table>
+</div>
+
+<div className={styles.footnote}>
+
+**\*** React Native 0.81 and 0.82 need `react-native-worklets` **0.8.x or
+0.9.x** — worklets 0.10, which newer Expo SDKs bundle, itself requires React
+Native 0.83+. The library supports the whole `>=0.8.0 <0.11.0` range, with one
+difference on 0.8/0.9: those versions serialize an `ArrayBufferView` by
+rebuilding it over its **entire** backing buffer, losing `byteOffset` and
+`length` ([reanimated
+#9475](https://github.com/software-mansion/react-native-reanimated/pull/9475)
+fixed that in worklets 0.10.0). A window into a larger buffer — a slice of a
+recording, a pooled camera frame — would otherwise reach the model silently
+widened, so every value crossing a worklet boundary is checked and any such
+view is copied into a tightly sized one first. The copy costs one allocation
+per call, and only for a view that is not already tight; on worklets 0.10+ no
+copy is ever made. Results are identical either way.
+
+**†** Not verified. 0.8.x and 0.9.x were released before React Native 0.86 and
+are maintained on the `legacy` dist-tag only.
+
 </div>

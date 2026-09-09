@@ -84,8 +84,15 @@ pnpm add react-native-executorch react-native-worklets react-native-blob-util
 React Native ExecuTorch requires:
 
 - **New Architecture** enabled
-- **React Native 0.81+** or **Expo SDK 54+** with [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/) (**Expo Go is not supported** due to custom C++ native libraries)
+- **React Native 0.81+** with [`react-native-worklets`](https://github.com/software-mansion/react-native-worklets) in the `>=0.8.0 <0.11.0` range, or **Expo SDK 54+** with [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/) (**Expo Go is not supported** due to custom C++ native libraries)
 - **iOS 17.0+** / **Android 13+**
+
+React Native 0.81 and 0.82 pin you to worklets 0.8/0.9, which serialize an
+`ArrayBufferView` slightly differently — the library works around it, see the
+[Compatibility table](../05-other/01-compatibility.mdx). Expo SDK 54 and 55
+bundle worklets 0.5 and 0.7, below the supported range, so on those SDKs you
+have to move to 0.8+ yourself; the version Reanimated expects is pinned per SDK,
+so check both before upgrading.
 
 For supported React Native versions, see the [Compatibility
 table](../05-other/01-compatibility.mdx).
