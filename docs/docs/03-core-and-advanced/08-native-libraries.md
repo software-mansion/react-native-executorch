@@ -48,10 +48,12 @@ Add a `react-native-executorch` block to your `package.json`:
 The three lists are merged, so you can pair high-level `features` with specific `backends` or `libs`. Re-run your package manager install after editing.
 
 :::note Monorepos
-The block is read from the directory the install was run in, which in a
-workspace is the **root** — a block in an app's own `package.json` is ignored.
+The block is read from the directory the install was run in, then from every
+`package.json` above the installed package. A hoisted workspace resolves to the
+**root** either way, so put the block there; an app that keeps its own
+`node_modules` (pnpm, nohoist) is found from its own `package.json`.
 `node_modules/react-native-executorch/rne-build-config.json` records what was
-actually resolved.
+actually resolved, and the install log names the manifest it read.
 :::
 
 :::caution pnpm
