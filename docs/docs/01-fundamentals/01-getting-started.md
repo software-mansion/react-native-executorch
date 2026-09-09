@@ -85,7 +85,9 @@ React Native ExecuTorch requires:
 
 - **New Architecture** enabled
 - **React Native 0.81+** or **Expo SDK 54+** with [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/) (**Expo Go is not supported** due to custom C++ native libraries)
-- **iOS 17.0+** / **Android 13+**
+- **iOS 17.0+** / **Android 13+** (the shipped native libraries are built
+  against API 26, so `minSdkVersion` must be at least 26; the library defaults
+  it to that)
 
 For supported React Native versions, see the [Compatibility
 table](../05-other/01-compatibility.mdx). If an install or a build fails, see

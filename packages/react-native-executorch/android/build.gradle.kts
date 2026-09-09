@@ -108,7 +108,12 @@ android {
     compileSdk = (getExtOrDefault("compileSdkVersion", 34) as Number).toInt()
 
     defaultConfig {
-        minSdk = (getExtOrDefault("minSdkVersion", 21) as Number).toInt()
+        // The prebuilt ExecuTorch runtime is compiled against Android API 26 -
+        // `.note.android.ident` in libexecutorch.so, libxnnpack_executorch_backend.so
+        // and libvulkan_executorch_backend.so all read 26 - so an app below that
+        // ships a library its linker is not guaranteed to be able to load. The
+        // default was 21, which let such a build through to fail on the device.
+        minSdk = (getExtOrDefault("minSdkVersion", 26) as Number).toInt()
         targetSdk = (getExtOrDefault("targetSdkVersion", 34) as Number).toInt()
         consumerProguardFiles("consumer-proguard-rules.pro")
 

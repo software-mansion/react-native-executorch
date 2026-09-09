@@ -172,32 +172,65 @@ const FEATURE_MAP = {
   tokenizer: { backends: [], libs: [] },
 };
 
+/**
+ * The `react-native-executorch` block, and the package.json it came from.
+ *
+ * Two places are tried, in order:
+ *
+ *   1. INIT_CWD - where the install was invoked. For a single-app project that
+ *      is the app itself.
+ *   2. Each package.json above this package. In a workspace, `yarn install` is
+ *      run at the root, so INIT_CWD points there and a block in
+ *      `apps/mobile/package.json` would never be seen. When the app keeps its
+ *      own node_modules (pnpm, nohoist), walking up from here lands on the app.
+ *
+ * A hoisted workspace resolves to the root either way, which is where the block
+ * has to live in that layout - there is no way to tell which of several apps a
+ * root install was meant for.
+ */
+function findUserConfig() {
+  const candidates = [];
+  const initCwd = process.env.INIT_CWD || process.env.npm_config_local_prefix;
+  if (initCwd) candidates.push(initCwd);
+
+  // `__dirname` is <somewhere>/node_modules/react-native-executorch/scripts.
+  let dir = path.resolve(__dirname, '..', '..', '..');
+  for (let i = 0; i < 6; i++) {
+    if (!candidates.includes(dir)) candidates.push(dir);
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+
+  for (const root of candidates) {
+    const manifest = path.join(root, 'package.json');
+    let parsed;
+    try {
+      parsed = JSON.parse(fs.readFileSync(manifest, 'utf8'));
+    } catch {
+      continue;
+    }
+    if (parsed['react-native-executorch'] !== undefined) {
+      return { config: parsed['react-native-executorch'], manifest };
+    }
+  }
+  return { config: undefined, manifest: undefined };
+}
+
 function readUserConfig() {
   const allOn = () => ({ backends: [...ALL_BACKENDS], libs: [...ALL_LIBS] });
 
-  // npm/yarn set INIT_CWD to the directory where install was invoked (project root)
-  const projectRoot = process.env.INIT_CWD || process.env.npm_config_local_prefix;
-  if (!projectRoot) {
-    console.warn(
-      '[react-native-executorch] Could not determine project root, enabling all backends + libs.'
+  const { config: rneConfig, manifest } = findUserConfig();
+
+  if (rneConfig === undefined) {
+    console.log(
+      '[react-native-executorch] No `react-native-executorch` block found; enabling all backends + libs.'
     );
     return allOn();
   }
-
-  let rneConfig;
-  try {
-    const userPackageJson = JSON.parse(
-      fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8')
-    );
-    rneConfig = userPackageJson['react-native-executorch'];
-  } catch {
-    console.warn(
-      '[react-native-executorch] Could not read app package.json, enabling all backends + libs.'
-    );
-    return allOn();
-  }
-
-  if (rneConfig === undefined) return allOn();
+  // Which manifest won matters when it is not the one the user edited - the
+  // usual monorepo surprise.
+  console.log(`[react-native-executorch] Read build config from ${manifest}`);
 
   if (rneConfig.extras !== undefined) {
     throw new Error(
@@ -497,4 +530,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { ALL_BACKENDS, ALL_LIBS, FEATURE_MAP };
+module.exports = { ALL_BACKENDS, ALL_LIBS, FEATURE_MAP, findUserConfig, readUserConfig };
