@@ -47,6 +47,22 @@ Add a `react-native-executorch` block to your `package.json`:
 
 The three lists are merged, so you can pair high-level `features` with specific `backends` or `libs`. Re-run your package manager install after editing.
 
+:::note Monorepos
+The block is read from the directory the install was run in, then from every
+`package.json` above the installed package. A hoisted workspace resolves to the
+**root** either way, so put the block there; an app that keeps its own
+`node_modules` (pnpm, nohoist) is found from its own `package.json`.
+`node_modules/react-native-executorch/rne-build-config.json` records what was
+actually resolved, and the install log names the manifest it read.
+:::
+
+:::caution pnpm
+pnpm 10 and later do not run dependency build scripts unless you allow them, so
+the download never happens and the native build fails later on a missing file.
+Run `pnpm approve-builds react-native-executorch` once. See
+[Troubleshooting](../05-other/02-troubleshooting.md).
+:::
+
 ### Backends
 
 Hardware backends provide optimized execution kernels for specific processors and platforms. See the [ExecuTorch Backends documentation](https://docs.pytorch.org/executorch/stable/backends-section.html) for details on lowering and delegate compilation:

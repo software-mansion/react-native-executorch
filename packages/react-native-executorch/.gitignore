@@ -14,3 +14,4 @@ cpp/tests/build/
 
 # Model and tokenizer fixtures downloaded by scripts/fetch-test-fixtures.sh
 cpp/tests/fixtures/
+include-external-opencv

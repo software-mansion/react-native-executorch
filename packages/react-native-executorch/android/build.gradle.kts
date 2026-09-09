@@ -54,6 +54,44 @@ val rneConfig = rneBuildConfig()
 fun rneFlag(key: String): String = if (rneConfig[key] != false) "ON" else "OFF"
 
 /**
+ * The prebuilt ExecuTorch runtime is not in the npm tarball - `package.json`
+ * excludes it and `scripts/download-libs.js` fetches it from the matching
+ * GitHub release in a postinstall hook. When a package manager skips that hook
+ * the install still looks clean and the failure surfaces much later, out of
+ * CMake, blamed on a missing library rather than on the install. Fail here with
+ * the fix instead.
+ */
+fun requireNativeArtifacts() {
+    val libsDir = file("../third-party/android/libs/executorch")
+    val present = libsDir.listFiles()
+        ?.filter { it.isDirectory && it.resolve("libexecutorch.so").exists() }
+        .orEmpty()
+    if (present.isNotEmpty()) return
+
+    throw GradleException(
+        """
+        react-native-executorch is missing its native artifacts:
+
+          ${libsDir.absolutePath}
+
+        They are downloaded by this package's postinstall hook, which your
+        package manager did not run. pnpm 10 and later block dependency build
+        scripts by default ("Ignored build scripts"), and so do
+        `--ignore-scripts` and `npm ci --ignore-scripts`. Re-run the hook:
+
+          pnpm approve-builds react-native-executorch   # pnpm
+          npm rebuild react-native-executorch           # npm
+          node node_modules/react-native-executorch/scripts/download-libs.js
+
+        If you provision the libraries yourself, put them under
+        third-party/android/libs/executorch/<abi>/ before building.
+        """.trimIndent()
+    )
+}
+
+requireNativeArtifacts()
+
+/**
  * ExecuTorch only supports these ABIs. Honor the app's `reactNativeArchitectures`
  * (e.g. Expo passes `-PreactNativeArchitectures=arm64-v8a` for device builds) so
  * we only build/provision the ABIs the app actually needs; default to both.
@@ -70,7 +108,12 @@ android {
     compileSdk = (getExtOrDefault("compileSdkVersion", 34) as Number).toInt()
 
     defaultConfig {
-        minSdk = (getExtOrDefault("minSdkVersion", 21) as Number).toInt()
+        // The prebuilt ExecuTorch runtime is compiled against Android API 26 -
+        // `.note.android.ident` in libexecutorch.so, libxnnpack_executorch_backend.so
+        // and libvulkan_executorch_backend.so all read 26 - so an app below that
+        // ships a library its linker is not guaranteed to be able to load. The
+        // default was 21, which let such a build through to fail on the device.
+        minSdk = (getExtOrDefault("minSdkVersion", 26) as Number).toInt()
         targetSdk = (getExtOrDefault("targetSdkVersion", 34) as Number).toInt()
         consumerProguardFiles("consumer-proguard-rules.pro")
 

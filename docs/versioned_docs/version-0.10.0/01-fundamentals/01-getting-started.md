@@ -84,11 +84,30 @@ pnpm add react-native-executorch react-native-worklets react-native-blob-util
 React Native ExecuTorch requires:
 
 - **New Architecture** enabled
-- **React Native 0.81+** or **Expo SDK 54+** with [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/) (**Expo Go is not supported** due to custom C++ native libraries)
-- **iOS 17.0+** / **Android 13+**
+- **React Native 0.83+** or **Expo SDK 55+** with [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/) (**Expo Go is not supported** due to custom C++ native libraries)
+- **`react-native-worklets` 0.10 or newer** (`>=0.10.0 <0.13.0`)
+- **iOS 17.0+** / **Android 13+** (set the app's `minSdkVersion` to 26 or higher)
 
 For supported React Native versions, see the [Compatibility
-table](../05-other/01-compatibility.mdx).
+table](../05-other/01-compatibility.mdx). If an install or a build fails, see
+[Troubleshooting](../05-other/02-troubleshooting.md) — most of it comes down to
+the package manager skipping the postinstall hook, or to `use_frameworks!`.
+:::
+
+:::caution Expo SDK 55 and 56
+Both bundle a `react-native-worklets` older than 0.10 — 0.7.4 on SDK 55, 0.8.3
+on SDK 56 — and `npx expo install` will pick that one. Install the version this
+library needs instead:
+
+```bash
+npm install react-native-worklets@^0.10.0
+```
+
+Any other package in your app that uses worklets has to be moved to a release
+built against the same version; two of them asking for different worklets gives
+you two incompatible native runtimes. Our own example apps reconcile them this
+way. **Expo SDK 54 cannot be supported**: it is React Native 0.81, below what
+worklets 0.10 accepts.
 :::
 
 ### Selecting native libraries
