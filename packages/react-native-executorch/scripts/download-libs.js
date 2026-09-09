@@ -218,7 +218,7 @@ function findUserConfig() {
 }
 
 function readUserConfig() {
-  const allOn = () => ({ backends: [...ALL_BACKENDS], libs: [...ALL_LIBS] });
+  const allOn = () => ({ backends: [...ALL_BACKENDS], libs: [...ALL_LIBS], opencvPod: undefined });
 
   const { config: rneConfig, manifest } = findUserConfig();
 
@@ -269,10 +269,10 @@ function readUserConfig() {
     }
   }
 
-  return { backends: [...backends], libs: [...libs] };
+  return { backends: [...backends], libs: [...libs], opencvPod: rneConfig.opencvPod };
 }
 
-function writeBuildConfig({ backends, libs }) {
+function writeBuildConfig({ backends, libs, opencvPod }) {
   const config = {
     enableOpencv: libs.includes('opencv'),
     enablePhonemis: libs.includes('phonemis'),
@@ -281,6 +281,10 @@ function writeBuildConfig({ backends, libs }) {
     enableMlx: backends.includes('mlx'),
     enableVulkan: backends.includes('vulkan'),
   };
+  // Which pod provides opencv2 on iOS. Only set when the app asks for a
+  // specific one; otherwise the podspec picks, preferring an OpenCV the app
+  // already carries so two frameworks named opencv2 never meet.
+  if (opencvPod !== undefined) config.opencvPod = opencvPod;
   fs.writeFileSync(
     path.join(PACKAGE_ROOT, 'rne-build-config.json'),
     JSON.stringify(config, null, 2)

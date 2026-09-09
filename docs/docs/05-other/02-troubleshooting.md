@@ -79,12 +79,31 @@ use_frameworks! :linkage => :static
 
 ## `frameworks with conflicting names: opencv2.xcframework`
 
-Another pod in the app vendors its own OpenCV under the same framework name —
-`react-native-fast-opencv` (via `FastOpenCV-iOS`) is the common one. CocoaPods
-cannot install both.
+Another pod vendors OpenCV under the same framework name — `react-native-fast-opencv`
+(via `FastOpenCV-iOS`) is the common one — and CocoaPods installs only one
+framework called `opencv2`.
 
-If you do not use this library's vision tasks, drop its OpenCV and the conflict
-goes with it:
+Recent versions handle this for you: when `react-native-fast-opencv` is
+installed alongside this library, we depend on the OpenCV it vendors instead of
+our own, and compile against that copy's headers. `pod install` prints which one
+it chose. Nothing to configure, and both libraries work in the same app.
+
+To force the choice, name the pod that should provide OpenCV:
+
+```json
+{
+  "react-native-executorch": {
+    "opencvPod": "opencv-rne"
+  }
+}
+```
+
+`opencv-rne` is ours; any pod that vendors an `opencv2.xcframework` is accepted.
+We only use `opencv2/core.hpp` and `opencv2/imgproc.hpp`, so an OpenCV 4.x build
+serves. Forcing ours while another OpenCV is installed brings the conflict back,
+which is what the setting is for when you would rather drop the other library.
+
+If you do not use this library's vision tasks at all, drop its OpenCV instead:
 
 ```json
 {
@@ -98,8 +117,6 @@ goes with it:
 Re-run your package manager's install afterwards. See
 [Native Libraries](../03-core-and-advanced/08-native-libraries.md) for what each
 entry covers — leaving `opencv` out disables every computer-vision task.
-
-Otherwise the two libraries cannot coexist today; pick one.
 
 ## `None of the architectures in ARCHS (x86_64) are valid`
 

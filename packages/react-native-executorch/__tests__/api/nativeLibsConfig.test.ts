@@ -127,4 +127,23 @@ describe('native libs user config', () => {
 
     expect(() => readUserConfig()).toThrow(/telepathy/);
   });
+
+  it('carries opencvPod through to the build config the podspec reads', () => {
+    // Which pod provides opencv2 is the app's call when it already carries an
+    // OpenCV: the podspec reads this key, and it only reaches the podspec if
+    // the config script writes it out.
+    writeManifest(root, { opencvPod: 'FastOpenCV-iOS' });
+    const { readUserConfig } = loadWith(root);
+
+    expect(readUserConfig().opencvPod).toBe('FastOpenCV-iOS');
+  });
+
+  it('leaves opencvPod unset when the app does not ask for one', () => {
+    // Absent means "decide for me", which is what lets the podspec prefer an
+    // OpenCV the app already has. Writing a default here would freeze that.
+    writeManifest(root, { backends: ['xnnpack'] });
+    const { readUserConfig } = loadWith(root);
+
+    expect(readUserConfig().opencvPod).toBeUndefined();
+  });
 });

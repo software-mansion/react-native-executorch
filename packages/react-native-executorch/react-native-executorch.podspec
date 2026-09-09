@@ -1,3 +1,4 @@
+require "fileutils"
 require "json"
 
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
@@ -214,6 +215,63 @@ Pod::Spec.new do |s|
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
   }
 
+  # iOS OpenCV is provided by a CocoaPod (not a downloaded tarball), normally
+  # our own opencv-rne.
+  #
+  # An app can already carry OpenCV through another library, and CocoaPods
+  # refuses to install two vendored frameworks with the same name:
+  #
+  #   [!] The 'Pods-YourApp' target has frameworks with conflicting names:
+  #   opencv2.xcframework
+  #
+  # react-native-fast-opencv is the one this happens with, and wanting both is
+  # reasonable: our inference API with their image transformations. So when it
+  # is installed alongside us we depend on the pod it vendors instead of our
+  # own, which leaves exactly one opencv2 in the project. We only use
+  # `opencv2/core.hpp` and `opencv2/imgproc.hpp`, so any OpenCV 4.x build
+  # serves. Set "opencvPod" in the package.json config block to override the
+  # choice in either direction.
+  external_opencv = false
+  if enable_opencv
+    detected_opencv_pod =
+      if Dir.exist?(File.join(__dir__, "..", "react-native-fast-opencv"))
+        "FastOpenCV-iOS"
+      else
+        "opencv-rne"
+      end
+    opencv_pod = rne_build_config["opencvPod"] || detected_opencv_pod
+
+    if opencv_pod == "opencv-rne"
+      s.dependency "opencv-rne", "~> 4.11.0"
+    else
+      Pod::UI.puts "[react-native-executorch] using #{opencv_pod} for OpenCV " \
+                   "instead of opencv-rne, so the project holds one opencv2" if defined?(Pod::UI)
+      s.dependency opencv_pod
+      external_opencv = true
+    end
+
+  # Our own OpenCV headers ship under third-party/include and are newer than
+  # what another OpenCV pod vendors: react-native-fast-opencv carries 4.9, and
+  # compiling against ours while linking against theirs fails at link time on
+  # any signature that moved since (cvtColor gained an AlgorithmHint parameter
+  # in 4.10). Whoever provides the binary has to provide the headers, so with
+  # an external OpenCV the include root becomes a mirror of ours with opencv2
+  # left out, and `#include <opencv2/...>` resolves through their framework.
+  mirror_without_opencv = lambda do
+    source = File.join(__dir__, "third-party/include")
+    mirror = File.join(__dir__, "third-party/include-external-opencv")
+    FileUtils.rm_rf(mirror)
+    FileUtils.mkdir_p(mirror)
+    Dir.children(source).each do |entry|
+      next if entry == "opencv2"
+      FileUtils.ln_s(File.join(source, entry), File.join(mirror, entry))
+    end
+    "third-party/include-external-opencv"
+  end
+
+  third_party_include =
+    external_opencv ? mirror_without_opencv.call : "third-party/include"
+
   s.pod_target_xcconfig = {
     "USE_HEADERMAP" => "YES",
     "CLANG_CXX_LANGUAGE_STANDARD" => "c++20",
@@ -229,7 +287,7 @@ Pod::Spec.new do |s|
       # ==============================================================================
       "\"$(PODS_TARGET_SRCROOT)/legacy/cpp\"",
       # ==============================================================================
-      "\"$(PODS_TARGET_SRCROOT)/third-party/include\"",
+      "\"$(PODS_TARGET_SRCROOT)/#{third_party_include}\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/cpuinfo\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/pthreadpool\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/include\"",
@@ -278,8 +336,7 @@ Pod::Spec.new do |s|
   # ExecutorchLib goes in vendored_frameworks to avoid duplicate symbol errors.
   s.ios.vendored_frameworks = ["third-party/ios/ExecutorchLib.xcframework"]
 
-  # iOS OpenCV is provided by the opencv-rne CocoaPod (not a downloaded tarball).
-  s.dependency "opencv-rne", "~> 4.11.0" if enable_opencv
+  end
 
   install_modules_dependencies(s)
 end
