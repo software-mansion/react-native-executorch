@@ -187,6 +187,8 @@ const FEATURE_MAP = {
  * A hoisted workspace resolves to the root either way, which is where the block
  * has to live in that layout - there is no way to tell which of several apps a
  * root install was meant for.
+ * @returns The block and the path of the package.json holding it, or both
+ * `undefined` when no manifest declares one.
  */
 function findUserConfig() {
   const candidates = [];
