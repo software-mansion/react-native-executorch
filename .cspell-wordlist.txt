@@ -385,3 +385,5 @@ pretokenizer
 repoint
 repoints
 basenames
+xcconfig
+toggleable
