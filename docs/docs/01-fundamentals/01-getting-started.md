@@ -84,18 +84,29 @@ pnpm add react-native-executorch react-native-worklets react-native-blob-util
 React Native ExecuTorch requires:
 
 - **New Architecture** enabled
-- **React Native 0.81+** with [`react-native-worklets`](https://github.com/software-mansion/react-native-worklets) in the `>=0.8.0 <0.11.0` range, or **Expo SDK 54+** with [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/) (**Expo Go is not supported** due to custom C++ native libraries)
+- **React Native 0.83+** or **Expo SDK 55+** with [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/) (**Expo Go is not supported** due to custom C++ native libraries)
+- **`react-native-worklets` 0.10 or newer** (`>=0.10.0 <0.13.0`), which is what
+  sets that floor: 0.10 is the first release to serialize an `ArrayBufferView`
+  natively, and it requires React Native 0.83+
 - **iOS 17.0+** / **Android 13+**
-
-React Native 0.81 and 0.82 pin you to worklets 0.8/0.9, which serialize an
-`ArrayBufferView` slightly differently — the library works around it, see the
-[Compatibility table](../05-other/01-compatibility.mdx). Expo SDK 54 and 55
-bundle worklets 0.5 and 0.7, below the supported range, so on those SDKs you
-have to move to 0.8+ yourself; the version Reanimated expects is pinned per SDK,
-so check both before upgrading.
 
 For supported React Native versions, see the [Compatibility
 table](../05-other/01-compatibility.mdx).
+:::
+
+:::caution Expo SDK 55 and 56
+Both bundle a `react-native-worklets` older than 0.10 — 0.7.4 on SDK 55, 0.8.3
+on SDK 56 — and `npx expo install` will pick that one. Ask for the versions
+this library needs instead, together with the Reanimated release that expects
+the same worklets (Reanimated pins it exactly, so bumping one without the other
+gives you two incompatible native runtimes):
+
+```bash
+npm install react-native-worklets@^0.10.0 react-native-reanimated@^4.5.0
+```
+
+Our own example apps do exactly this. **Expo SDK 54 cannot be supported**: it is
+React Native 0.81, below what worklets 0.10 accepts.
 :::
 
 ### Selecting native libraries

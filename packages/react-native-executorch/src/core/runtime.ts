@@ -12,7 +12,6 @@ import {
   type WorkletRuntime,
 } from 'react-native-worklets';
 import { isRnExecuTorchError, RnExecuTorchError } from './error';
-import { tightenArrayBufferViews } from './serialization';
 
 /**
  * The default background worklet runtime used for all model execution.
@@ -62,7 +61,7 @@ export function wrapAsync<Args extends any[], R>(
       (argsArray) => {
         'worklet';
         try {
-          return { ok: true, value: tightenArrayBufferViews(fn(...argsArray)) };
+          return { ok: true, value: fn(...argsArray) };
         } catch (e: any) {
           // Only plain data survives the hop back to the React Native runtime:
           // class identity, the prototype chain, and the stack do not. Carry the
@@ -81,11 +80,7 @@ export function wrapAsync<Args extends any[], R>(
           return { ok: false, error };
         }
       },
-      // Both directions are tightened: worklets < 0.10.0 rebuilds a view over
-      // its whole backing buffer, so an offset window - a slice of a recording,
-      // a pooled camera frame - would arrive silently widened. See
-      // `tightenArrayBufferViews`.
-      tightenArrayBufferViews(args)
+      args
     );
 
     if (!result.ok) {
