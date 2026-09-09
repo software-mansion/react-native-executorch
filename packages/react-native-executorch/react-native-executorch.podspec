@@ -21,6 +21,49 @@ else
   enable_mlx      = true
 end
 
+# The native artifacts are not in the npm tarball - `package.json` excludes
+# them and `scripts/download-libs.js` fetches them from the matching GitHub
+# release in a postinstall hook. When a package manager skips that hook the
+# install still looks clean, and so does `pod install`: CocoaPods never checks
+# that a vendored framework exists. The build then fails minutes later with
+#
+#   error: Build input files cannot be found:
+#   '.../XnnpackBackend.xcframework/ios-arm64-simulator/libXnnpackBackend.a'
+#
+# which names neither the cause nor the fix. Fail here instead, while the user
+# is still looking at the install that caused it.
+required_artifacts = { "ExecutorchLib.xcframework" => true }
+required_artifacts["XnnpackBackend.xcframework"] = enable_xnnpack
+required_artifacts["CoreMLBackend.xcframework"]  = enable_coreml
+required_artifacts["MLXBackend.xcframework"]     = enable_mlx
+
+missing = required_artifacts
+  .select { |_, required| required }
+  .keys
+  .map    { |name| File.join(__dir__, "third-party/ios", name) }
+  .reject { |path| File.directory?(path) }
+
+unless missing.empty?
+  # Pod::Informative renders as a plain `[!]` message rather than a backtrace.
+  raise(defined?(Pod::Informative) ? Pod::Informative : StandardError, <<~MESSAGE)
+    react-native-executorch is missing its native artifacts:
+
+    #{missing.map { |path| "  #{path}" }.join("\n")}
+
+    They are downloaded by this package's postinstall hook, which your package
+    manager did not run. pnpm 10 and later block dependency build scripts by
+    default ("Ignored build scripts"), and so do `--ignore-scripts` and
+    `npm ci --ignore-scripts`. Re-run the hook, then `pod install` again:
+
+      pnpm approve-builds react-native-executorch   # pnpm
+      npm rebuild react-native-executorch           # npm
+      node node_modules/react-native-executorch/scripts/download-libs.js
+
+    If you provision the libraries yourself, put them under
+    third-party/ios/ before installing pods.
+  MESSAGE
+end
+
 Pod::Spec.new do |s|
   s.name         = "react-native-executorch"
   s.version      = package["version"]

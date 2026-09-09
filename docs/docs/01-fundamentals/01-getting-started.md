@@ -88,7 +88,9 @@ React Native ExecuTorch requires:
 - **iOS 17.0+** / **Android 13+**
 
 For supported React Native versions, see the [Compatibility
-table](../05-other/01-compatibility.mdx).
+table](../05-other/01-compatibility.mdx). If an install or a build fails, see
+[Troubleshooting](../05-other/02-troubleshooting.md) — most of it comes down to
+the package manager skipping the postinstall hook, or to `use_frameworks!`.
 :::
 
 ### Selecting native libraries
