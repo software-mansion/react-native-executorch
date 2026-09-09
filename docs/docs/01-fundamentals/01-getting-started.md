@@ -94,17 +94,18 @@ table](../05-other/01-compatibility.mdx).
 
 :::caution Expo SDK 55 and 56
 Both bundle a `react-native-worklets` older than 0.10 — 0.7.4 on SDK 55, 0.8.3
-on SDK 56 — and `npx expo install` will pick that one. Ask for the versions
-this library needs instead, together with the Reanimated release that expects
-the same worklets (Reanimated pins it exactly, so bumping one without the other
-gives you two incompatible native runtimes):
+on SDK 56 — and `npx expo install` will pick that one. Install the version this
+library needs instead:
 
 ```bash
-npm install react-native-worklets@^0.10.0 react-native-reanimated@^4.5.0
+npm install react-native-worklets@^0.10.0
 ```
 
-Our own example apps do exactly this. **Expo SDK 54 cannot be supported**: it is
-React Native 0.81, below what worklets 0.10 accepts.
+Any other package in your app that uses worklets has to be moved to a release
+built against the same version; two of them asking for different worklets gives
+you two incompatible native runtimes. Our own example apps reconcile them this
+way. **Expo SDK 54 cannot be supported**: it is React Native 0.81, below what
+worklets 0.10 accepts.
 :::
 
 ### Selecting native libraries
