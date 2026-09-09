@@ -217,6 +217,19 @@ Pod::Spec.new do |s|
   # resource path. `s.ios.resource` achieves that via CocoaPods' resource copy.
   s.ios.resource = "third-party/ios/libs/executorch/mlx.metallib" if enable_mlx
 
+  # An app that turns on `use_frameworks!` without naming a linkage gets the
+  # default, dynamic - which is what Firebase's own setup instructions show.
+  # CocoaPods then refuses to install at all, because a dynamic framework may
+  # not carry statically linked binaries and opencv-rne vendors one:
+  #
+  #   [!] The 'Pods-YourApp' target has transitive dependencies that include
+  #   statically linked binaries: (.../opencv-rne/opencv2.xcframework)
+  #
+  # Declaring the pod a static framework resolves that without the app having
+  # to spell out `:linkage => :static`, and is inert when the pod is built as a
+  # static library, which is what happens with no `use_frameworks!` at all.
+  s.static_framework = true
+
   # Backend xcframeworks are linked via force_load in OTHER_LDFLAGS (needed to
   # preserve __attribute__((constructor)) backend registrations). Only
   # ExecutorchLib goes in vendored_frameworks to avoid duplicate symbol errors.
