@@ -22,6 +22,7 @@
  *   yarn bench --platform android --suite full --max-temp-c 35
  *   yarn bench --platform android --suite full --repeats 3   # with an error bar
  *   yarn bench --platform android --resume         # continue an interrupted run
+ *   yarn bench --platform android --tasks llm --order size   # smallest model first
  *   yarn bench --platform ios --no-launch          # app started by hand
  */
 
@@ -64,6 +65,7 @@ function parseArgs(argv) {
     memory: true,
     resume: false,
     keepModels: false,
+    order: 'registry',
     unplug: false,
   };
 
@@ -73,6 +75,7 @@ function parseArgs(argv) {
     else if (arg === '--no-memory') options.memory = false;
     else if (arg === '--resume') options.resume = true;
     else if (arg === '--keep-models') options.keepModels = true;
+    else if (arg === '--order') options.order = argv[++i];
     else if (arg === '--unplug') options.unplug = true;
     else if (arg.startsWith('--')) {
       const key = arg.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
@@ -89,6 +92,9 @@ function parseArgs(argv) {
   }
   if (options.platform !== 'ios' && options.platform !== 'android') {
     throw new Error(`--platform must be ios or android, got ${options.platform}`);
+  }
+  if (!['registry', 'size'].includes(options.order)) {
+    throw new Error(`--order must be registry or size, got ${options.order}`);
   }
   if (!['quick', 'full', 'everything'].includes(options.suite)) {
     throw new Error(`--suite must be quick, full or everything, got ${options.suite}`);
@@ -561,18 +567,33 @@ async function main() {
       }
       if (completed.length > 0) {
         console.log(`[bench] resuming: ${completed.length} measurements already on disk`);
+      } else if (options.resume) {
+        // --resume resolves its file from --label and --out, so a run that
+        // changes either of them resumes from a file that does not exist yet and
+        // silently re-measures the whole suite. Saying which file was read is
+        // enough to catch it before the device spends an hour proving it.
+        console.log(
+          `[bench] --resume found no measurements in ${paths.jsonl}\n` +
+            '        Every case will be measured again. If that is not what you meant, ' +
+            'check --label and --out point at the existing results file.'
+        );
       }
       console.log(`[bench] appending to ${paths.jsonl}\n`);
     } else if (request.url === '/case') {
+      // Keyed by outcome as well as identity: a failure re-posted by a retrying
+      // app used to slip past a guard that only tracked successes, and land in
+      // the file twice. Successes stay keyed without the status so a later
+      // re-measurement of a failed case is still recognised as new.
       const key = `${body.id}#${body.progress?.repeat ?? 1}`;
-      if (body.status === 'ok' && onDisk.has(key)) {
+      const writeKey = body.status === 'ok' ? key : `${key}#${body.status}`;
+      if (onDisk.has(writeKey)) {
         console.log(`[bench] ${key} is already recorded; keeping the first and dropping this one`);
         return;
       }
       // Appended before anything else touches it: a kill between the POST and
       // the write is the one gap this file exists to close.
       appendFileSync(paths.jsonl, `${JSON.stringify(body)}\n`);
-      if (body.status === 'ok') onDisk.add(key);
+      onDisk.add(writeKey);
       measurements += 1;
       const total = plannedMeasurements ? `/${plannedMeasurements}` : '';
       console.log(`[bench] [${measurements}${total}] ${progressLine(body)}`);
@@ -696,6 +717,7 @@ async function main() {
     EXPO_PUBLIC_BENCH_GATE_TIMEOUT_S: options.gateTimeoutS,
     EXPO_PUBLIC_BENCH_MAX_BYTES: options.maxBytes,
     EXPO_PUBLIC_BENCH_KEEP_MODELS: options.keepModels ? '1' : '0',
+    EXPO_PUBLIC_BENCH_ORDER: options.order,
     EXPO_PUBLIC_BENCH_MEMORY: options.memory ? '1' : '0',
     EXPO_PUBLIC_BENCH_SINK: sink,
     EXPO_PUBLIC_BENCH_AUTOSTART: '1',

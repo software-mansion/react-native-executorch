@@ -42,6 +42,8 @@ const list = (value: string | undefined): string[] =>
  */
 export type SuiteName = 'quick' | 'full' | 'everything';
 
+/** How `selectCases` orders what it returns. */
+export type CaseOrder = 'registry' | 'size';
 
 const SUITES: readonly SuiteName[] = ['quick', 'full', 'everything'];
 
@@ -134,6 +136,16 @@ export interface BenchConfig {
    * over a small tier, where re-downloading costs more than the disk does.
    */
   readonly keepModels: boolean;
+  /**
+   * Order the cases run in.
+   *
+   * `registry` is declaration order, which keeps a model's variants adjacent
+   * and is what a results table reads best in. `size` runs the smallest
+   * download first, which is what an LLM sweep wants: the phone proves it can
+   * measure a 170 MB model before it spends half an hour fetching an 8 GB one,
+   * and a run cut short has covered the cheap end rather than nothing.
+   */
+  readonly order: CaseOrder;
 }
 
 const suite = ((): SuiteName => {
@@ -160,4 +172,5 @@ export const config: BenchConfig = {
   gateTimeoutS: int(process.env.EXPO_PUBLIC_BENCH_GATE_TIMEOUT_S, 1800),
   maxBytes: int(process.env.EXPO_PUBLIC_BENCH_MAX_BYTES, 6_000_000_000),
   keepModels: bool(process.env.EXPO_PUBLIC_BENCH_KEEP_MODELS, false),
+  order: process.env.EXPO_PUBLIC_BENCH_ORDER === 'size' ? 'size' : 'registry',
 };

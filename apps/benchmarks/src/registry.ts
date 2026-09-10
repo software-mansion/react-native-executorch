@@ -48,7 +48,11 @@ const sizes = SIZES as Record<string, number>;
 const isRemote = (value: unknown): value is string =>
   typeof value === 'string' && /^https?:\/\//.test(value);
 
-/** Every remote URL reachable from a variant node, deduped and ordered. */
+/**
+ * Every remote URL reachable from a variant node, deduped and ordered.
+ * @param node The registry node to walk.
+ * @returns The remote URLs it reaches.
+ */
 function remoteFiles(node: unknown): string[] {
   const found: string[] = [];
   const walk = (value: unknown): void => {
@@ -66,7 +70,11 @@ function remoteFiles(node: unknown): string[] {
   return [...new Set(found)].sort();
 }
 
-/** Splits a variant key such as `XNNPACK_INT8` into its backend and precision. */
+/**
+ * Splits a variant key such as `XNNPACK_INT8` into its backend and precision.
+ * @param key The variant key.
+ * @returns The backend and precision, both null when the key names neither.
+ */
 function describeKey(key: string): { backend: string | null; precision: string | null } {
   const [head, ...rest] = key.toLowerCase().split('_');
   if (!head || !(head in PLATFORM_OF_BACKEND)) return { backend: null, precision: null };
