@@ -17,11 +17,14 @@
  *    `skipped` with its size, so a run on a 6 GB phone says what it did not
  *    attempt instead of dying partway through a 8 GB download.
  * 4. **Tier or explicit ids.**
+ *
+ * What survives is returned in registry order, or smallest download first when
+ * `order` asks for it.
  */
 
 import { Platform } from 'react-native';
 
-import type { SuiteName } from './config';
+import type { CaseOrder, SuiteName } from './config';
 import { driverFor, type Driver } from './drivers';
 import { REGISTRY_VARIANTS, type RegistryVariant } from './registry';
 
@@ -99,6 +102,8 @@ export interface SelectOptions {
   readonly tasks: readonly string[];
   /** Backend tags to include. Empty means every backend this platform runs. */
   readonly backends: readonly string[];
+  /** Case order; defaults to registry declaration order. */
+  readonly order?: CaseOrder;
 }
 
 /**
@@ -147,6 +152,13 @@ export function selectCases(options: SelectOptions): Selection {
     }
 
     cases.push({ id: variant.id, variant, driver });
+  }
+
+  // Sorted by download rather than by any measured cost: size is known before
+  // the run starts, and for an LLM sweep it tracks both the download and the
+  // memory the model will ask for.
+  if (options.order === 'size') {
+    cases.sort((a, b) => a.variant.bytes - b.variant.bytes);
   }
 
   return { cases, skipped };

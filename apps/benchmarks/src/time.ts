@@ -88,20 +88,32 @@ export function timeInWorklet(
  * @param warmup Number of untimed iterations run first.
  * @param beforeTimed Run once after the warmups and before the first timed
  * iteration. See {@link timeInWorklet}.
+ * @param beforeIteration Awaited before every iteration, warmups included. Used
+ * to hold each one until the device is cool enough to measure: a case whose
+ * iterations take seconds heats the phone as it goes, so gating only at the
+ * start of the case says nothing about the temperature the later iterations ran
+ * at.
  * @returns The per-iteration durations and the final workload size.
  */
 export async function timeAsync(
   run: () => Promise<number>,
   iterations: number,
   warmup: number,
-  beforeTimed?: () => void
+  beforeTimed?: () => void,
+  beforeIteration?: () => Promise<void>
 ): Promise<TimedRun> {
-  for (let i = 0; i < warmup; i++) await run();
+  for (let i = 0; i < warmup; i++) {
+    await beforeIteration?.();
+    await run();
+  }
   beforeTimed?.();
 
   const durations: number[] = [];
   let units = 1;
   for (let i = 0; i < iterations; i++) {
+    // Outside the timed window on purpose: the wait is the harness's cost, not
+    // the model's, and must not land in the duration it is protecting.
+    await beforeIteration?.();
     const started = performance.now();
     units = await run();
     durations.push(performance.now() - started);

@@ -35,6 +35,7 @@ import { Platform } from 'react-native';
 import BenchProbe from '../modules/bench-probe';
 import { config } from './config';
 import { waitUntilCool, type GateResult } from './gate';
+import { watchThermal, isThermallyValid } from './thermalWatch';
 import { INPUT_SPEC_VERSION } from './inputs';
 import { footprintMb, sampleDuring } from './memory';
 import {
@@ -136,6 +137,17 @@ async function measureOnce(
     loaded.dispose();
   };
 
+  const thermalWatch = watchThermal(config.sampleIntervalMs);
+  // An iteration that takes seconds heats the phone while it runs, so a gate at
+  // the start of the case only describes the first one. Holding before each
+  // iteration keeps every measurement inside the same thermal envelope instead
+  // of letting the later ones drift into throttling.
+  let coolingMs = 0;
+  const holdUntilCool = async (): Promise<void> => {
+    const started = performance.now();
+    await waitUntilCool(benchCase.id, progress.repeat, progress.repeats);
+    coolingMs += performance.now() - started;
+  };
   try {
     events.onPhase?.(benchCase.id, 'inference', progress);
     // Zeroed after the warmups, not before them, so the tally covers exactly the
@@ -153,7 +165,8 @@ async function measureOnce(
             driver.runAsync!(loaded),
             config.iterations,
             config.warmup,
-            startTimedWindow
+            startTimedWindow,
+            holdUntilCool
           )
         : await timeInWorklet(
             defaultWorkletRuntime,
@@ -162,6 +175,11 @@ async function measureOnce(
             config.warmup,
             startTimedWindow
           );
+
+    // Closed here rather than at the end of the case: the memory pass that
+    // follows is not held between iterations, and its heat would be charged to
+    // timings it never touched.
+    const thermalPeak = thermalWatch.stop();
 
     // What ExecuTorch actually spent during those iterations, at the shapes and
     // call counts the pipeline used. The tally starts after the warmups, so it
@@ -176,8 +194,7 @@ async function measureOnce(
           { count: entry.count / passes, ms: entry.totalMs / passes },
         ])
       ),
-      totalMs:
-        Object.values(profile).reduce((sum, entry) => sum + entry.totalMs, 0) / passes,
+      totalMs: Object.values(profile).reduce((sum, entry) => sum + entry.totalMs, 0) / passes,
     };
 
     // Read before dispose: an LLM's stats live on the session.
@@ -222,9 +239,17 @@ async function measureOnce(
       detail,
       gate,
       thermal: BenchProbe.thermalState(),
+      thermalPeak,
+      // Recorded rather than enforced: iterations are held until the device is
+      // cool, so a row that still reports a hot peak is one where holding did
+      // not work — the gate timed out, or the phone throttled mid-iteration —
+      // and that is exactly what a reader needs to see.
+      thermalValid: isThermallyValid(thermalPeak, config.maxTempC),
+      coolingMs: Math.round(coolingMs),
       memory,
     };
   } catch (error) {
+    thermalWatch.stop();
     dispose();
     return {
       ...base,
@@ -250,6 +275,7 @@ export async function runSuite(events: RunnerEvents = {}): Promise<RunReport> {
     maxBytes: config.maxBytes,
     tasks: config.tasks,
     backends: config.backends,
+    order: config.order,
   });
 
   const startedAt = new Date().toISOString();

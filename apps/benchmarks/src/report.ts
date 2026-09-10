@@ -17,6 +17,7 @@
 
 import type { BenchDeviceInfo, BenchThermalState } from '../modules/bench-probe';
 import type { GateResult } from './gate';
+import type { ThermalPeak } from './thermalWatch';
 import type { Stats } from './stats';
 import { config } from './config';
 import { INPUT_SPEC_VERSION } from './inputs';
@@ -73,7 +74,9 @@ export interface CaseResult {
    * meaningful for a model with a dynamic dimension.
    */
   readonly execution?: {
-    readonly perIteration: Readonly<Record<string, { readonly count: number; readonly ms: number }>>;
+    readonly perIteration: Readonly<
+      Record<string, { readonly count: number; readonly ms: number }>
+    >;
     readonly totalMs: number;
   };
   readonly units?: number;
@@ -86,6 +89,23 @@ export interface CaseResult {
    * while the device was throttling is not comparable with one measured cool.
    */
   readonly thermal?: BenchThermalState;
+  /**
+   * The worst thermal state seen while this measurement ran, rather than the
+   * one left at the end.
+   *
+   * The end-of-case reading recovers: `smollm2-1.7b` entered its window at
+   * 36.6 C, reached `severe` at 41.5 C partway through, and finished looking
+   * unremarkable while its iterations ranged from 2.6 s to 7.3 s.
+   */
+  readonly thermalPeak?: ThermalPeak;
+  /**
+   * Whether the device stayed inside the run's ceiling for the whole
+   * measurement. False means the holds between iterations failed to keep it
+   * there, and the timings describe a throttling phone.
+   */
+  readonly thermalValid?: boolean;
+  /** Milliseconds spent held between iterations waiting for the device to cool. */
+  readonly coolingMs?: number;
   readonly memory?: {
     /** Footprint before the model was loaded, in MB. */
     readonly baselineMb: number;
