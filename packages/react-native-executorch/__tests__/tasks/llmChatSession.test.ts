@@ -374,6 +374,42 @@ describe('createLLMChatSession — failure', () => {
     expect(session.getKVCacheState().pos).toBe(posBefore);
   });
 
+  it("reports the turn's own error, not the rollback's, when resetting each turn", async () => {
+    // `resetOnTurn` zeroes the cache at the start of the turn, so the position
+    // captured before it is already unreachable by the time the rollback runs.
+    // Rewinding to it throws, and that throw used to replace the real failure:
+    // a bounded-prefill rejection on a dynamic-shape model surfaced as
+    // "LLMRunner.reset: targetPos must be in range [0, 0]" and read as a KV
+    // cache bug.
+    let failing = false;
+    const session = tracked(
+      await createLLMChatSession(config, {
+        resetOnTurn: true,
+        toolOpts: {
+          tools: [],
+          parseToolCalls: (text) => {
+            if (failing) throw new Error('prefill exceeded the model bound');
+            return { toolCalls: [], textContent: text };
+          },
+        },
+      })
+    );
+
+    // A first turn, so the pre-turn position is past zero when the next one
+    // resets it.
+    await session.sendMessage('first question');
+    expect(session.getKVCacheState().pos).toBeGreaterThan(0);
+    const historyBefore = session.getHistory();
+
+    failing = true;
+    await expect(session.sendMessage('doomed')).rejects.toThrow('prefill exceeded the model bound');
+
+    // The session survives the failed turn: the doomed turn leaves no trace.
+    expect(session.getHistory()).toEqual(historyBefore);
+    failing = false;
+    await expect(session.sendMessage('after')).resolves.toBeDefined();
+  });
+
   it('is still usable after a failed turn', async () => {
     let shouldFail = true;
     const session = tracked(
