@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, Platform } from 'react-native';
 import {
   useTextToSpeech,
@@ -6,12 +6,12 @@ import {
   KOKORO_SAMPLE_RATE,
   type KokoroTtsModel,
 } from 'react-native-executorch';
-import { AudioContext, type AudioBufferQueueSourceNode } from 'react-native-audio-api';
 
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelPicker } from '../../components/ModelPicker';
 import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
+import { useAudioPlayer } from '../../hooks/useAudioPlayer';
 import { theme } from '../../theme';
 
 const LANGUAGE_OPTIONS = [
@@ -50,7 +50,7 @@ const SAMPLE_TEXTS: Record<KokoroLanguage, string> = {
     'converting text into phonemes before synthesising the waveform.',
   ES: 'Kokoro es un modelo de síntesis de voz que funciona completamente en tu dispositivo, sin conexión a internet.',
   FR: 'Kokoro est un modèle de synthèse vocale qui fonctionne entièrement sur votre appareil, sans connexion internet.',
-  IT: 'Kokoro è un modello di sintesi vocale che funziona interamente sul tuo dispositivo, senza connessione a internet.',
+  IT: 'Kokoro è un modello di sintesi vocale che funciona interamente sul tuo dispositivo, senza connessione a internet.',
   PT: 'Kokoro é um modelo de síntese de voz que funciona inteiramente no seu dispositivo, sem ligação à internet.',
   HI: 'कोकोरो एक छोटा टेक्स्ट-टू-स्पीच मॉडल है जो पूरी तरह से आपके डिवाइस पर चलता है।',
   PL: 'Kokoro to niewielki model syntezy mowy, który działa w całości na twoim urządzeniu, bez połączenia z internetem.',
@@ -71,7 +71,6 @@ function KokoroContent() {
   const [text, setText] = useState(SAMPLE_TEXTS.EN_US);
   const [speed, setSpeed] = useState(1.0);
   const [isSynthesizing, setIsSynthesizing] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [chunkProgress, setChunkProgress] = useState<string | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
   const [totalDuration, setTotalDuration] = useState<number | null>(null);
@@ -82,8 +81,8 @@ function KokoroContent() {
   const voiceNames = Object.keys(model.voices);
   const [voice, setVoice] = useState(voiceNames[0]!);
 
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const queueSourceRef = useRef<AudioBufferQueueSourceNode | null>(null);
+  const player = useAudioPlayer(KOKORO_SAMPLE_RATE);
+  const startTimeRef = useRef<number>(0);
 
   const { isReady, downloadProgress, error, synthesize, synthesizeStop } = useTextToSpeech(model);
 
@@ -92,78 +91,45 @@ function KokoroContent() {
     setText(SAMPLE_TEXTS[language]);
   }, [language]);
 
-  const getAudioContext = useCallback(async () => {
-    if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-      audioCtxRef.current = new AudioContext({ sampleRate: KOKORO_SAMPLE_RATE });
-    }
-    if (audioCtxRef.current.state === 'suspended') {
-      await audioCtxRef.current.resume();
-    }
-    return audioCtxRef.current;
-  }, []);
-
-  const stopAudioQueue = useCallback(() => {
-    if (queueSourceRef.current) {
-      queueSourceRef.current.clearBuffers();
-      queueSourceRef.current.stop();
-      queueSourceRef.current = null;
-    }
-    setIsPlaying(false);
-  }, []);
-
   useEffect(() => {
     return () => {
       synthesizeStop?.();
-      stopAudioQueue();
-      if (audioCtxRef.current) {
-        audioCtxRef.current.close().catch(() => {});
-        audioCtxRef.current = null;
-      }
+      player.stop();
     };
-  }, [stopAudioQueue, synthesizeStop]);
-
-  const preparePlaybackSource = useCallback(async () => {
-    stopAudioQueue();
-    const ctx = await getAudioContext();
-
-    const source = ctx.createBufferQueueSource();
-    source.connect(ctx.destination);
-    source.onBufferEnded = (event) => {
-      if (event.isLastBufferInQueue) setIsPlaying(false);
-    };
-    queueSourceRef.current = source;
-    return { ctx, source };
-  }, [getAudioContext, stopAudioQueue]);
+  }, [player, synthesizeStop]);
 
   const handleSynthesize = async () => {
-    if (!synthesize || isSynthesizing || !text.trim()) return;
+    if (!synthesize || isSynthesizing || player.isPlaying || !text.trim()) return;
 
     setRunError(null);
     setChunkProgress(null);
     setTotalDuration(null);
     setIsSynthesizing(true);
+    startTimeRef.current = performance.now();
+    let ttfa: number | null = null;
 
     try {
-      const { ctx, source } = await preparePlaybackSource();
       let durationSum = 0;
-      let started = false;
+      const chunks = synthesize(text, { voice, speed });
 
-      for await (const chunk of synthesize(text, { voice, speed })) {
-        setChunkProgress(
-          `Chunk ${chunk.chunkIndex + 1}/${chunk.totalChunks} (${chunk.duration.toFixed(1)}s)`
-        );
-        durationSum += chunk.duration;
-
-        const buffer = ctx.createBuffer(1, chunk.audio.length, KOKORO_SAMPLE_RATE);
-        buffer.copyToChannel(chunk.audio as Float32Array<ArrayBuffer>, 0);
-        source.enqueueBuffer(buffer);
-
-        if (!started) {
-          started = true;
-          setIsPlaying(true);
-          source.start(0, 0);
+      await player.playStream(
+        chunks,
+        (chunk) => {
+          setChunkProgress(
+            `Chunk ${chunk.chunkIndex + 1}/${chunk.totalChunks} (${chunk.duration.toFixed(1)}s)`
+          );
+          durationSum += chunk.duration;
+        },
+        () => {
+          ttfa = (performance.now() - startTimeRef.current) / 1000;
         }
-      }
+      );
+
+      const synthMs = performance.now() - startTimeRef.current;
+      const rtf = durationSum > 0 ? synthMs / 1000 / durationSum : 0;
+      console.log(
+        `[Kokoro TTS] TTFA ${(ttfa as number | null)?.toFixed(2)}s, synth ${(synthMs / 1000).toFixed(2)}s, audio ${durationSum.toFixed(2)}s, RTF ${rtf.toFixed(3)}`
+      );
 
       setTotalDuration(durationSum);
       setChunkProgress(null);
@@ -176,11 +142,11 @@ function KokoroContent() {
 
   const handleStopPlayback = () => {
     synthesizeStop?.();
-    stopAudioQueue();
+    player.stop();
     setIsSynthesizing(false);
   };
 
-  const isBusy = isSynthesizing || isPlaying;
+  const isBusy = isSynthesizing || player.isPlaying;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -249,7 +215,7 @@ function KokoroContent() {
 
       <View style={styles.card}>
         <View style={styles.buttonRow}>
-          {!isPlaying ? (
+          {!player.isPlaying ? (
             <Button
               title={isSynthesizing ? 'Synthesizing...' : 'Synthesize & Play'}
               onPress={handleSynthesize}
@@ -272,6 +238,13 @@ function KokoroContent() {
             <Text style={styles.resultText}>
               Generated {totalDuration.toFixed(1)}s of audio at {KOKORO_SAMPLE_RATE} Hz
             </Text>
+          </View>
+        )}
+
+        {player.isPlaying && (
+          <View style={styles.playingContainer}>
+            <View style={styles.playingIndicator} />
+            <Text style={styles.playingText}>Playing audio...</Text>
           </View>
         )}
       </View>
@@ -356,6 +329,25 @@ const styles = StyleSheet.create({
     color: '#2e7d32',
     fontWeight: '500',
     textAlign: 'center',
+  },
+  playingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    padding: 10,
+  },
+  playingIndicator: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#22c55e',
+    marginRight: 8,
+  },
+  playingText: {
+    fontSize: 14,
+    color: '#22c55e',
+    fontWeight: '600',
   },
   errorContainer: {
     backgroundColor: theme.colors.errorBackground,
