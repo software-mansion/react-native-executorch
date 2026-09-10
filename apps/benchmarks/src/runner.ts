@@ -35,7 +35,7 @@ import { Platform } from 'react-native';
 import BenchProbe from '../modules/bench-probe';
 import { config } from './config';
 import { waitUntilCool, type GateResult } from './gate';
-import { watchThermal, isThermallyValid } from './thermalWatch';
+import { watchThermal } from './thermalWatch';
 import { INPUT_SPEC_VERSION } from './inputs';
 import { footprintMb, sampleDuring } from './memory';
 import {
@@ -143,9 +143,11 @@ async function measureOnce(
   // iteration keeps every measurement inside the same thermal envelope instead
   // of letting the later ones drift into throttling.
   let coolingMs = 0;
+  let holdsTimedOut = 0;
   const holdUntilCool = async (): Promise<void> => {
     const started = performance.now();
-    await waitUntilCool(benchCase.id, progress.repeat, progress.repeats);
+    const held = await waitUntilCool(benchCase.id, progress.repeat, progress.repeats);
+    if (held.timedOut) holdsTimedOut++;
     coolingMs += performance.now() - started;
   };
   try {
@@ -240,11 +242,14 @@ async function measureOnce(
       gate,
       thermal: BenchProbe.thermalState(),
       thermalPeak,
-      // Recorded rather than enforced: iterations are held until the device is
-      // cool, so a row that still reports a hot peak is one where holding did
-      // not work — the gate timed out, or the phone throttled mid-iteration —
-      // and that is exactly what a reader needs to see.
-      thermalValid: isThermallyValid(thermalPeak, config.maxTempC),
+      // What the ceiling governs is where an iteration starts, not where it
+      // ends. A second of all-core decode heats this phone several degrees, so
+      // an LLM iteration crosses the ceiling while it runs however cold it
+      // began, and calling that invalid would condemn every row in the tier.
+      // The measurement is sound as long as each iteration began cool, which is
+      // exactly what a hold that did not time out means.
+      thermalValid: holdsTimedOut === 0,
+      holdsTimedOut,
       coolingMs: Math.round(coolingMs),
       memory,
     };

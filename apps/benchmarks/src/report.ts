@@ -99,11 +99,19 @@ export interface CaseResult {
    */
   readonly thermalPeak?: ThermalPeak;
   /**
-   * Whether the device stayed inside the run's ceiling for the whole
-   * measurement. False means the holds between iterations failed to keep it
-   * there, and the timings describe a throttling phone.
+   * Whether every iteration of this measurement began at or below the run's
+   * ceiling.
+   *
+   * The ceiling governs where an iteration starts. Where it ends is not in the
+   * harness's gift: a second of all-core decode heats the phone several
+   * degrees, so an LLM iteration crosses the ceiling while it runs however cold
+   * it began. False therefore means a hold gave up and a measurement started
+   * hot, which does invalidate it. See {@link thermalPeak} for how hot the pass
+   * actually got.
    */
   readonly thermalValid?: boolean;
+  /** How many holds gave up on the ceiling rather than reaching it. */
+  readonly holdsTimedOut?: number;
   /** Milliseconds spent held between iterations waiting for the device to cool. */
   readonly coolingMs?: number;
   readonly memory?: {

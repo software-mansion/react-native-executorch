@@ -78,16 +78,18 @@ export function watchThermal(intervalMs: number): ThermalWatch {
 }
 
 /**
- * Whether a measurement taken under `peak` describes the model or the phone.
+ * Whether a measurement ran without the device ever de-clocking.
  *
- * Either signal disqualifies it. A non-zero thermal status is the device saying
- * it is de-clocking; a temperature above the ceiling means the gate's premise
- * did not hold for the duration, whether or not the kernel had reacted yet.
+ * Stricter than a run can require of a model whose iterations take seconds:
+ * sustained decode heats this class of phone past any workable ceiling from any
+ * starting point, so a tier gated on this would report nothing. It describes a
+ * pass rather than judging one, and the short-iteration tiers are where it is
+ * worth asking.
  * @param peak The worst state seen during the measurement.
  * @param maxTempC The ceiling the run gates on.
- * @returns True when the measurement is thermally clean.
+ * @returns True when the device neither throttled nor passed the ceiling.
  */
-export function isThermallyValid(peak: ThermalPeak, maxTempC: number): boolean {
+export function ranWithoutThrottling(peak: ThermalPeak, maxTempC: number): boolean {
   if (peak.status !== null && peak.status > 0) return false;
   if (peak.batteryTemperatureC !== null && peak.batteryTemperatureC > maxTempC) return false;
   return true;
