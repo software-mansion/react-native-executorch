@@ -7,7 +7,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateSpec, method, f32 } from '../../../core/schema';
+import { validateSpec, method, f32, i32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import type { ImageBuffer } from '../image';
@@ -168,11 +168,40 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
         [f32(3, 'H', 'W')],
         [f32('K', 'H', 'W')]
       ),
+      // Models that run the argmax inside the graph return the class index per
+      // pixel instead of a logit per class: (1,H,W) int32 rather than
+      // (1,K,H,W) float32, which is 22.71 MB -> 1.08 MB on the 21-class models.
+      // K cannot be read off the shape here, so it comes from the labels.
+      batchedIndex: method(
+        'forward', // prettier-ignore
+        [f32(1, 3, 'H', 'W')],
+        [i32(1, 'H', 'W')]
+      ),
+      unbatchedIndex: method(
+        'forward', // prettier-ignore
+        [f32(3, 'H', 'W')],
+        [i32('H', 'W')]
+      ),
     });
 
-    const [nClasses, H, W] = dims.constant('K', 'H', 'W');
-    const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
-    const outShape = { batched: [1, nClasses, H, W], unbatched: [nClasses, H, W] }[variant];
+    // An index-map model has no K in its output shape, so the class count comes
+    // from the labels the caller configured. The logit models keep reading it
+    // off the shape, which also keeps the labels/classes guard meaningful.
+    const indexMap = variant === 'batchedIndex' || variant === 'unbatchedIndex';
+    const [H, W] = dims.constant('H', 'W');
+    const nClasses = indexMap ? modelOpts.labels.length : dims.constant('K')[0]!;
+    const inpShape = {
+      batched: [1, 3, H, W],
+      unbatched: [3, H, W],
+      batchedIndex: [1, 3, H, W],
+      unbatchedIndex: [3, H, W],
+    }[variant];
+    const outShape = {
+      batched: [1, nClasses, H, W],
+      unbatched: [nClasses, H, W],
+      batchedIndex: [1, H, W],
+      unbatchedIndex: [H, W],
+    }[variant];
 
     // Generate highly distinct, high-contrast colors, see:
     // https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
@@ -189,7 +218,7 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
     }
 
     const tensors = [
-      tensor('float32', outShape),
+      tensor(indexMap ? 'int32' : 'float32', outShape),
       tensor('float32', [nClasses, H, W]),
       tensor('float32', [nClasses, H, W]),
       tensor('float32', [H, W, nClasses]),
@@ -224,11 +253,18 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
 
         const colormapData = modelOpts.labels.map((l) => returnColormap![l]);
 
-        tOutput
-          .copyTo(tReshape)
-          .through(toChannelsLast, tChanLast)
-          .through(argmax, tMask, -1)
-          .through(applyColormap, tRgba, colormapData);
+        if (indexMap) {
+          // The graph already did the argmax, so there is nothing to reduce:
+          // reshape the (1,H,W) index map to the (H,W,1) the colormap wants.
+          // This also skips the toChannelsLast transpose over H*W*K floats.
+          tOutput.copyTo(tMask).through(applyColormap, tRgba, colormapData);
+        } else {
+          tOutput
+            .copyTo(tReshape)
+            .through(toChannelsLast, tChanLast)
+            .through(argmax, tMask, -1)
+            .through(applyColormap, tRgba, colormapData);
+        }
       } else {
         tOutput
           .copyTo(tReshape)
