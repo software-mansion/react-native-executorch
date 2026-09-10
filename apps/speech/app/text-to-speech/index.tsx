@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Platform, View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
 import {
   useTextToSpeech,
@@ -8,12 +8,12 @@ import {
   SUPERTONIC_DEFAULT_VOICE_NAMES,
   type SupertonicDefaultVoiceName,
 } from 'react-native-executorch';
-import { AudioContext, type AudioBufferQueueSourceNode } from 'react-native-audio-api';
 
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelPicker } from '../../components/ModelPicker';
 import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
+import { useAudioPlayer } from '../../hooks/useAudioPlayer';
 import { theme } from '../../theme';
 
 const SAMPLE_TEXT =
@@ -66,116 +66,60 @@ function TTSContent() {
   const [speed, setSpeed] = useState(1.05);
   const [totalSteps, setTotalSteps] = useState(8);
   const [isSynthesizing, setIsSynthesizing] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [chunkProgress, setChunkProgress] = useState<string | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
   const [totalDuration, setTotalDuration] = useState<number | null>(null);
 
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const queueSourceRef = useRef<AudioBufferQueueSourceNode | null>(null);
-  const isPlayingRef = useRef(false);
+  const player = useAudioPlayer(SUPERTONIC_SAMPLE_RATE);
+  const startTimeRef = useRef<number>(0);
 
   const { isReady, downloadProgress, error, synthesize, synthesizeStop } = useTextToSpeech(
     models.textToSpeech.SUPERTONIC[selectedModel]
   );
 
-  const getAudioContext = useCallback(async () => {
-    if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-      audioCtxRef.current = new AudioContext({ sampleRate: SUPERTONIC_SAMPLE_RATE });
-    }
-    if (audioCtxRef.current.state === 'suspended') {
-      await audioCtxRef.current.resume();
-    }
-    return audioCtxRef.current;
-  }, []);
-
-  const stopAudioQueue = useCallback(() => {
-    if (queueSourceRef.current) {
-      queueSourceRef.current.clearBuffers();
-      queueSourceRef.current.stop();
-      queueSourceRef.current = null;
-    }
-    isPlayingRef.current = false;
-    setIsPlaying(false);
-  }, []);
-
   useEffect(() => {
     return () => {
       synthesizeStop?.();
-      stopAudioQueue();
-      if (audioCtxRef.current) {
-        audioCtxRef.current.close().catch(() => {});
-        audioCtxRef.current = null;
-      }
+      player.stop();
     };
-  }, [stopAudioQueue, synthesizeStop]);
-
-  const preparePlaybackSource = useCallback(async () => {
-    stopAudioQueue();
-    const ctx = await getAudioContext();
-
-    const source = ctx.createBufferQueueSource();
-    source.connect(ctx.destination);
-    source.onBufferEnded = (event) => {
-      if (event.isLastBufferInQueue) {
-        isPlayingRef.current = false;
-        setIsPlaying(false);
-      }
-    };
-    queueSourceRef.current = source;
-    return { ctx, source };
-  }, [getAudioContext, stopAudioQueue]);
-
-  const enqueueChunk = useCallback(
-    (ctx: AudioContext, source: AudioBufferQueueSourceNode, audio: Float32Array) => {
-      const buffer = ctx.createBuffer(1, audio.length, SUPERTONIC_SAMPLE_RATE);
-      buffer.copyToChannel(audio as Float32Array<ArrayBuffer>, 0);
-      source.enqueueBuffer(buffer);
-    },
-    []
-  );
+  }, [player, synthesizeStop]);
 
   const handleSynthesize = async () => {
-    if (!synthesize || isSynthesizing || !text.trim()) return;
+    if (!synthesize || isSynthesizing || player.isPlaying || !text.trim()) return;
 
     setRunError(null);
     setChunkProgress(null);
     setTotalDuration(null);
     setIsSynthesizing(true);
+    startTimeRef.current = performance.now();
+    let ttfa: number | null = null;
 
     try {
-      const { ctx, source } = await preparePlaybackSource();
       let durationSum = 0;
-      let started = false;
-      let ttfa: number | null = null;
-      const t0 = performance.now();
-
-      for await (const chunk of synthesize(text, {
+      const chunks = synthesize(text, {
         voiceStyle: selectedVoice,
         speed,
         lang: selectedLang,
         totalSteps,
-      })) {
-        setChunkProgress(
-          `Chunk ${chunk.chunkIndex + 1}/${chunk.totalChunks} (${chunk.duration.toFixed(1)}s)`
-        );
-        durationSum += chunk.duration;
+      });
 
-        enqueueChunk(ctx, source, chunk.audio);
-
-        if (!started) {
-          ttfa = (performance.now() - t0) / 1000;
-          started = true;
-          isPlayingRef.current = true;
-          setIsPlaying(true);
-          source.start(0, 0);
+      await player.playStream(
+        chunks,
+        (chunk) => {
+          setChunkProgress(
+            `Chunk ${chunk.chunkIndex + 1}/${chunk.totalChunks} (${chunk.duration.toFixed(1)}s)`
+          );
+          durationSum += chunk.duration;
+        },
+        () => {
+          ttfa = (performance.now() - startTimeRef.current) / 1000;
         }
-      }
+      );
 
-      const synthMs = performance.now() - t0;
-      const rtf = synthMs / 1000 / durationSum;
+      const synthMs = performance.now() - startTimeRef.current;
+      const rtf = durationSum > 0 ? synthMs / 1000 / durationSum : 0;
       console.log(
-        `[TTS] TTFA ${ttfa?.toFixed(2)}s, synth ${(synthMs / 1000).toFixed(2)}s, audio ${durationSum.toFixed(2)}s, RTF ${rtf.toFixed(3)}`
+        `[TTS] TTFA ${(ttfa as number | null)?.toFixed(2)}s, synth ${(synthMs / 1000).toFixed(2)}s, audio ${durationSum.toFixed(2)}s, RTF ${rtf.toFixed(3)}`
       );
 
       setTotalDuration(durationSum);
@@ -190,11 +134,11 @@ function TTSContent() {
 
   const handleStopPlayback = () => {
     synthesizeStop?.();
-    stopAudioQueue();
+    player.stop();
     setIsSynthesizing(false);
   };
 
-  const isBusy = isSynthesizing || isPlaying;
+  const isBusy = isSynthesizing || player.isPlaying;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -288,7 +232,7 @@ function TTSContent() {
       {/* Synthesis Controls */}
       <View style={styles.card}>
         <View style={styles.buttonRow}>
-          {!isPlaying ? (
+          {!player.isPlaying ? (
             <Button
               title={isSynthesizing ? 'Synthesizing...' : 'Synthesize & Play'}
               onPress={handleSynthesize}
@@ -314,7 +258,7 @@ function TTSContent() {
           </View>
         )}
 
-        {isPlaying && (
+        {player.isPlaying && (
           <View style={styles.playingContainer}>
             <View style={styles.playingIndicator} />
             <Text style={styles.playingText}>Playing audio...</Text>
