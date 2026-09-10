@@ -333,18 +333,16 @@ export async function createLLMChatSession(
         // Roll back history, KV cache, and active tensors to pre-turn state on
         // failure. The rewind must never replace the error it is unwinding.
         //
-        // `initialPos` is read before the turn begins, so with `resetOnTurn` the
-        // cache has since been zeroed and rewinding to it is out of range by
-        // construction. Letting that throw reports every real failure as
-        // "targetPos must be in range [0, 0]", which is how a bounded-prefill
-        // rejection on a dynamic-shape model came to look like a cache bug.
+        // Under `resetOnTurn` the pre-turn position IS zero: `initialPos` is
+        // read before the turn begins and the turn then zeroed the cache, so
+        // rewinding to it is out of range by construction. The native runner
+        // only rewinds and rejects a target past the current position, so that
+        // throw replaced every real failure with "targetPos must be in range
+        // [0, 0]" -- which is how a bounded-prefill rejection on a
+        // dynamic-shape model came to read as a KV cache bug.
         history.length = turnStartIdx;
         committed = initialCommitted;
-        try {
-          runner.reset(Math.min(initialPos, runner.getKVCacheState().pos));
-        } catch {
-          // A cache that cannot be rewound is not worth losing the cause over.
-        }
+        runner.reset(resetOnTurn ? 0 : initialPos);
         chatPreprocessor.clear();
         throw err;
       }
