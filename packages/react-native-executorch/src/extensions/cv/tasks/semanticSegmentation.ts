@@ -253,18 +253,14 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
 
         const colormapData = modelOpts.labels.map((l) => returnColormap![l]);
 
-        if (indexMap) {
-          // The graph already did the argmax, so there is nothing to reduce:
-          // reshape the (1,H,W) index map to the (H,W,1) the colormap wants.
-          // This also skips the toChannelsLast transpose over H*W*K floats.
-          tOutput.copyTo(tMask).through(applyColormap, tRgba, colormapData);
-        } else {
-          tOutput
-            .copyTo(tReshape)
-            .through(toChannelsLast, tChanLast)
-            .through(argmax, tMask, -1)
-            .through(applyColormap, tRgba, colormapData);
-        }
+        // An index-map model already did the argmax in the graph, so both the
+        // transpose over H*W*K floats and the reduction are skipped and the
+        // (1,H,W) indices go straight into the (H,W,1) the colormap wants.
+        tOutput
+          .copyTo(indexMap ? tMask : tReshape)
+          .throughIf(!indexMap, toChannelsLast, tChanLast)
+          .throughIf(!indexMap, argmax, tMask, -1)
+          .through(applyColormap, tRgba, colormapData);
       } else {
         tOutput
           .copyTo(tReshape)
