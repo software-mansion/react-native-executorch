@@ -335,11 +335,7 @@ export async function createLLMChatSession(
         //
         // Under `resetOnTurn` the pre-turn position IS zero: `initialPos` is
         // read before the turn begins and the turn then zeroed the cache, so
-        // rewinding to it is out of range by construction. The native runner
-        // only rewinds and rejects a target past the current position, so that
-        // throw replaced every real failure with "targetPos must be in range
-        // [0, 0]" -- which is how a bounded-prefill rejection on a
-        // dynamic-shape model came to read as a KV cache bug.
+        // rewinding to it is out of range by construction.
         history.length = turnStartIdx;
         committed = initialCommitted;
         runner.reset(resetOnTurn ? 0 : initialPos);
