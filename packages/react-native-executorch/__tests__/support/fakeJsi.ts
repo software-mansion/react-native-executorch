@@ -286,6 +286,15 @@ function createFakeRunner(
 
     reset: (targetPos?: number): void => {
       assertLive('reset');
+      // The native runner only rewinds: a target past the current position is
+      // rejected rather than clamped. Modelling that here is what makes a
+      // rollback to a stale position observable in a test instead of silently
+      // succeeding.
+      if (targetPos !== undefined && (targetPos < 0 || targetPos > pos)) {
+        throw new Error(
+          `LLMRunner.reset: targetPos must be in range [0, ${pos}], but got ${targetPos}`
+        );
+      }
       pos = targetPos ?? 0;
       runnerCalls.push({ kind: 'reset', targetPos: pos });
     },
