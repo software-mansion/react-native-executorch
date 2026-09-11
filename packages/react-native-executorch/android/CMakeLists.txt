@@ -55,6 +55,12 @@ file(GLOB_RECURSE LEGACY_CPP_SOURCES
     ${LEGACY_CPP_DIR}/runner/*.cpp
 )
 list(FILTER LEGACY_CPP_SOURCES EXCLUDE REGEX "/tests/")
+# The legacy TTS models are the one part of the legacy tree that needs phonemis,
+# so they follow the same toggle as the current phonemizer rather than being
+# compiled unconditionally against a library that is not there.
+if(NOT RNE_ENABLE_PHONEMIS)
+  list(FILTER LEGACY_CPP_SOURCES EXCLUDE REGEX "/models/text_to_speech/")
+endif()
 # ==============================================================================
 
 set(PHONEMIS_SOURCES ${CPP_DIR}/extensions/speech/phonemizer.cpp)

@@ -15,7 +15,9 @@
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
 #include <rnexecutorch/models/text_to_image/TextToImage.h>
+#ifdef RNE_ENABLE_PHONEMIS
 #include <rnexecutorch/models/text_to_speech/TextToSpeech.h>
+#endif
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
 #include <rnexecutorch/models/voice_activity_detection/VoiceActivityDetection.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
@@ -125,10 +127,15 @@ void RnExecutorchInstaller::injectJSIBindings(
         RnExecutorchInstaller::loadModel<models::speech_to_text::SpeechToText>(
             jsiRuntime, jsCallInvoker, "loadSpeechToText"));
 
+#ifdef RNE_ENABLE_PHONEMIS
+    // Only registered when phonemis is compiled in; an app that opted out of
+    // text-to-speech gets no `loadTextToSpeechKokoro` global, the same way the
+    // current API omits `speech.createPhonemizer`.
     jsiRuntime->global().setProperty(
         *jsiRuntime, "loadTextToSpeechKokoro",
         RnExecutorchInstaller::loadModel<models::text_to_speech::kokoro::Kokoro>(
             jsiRuntime, jsCallInvoker, "loadTextToSpeechKokoro"));
+#endif
 
     jsiRuntime->global().setProperty(
         *jsiRuntime, "loadVAD",

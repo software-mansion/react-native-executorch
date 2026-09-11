@@ -136,6 +136,17 @@ Pod::Spec.new do |s|
   # ==============================================================================
   exclude_files += opencv_source_files unless enable_opencv
   exclude_files += phonemis_source_files unless enable_phonemis
+  # ==============================================================================
+  # LEGACY SUPPORT: the legacy TTS models need phonemis too, and `legacy/cpp/**`
+  # above sweeps them in unconditionally. Without this they compile — the
+  # phonemis headers stay on HEADER_SEARCH_PATHS — and fail at link with
+  # undefined phonemis::Pipeline symbols.
+  # (Remove when react-native-executorch/legacy is dropped)
+  # ==============================================================================
+  unless enable_phonemis
+    exclude_files += ["legacy/cpp/rnexecutorch/models/text_to_speech/**/*.{cpp,c,h,hpp}"]
+  end
+  # ==============================================================================
   s.exclude_files = exclude_files
 
   # --- Public headers ---
