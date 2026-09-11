@@ -399,7 +399,7 @@ describe('feature map', () => {
     // The mirror of the case above, and the one that actually bites: a feature
     // naming a backend nothing in its family exports makes every app using that
     // feature download a library it can never load. keypointDetection carried
-    // `mlx` this way, which no keypoint model has ever published.
+    // `mlx` after the one keypoint MLX export was dropped in #1418.
     const offenders: string[] = [];
 
     for (const [category, node] of Object.entries(registry)) {
@@ -416,5 +416,31 @@ describe('feature map', () => {
     }
 
     expect(offenders.sort()).toEqual([]);
+  });
+
+  it('matches the feature table in the native libraries doc', () => {
+    // The table is the only place a user reads this map, so it drifting is the
+    // same bug as the map being wrong.
+    const doc = readFileSync(
+      join(__dirname, '../../../../docs/docs/03-core-and-advanced/08-native-libraries.md'),
+      'utf8'
+    );
+    const cell = (value: string) => (value === '—' ? [] : value.split(',').map((s) => s.trim()));
+
+    const documented = new Map<string, { backends: string[]; libs: string[] }>();
+    for (const [, feature, backends, libs] of doc.matchAll(
+      /^\|\s*`(\w+)`\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|$/gm
+    )) {
+      if (FEATURE_MAP[feature])
+        documented.set(feature, { backends: cell(backends), libs: cell(libs) });
+    }
+
+    expect([...documented.keys()].sort()).toEqual(Object.keys(FEATURE_MAP).sort());
+    for (const [feature, row] of documented) {
+      expect([feature, row]).toEqual([
+        feature,
+        { backends: FEATURE_MAP[feature].backends, libs: FEATURE_MAP[feature].libs },
+      ]);
+    }
   });
 });
