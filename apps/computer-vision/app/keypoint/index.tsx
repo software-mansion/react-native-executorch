@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { commonStyles, theme } from '../../theme';
 import { useImage } from '@shopify/react-native-skia';
 import { useKeypointDetector, models, type KeypointDetection } from 'react-native-executorch';
+import type { ImageBuffer } from 'react-native-executorch/cv';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { getImage, skImageToBuffer } from '../../utils';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
@@ -42,6 +43,80 @@ const MODEL_OPTIONS: ModelOption[] = [
   },
 ];
 
+/**
+ * The face mesh models see one already-cropped face, and their presence score
+ * falls off a cliff once the face stops filling the frame: on the same photo it
+ * reads 0.95 when the face fills 70% and 0.003 at 50%. So they get a detector in
+ * front of them rather than the whole picture.
+ */
+const FACEMESH_MODELS = [
+  models.keypointDetection.FACEMESH.XNNPACK_FP32,
+  models.keypointDetection.FACEMESH.COREML_FP16,
+];
+
+/** Padding around the detector's box, as a fraction of its longest side. */
+const FACE_CROP_PADDING = 0.25;
+
+/**
+ * Cuts a square, padded crop around a detected face. An ImageBuffer is plain
+ * HWC bytes, so this is a row copy.
+ * @param src The image to cut from.
+ * @param box The detector's face box, in `src`'s pixels.
+ * @returns The crop and its offset in `src`, or null if the box lies outside it.
+ */
+function cropToFace(
+  src: ImageBuffer,
+  box: { xmin: number; ymin: number; xmax: number; ymax: number }
+) {
+  const channels = src.data.length / (src.width * src.height);
+  const centerX = (box.xmin + box.xmax) / 2;
+  const centerY = (box.ymin + box.ymax) / 2;
+  const side = Math.max(box.xmax - box.xmin, box.ymax - box.ymin) * (1 + 2 * FACE_CROP_PADDING);
+
+  const x = Math.max(0, Math.round(centerX - side / 2));
+  const y = Math.max(0, Math.round(centerY - side / 2));
+  const width = Math.min(src.width, Math.round(centerX + side / 2)) - x;
+  const height = Math.min(src.height, Math.round(centerY + side / 2)) - y;
+  if (width <= 0 || height <= 0) return null;
+
+  const data = new Uint8Array(width * height * channels);
+  for (let row = 0; row < height; row++) {
+    const from = ((y + row) * src.width + x) * channels;
+    data.set(src.data.subarray(from, from + width * channels), row * width * channels);
+  }
+  return { buffer: { ...src, data, width, height }, offset: { x, y } };
+}
+
+/**
+ * Moves a detection out of a crop's coordinates and back onto the full image.
+ * @param detection The detection, in the crop's pixels.
+ * @param offset Where the crop starts in the full image.
+ * @returns The same detection, in the full image's pixels.
+ */
+function offsetDetection(
+  detection: KeypointDetection<'xyxy', string>,
+  offset: { x: number; y: number }
+): KeypointDetection<'xyxy', string> {
+  const landmarks = Object.fromEntries(
+    Object.entries(detection.landmarks).map(([key, point]) => [
+      key,
+      { ...point, x: point.x + offset.x, y: point.y + offset.y },
+    ])
+  ) as KeypointDetection<'xyxy', string>['landmarks'];
+
+  return {
+    ...detection,
+    box: {
+      ...detection.box,
+      xmin: detection.box.xmin + offset.x,
+      ymin: detection.box.ymin + offset.y,
+      xmax: detection.box.xmax + offset.x,
+      ymax: detection.box.ymax + offset.y,
+    },
+    landmarks,
+  };
+}
+
 const VIEW_WIDTH = Dimensions.get('window').width - 32;
 const VIEW_HEIGHT = Math.round((VIEW_WIDTH * 16) / 9);
 
@@ -56,6 +131,8 @@ function KeypointContent() {
 
   const skiaImage = useImage(imageUri, (err) => setError(err.message || String(err)));
 
+  const needsFaceCrop = FACEMESH_MODELS.includes(selectedModel);
+
   const {
     isReady,
     downloadProgress,
@@ -63,6 +140,10 @@ function KeypointContent() {
     detectKeypoints,
     detectKeypointsWorklet,
   } = useKeypointDetector(selectedModel);
+
+  // The face detector that feeds the mesh. It is always loaded rather than
+  // loaded on demand — hooks cannot be conditional — but it is 0.6 MB.
+  const faceDetector = useKeypointDetector(models.keypointDetection.BLAZEFACE.DEFAULT);
 
   const handlePickImage = async (useCamera: boolean) => {
     setError(null);
@@ -80,14 +161,37 @@ function KeypointContent() {
 
   const runDetection = async (sync: boolean) => {
     if (!skiaImage || !detectKeypoints || !detectKeypointsWorklet) return;
+    if (needsFaceCrop && !faceDetector.isReady) return;
     if (!sync) setIsProcessing(true);
     setError(null);
     try {
       const buffer = skImageToBuffer(skiaImage);
       const start = Date.now();
-      const output = (
-        sync ? detectKeypointsWorklet(buffer) : await detectKeypoints(buffer)
-      ) as KeypointDetection<'xyxy', string>[];
+
+      const run = (input: ImageBuffer) =>
+        (sync ? detectKeypointsWorklet(input) : detectKeypoints(input)) as
+          | KeypointDetection<'xyxy', string>[]
+          | Promise<KeypointDetection<'xyxy', string>[]>;
+
+      let output: KeypointDetection<'xyxy', string>[];
+      if (needsFaceCrop) {
+        // Find the face, crop to it, mesh the crop, then put the result back
+        // where it came from.
+        const faces = (await faceDetector.detectKeypoints!(buffer)) as KeypointDetection<
+          'xyxy',
+          string
+        >[];
+        const crop = faces[0] ? cropToFace(buffer, faces[0].box) : null;
+        if (!crop) {
+          setLatency(Date.now() - start);
+          setResults([]);
+          setError('No face found. Face Mesh needs a photo with a clearly visible face.');
+          return;
+        }
+        output = (await run(crop.buffer)).map((d) => offsetDetection(d, crop.offset));
+      } else {
+        output = await run(buffer);
+      }
 
       setLatency(Date.now() - start);
       setResults(output);
@@ -126,8 +230,8 @@ function KeypointContent() {
       ]}
     >
       <Text style={commonStyles.description}>
-        Upload or capture an image to run keypoint/pose estimation on it. Face Mesh expects a photo
-        already cropped to one face, so give it a portrait rather than a full scene.
+        Upload or capture an image to run keypoint/pose estimation on it. Face Mesh sees one
+        already-cropped face, so BlazeFace runs first and it meshes that crop.
       </Text>
 
       <ModelPicker
@@ -143,7 +247,7 @@ function KeypointContent() {
       />
 
       <ModelStatus
-        isReady={isReady}
+        isReady={isReady && (!needsFaceCrop || faceDetector.isReady)}
         downloadProgress={downloadProgress}
         error={activeError}
         modelTypeLabel="keypoint model"
