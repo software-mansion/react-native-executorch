@@ -116,6 +116,7 @@ exports[`public API surface matches the recorded export list 1`] = `
   "COCO_CLASSES",
   "COCO_CLASSES_YOLO",
   "COCO_LANDMARKS",
+  "FACEMESH_LANDMARKS",
   "FSMN_VAD_SAMPLE_RATE_HZ",
   "IMAGENET1K_LABELS",
   "IMAGENET_NORM",
