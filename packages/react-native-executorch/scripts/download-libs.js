@@ -152,9 +152,9 @@ const FEATURE_MAP = {
   // YOLO is xnnpack-only, ssdlite/rf_detr add coreml → union.
   objectDetection: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
   // Keypoint detection (#1280): BlazeFace + YOLO26-pose ship xnnpack; RF-DETR
-  // keypoint adds coreml + mlx → union. (Named to track the useKeypointDetector
-  // hook; main calls this poseEstimation.)
-  keypointDetection: { backends: ['xnnpack', 'coreml', 'mlx'], libs: ['opencv'] },
+  // keypoint adds coreml → union. No MLX: nothing in this family publishes one.
+  // (Named to track the useKeypointDetector hook; main calls this poseEstimation.)
+  keypointDetection: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
   // DeepLab/FCN/LR-ASPP/selfie all ship xnnpack + coreml.
   semanticSegmentation: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
   // YOLO-seg xnnpack-only, rf_detr-seg/fastsam add coreml → union.

@@ -394,4 +394,27 @@ describe('feature map', () => {
 
     expect(offenders.sort()).toEqual([]);
   });
+
+  it('provisions no backend the registry does not publish for that feature', () => {
+    // The mirror of the case above, and the one that actually bites: a feature
+    // naming a backend nothing in its family exports makes every app using that
+    // feature download a library it can never load. keypointDetection carried
+    // `mlx` this way, which no keypoint model has ever published.
+    const offenders: string[] = [];
+
+    for (const [category, node] of Object.entries(registry)) {
+      const feature = FEATURE_OF_CATEGORY[category]!;
+      // `llm` is the one category two features cover, so neither entry alone has
+      // to justify every backend it names.
+      if (feature === 'llm') continue;
+
+      const published = publishedBackends(node);
+      for (const backend of FEATURE_MAP[feature].backends) {
+        if (!published.has(backend))
+          offenders.push(`${feature} provisions ${backend}, unpublished`);
+      }
+    }
+
+    expect(offenders.sort()).toEqual([]);
+  });
 });
