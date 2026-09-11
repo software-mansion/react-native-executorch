@@ -236,8 +236,7 @@ blazeface
 FACEMESH
 Facemesh
 facemesh
-Landmarker
-landmarker
+depthwise
 nums
 Pressable
 cvtColor
