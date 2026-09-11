@@ -470,8 +470,8 @@ describe('feature map', () => {
     for (const [, feature, backends, libs] of doc.matchAll(
       /^\|\s*`(\w+)`\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|$/gm
     )) {
-      if (FEATURE_MAP[feature])
-        documented.set(feature, { backends: cell(backends), libs: cell(libs) });
+      if (FEATURE_MAP[feature!])
+        documented.set(feature!, { backends: cell(backends!), libs: cell(libs!) });
     }
 
     expect([...documented.keys()].sort()).toEqual(Object.keys(FEATURE_MAP).sort());
