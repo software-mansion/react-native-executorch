@@ -67,7 +67,7 @@ endif()
 # opencv-free and JsiConversions.h includes them unconditionally.
 if(NOT RNE_ENABLE_OPENCV)
   list(FILTER LEGACY_CPP_SOURCES EXCLUDE REGEX
-      "/data_processing/ImageProcessing\\.cpp$|/models/VisionModel\\.cpp$|/utils/Frame|/encoders/vision_encoder\\.cpp$|/models/(classification|embeddings/image|instance_segmentation|object_detection|ocr|pose_estimation|semantic_segmentation|style_transfer|text_to_image|vertical_ocr)/")
+      "/data_processing/ImageProcessing\\.cpp$|/models/VisionModel\\.cpp$|/utils/Frame[^/]*\\.cpp$|/encoders/vision_encoder\\.cpp$|/models/(classification|embeddings/image|instance_segmentation|object_detection|ocr|pose_estimation|semantic_segmentation|style_transfer|text_to_image|vertical_ocr)/")
 endif()
 # ==============================================================================
 
