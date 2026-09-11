@@ -493,7 +493,9 @@ function pruneDisabledBackends(targets, { backends }) {
       if (backends.includes(backend)) continue;
       for (const pattern of patterns) {
         for (const stale of expandPattern(destDir, pattern)) {
-          console.log(`[react-native-executorch] Removing ${backend} binary (not enabled): ${path.relative(THIRD_PARTY_DIR, stale)}`);
+          console.log(
+            `[react-native-executorch] Removing ${backend} binary (not enabled): ${path.relative(THIRD_PARTY_DIR, stale)}`
+          );
           fs.rmSync(stale, { recursive: true, force: true });
         }
       }
