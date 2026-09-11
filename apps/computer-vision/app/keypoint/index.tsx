@@ -19,6 +19,15 @@ const MODEL_OPTIONS: ModelOption[] = [
     value: models.keypointDetection.BLAZEFACE.XNNPACK_FP32,
   },
   {
+    label: 'Face Mesh (XNNPACK FP32)',
+    value: models.keypointDetection.FACEMESH.XNNPACK_FP32,
+  },
+  {
+    label: 'Face Mesh (CoreML FP16)',
+    value: models.keypointDetection.FACEMESH.COREML_FP16,
+    disabled: Platform.OS !== 'ios',
+  },
+  {
     label: 'YOLO26 Pose (XNNPACK FP32)',
     value: models.keypointDetection.YOLO26_POSE.SIZE_384.XNNPACK_FP32,
   },
@@ -117,7 +126,8 @@ function KeypointContent() {
       ]}
     >
       <Text style={commonStyles.description}>
-        Upload or capture an image to run keypoint/pose estimation on it.
+        Upload or capture an image to run keypoint/pose estimation on it. Face Mesh expects a photo
+        already cropped to one face, so give it a portrait rather than a full scene.
       </Text>
 
       <ModelPicker
@@ -146,6 +156,7 @@ function KeypointContent() {
               const strokeColor = '#00ff00';
               const bgColor = 'rgba(0, 255, 0, 0.15)';
               const landmarkColor = '#ff00ff';
+              const isDense = Object.keys(det.landmarks).length > 24;
 
               const left = offsetX + det.box.xmin * scaleX;
               const top = offsetY + det.box.ymin * scaleY;
@@ -165,10 +176,23 @@ function KeypointContent() {
                     label={`Det ${Math.round(det.confidence * 100)}%`}
                   />
 
-                  {/* Landmarks */}
+                  {/* Landmarks. A mesh has hundreds of them, so past a couple
+                      of dozen the per-point labels stop being readable and the
+                      dots shrink to keep the shape visible. */}
                   {Object.entries(det.landmarks).map(([key, point]) => {
                     const x = offsetX + point.x * scaleX;
                     const y = offsetY + point.y * scaleY;
+                    if (isDense) {
+                      return (
+                        <View
+                          key={key}
+                          style={[
+                            styles.meshDot,
+                            { left: x - 1, top: y - 1, backgroundColor: landmarkColor },
+                          ]}
+                        />
+                      );
+                    }
                     return (
                       <View
                         key={key}
@@ -235,6 +259,12 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     overflow: 'hidden',
+  },
+  meshDot: {
+    position: 'absolute',
+    width: 2,
+    height: 2,
+    borderRadius: 1,
   },
   landmarkContainer: {
     position: 'absolute',

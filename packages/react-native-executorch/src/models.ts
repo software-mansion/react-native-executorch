@@ -638,6 +638,11 @@ const FACEMESH_OPTS = {
   defaultConfidenceThreshold: 0.5,
   landmarks: FACEMESH_LANDMARKS,
 };
+// fp32 and not a quantized build: the mesh is ~0.75 ms of small depthwise
+// convolutions, so it is bound by per-op overhead rather than arithmetic width.
+// An int8 export measured 0.78x on a Galaxy S26 Ultra and 0.80x on an iPhone 16
+// Pro while drifting up to 6.3 px, so it was dropped. Core ML fp16 is the small
+// build, at 1.5 MB.
 const FACEMESH_XNNPACK_FP32: KeypointDetectorModel<'xyxy', number> = {
   modelPath: `${BASE_URL}-facemesh/${NEXT_VERSION_TAG}/xnnpack/facemesh_xnnpack_fp32.pte`,
   modelOpts: FACEMESH_OPTS,
