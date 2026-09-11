@@ -164,3 +164,15 @@ app to the supported ABIs:
 ```properties
 reactNativeArchitectures=arm64-v8a,x86_64
 ```
+
+## `global.loadOCR is not a function`
+
+The deprecated legacy API registers one `load*` global per task, and the tasks
+backed by a native third-party library are only registered when that library is
+compiled in. Opting out of `opencv` therefore drops the legacy vision hooks
+(`useOCR`, `useVerticalOCR`, `useClassification`, `useObjectDetection`,
+`usePoseEstimation`, `useStyleTransfer`, `useSemanticSegmentation`,
+`useInstanceSegmentation`, `useImageEmbeddings`, `useTextToImage`), and opting
+out of `phonemis` drops `useTextToSpeech`. They build fine and throw this on
+first use. Add the library back under `libs`, or list a `feature` that expands
+to it, in [Native Libraries](../03-core-and-advanced/08-native-libraries.md).

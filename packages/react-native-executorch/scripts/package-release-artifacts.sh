@@ -8,15 +8,15 @@
 #   ./scripts/package-release-artifacts.sh
 #
 # Output: dist-artifacts/
-#   core-android-arm64-v8a.tar.gz + .sha256
-#   core-android-x86_64.tar.gz   + .sha256
+#   core-android-arm64-v8a.tar.gz + .sha256  (libexecutorch.so + executorch.jar)
+#   core-android-x86_64.tar.gz   + .sha256  (libexecutorch.so)
 #   opencv-android-arm64-v8a.tar.gz + .sha256
 #   opencv-android-x86_64.tar.gz   + .sha256
 #   xnnpack-android-arm64-v8a.tar.gz + .sha256
 #   xnnpack-android-x86_64.tar.gz   + .sha256
 #   vulkan-android-arm64-v8a.tar.gz + .sha256
 #   vulkan-android-x86_64.tar.gz   + .sha256
-#   core-ios.tar.gz       + .sha256
+#   core-ios.tar.gz       + .sha256  (ExecutorchLib.xcframework + libthreadpool_*.a)
 #   xnnpack-ios.tar.gz    + .sha256
 #   coreml-ios.tar.gz     + .sha256
 #   mlx-ios.tar.gz        + .sha256 (device-slice xcframework + mlx.metallib resource)
@@ -48,6 +48,11 @@
 #   gh release delete v0.10.0-libs-test --repo software-mansion/react-native-executorch --yes
 
 set -euo pipefail
+
+# macOS tar writes AppleDouble `._*` sidecars for any file carrying extended
+# attributes. They extract alongside the real libraries and are noise for
+# anything globbing those directories.
+export COPYFILE_DISABLE=1
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PACKAGE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -174,18 +179,21 @@ echo "Android:"
 # statically linked into libexecutorch.so (not shipped separately). The
 # ABI-independent executorch.jar (ExecuTorch Java API for the JNI bridge) rides
 # along in the arm64 core tarball, which is always downloaded.
+# Core carries the runtime ONLY. The backend .so ship in their own tarballs, so
+# that an app which opted a backend out never downloads it -- and on Android,
+# never packages it, since jniLibs bundles whatever sits in the directory.
 echo "  → core-android-arm64-v8a"
 _ca_tmp=$(mktemp -d)
 mkdir -p "$_ca_tmp/executorch/arm64-v8a"
-cp -r "$ANDROID_LIBS/executorch/arm64-v8a/." "$_ca_tmp/executorch/arm64-v8a/"
+cp "$ANDROID_LIBS/executorch/arm64-v8a/libexecutorch.so" "$_ca_tmp/executorch/arm64-v8a/"
 cp "$ANDROID_LIBS/executorch.jar" "$_ca_tmp/executorch.jar"
 tar -czf "$OUT/core-android-arm64-v8a.tar.gz" -C "$_ca_tmp" .
 shasum -a 256 "$OUT/core-android-arm64-v8a.tar.gz" | awk '{print $1}' > "$OUT/core-android-arm64-v8a.tar.gz.sha256"
 echo "    ✓ $(du -sh "$OUT/core-android-arm64-v8a.tar.gz" | cut -f1)"
 rm -rf "$_ca_tmp"
 
-package_merged "core-android-x86_64" \
-  "executorch/x86_64"       "$ANDROID_LIBS/executorch/x86_64"
+package_file "core-android-x86_64" \
+  "executorch/x86_64"       "$ANDROID_LIBS/executorch/x86_64/libexecutorch.so"
 
 package_merged "opencv-android-arm64-v8a" \
   "opencv/arm64-v8a"              "$ANDROID_LIBS/opencv/arm64-v8a" \
@@ -217,11 +225,30 @@ package_file "vulkan-android-x86_64" \
 echo ""
 echo "iOS:"
 
-# pthreadpool + cpuinfo are bundled into libthreadpool_*.a (in libs/executorch),
-# so no separate libs/pthreadpool or libs/cpuinfo dirs are shipped.
-package_merged "core-ios" \
-  "ExecutorchLib.xcframework"  "$IOS_DIR/ExecutorchLib.xcframework" \
-  "libs/executorch"            "$IOS_DIR/libs/executorch"
+# pthreadpool + cpuinfo are bundled into libthreadpool_*.a, the only archives
+# under libs/executorch/ the podspec references (as -force_load entries). The
+# rest of that directory -- backend, kernel, kleidiai and llm archives -- is
+# linked by nothing: the backends ship as xcframeworks in their own tarballs and
+# everything else is already inside ExecutorchLib.xcframework. Shipping the
+# directory wholesale cost ~36 MB of unreferenced device-slice .a per install,
+# and made xnnpack-ios/coreml-ios/mlx-ios exact duplicates of what core already
+# carried.
+echo "  → core-ios"
+_ci_tmp=$(mktemp -d)
+mkdir -p "$_ci_tmp/ExecutorchLib.xcframework" "$_ci_tmp/libs/executorch"
+cp -r "$IOS_DIR/ExecutorchLib.xcframework/." "$_ci_tmp/ExecutorchLib.xcframework/"
+for _tp in libthreadpool_ios.a libthreadpool_simulator.a; do
+  if [ ! -f "$IOS_DIR/libs/executorch/$_tp" ]; then
+    echo "    ✗ Source file not found: $IOS_DIR/libs/executorch/$_tp" >&2
+    rm -rf "$_ci_tmp"
+    exit 1
+  fi
+  cp "$IOS_DIR/libs/executorch/$_tp" "$_ci_tmp/libs/executorch/"
+done
+tar -czf "$OUT/core-ios.tar.gz" -C "$_ci_tmp" .
+shasum -a 256 "$OUT/core-ios.tar.gz" | awk '{print $1}' > "$OUT/core-ios.tar.gz.sha256"
+echo "    ✓ $(du -sh "$OUT/core-ios.tar.gz" | cut -f1)"
+rm -rf "$_ci_tmp"
 
 # phonemis is built from in-tree source (third-party/common/phonemis submodule);
 # no iOS tarball is produced.
