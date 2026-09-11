@@ -77,8 +77,6 @@ Hardware backends provide optimized execution kernels for specific processors an
 - **[OpenCV](https://opencv.org/)** — High-performance computer vision library providing image transformations, color space conversions, resizing, and pixel format operations (used by vision pipelines and multimodal LLMs). Provided on iOS via CocoaPods and on Android as static prebuilt libraries.
 - **[phonemis](https://github.com/IgorSwat/Phonemis)** — High-performance C++ library for Grapheme-to-Phoneme (G2P) conversion, delivering universal IPA phonemization as the frontend for [Text-to-Speech](../02-extensions/speech/02-text-to-speech.md) pipelines. Compiled from source on both Android and iOS when enabled.
 
-Opting a library out also drops the matching hooks from the deprecated legacy API, which then throw at runtime (`global.loadOCR is not a function`) rather than failing the build.
-
 ### Features
 
 Specifying a task under `features` is shorthand: it automatically expands to the union of backends and native libraries required by the pre-exported models in that domain.
