@@ -8,15 +8,19 @@ project(RNExecutorchTests)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-# tests/                         <- CMAKE_SOURCE_DIR (this file's location)
-# rnexecutorch/                  <- RNEXECUTORCH_DIR (parent of tests)
-# common/                        <- COMMON_DIR
-# react-native-executorch/       <- PACKAGE_ROOT
-# <monorepo-root>/               <- MONOREPO_ROOT
-# <monorepo-root>/third-party/   <- THIRD_PARTY_DIR
+# tests/                              <- CMAKE_SOURCE_DIR (this file's location)
+# legacy/cpp/rnexecutorch/            <- RNEXECUTORCH_DIR (parent of tests)
+# legacy/cpp/                         <- COMMON_DIR
+# react-native-executorch/            <- PACKAGE_ROOT
+# <monorepo-root>/                    <- MONOREPO_ROOT
+# <monorepo-root>/third-party/        <- THIRD_PARTY_DIR
 set(RNEXECUTORCH_DIR "${CMAKE_SOURCE_DIR}/..")
 set(COMMON_DIR "${RNEXECUTORCH_DIR}/..")
-set(PACKAGE_ROOT "${COMMON_DIR}/..")
+# Two levels, not one: moving the pre-0.10 tree under legacy/cpp/ put an extra
+# directory between COMMON_DIR and the package root, so every path derived from
+# PACKAGE_ROOT (googletest, phonemis, the Android libs) resolved one level short
+# and the suite could not configure at all.
+set(PACKAGE_ROOT "${COMMON_DIR}/../..")
 set(MONOREPO_ROOT "${PACKAGE_ROOT}/../..")
 set(THIRD_PARTY_DIR "${MONOREPO_ROOT}/third-party")
 set(REACT_NATIVE_DIR "${MONOREPO_ROOT}/node_modules/react-native")
@@ -136,7 +140,14 @@ function(add_rn_test TEST_TARGET TEST_FILENAME)
     # Create executable using the explicit filename provided
     add_executable(${TEST_TARGET} ${TEST_FILENAME} ${ARG_SOURCES})
 
-    target_compile_definitions(${TEST_TARGET} PRIVATE TEST_BUILD)
+    # The host suite always builds the full feature set, so the sources it
+    # compiles must see the feature macros as the app build does. Without
+    # RNE_ENABLE_OPENCV, LLM.cpp takes its opt-out branch and every VLMTest /
+    # GemmaAudioTest case fails in SetUpTestSuite. Safe for the tests that link
+    # neither library: LLM.cpp is the only test source reaching a guarded
+    # opencv symbol, and it links opencv_deps.
+    target_compile_definitions(${TEST_TARGET} PRIVATE
+        TEST_BUILD RNE_ENABLE_OPENCV RNE_ENABLE_PHONEMIS)
     target_link_libraries(${TEST_TARGET} PRIVATE rntests_core gtest_main ${ARG_LIBS})
     target_link_options(${TEST_TARGET} PRIVATE "LINKER:-z,max-page-size=16384")
 
