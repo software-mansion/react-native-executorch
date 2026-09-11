@@ -118,24 +118,24 @@ libraries, which do not change with this configuration.
 
 | backends             | in the APK | ≈ Play download |
 | -------------------- | ---------- | --------------- |
-| `xnnpack`            | 25.18 MB   | 8.16 MB         |
-| `vulkan`             | 33.83 MB   | 9.79 MB         |
-| `xnnpack` + `vulkan` | 36.38 MB   | 10.68 MB        |
+| `xnnpack`            | 21.86 MB   | 7.06 MB         |
+| `vulkan`             | 30.56 MB   | 8.71 MB         |
+| `xnnpack` + `vulkan` | 32.21 MB   | 9.35 MB         |
 
 Per library:
 
 | library                            | stripped | gzipped |
 | ---------------------------------- | -------- | ------- |
-| `libexecutorch.so`                 | 12.82 MB | 4.39 MB |
-| `libvulkan_executorch_backend.so`  | 11.19 MB | 2.52 MB |
+| `libexecutorch.so`                 | 10.41 MB | 3.56 MB |
+| `libvulkan_executorch_backend.so`  | 10.34 MB | 2.28 MB |
 | `libRnExecutorch.so`               | 9.80 MB  | 2.87 MB |
-| `libxnnpack_executorch_backend.so` | 2.54 MB  | 0.88 MB |
+| `libxnnpack_executorch_backend.so` | 1.65 MB  | 0.63 MB |
 
 `extractNativeLibs=false` is the default from React Native 0.73, so the install
 grows by the uncompressed figure; the Play column is the compressed transfer.
 
-Vulkan is ~4.4x XNNPACK and almost entirely data: 8.73 MB of its 11.19 MB is
-`.rodata`, effectively embedded SPIR-V, against 2.02 MB of `.text`. It also
+Vulkan is ~6.3x XNNPACK and almost entirely data: 8.31 MB of its 10.34 MB is
+`.rodata`, effectively embedded SPIR-V, against 1.50 MB of `.text`. It also
 compresses far better than its size suggests.
 
 ### iOS
