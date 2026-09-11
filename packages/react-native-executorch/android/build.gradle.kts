@@ -144,8 +144,13 @@ android {
         getByName("main") {
             // Prebuilt executorch + backend .so live under
             // third-party/android/libs/executorch/<abi>/. Pointing jniLibs here
-            // makes Gradle package them (libexecutorch.so + the enabled
-            // lib*_executorch_backend.so) into the APK alongside our own .so.
+            // makes Gradle package them into the APK alongside our own .so.
+            //
+            // Gradle packages every .so it finds under a jniLibs source dir, so
+            // this alone ships backends the app opted out of: -DRNE_ENABLE_* only
+            // stops CMake importing and linking them, which is enough for
+            // behaviour but has no bearing on packaging. `packaging.jniLibs
+            // .excludes` below drops the disabled ones back out.
             jniLibs.srcDirs("../third-party/android/libs/executorch")
             // Include generated codegen if using TurboModules
             java.srcDirs("${project.buildDir}/generated/source/codegen/java")
@@ -160,6 +165,25 @@ android {
     packaging {
         // Prevents "Duplicate Library" errors with the React Native JSI engine
         resources.excludes.add("**/libjsi.so")
+
+        // Ship only the backends the resolved config asks for. Without this an
+        // app declaring `backends: ["vulkan"]` still carries 2.67 MB of XNNPACK
+        // that nothing links, registers or loads, because jniLibs packages the
+        // directory rather than the link graph. This is the Android counterpart
+        // of the podspec deciding its -force_load entries from the same config.
+        //
+        // Keyed off the backend .so names rather than a staging dir so that a
+        // user who provisions third-party/ by hand gets the same treatment.
+        val backendLibs = mapOf(
+            "enableXnnpack" to "libxnnpack_executorch_backend.so",
+            "enableVulkan" to "libvulkan_executorch_backend.so"
+        )
+        for ((flag, soName) in backendLibs) {
+            if (rneConfig[flag] == false) {
+                logger.lifecycle("[RnExecutorch] $flag is off; excluding $soName from the APK")
+                jniLibs.excludes.add("**/$soName")
+            }
+        }
     }
 
     compileOptions {
