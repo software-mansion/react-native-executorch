@@ -21,7 +21,6 @@ import type { ObjectDetectorModel } from './extensions/cv/tasks/objectDetection'
 import type { StyleTransferModel } from './extensions/cv/tasks/styleTransfer';
 import type { SemanticSegmenterModel } from './extensions/cv/tasks/semanticSegmentation';
 import type { KeypointDetectorModel } from './extensions/cv/tasks/keypointDetection';
-import type { FaceLandmarkerModel } from './extensions/cv/tasks/faceLandmarks';
 import type { InstanceSegmenterModel } from './extensions/cv/tasks/instanceSegmentation';
 import type { ImageEmbedderModel } from './extensions/cv/tasks/imageEmbedding';
 import type { SdxsTextToImageModel } from './extensions/cv/tasks/sdxsTextToImage';
@@ -44,6 +43,7 @@ import {
   COCO_CLASSES,
   COCO_CLASSES_YOLO,
   BLAZEFACE_LANDMARKS,
+  FACEMESH_LANDMARKS,
   COCO_LANDMARKS,
   SUPERTONIC_DEFAULT_VOICE_NAMES,
   PRIVACY_FILTER_OPENAI_LABELS,
@@ -627,20 +627,22 @@ const RFDETR_KEYPOINT_COREML_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> =
   modelOpts: RFDETR_KEYPOINT_OPTS,
 };
 
-// =============================================================================
-// Face Landmarks
-// =============================================================================
 const FACEMESH_OPTS = {
+  boxFormat: 'xyxy' as const,
   resizeMode: 'letterbox' as const,
   interpolation: 'linear' as const,
   normalizeOpts: { alpha: 1 / 127.5, beta: -1.0 },
+  // One face in, one mesh out: there is nothing for NMS to suppress, so the IoU
+  // threshold only ever compares the single candidate with itself.
+  defaultIouThreshold: 1.0,
   defaultConfidenceThreshold: 0.5,
+  landmarks: FACEMESH_LANDMARKS,
 };
-const FACEMESH_XNNPACK_FP32: FaceLandmarkerModel = {
+const FACEMESH_XNNPACK_FP32: KeypointDetectorModel<'xyxy', number> = {
   modelPath: `${BASE_URL}-facemesh/${NEXT_VERSION_TAG}/xnnpack/facemesh_xnnpack_fp32.pte`,
   modelOpts: FACEMESH_OPTS,
 };
-const FACEMESH_COREML_FP16: FaceLandmarkerModel = {
+const FACEMESH_COREML_FP16: KeypointDetectorModel<'xyxy', number> = {
   modelPath: `${BASE_URL}-facemesh/${NEXT_VERSION_TAG}/coreml/facemesh_coreml_fp16.pte`,
   modelOpts: FACEMESH_OPTS,
 };
@@ -2149,6 +2151,17 @@ export const models = {
       XNNPACK_FP32: BLAZEFACE_XNNPACK_FP32,
     }),
     /**
+     * MediaPipe Face Mesh: a dense 468-point 3-D mesh (see
+     * {@link FACEMESH_LANDMARKS}) and a face-presence score, regressed from a
+     * 192x192 crop of one face. It does not search an image for faces — feed
+     * it the crop of a detector such as `BLAZEFACE`. Its landmarks carry a
+     * `z`, and its box is the hull of the mesh rather than a detection.
+     */
+    FACEMESH: variants({
+      XNNPACK_FP32: FACEMESH_XNNPACK_FP32,
+      COREML_FP16: FACEMESH_COREML_FP16,
+    }),
+    /**
      * YOLO26 human pose estimation model predicting 17 COCO body keypoints (see
      * {@link COCO_LANDMARKS}). Available across 384x384, 512x512, and 640x640
      * resolutions.
@@ -2178,22 +2191,6 @@ export const models = {
       },
       { ios: 'COREML_FP16' }
     ),
-  },
-
-  /**
-   * Dense face landmark models, which regress a full mesh over one
-   * already-cropped face rather than searching an image for faces. Pair them
-   * with a face detector such as {@link models.keypointDetection.BLAZEFACE}.
-   */
-  faceLandmarks: {
-    /**
-     * MediaPipe Face Mesh, regressing 468 3-D landmarks and a face-presence
-     * score from a 192x192 crop.
-     */
-    FACEMESH: variants({
-      XNNPACK_FP32: FACEMESH_XNNPACK_FP32,
-      COREML_FP16: FACEMESH_COREML_FP16,
-    }),
   },
 
   /**

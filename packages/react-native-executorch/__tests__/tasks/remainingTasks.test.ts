@@ -69,6 +69,80 @@ describe('createKeypointDetector', () => {
     await expect(createKeypointDetector(config)).rejects.toThrow(/Constant dimension mismatch/);
   });
 
+  /**
+   * Face-mesh style models regress a depth per landmark and so publish a
+   * fourth keypoint channel. The first three keep their meaning, so the only
+   * things worth pinning are that the wider output is accepted, that the
+   * stride moves with it, and that `z` scales the way `x` does.
+   */
+  describe('a fourth keypoint channel', () => {
+    const withDepth = (keypoints: readonly number[]) =>
+      fakeJsi.registerModel(MODEL_PATH, {
+        schema: exported(
+          method('forward', [f32(1, 3, 8, 8)], [f32(1, 4), f32(1), f32(1, LANDMARKS.length, 4)])
+        ),
+        // Powers of two throughout: the weighted-NMS pass divides by the score
+        // sum, so any other value comes back with float32 rounding on it.
+        execute: writesOutputs([0, 0, 8, 8], [0.5], keypoints),
+      });
+
+    it('reads x, y and confidence from the same slots as a 3-channel model', async () => {
+      // prettier-ignore
+      withDepth([
+        1, 2, 0.75, 10,
+        3, 4, 0.5, 20,
+        5, 6, 0.25, 30,
+      ]);
+      const detector = tracked(await createKeypointDetector(config));
+
+      const [detection] = await detector.detectKeypoints(imageBuffer(8, 8));
+
+      expect(detection!.landmarks.nose).toEqual({ x: 1, y: 2, confidence: 0.75, z: 10 });
+      expect(detection!.landmarks.right_eye).toEqual({ x: 5, y: 6, confidence: 0.25, z: 30 });
+    });
+
+    it('scales z by the same factor as x', async () => {
+      // prettier-ignore
+      withDepth([
+        1, 2, 0.75, 10,
+        3, 4, 0.5, 20,
+        5, 6, 0.25, 30,
+      ]);
+      const detector = tracked(await createKeypointDetector(config));
+
+      // A 16x8 image stretched into the model's 8x8 box doubles x, so z doubles.
+      const [detection] = await detector.detectKeypoints(imageBuffer(16, 8));
+
+      expect(detection!.landmarks.nose).toEqual({ x: 2, y: 2, confidence: 0.75, z: 20 });
+    });
+
+    it('leaves z undefined on a 3-channel model', async () => {
+      fakeJsi.registerModel(MODEL_PATH, {
+        schema: exported(
+          method('forward', [f32(1, 3, 8, 8)], [f32(1, 4), f32(1), f32(1, LANDMARKS.length, 3)])
+        ),
+        execute: writesOutputs([0, 0, 8, 8], [0.5], [1, 2, 0.75, 3, 4, 0.5, 5, 6, 0.25]),
+      });
+      const detector = tracked(await createKeypointDetector(config));
+
+      const [detection] = await detector.detectKeypoints(imageBuffer(8, 8));
+
+      expect(detection!.landmarks.nose).toEqual({ x: 1, y: 2, confidence: 0.75 });
+    });
+
+    it('rejects a fifth channel', async () => {
+      fakeJsi.registerModel(MODEL_PATH, {
+        schema: exported(
+          method('forward', [f32(1, 3, 8, 8)], [f32(1, 4), f32(1), f32(1, LANDMARKS.length, 5)])
+        ),
+      });
+
+      await expect(createKeypointDetector(config)).rejects.toThrow(
+        /doesn't match any of the provided/
+      );
+    });
+  });
+
   it('has no unbatched variant', async () => {
     fakeJsi.registerModel(MODEL_PATH, {
       schema: exported(

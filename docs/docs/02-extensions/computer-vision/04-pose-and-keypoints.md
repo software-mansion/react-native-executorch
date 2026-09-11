@@ -1,7 +1,7 @@
 ---
 title: Pose & Keypoints
 slug: /extensions/pose-and-keypoints
-description: 'Detect skeletal body keypoints and facial landmarks in real time with bounding boxes using models like YOLO26 Pose and BlazeFace.'
+description: 'Detect skeletal body keypoints and facial landmarks in real time with bounding boxes using models like YOLO26 Pose, BlazeFace and Face Mesh.'
 keywords:
   [
     react native,
@@ -10,6 +10,8 @@ keywords:
     facial landmarks,
     body tracking,
     blazeface,
+    face mesh,
+    468 landmarks,
     yolo26 pose,
     coco landmarks,
     mobile ml,
@@ -137,7 +139,57 @@ For human pose models ([`YOLO26_POSE`](../../06-api-reference/variables/models.m
 
 For face models ([`BLAZEFACE`](../../06-api-reference/variables/models.md#keypointdetectionblazeface)), [`landmarks`](../../06-api-reference/type-aliases/KeypointDetection.md#landmarks) includes 6 facial points from [`BLAZEFACE_LANDMARKS`](../../06-api-reference/variables/BLAZEFACE_LANDMARKS.md): `leftEye`, `rightEye`, `noseTip`, `mouthCenter`, `leftEar`, `rightEar`.
 
-For a dense 468-point mesh of one face rather than 6 points per detection, crop to a BlazeFace box and pass it to [Face Mesh](./05-face-mesh.md).
+Models that regress depth add a `z` to each landmark, on the same scale as `x` and negative towards the camera. It is `undefined` for the flat models.
+
+## Face Mesh
+
+[`FACEMESH`](../../06-api-reference/variables/models.md#keypointdetectionfacemesh) is the dense counterpart to BlazeFace: 468 3-D vertices over a single face, keyed by their index in MediaPipe's canonical face model (see [`FACEMESH_LANDMARKS`](../../06-api-reference/variables/FACEMESH_LANDMARKS.md)), so any lip/eye/oval index list published for MediaPipe Face Mesh applies unchanged.
+
+It differs from the other models on this page in two ways. It does not search an image for faces — it expects one already-cropped, face-filling image and always returns exactly one result, whose `box` is the hull of the mesh rather than a detection. And its `confidence` is a face-presence score for the whole crop, while each landmark's own `confidence` is a constant `1`.
+
+```typescript
+import { createKeypointDetector, download, models } from 'react-native-executorch';
+
+const detector = await createKeypointDetector(
+  await download(models.keypointDetection.BLAZEFACE.DEFAULT)
+);
+const mesh = await createKeypointDetector(
+  await download(models.keypointDetection.FACEMESH.DEFAULT)
+);
+
+const [face] = await detector.detectKeypoints(imageBuffer);
+if (face) {
+  const crop = cropToBox(imageBuffer, face.box); // see below
+  const [result] = await mesh.detectKeypoints(crop);
+  console.log(result?.landmarks[33]); // { x, y, confidence: 1, z }
+}
+```
+
+An [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) is plain HWC bytes, so cropping one to the detector's box is a row copy:
+
+```typescript
+import type { ImageBuffer } from 'react-native-executorch/cv';
+
+function cropToBox(
+  src: ImageBuffer,
+  box: { xmin: number; ymin: number; xmax: number; ymax: number }
+) {
+  const channels = src.data.length / (src.width * src.height);
+  const x = Math.max(0, Math.round(box.xmin));
+  const y = Math.max(0, Math.round(box.ymin));
+  const width = Math.min(src.width, Math.round(box.xmax)) - x;
+  const height = Math.min(src.height, Math.round(box.ymax)) - y;
+  const data = new Uint8Array(width * height * channels);
+
+  for (let row = 0; row < height; row++) {
+    const from = ((y + row) * src.width + x) * channels;
+    data.set(src.data.subarray(from, from + width * channels), row * width * channels);
+  }
+  return { ...src, data, width, height };
+}
+```
+
+Landmarks come back in the crop's pixel space, so add the crop's offset to map them onto the original image. Squaring off the box and padding it by 20-25% before cropping matches how the model was trained and noticeably steadies the mesh on tight detections.
 
 ## Configuration & Options
 
@@ -190,6 +242,7 @@ The library provides ready-to-use pose and landmark detectors from the [Software
 | Model Family            | Variants                                                                           | Keypoints Detected                                                                                          | Size Range          | Supported Backends             | Notes                                                                                         |
 | :---------------------- | :--------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- | :------------------ | :----------------------------- | :-------------------------------------------------------------------------------------------- |
 | **MediaPipe BlazeFace** | [See](../../06-api-reference/variables/models.md#keypointdetectionblazeface)       | [`BLAZEFACE_LANDMARKS`](../../06-api-reference/variables/BLAZEFACE_LANDMARKS.md) (6 facial landmarks + box) | 0.6 MB              | XNNPACK (CPU)                  | Ultra-lightweight face bounding box & eye/ear/nose/mouth keypoint tracking (sub-millisecond). |
+| **MediaPipe Face Mesh** | [See](../../06-api-reference/variables/models.md#keypointdetectionfacemesh)        | [`FACEMESH_LANDMARKS`](../../06-api-reference/variables/FACEMESH_LANDMARKS.md) (468 3-D mesh vertices)      | 1.6 MB – 2.5 MB     | XNNPACK (CPU), Core ML (Apple) | Dense single-face mesh from a 192x192 crop; needs a face detector in front of it.             |
 | **YOLO26 Pose**         | [See](../../06-api-reference/variables/models.md#keypointdetectionyolo26_pose)     | [`COCO_LANDMARKS`](../../06-api-reference/variables/COCO_LANDMARKS.md) (17 body keypoints)                  | 11.4 MB             | XNNPACK (CPU), Core ML (Apple) | Real-time multi-person full-body skeletal tracking across multiple input resolutions.         |
 | **RF-DETR Keypoint**    | [See](../../06-api-reference/variables/models.md#keypointdetectionrfdetr_keypoint) | [`COCO_LANDMARKS`](../../06-api-reference/variables/COCO_LANDMARKS.md) (17 body keypoints)                  | 138.6 MB – 140.9 MB | XNNPACK (CPU), Core ML (Apple) | High-accuracy body keypoint detection transformer for complex, occluded poses.                |
 
@@ -228,7 +281,8 @@ The pipeline automatically verifies that the model's exported input and output s
 - [`DetectKeypointsOptions`](../../06-api-reference/type-aliases/DetectKeypointsOptions.md) — Detection options (`confidenceThreshold`, `iouThreshold`).
 - [`KeypointDetectorModel`](../../06-api-reference/type-aliases/KeypointDetectorModel.md) — Model configuration spec for pose and landmark models.
 - [`KeypointDetectorOptions`](../../06-api-reference/type-aliases/KeypointDetectorOptions.md) — Options defining landmark names, box format, and normalization.
-- [`Landmarks`](../../06-api-reference/type-aliases/Landmarks.md) — Record of landmark names mapped to `{ x, y, confidence }`.
+- [`Landmarks`](../../06-api-reference/type-aliases/Landmarks.md) — Record of landmark names mapped to a [`Landmark`](../../06-api-reference/type-aliases/Landmark.md).
+- [`Landmark`](../../06-api-reference/type-aliases/Landmark.md) — One landmark: `x`, `y`, `confidence`, and `z` for models that regress depth.
 - [`BoundingBox`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/BoundingBox.md) — Bounding box structure.
 - [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) — Input image buffer structure.
 
@@ -237,6 +291,7 @@ The pipeline automatically verifies that the model's exported input and output s
 - [`models.keypointDetection`](../../06-api-reference/variables/models.md#keypointdetection) — Pre-configured keypoint and pose models registry.
 - [`COCO_LANDMARKS`](../../06-api-reference/variables/COCO_LANDMARKS.md) — List of 17 standard COCO skeletal body keypoints.
 - [`BLAZEFACE_LANDMARKS`](../../06-api-reference/variables/BLAZEFACE_LANDMARKS.md) — List of 6 standard BlazeFace facial landmarks.
+- [`FACEMESH_LANDMARKS`](../../06-api-reference/variables/FACEMESH_LANDMARKS.md) — The 468 Face Mesh vertex indices.
 
 :::info Source Code
 View the implementation on GitHub:

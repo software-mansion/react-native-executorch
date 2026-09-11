@@ -3,7 +3,6 @@
 exports[`public API surface exports one hook per user-facing task 1`] = `
 [
   "useClassifier",
-  "useFaceLandmarker",
   "useImageEmbedder",
   "useInstanceSegmenter",
   "useKeypointDetector",
@@ -117,6 +116,7 @@ exports[`public API surface matches the recorded export list 1`] = `
   "COCO_CLASSES",
   "COCO_CLASSES_YOLO",
   "COCO_LANDMARKS",
+  "FACEMESH_LANDMARKS",
   "FSMN_VAD_SAMPLE_RATE_HZ",
   "IMAGENET1K_LABELS",
   "IMAGENET_NORM",
@@ -131,7 +131,6 @@ exports[`public API surface matches the recorded export list 1`] = `
   "WHISPER_LANGUAGES",
   "WHISPER_SAMPLE_RATE_HZ",
   "createClassifier",
-  "createFaceLandmarker",
   "createFsmnVoiceActivityDetector",
   "createImageEmbedder",
   "createInstanceSegmenter",
@@ -165,7 +164,6 @@ exports[`public API surface matches the recorded export list 1`] = `
   "speech",
   "tensor",
   "useClassifier",
-  "useFaceLandmarker",
   "useImageEmbedder",
   "useInstanceSegmenter",
   "useKeypointDetector",
