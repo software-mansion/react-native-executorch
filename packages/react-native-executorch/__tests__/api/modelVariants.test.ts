@@ -369,6 +369,46 @@ describe('feature map', () => {
     return found;
   }
 
+  /** The Hugging Face repo slugs a registry category's URLs point at. */
+  function repoSlugs(node: unknown): Set<string> {
+    const found = new Set<string>();
+    const walk = (value: unknown): void => {
+      if (typeof value === 'string') {
+        const match = value.match(/react-native-executorch-([^/]+)\//);
+        if (match) found.add(match[1]!);
+      } else if (Array.isArray(value)) value.forEach(walk);
+      else if (isObject(value)) Object.values(value).forEach(walk);
+    };
+    walk(node);
+    return found;
+  }
+
+  // `features` provisions for the whole package, and the legacy API keeps model
+  // URLs the new registry has since dropped: the RF-DETR keypoint MLX export
+  // removed in #1418 is still reachable as
+  // RF_DETR_KEYPOINT_PREVIEW_MLX_FP32_MODEL. Those count as published, matched
+  // to a feature through the repo slug they share with the new registry; a
+  // legacy-only slug cannot be classified that way and is skipped.
+  const legacyBackendsBySlug = (() => {
+    const source = readFileSync(join(__dirname, '../../legacy/src/constants/modelUrls.ts'), 'utf8');
+    const bySlug = new Map<string, Set<string>>();
+    for (const [, slug, backend] of source.matchAll(
+      /\$\{URL_PREFIX\}-([^/`]+)\/[^`]*?\/(xnnpack|coreml|mlx|vulkan)\//g
+    )) {
+      if (!bySlug.has(slug!)) bySlug.set(slug!, new Set());
+      bySlug.get(slug!)!.add(backend!);
+    }
+    return bySlug;
+  })();
+
+  /** New-registry exports for a category, plus the legacy ones for its repos. */
+  function allPublishedBackends(node: unknown): Set<string> {
+    const found = publishedBackends(node);
+    for (const slug of repoSlugs(node))
+      for (const backend of legacyBackendsBySlug.get(slug) ?? []) found.add(backend);
+    return found;
+  }
+
   const registry = registryFor({ os: 'ios' });
 
   it('names a feature for every registry category', () => {
@@ -395,11 +435,10 @@ describe('feature map', () => {
     expect(offenders.sort()).toEqual([]);
   });
 
-  it('provisions no backend the registry does not publish for that feature', () => {
+  it('provisions no backend neither API publishes for that feature', () => {
     // The mirror of the case above, and the one that actually bites: a feature
     // naming a backend nothing in its family exports makes every app using that
-    // feature download a library it can never load. keypointDetection carried
-    // `mlx` after the one keypoint MLX export was dropped in #1418.
+    // feature download a library it can never load.
     const offenders: string[] = [];
 
     for (const [category, node] of Object.entries(registry)) {
@@ -408,7 +447,7 @@ describe('feature map', () => {
       // to justify every backend it names.
       if (feature === 'llm') continue;
 
-      const published = publishedBackends(node);
+      const published = allPublishedBackends(node);
       for (const backend of FEATURE_MAP[feature].backends) {
         if (!published.has(backend))
           offenders.push(`${feature} provisions ${backend}, unpublished`);

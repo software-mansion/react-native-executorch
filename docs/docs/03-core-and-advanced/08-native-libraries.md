@@ -93,7 +93,7 @@ Specifying a task under `features` is shorthand: it automatically expands to the
 | `imageEmbeddings`      | xnnpack, coreml, mlx, vulkan | opencv              |
 | `classification`       | xnnpack, coreml              | opencv              |
 | `objectDetection`      | xnnpack, coreml              | opencv              |
-| `keypointDetection`    | xnnpack, coreml              | opencv              |
+| `keypointDetection`    | xnnpack, coreml, mlx         | opencv              |
 | `semanticSegmentation` | xnnpack, coreml              | opencv              |
 | `instanceSegmentation` | xnnpack, coreml              | opencv              |
 | `ocr`                  | xnnpack, coreml, vulkan      | opencv              |
