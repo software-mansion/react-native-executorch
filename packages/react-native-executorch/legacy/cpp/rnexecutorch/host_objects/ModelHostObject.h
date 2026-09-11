@@ -17,15 +17,16 @@
 #include <rnexecutorch/metaprogramming/FunctionHelpers.h>
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/BaseModel.h>
-#include <rnexecutorch/models/VisionModel.h>
 #include <rnexecutorch/models/llm/LLM.h>
+#ifdef RNE_ENABLE_OPENCV
 #include <rnexecutorch/models/ocr/OCR.h>
-#include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/text_to_image/TextToImage.h>
+#include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
+#endif
+#include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #ifdef RNE_ENABLE_PHONEMIS
 #include <rnexecutorch/models/text_to_speech/TextToSpeech.h>
 #endif
-#include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
 #include <rnexecutorch/models/voice_activity_detection/VoiceActivityDetection.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
 
@@ -204,6 +205,7 @@ public:
                 "getVisualTokenCount"));
         }
 
+#ifdef RNE_ENABLE_OPENCV
         if constexpr (meta::SameAs<Model, models::text_to_image::TextToImage>) {
             addFunctions(
                 JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
@@ -221,6 +223,7 @@ public:
             addFunctions(
                 JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
         }
+#endif
 
 #ifdef RNE_ENABLE_PHONEMIS
         if constexpr (meta::SameAs<Model, models::text_to_speech::kokoro::Kokoro>) {
