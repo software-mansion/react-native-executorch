@@ -44,7 +44,8 @@
  *   features:  llm, multimodalLLM, speechToText, textToSpeech, vad, privacyFilter,
  *              textEmbeddings, imageEmbeddings,
  *              classification, objectDetection, semanticSegmentation, instanceSegmentation,
- *              ocr, verticalOCR, keypointDetection, styleTransfer, textToImage, segmentAnything,
+ *              ocr, verticalOCR, keypointDetection, faceLandmarks, styleTransfer, textToImage,
+ *              segmentAnything,
  *              tokenizer
  *
  * Platform applicability:
@@ -154,6 +155,8 @@ const FEATURE_MAP = {
   // keypoint adds coreml + mlx → union. (Named to track the useKeypointDetector
   // hook; main calls this poseEstimation.)
   keypointDetection: { backends: ['xnnpack', 'coreml', 'mlx'], libs: ['opencv'] },
+  // Face mesh (#1140) ships xnnpack + coreml.
+  faceLandmarks: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
   // DeepLab/FCN/LR-ASPP/selfie all ship xnnpack + coreml.
   semanticSegmentation: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
   // YOLO-seg xnnpack-only, rf_detr-seg/fastsam add coreml → union.

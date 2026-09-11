@@ -3,6 +3,7 @@
 exports[`public API surface exports one hook per user-facing task 1`] = `
 [
   "useClassifier",
+  "useFaceLandmarker",
   "useImageEmbedder",
   "useInstanceSegmenter",
   "useKeypointDetector",
@@ -130,6 +131,7 @@ exports[`public API surface matches the recorded export list 1`] = `
   "WHISPER_LANGUAGES",
   "WHISPER_SAMPLE_RATE_HZ",
   "createClassifier",
+  "createFaceLandmarker",
   "createFsmnVoiceActivityDetector",
   "createImageEmbedder",
   "createInstanceSegmenter",
@@ -163,6 +165,7 @@ exports[`public API surface matches the recorded export list 1`] = `
   "speech",
   "tensor",
   "useClassifier",
+  "useFaceLandmarker",
   "useImageEmbedder",
   "useInstanceSegmenter",
   "useKeypointDetector",

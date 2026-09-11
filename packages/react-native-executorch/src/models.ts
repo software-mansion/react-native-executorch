@@ -21,6 +21,7 @@ import type { ObjectDetectorModel } from './extensions/cv/tasks/objectDetection'
 import type { StyleTransferModel } from './extensions/cv/tasks/styleTransfer';
 import type { SemanticSegmenterModel } from './extensions/cv/tasks/semanticSegmentation';
 import type { KeypointDetectorModel } from './extensions/cv/tasks/keypointDetection';
+import type { FaceLandmarkerModel } from './extensions/cv/tasks/faceLandmarks';
 import type { InstanceSegmenterModel } from './extensions/cv/tasks/instanceSegmentation';
 import type { ImageEmbedderModel } from './extensions/cv/tasks/imageEmbedding';
 import type { SdxsTextToImageModel } from './extensions/cv/tasks/sdxsTextToImage';
@@ -178,6 +179,7 @@ const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorc
 // over to it; the constant is absent until then rather than declared and unused,
 // because noUnusedLocals rejects a constant nothing reads.
 const VERSION_TAG = 'resolve/v0.10.0';
+const NEXT_VERSION_TAG = 'resolve/v0.11.0';
 
 // =============================================================================
 // Classification
@@ -623,6 +625,24 @@ const RFDETR_KEYPOINT_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> 
 const RFDETR_KEYPOINT_COREML_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
   modelPath: `${BASE_URL}-rfdetr-keypoint/${VERSION_TAG}/coreml/rfdetr_keypoint_preview_coreml_fp16.pte`,
   modelOpts: RFDETR_KEYPOINT_OPTS,
+};
+
+// =============================================================================
+// Face Landmarks
+// =============================================================================
+const FACEMESH_OPTS = {
+  resizeMode: 'letterbox' as const,
+  interpolation: 'linear' as const,
+  normalizeOpts: { alpha: 1 / 127.5, beta: -1.0 },
+  defaultConfidenceThreshold: 0.5,
+};
+const FACEMESH_XNNPACK_FP32: FaceLandmarkerModel = {
+  modelPath: `${BASE_URL}-facemesh/${NEXT_VERSION_TAG}/xnnpack/facemesh_xnnpack_fp32.pte`,
+  modelOpts: FACEMESH_OPTS,
+};
+const FACEMESH_COREML_FP16: FaceLandmarkerModel = {
+  modelPath: `${BASE_URL}-facemesh/${NEXT_VERSION_TAG}/coreml/facemesh_coreml_fp16.pte`,
+  modelOpts: FACEMESH_OPTS,
 };
 
 // =============================================================================
@@ -2158,6 +2178,22 @@ export const models = {
       },
       { ios: 'COREML_FP16' }
     ),
+  },
+
+  /**
+   * Dense face landmark models, which regress a full mesh over one
+   * already-cropped face rather than searching an image for faces. Pair them
+   * with a face detector such as {@link models.keypointDetection.BLAZEFACE}.
+   */
+  faceLandmarks: {
+    /**
+     * MediaPipe Face Mesh, regressing 468 3-D landmarks and a face-presence
+     * score from a 192x192 crop.
+     */
+    FACEMESH: variants({
+      XNNPACK_FP32: FACEMESH_XNNPACK_FP32,
+      COREML_FP16: FACEMESH_COREML_FP16,
+    }),
   },
 
   /**

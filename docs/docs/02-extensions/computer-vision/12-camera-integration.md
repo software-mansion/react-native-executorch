@@ -219,4 +219,5 @@ To keep your app responsive and battery-efficient:
 ## Next Steps
 
 - [Object Detection](./03-object-detection.md) — Detection models, COCO labels, and threshold options.
+- [Face Mesh](./05-face-mesh.md) — Dense 468-point face landmarks from a cropped face.
 - [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.md) — Threading model, worklet runtimes, and zero-copy host objects.

@@ -340,6 +340,7 @@ describe('feature map', () => {
     semanticSegmentation: 'semanticSegmentation',
     objectDetection: 'objectDetection',
     keypointDetection: 'keypointDetection',
+    faceLandmarks: 'faceLandmarks',
     instanceSegmentation: 'instanceSegmentation',
     voiceActivityDetection: 'vad',
     speechToText: 'speechToText',

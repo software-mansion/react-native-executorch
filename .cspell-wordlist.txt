@@ -233,6 +233,11 @@ MATEUSZ
 BLAZEFACE
 Blazeface
 blazeface
+FACEMESH
+Facemesh
+facemesh
+Landmarker
+landmarker
 nums
 Pressable
 cvtColor

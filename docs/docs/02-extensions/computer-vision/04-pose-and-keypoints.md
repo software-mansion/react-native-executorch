@@ -137,6 +137,8 @@ For human pose models ([`YOLO26_POSE`](../../06-api-reference/variables/models.m
 
 For face models ([`BLAZEFACE`](../../06-api-reference/variables/models.md#keypointdetectionblazeface)), [`landmarks`](../../06-api-reference/type-aliases/KeypointDetection.md#landmarks) includes 6 facial points from [`BLAZEFACE_LANDMARKS`](../../06-api-reference/variables/BLAZEFACE_LANDMARKS.md): `leftEye`, `rightEye`, `noseTip`, `mouthCenter`, `leftEar`, `rightEar`.
 
+For a dense 468-point mesh of one face rather than 6 points per detection, crop to a BlazeFace box and pass it to [Face Mesh](./05-face-mesh.md).
+
 ## Configuration & Options
 
 Pass a [`DetectKeypointsOptions`](../../06-api-reference/type-aliases/DetectKeypointsOptions.md) object to [`detectKeypoints()`](../../06-api-reference/type-aliases/KeypointDetector.md#detectkeypoints) to override model defaults:
