@@ -330,10 +330,15 @@ export async function createLLMChatSession(
 
         return { messages: history.slice(turnStartIdx), stats: generationStatsList, finishReason };
       } catch (err) {
-        // Roll back history, KV cache, and active tensors to pre-turn state on failure
+        // Roll back history, KV cache, and active tensors to pre-turn state on
+        // failure. The rewind must never replace the error it is unwinding.
+        //
+        // Under `resetOnTurn` the pre-turn position IS zero: `initialPos` is
+        // read before the turn begins and the turn then zeroed the cache, so
+        // rewinding to it is out of range by construction.
         history.length = turnStartIdx;
         committed = initialCommitted;
-        runner.reset(initialPos);
+        runner.reset(resetOnTurn ? 0 : initialPos);
         chatPreprocessor.clear();
         throw err;
       }
