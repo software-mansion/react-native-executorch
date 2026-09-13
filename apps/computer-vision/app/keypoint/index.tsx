@@ -195,6 +195,15 @@ function KeypointContent() {
 
       setLatency(Date.now() - start);
       setResults(output);
+      if (output.length === 0) {
+        // An empty result is the common outcome here and renders as nothing at
+        // all, so say which stage produced it rather than leaving a blank image.
+        setError(
+          needsFaceCrop
+            ? 'The mesh scored the cropped face below its presence threshold.'
+            : 'No detection above the confidence threshold.'
+        );
+      }
     } catch (e: any) {
       setError(e.message || String(e));
     } finally {
@@ -219,6 +228,9 @@ function KeypointContent() {
     scaleY = scale;
   }
 
+  // The face detector has to be up too, otherwise Run would look enabled and
+  // then do nothing.
+  const canRun = isReady && (!needsFaceCrop || faceDetector.isReady);
   const activeError = loadError ? String(loadError) : error;
 
   return (
@@ -247,7 +259,7 @@ function KeypointContent() {
       />
 
       <ModelStatus
-        isReady={isReady && (!needsFaceCrop || faceDetector.isReady)}
+        isReady={canRun}
         downloadProgress={downloadProgress}
         error={activeError}
         modelTypeLabel="keypoint model"
@@ -331,13 +343,13 @@ function KeypointContent() {
         <Button
           title="Run Async"
           onPress={() => runDetection(false)}
-          disabled={!skiaImage || !isReady || isProcessing}
+          disabled={!skiaImage || !canRun || isProcessing}
           loading={isProcessing}
         />
         <Button
           title="Run Sync"
           onPress={() => runDetection(true)}
-          disabled={!skiaImage || !isReady || isProcessing}
+          disabled={!skiaImage || !canRun || isProcessing}
           variant="accent"
         />
       </View>

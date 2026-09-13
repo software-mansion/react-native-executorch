@@ -145,7 +145,7 @@ Models that regress depth add a `z` to each landmark, on the same scale as `x` a
 
 [`FACEMESH`](../../06-api-reference/variables/models.md#keypointdetectionfacemesh) is the dense counterpart to BlazeFace: 468 3-D vertices over a single face, keyed by their index in MediaPipe's canonical face model (see [`FACEMESH_LANDMARKS`](../../06-api-reference/variables/FACEMESH_LANDMARKS.md)), so any lip/eye/oval index list published for MediaPipe Face Mesh applies unchanged.
 
-It differs from the other models on this page in two ways. It does not search an image for faces — it expects one already-cropped, face-filling image and always returns exactly one result, whose `box` is the hull of the mesh rather than a detection. And its `confidence` is a face-presence score for the whole crop, while each landmark's own `confidence` is a constant `1`.
+It differs from the other models on this page in two ways. It does not search an image for faces — it expects one already-cropped, face-filling image and always returns exactly one result, whose `box` is the hull of the mesh rather than a detection. And its `confidence` is a face-presence score for the whole crop, while each landmark's own `confidence` is a constant `1`. Feeding it a whole photo rather than a crop drops that score below the default `0.5` threshold on most faces, even ones filling the frame, and `detectKeypoints` then returns an empty array.
 
 ```typescript
 import { createKeypointDetector, download, models } from 'react-native-executorch';
