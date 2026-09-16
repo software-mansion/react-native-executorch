@@ -11,6 +11,7 @@
 
 #include "dtype.h"
 #include "error.h"
+#include "profiler.h"
 #include "schema.h"
 #include "tensor_helpers.h"
 
@@ -201,6 +202,12 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             auto startTime = std::chrono::high_resolution_clock::now();
             auto executeResult = self->etModule_->execute(methodName, inputs);
             auto finishTime = std::chrono::high_resolution_clock::now();
+
+            // Always accumulated, so a caller timing a pipeline can ask what
+            // share of it was ExecuTorch without re-running the model at shapes
+            // it has to guess. Two integer adds under a lock.
+            profiler::record(methodName,
+                             std::chrono::duration_cast<std::chrono::nanoseconds>(finishTime - startTime).count());
 
 #ifdef EXECUTORCH_ENABLE_EXECUTION_PROFILING
             auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(finishTime - startTime).count();

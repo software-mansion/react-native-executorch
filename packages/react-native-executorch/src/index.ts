@@ -92,6 +92,7 @@ export * from './extensions/speech/tasks/kokoroTextToSpeech';
 // Core primitives — for library builders and power users
 export * from './core/error';
 export * from './core/model';
+export * from './core/profiler';
 export * from './core/tensor';
 export * from './core/runtime';
 export * from './core/lifetime';
