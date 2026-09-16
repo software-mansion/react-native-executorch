@@ -50,6 +50,7 @@ const DEFAULTS = {
   gateTimeoutS: '1800',
   maxBytes: '6000000000',
   port: '8099',
+  devPort: '8081',
   host: '',
   out: '',
   cooldown: 'auto',
@@ -92,6 +93,13 @@ function parseArgs(argv) {
   }
   if (options.platform !== 'ios' && options.platform !== 'android') {
     throw new Error(`--platform must be ios or android, got ${options.platform}`);
+  }
+  // Two runs on one host need two of each. Catching the overlap here beats a
+  // bind failure halfway through a build.
+  if (options.port === options.devPort) {
+    throw new Error(
+      `--port and --dev-port must differ, both are ${options.port}`
+    );
   }
   if (!['registry', 'size'].includes(options.order)) {
     throw new Error(`--order must be registry or size, got ${options.order}`);
@@ -292,6 +300,11 @@ function run(command, args, env) {
  * Killing a bundler the user may have started by hand is worth it here: a
  * benchmark that silently measures under settings nobody chose is worse than
  * one that takes an extra thirty seconds to boot.
+ *
+ * Scoped to this run's dev-server port so two concurrent runs do not shoot each
+ * other's bundler. The Metro caches cleared below are still process-wide, which
+ * is why concurrent runs have to be release builds — this path only runs for a
+ * debug build, and those are not publishable numbers anyway.
  * @param port The dev-server port to free, matching what `expo run:*` will use.
  */
 function resetBundler(port = 8081) {
@@ -503,8 +516,20 @@ async function main() {
       // Long-poll: the device stays parked here while the host watches the
       // temperature, so it is not generating heat polling for its own cooldown.
       if (options.platform !== 'android') {
+        // iOS exposes no battery temperature, so the device-side fallback is a
+        // flat 90s sleep per iteration (BLIND_SETTLE_MS) that no env knob turns
+        // off. Answering as a host gate skips it. There is nothing to poll on
+        // iOS either way, so this loses no thermal control that existed.
         response.writeHead(200, { 'Content-Type': 'application/json' });
-        response.end(JSON.stringify({ kind: 'none' }));
+        response.end(
+          JSON.stringify({
+            kind: 'host',
+            waitedS: 0,
+            temperatureC: null,
+            thermalStatus: null,
+            timedOut: false,
+          })
+        );
         return;
       }
       const label = `${body?.caseId ?? '?'} run ${body?.repeat ?? '?'}/${body?.repeats ?? '?'}`;
@@ -748,13 +773,43 @@ async function main() {
       console.log('[bench] building in release');
     } else {
       console.warn('[bench] WARNING: debug build, unoptimised. Do not publish these numbers.');
-      resetBundler();
+      resetBundler(Number(options.devPort));
     }
     console.log(`[bench] launching the app on ${options.platform}`);
+    // `expo run:android` picks the first attached device on its own, which is
+    // the wrong one as soon as two phones are plugged in. adb honours
+    // ANDROID_SERIAL but the Expo CLI does not, so pass it through.
+    // Expo identifies a device by its model with the punctuation replaced,
+    // e.g. SM-S948B is "SM_S948B", not by its adb serial.
+    const serial = process.env.ANDROID_SERIAL
+      ? (
+          spawnSync('adb', ['-s', process.env.ANDROID_SERIAL, 'shell', 'getprop', 'ro.product.model'], {
+            encoding: 'utf8',
+          }).stdout ?? ''
+        )
+          .trim()
+          .replace(/[^\w.]+/g, '_')
+      : '';
+    // `expo run:*` starts a bundler even for a release build, where nothing needs
+    // one. Left on the default 8081 that makes two concurrent runs fight over the
+    // port, so each run gets its own.
+    const devPortArgs = ['--port', String(options.devPort)];
     const variantArgs =
       options.platform === 'android'
-        ? ['--variant', release ? 'release' : 'debug']
-        : ['--configuration', release ? 'Release' : 'Debug'];
+        ? [
+            '--variant',
+            release ? 'release' : 'debug',
+            ...devPortArgs,
+            ...(serial ? ['--device', serial] : []),
+          ]
+        : [
+            '--configuration',
+            release ? 'Release' : 'Debug',
+            ...devPortArgs,
+            // Without this Expo picks a simulator, which cannot run CoreML or
+            // MLX at all — the two backends an iOS benchmark exists to measure.
+            ...(process.env.IOS_DEVICE_ID ? ['--device', process.env.IOS_DEVICE_ID] : []),
+          ];
     child = run('yarn', ['expo', `run:${options.platform}`, ...variantArgs], env);
 
     // A failed build must not leave the collector waiting forever: it holds the
