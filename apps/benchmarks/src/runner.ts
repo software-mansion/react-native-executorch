@@ -91,6 +91,33 @@ function describe(benchCase: BenchCase, progress: Progress) {
 }
 
 /**
+ * Rewrites remote URLs in a resolved registry config.
+ *
+ * Only for measuring a locally built `.pte` on the same code path a published
+ * one takes: the substitution happens before `download`, so the file is fetched,
+ * cached and loaded exactly as a registry file would be.
+ * @param node The config node to rewrite.
+ * @param map Substring to replacement-URL pairs.
+ * @returns The node with every matching URL replaced.
+ */
+function substituteUrls(node: any, map: Record<string, string>): any {
+  if (Object.keys(map).length === 0) return node;
+  if (typeof node === 'string') {
+    for (const [needle, replacement] of Object.entries(map)) {
+      if (node.includes(needle)) return replacement;
+    }
+    return node;
+  }
+  if (Array.isArray(node)) return node.map((item) => substituteUrls(item, map));
+  if (node && typeof node === 'object') {
+    return Object.fromEntries(
+      Object.entries(node).map(([key, value]) => [key, substituteUrls(value, map)])
+    );
+  }
+  return node;
+}
+
+/**
  * Takes one measurement of one case.
  * @param benchCase The case to measure.
  * @param resolved Its config, with every URL already a local path.
@@ -335,7 +362,7 @@ export async function runSuite(events: RunnerEvents = {}): Promise<RunReport> {
         throw new Error(`registry path ${benchCase.variant.registryPath} no longer exists`);
       }
       const downloadStarted = performance.now();
-      resolved = await download(registryConfig);
+      resolved = await download(substituteUrls(registryConfig, config.urlMap));
       downloadMs = round(performance.now() - downloadStarted);
     } catch (error) {
       // Every repeat of this case fails identically, and saying so once per

@@ -171,6 +171,14 @@ export interface RunReport {
   readonly cases: readonly CaseResult[];
 }
 
+/**
+ * Whether the sink has ever accepted a POST in this run.
+ *
+ * Distinguishes "no collector, results shown on screen only" from "collector
+ * configured but unreachable", which silently discards the whole run.
+ */
+let sinkEverSucceeded = false;
+
 const post = async (path: string, body: unknown): Promise<void> => {
   if (!config.sink) return;
 
@@ -185,14 +193,24 @@ const post = async (path: string, body: unknown): Promise<void> => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
+      sinkEverSucceeded = true;
       return;
     } catch (error) {
       if (attempt === SINK_ATTEMPTS - 1) {
-        // The collector is optional: a developer running the app by hand has no
-        // sink at all. Losing it must not take the run down, and the final
-        // report carries every measurement again, so one dropped POST is
-        // recoverable.
+        // A configured sink that has NEVER accepted a POST is a broken run, not
+        // a flaky one: every measurement is being computed and thrown away,
+        // and the only place they exist is this screen. Fail loudly instead.
+        //
+        // A sink that worked and then dropped is the flaky case the retry above
+        // is for; that one still degrades to a warning, because the final
+        // report re-sends every measurement.
         console.warn(`${LOG_PREFIX}_SINK_ERROR ${String(error)}`);
+        if (!sinkEverSucceeded) {
+          throw new Error(
+            `sink ${config.sink} has not accepted a single result (${String(error)}). ` +
+              'Every measurement so far has been discarded. Start the collector and rerun.'
+          );
+        }
         return;
       }
       await new Promise((settle) => setTimeout(settle, SINK_RETRY_DELAY_MS * (attempt + 1)));

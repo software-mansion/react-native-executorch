@@ -146,12 +146,35 @@ export interface BenchConfig {
    * and a run cut short has covered the cheap end rather than nothing.
    */
   readonly order: CaseOrder;
+  /**
+   * Remote URL substitutions, applied to a variant's config before download.
+   *
+   * Keyed by a substring of the published URL; the value replaces the whole
+   * URL. Lets a locally exported `.pte` be measured on the same path a
+   * published one takes, without editing the registry.
+   */
+  readonly urlMap: Record<string, string>;
 }
 
 const suite = ((): SuiteName => {
   const requested = str(process.env.EXPO_PUBLIC_BENCH_SUITE, 'quick') as SuiteName;
   return SUITES.includes(requested) ? requested : 'quick';
 })();
+
+/**
+ * Parses the URL substitution map.
+ * @param raw The raw JSON from the environment.
+ * @returns The map, empty when unset or unparseable.
+ */
+function urlMap(raw: string | undefined): Record<string, string> {
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? (parsed as Record<string, string>) : {};
+  } catch {
+    return {};
+  }
+}
 
 export const config: BenchConfig = {
   suite,
@@ -173,4 +196,9 @@ export const config: BenchConfig = {
   maxBytes: int(process.env.EXPO_PUBLIC_BENCH_MAX_BYTES, 6_000_000_000),
   keepModels: bool(process.env.EXPO_PUBLIC_BENCH_KEEP_MODELS, false),
   order: process.env.EXPO_PUBLIC_BENCH_ORDER === 'size' ? 'size' : 'registry',
+  // Swap a published model file for a local build without touching the
+  // registry. JSON object of {substringOfUrl: replacementUrl}; every remote URL
+  // in the resolved config that contains a key is replaced by its value. Used to
+  // benchmark a locally exported .pte against the one on HuggingFace.
+  urlMap: urlMap(process.env.EXPO_PUBLIC_BENCH_URL_MAP),
 };
