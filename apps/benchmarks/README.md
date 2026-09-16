@@ -57,8 +57,42 @@ environment to start it with.
 Options: `--suite quick|full|everything`, `--only <ids>`, `--tasks <names>`,
 `--backends <tags>`, `--repeats N`, `--max-temp-c C`, `--gate-timeout-s N`,
 `--max-bytes N`, `--keep-models`, `--iterations N`, `--warmup N`, `--no-memory`,
-`--no-native`, `--resume`, `--port N`, `--out <path>`,
+`--no-native`, `--resume`, `--port N`, `--dev-port N`, `--out <path>`,
 `--pin-clocks off|auto|on` (off by default; see Clocks).
+
+## Several devices at once
+
+One run per device, each in its own shell, each with its own two ports. There is
+no fan-out mode on purpose: the usual reason to run two devices together is that
+they need *different* case lists, which the existing `--only` / `--tasks` /
+`--suite` filters already express per invocation.
+
+```bash
+# Android
+ANDROID_SERIAL=R5X0... yarn bench --platform android \
+  --port 8099 --dev-port 8081 --label v0.11.0 --tasks text-embeddings
+
+# iOS, at the same time, different models
+IOS_DEVICE_ID=00008140-... yarn bench --platform ios \
+  --port 8100 --dev-port 8082 --label v0.11.0 --tasks object-detection
+```
+
+Both ports have to differ between runs. `--port` is the collector; `--dev-port`
+is the bundler `expo run:*` starts even for a release build, which used to be a
+fixed 8081 and made the second run either attach to the first run's bundler or
+kill it outright.
+
+`adb` itself honours `ANDROID_SERIAL`, so the thermal gate, the reverse tunnel
+and the battery calls all follow it without extra flags. Expo does not, which is
+why the runner translates the serial into the device name Expo expects.
+
+Results are keyed by label, platform and device model, so two devices write to
+different files on their own. Two phones of the *same* model would collide —
+give one of them `--out` explicitly.
+
+Keep concurrent runs to release builds. A debug run clears the process-wide Metro
+caches on startup, which would pull the ground out from under a run already in
+flight.
 
 **`BENCHMARK_SPEC.md` is the protocol** — what is measured, on what inputs, under
 what thermal and clock conditions. Read it before comparing two devices, and
