@@ -148,25 +148,28 @@ const FEATURE_MAP = {
   imageEmbeddings: { backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'], libs: ['opencv'] },
   // EfficientNet ships xnnpack + coreml.
   classification: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
-  // YOLO is xnnpack-only, ssdlite/rf_detr add coreml → union.
-  objectDetection: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  // YOLO is xnnpack-only, ssdlite/rf_detr add coreml, and YOLO26 + RF-DETR
+  // nano ship vulkan Android exports → union.
+  objectDetection: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
   // Keypoint detection (#1280): BlazeFace + YOLO26-pose ship xnnpack; RF-DETR
   // keypoint adds coreml + mlx → union. (Named to track the useKeypointDetector
   // hook; main calls this poseEstimation.)
-  keypointDetection: { backends: ['xnnpack', 'coreml', 'mlx'], libs: ['opencv'] },
+  // BlazeFace, YOLO26-pose and RF-DETR keypoint all add vulkan Android exports.
+  keypointDetection: { backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'], libs: ['opencv'] },
   // DeepLab/FCN/LR-ASPP/selfie all ship xnnpack + coreml.
   semanticSegmentation: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
-  // YOLO-seg xnnpack-only, rf_detr-seg/fastsam add coreml → union.
-  instanceSegmentation: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  // YOLO-seg xnnpack-only, rf_detr-seg/fastsam add coreml, and all three ship
+  // vulkan Android exports → union.
+  instanceSegmentation: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
   // PP-OCRv6 (DBNet + SVTR) ships xnnpack, coreml and vulkan → union.
   ocr: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
   verticalOCR: { backends: ['xnnpack'], libs: ['opencv'] },
-  // All style-transfer presets ship xnnpack + coreml.
-  styleTransfer: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
-  // SDXS ships xnnpack + coreml.
-  textToImage: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
-  // FastSAM ships xnnpack + coreml.
-  segmentAnything: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  // All style-transfer presets ship xnnpack, coreml and a vulkan Android export.
+  styleTransfer: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
+  // SDXS ships xnnpack, coreml and a vulkan Android export.
+  textToImage: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
+  // FastSAM ships xnnpack, coreml and a vulkan Android export.
+  segmentAnything: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
   // Tokenizer is pure-CPU string ops resolved from libexecutorch; needs no
   // backend or extra lib. Listed so a tokenizer-only app can opt into core only.
   tokenizer: { backends: [], libs: [] },
