@@ -92,13 +92,13 @@ Specifying a task under `features` is shorthand: it automatically expands to the
 | `textEmbeddings`       | xnnpack, coreml, mlx, vulkan | —                   |
 | `imageEmbeddings`      | xnnpack, coreml, mlx, vulkan | opencv              |
 | `classification`       | xnnpack, coreml              | opencv              |
-| `objectDetection`      | xnnpack, coreml              | opencv              |
-| `keypointDetection`    | xnnpack, coreml, mlx         | opencv              |
+| `objectDetection`      | xnnpack, coreml, vulkan      | opencv              |
+| `keypointDetection`    | xnnpack, coreml, mlx, vulkan | opencv              |
 | `semanticSegmentation` | xnnpack, coreml              | opencv              |
-| `instanceSegmentation` | xnnpack, coreml              | opencv              |
+| `instanceSegmentation` | xnnpack, coreml, vulkan      | opencv              |
 | `ocr`                  | xnnpack, coreml, vulkan      | opencv              |
 | `verticalOCR`          | xnnpack                      | opencv              |
-| `styleTransfer`        | xnnpack, coreml              | opencv              |
-| `textToImage`          | xnnpack, coreml              | opencv              |
-| `segmentAnything`      | xnnpack, coreml              | opencv              |
+| `styleTransfer`        | xnnpack, coreml, vulkan      | opencv              |
+| `textToImage`          | xnnpack, coreml, vulkan      | opencv              |
+| `segmentAnything`      | xnnpack, coreml, vulkan      | opencv              |
 | `tokenizer`            | —                            | —                   |
