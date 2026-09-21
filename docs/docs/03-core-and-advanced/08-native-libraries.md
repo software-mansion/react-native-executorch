@@ -105,57 +105,11 @@ Specifying a task under `features` is shorthand: it automatically expands to the
 
 ## Binary size
 
-What the backends actually cost, measured rather than estimated. Both tables come
-from `apps/legacy/bare-rn` built in Release with OpenCV and phonemis enabled, so
-the absolute figures move with which features you compile in. **The deltas between
-rows are the transferable part.**
+Approximate size each backend adds to a release `arm64` build:
 
-### Android
-
-`arm64-v8a`, symbols stripped as the APK ships them. Covers `libexecutorch.so`,
-the backend libraries, and `libRnExecutorch.so`; it excludes React Native's own
-libraries, which do not change with this configuration.
-
-| backends             | in the APK | ≈ Play download |
-| -------------------- | ---------- | --------------- |
-| `xnnpack`            | 21.86 MB   | 7.06 MB         |
-| `vulkan`             | 30.56 MB   | 8.71 MB         |
-| `xnnpack` + `vulkan` | 32.21 MB   | 9.35 MB         |
-
-Per library:
-
-| library                            | stripped | gzipped |
-| ---------------------------------- | -------- | ------- |
-| `libexecutorch.so`                 | 10.41 MB | 3.56 MB |
-| `libvulkan_executorch_backend.so`  | 10.34 MB | 2.28 MB |
-| `libRnExecutorch.so`               | 9.80 MB  | 2.87 MB |
-| `libxnnpack_executorch_backend.so` | 1.65 MB  | 0.63 MB |
-
-`extractNativeLibs=false` is the default from React Native 0.73, so the install
-grows by the uncompressed figure; the Play column is the compressed transfer.
-
-Vulkan is ~6.3x XNNPACK and almost entirely data: 8.31 MB of its 10.34 MB is
-`.rodata`, effectively embedded SPIR-V, against 1.50 MB of `.text`. It also
-compresses far better than its size suggests.
-
-### iOS
-
-Mach-O size of the app binary, `arm64`, device slice. Each row is a full relink.
-
-| backends                     | app binary | added by the last backend |
-| ---------------------------- | ---------- | ------------------------- |
-| none                         | 19.33 MB   | —                         |
-| `xnnpack`                    | 20.75 MB   | +1.41 MB                  |
-| `xnnpack` + `coreml`         | 21.12 MB   | +0.37 MB                  |
-| `xnnpack` + `coreml` + `mlx` | 26.07 MB   | +4.95 MB                  |
-
-MLX also ships `mlx.metallib` (1.07 MB) as a bundle resource, which is on top of
-the binary.
-
-A backend costs roughly a third of its archive on disk: XNNPACK is a 3.79 MB
-archive for 1.41 MB linked, MLX 15.09 MB for 4.95 MB. The backends are attached
-with `-force_load`, which defeats archive member selection but **not**
-dead-stripping, so the linker still drops what your app cannot reach.
-
-iOS starts leaner than Android because the ExecuTorch runtime is dead-stripped
-into the binary rather than shipped as a standalone library.
+| Backend   | Android  | iOS     |
+| --------- | -------- | ------- |
+| `xnnpack` | +1.7 MB  | +1.4 MB |
+| `coreml`  | —        | +0.4 MB |
+| `mlx`     | —        | +6.0 MB |
+| `vulkan`  | +10.3 MB | —       |
