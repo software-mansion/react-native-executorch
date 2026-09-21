@@ -102,3 +102,14 @@ Specifying a task under `features` is shorthand: it automatically expands to the
 | `textToImage`          | xnnpack, coreml              | opencv              |
 | `segmentAnything`      | xnnpack, coreml              | opencv              |
 | `tokenizer`            | —                            | —                   |
+
+## Binary size
+
+Approximate size each backend adds to a release `arm64` build:
+
+| Backend   | Android  | iOS     |
+| --------- | -------- | ------- |
+| `xnnpack` | +1.7 MB  | +1.4 MB |
+| `coreml`  | —        | +0.4 MB |
+| `mlx`     | —        | +6.0 MB |
+| `vulkan`  | +10.3 MB | —       |
