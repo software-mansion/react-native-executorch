@@ -87,7 +87,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/core@npm:^7.21.3, @babel/core@npm:^7.23.9":
+"@babel/core@npm:^7.21.3, @babel/core@npm:^7.23.9, @babel/core@npm:^7.29.7":
   version: 7.29.7
   resolution: "@babel/core@npm:7.29.7"
   dependencies:
@@ -107,29 +107,6 @@ __metadata:
     json5: "npm:^2.2.3"
     semver: "npm:^6.3.1"
   checksum: 10/38e71cf81db790b0bb2a3a0c8140c2b1c87576b61dc6be676de4fab8c3be871af590a739e8c489fe8e8f9a8e5899fa11e35e59e9e09d40b259c6a675f2f98928
-  languageName: node
-  linkType: hard
-
-"@babel/core@npm:^7.29.6":
-  version: 7.29.6
-  resolution: "@babel/core@npm:7.29.6"
-  dependencies:
-    "@babel/code-frame": "npm:^7.29.0"
-    "@babel/generator": "npm:^7.29.6"
-    "@babel/helper-compilation-targets": "npm:^7.28.6"
-    "@babel/helper-module-transforms": "npm:^7.28.6"
-    "@babel/helpers": "npm:^7.29.2"
-    "@babel/parser": "npm:^7.29.3"
-    "@babel/template": "npm:^7.28.6"
-    "@babel/traverse": "npm:^7.29.0"
-    "@babel/types": "npm:^7.29.0"
-    "@jridgewell/remapping": "npm:^2.3.5"
-    convert-source-map: "npm:^2.0.0"
-    debug: "npm:^4.1.0"
-    gensync: "npm:^1.0.0-beta.2"
-    json5: "npm:^2.2.3"
-    semver: "npm:^6.3.1"
-  checksum: 10/b81c3f35c1ab0b75634f4cf2bcfb1c28ed5a973cf926c5e864fd63b600024768392768f2b21befc68381f5182c0767342e247830046e8b160c01612314a3593d
   languageName: node
   linkType: hard
 
@@ -160,19 +137,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/generator@npm:^7.29.6, @babel/generator@npm:^7.29.8, @babel/generator@npm:^7.7.2":
-  version: 7.29.8
-  resolution: "@babel/generator@npm:7.29.8"
-  dependencies:
-    "@babel/parser": "npm:^7.29.8"
-    "@babel/types": "npm:^7.29.8"
-    "@jridgewell/gen-mapping": "npm:^0.3.12"
-    "@jridgewell/trace-mapping": "npm:^0.3.28"
-    jsesc: "npm:^3.0.2"
-  checksum: 10/679c3d1302936f391260acee4059e0c3cd5bff6341772f0b85bb142feab1a253d0e155aad0e9c8531e024d6239a2cc5169d1e294c6890901e7d4ab0f7c9eaaaa
-  languageName: node
-  linkType: hard
-
 "@babel/generator@npm:^7.29.7":
   version: 7.29.7
   resolution: "@babel/generator@npm:7.29.7"
@@ -183,6 +147,19 @@ __metadata:
     "@jridgewell/trace-mapping": "npm:^0.3.28"
     jsesc: "npm:^3.0.2"
   checksum: 10/60fb0432ebeab791b2d68e5fc49da6f8e8b68bcc4751211ccf08ac0101e9dcaddefd0cbbbd488afb1c1517515c7c3e76f63d9b05d06deaeb008afd499488db9c
+  languageName: node
+  linkType: hard
+
+"@babel/generator@npm:^7.29.8, @babel/generator@npm:^7.7.2":
+  version: 7.29.8
+  resolution: "@babel/generator@npm:7.29.8"
+  dependencies:
+    "@babel/parser": "npm:^7.29.8"
+    "@babel/types": "npm:^7.29.8"
+    "@jridgewell/gen-mapping": "npm:^0.3.12"
+    "@jridgewell/trace-mapping": "npm:^0.3.28"
+    jsesc: "npm:^3.0.2"
+  checksum: 10/679c3d1302936f391260acee4059e0c3cd5bff6341772f0b85bb142feab1a253d0e155aad0e9c8531e024d6239a2cc5169d1e294c6890901e7d4ab0f7c9eaaaa
   languageName: node
   linkType: hard
 
@@ -563,7 +540,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/helpers@npm:^7.29.2, @babel/helpers@npm:^7.29.7":
+"@babel/helpers@npm:^7.29.7":
   version: 7.29.7
   resolution: "@babel/helpers@npm:7.29.7"
   dependencies:
@@ -584,7 +561,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/parser@npm:^7.23.9, @babel/parser@npm:^7.29.3, @babel/parser@npm:^7.29.8":
+"@babel/parser@npm:^7.23.9, @babel/parser@npm:^7.29.8":
   version: 7.29.8
   resolution: "@babel/parser@npm:7.29.8"
   dependencies:
@@ -8201,12 +8178,12 @@ __metadata:
   linkType: hard
 
 "brace-expansion@npm:^1.1.7":
-  version: 1.1.18
-  resolution: "brace-expansion@npm:1.1.18"
+  version: 1.1.21
+  resolution: "brace-expansion@npm:1.1.21"
   dependencies:
     balanced-match: "npm:^1.0.0"
     concat-map: "npm:0.0.1"
-  checksum: 10/b55a3c03239b8d2127c7cbb3408c9ad3a556a8c303bf3064df78bfb7c093160fc8f6e0a32e42a850a78eba12f29ccf6ef997690b9acf945d242c56c61c4aa977
+  checksum: 10/6c0ed34107cb3bd3f44c01d90ec8c01baa3ed75b7755617e2e5797b5908bbf20b313edf575612b200a783b84c7d1826aec2f7a2f03de9905bbfae5dc3dea6a95
   languageName: node
   linkType: hard
 
@@ -8761,7 +8738,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "computer-vision@workspace:apps/computer-vision"
   dependencies:
-    "@babel/core": "npm:^7.29.6"
+    "@babel/core": "npm:^7.29.7"
     "@react-native/metro-config": "npm:^0.86.0"
     "@react-navigation/drawer": "npm:^7.9.4"
     "@react-navigation/native": "npm:^7.2.2"
@@ -12876,15 +12853,15 @@ __metadata:
   linkType: hard
 
 "joi@npm:^17.2.1":
-  version: 17.13.7
-  resolution: "joi@npm:17.13.7"
+  version: 17.13.8
+  resolution: "joi@npm:17.13.8"
   dependencies:
     "@hapi/hoek": "npm:^9.3.0"
     "@hapi/topo": "npm:^5.1.0"
     "@sideway/address": "npm:^4.1.5"
     "@sideway/formula": "npm:^3.0.1"
     "@sideway/pinpoint": "npm:^2.0.0"
-  checksum: 10/fad61c93d40faa1ec3c96c600ac2f865eaa6ee7dd2a3f342c2bb8fa613463ec1e3f2b8541959e010d63a350214412ec14982e062bc90e20ea5d39426dd331b5a
+  checksum: 10/7d8ccb06cee958516748519cb46430b1bf5b732f54428a5daf8f8630290c928be1abb7d3c3c2506d68ba76d1c1abe480e087255c34b839aae47b2ee2c76f587d
   languageName: node
   linkType: hard
 
@@ -13077,7 +13054,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "legacy-bare-rn@workspace:apps/legacy/bare-rn"
   dependencies:
-    "@babel/core": "npm:^7.29.6"
+    "@babel/core": "npm:^7.29.7"
     "@babel/plugin-transform-export-namespace-from": "npm:^7.25.2"
     "@babel/preset-env": "npm:^7.25.3"
     "@babel/runtime": "npm:^7.25.0"
@@ -13110,7 +13087,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "legacy-computer-vision@workspace:apps/legacy/computer-vision"
   dependencies:
-    "@babel/core": "npm:^7.29.6"
+    "@babel/core": "npm:^7.29.7"
     "@expo/log-box": "npm:~56.0.12"
     "@expo/vector-icons": "npm:^15.0.2"
     "@react-native/metro-config": "npm:^0.85.3"
@@ -13154,7 +13131,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "legacy-llm@workspace:apps/legacy/llm"
   dependencies:
-    "@babel/core": "npm:^7.29.6"
+    "@babel/core": "npm:^7.29.7"
     "@expo/log-box": "npm:~56.0.12"
     "@react-native/metro-config": "npm:^0.85.3"
     "@react-navigation/drawer": "npm:^7.9.4"
@@ -13197,7 +13174,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "legacy-speech@workspace:apps/legacy/speech"
   dependencies:
-    "@babel/core": "npm:^7.29.6"
+    "@babel/core": "npm:^7.29.7"
     "@expo/vector-icons": "npm:^15.0.2"
     "@react-native/metro-config": "npm:^0.85.3"
     "@types/react": "npm:~19.2.14"
@@ -13228,7 +13205,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "legacy-text-embeddings@workspace:apps/legacy/text-embeddings"
   dependencies:
-    "@babel/core": "npm:^7.29.6"
+    "@babel/core": "npm:^7.29.7"
     "@expo/log-box": "npm:~56.0.12"
     "@expo/vector-icons": "npm:^15.0.2"
     "@react-native/metro-config": "npm:^0.85.3"
@@ -15347,7 +15324,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "nlp@workspace:apps/nlp"
   dependencies:
-    "@babel/core": "npm:^7.29.6"
+    "@babel/core": "npm:^7.29.7"
     "@react-native/metro-config": "npm:^0.86.0"
     "@react-navigation/drawer": "npm:^7.9.4"
     "@react-navigation/native": "npm:^7.2.2"
@@ -16462,7 +16439,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "react-native-executorch-monorepo@workspace:."
   dependencies:
-    "@babel/core": "npm:^7.29.6"
+    "@babel/core": "npm:^7.29.7"
     "@babel/eslint-parser": "npm:^7.25.1"
     "@babel/preset-react": "npm:^7.29.0"
     "@cspell/eslint-plugin": "npm:^8.19.0"
@@ -16504,7 +16481,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "react-native-executorch@workspace:packages/react-native-executorch"
   dependencies:
-    "@babel/core": "npm:^7.29.6"
+    "@babel/core": "npm:^7.29.7"
     "@huggingface/jinja": "npm:^0.5.9"
     "@react-native/babel-preset": "npm:0.83.6"
     "@react-native/metro-config": "npm:^0.86.0"
@@ -17921,7 +17898,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "speech@workspace:apps/speech"
   dependencies:
-    "@babel/core": "npm:^7.29.6"
+    "@babel/core": "npm:^7.29.7"
     "@react-native/metro-config": "npm:^0.86.0"
     "@react-navigation/drawer": "npm:^7.9.4"
     "@react-navigation/native": "npm:^7.2.2"
