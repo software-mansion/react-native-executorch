@@ -149,6 +149,9 @@ export type KeypointDetector<F extends BoxFormat, L extends PropertyKey> = {
   ) => KeypointDetection<F, L>[];
 };
 
+/** Channels per landmark for each accepted keypoint output layout. */
+const KEYPOINT_CHANNELS = { flat: 3, withDepth: 4 } as const;
+
 /**
  * Post-processes model outputs by applying Non-Maximum Suppression (NMS) and
  * scaling coordinates.
@@ -221,13 +224,10 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
     const zScale = scalePoint({ x: 1, y: 0 }, options).x - origin.x;
 
     for (const [i, key] of options.landmarks.entries()) {
-      const at = i * channels;
-      const point = scalePoint({ x: weightedKpt[at]!, y: weightedKpt[at + 1]! }, options);
-      const confidence = weightedKpt[at + 2]!;
-      landmarks[key] =
-        channels === 4
-          ? { ...point, confidence, z: weightedKpt[at + 3]! * zScale }
-          : { ...point, confidence };
+      // `z` is undefined when the landmark has no fourth channel.
+      const [x, y, confidence, z] = weightedKpt.subarray(i * channels, (i + 1) * channels);
+      const landmark = { ...scalePoint({ x: x!, y: y! }, options), confidence: confidence! };
+      landmarks[key] = z === undefined ? landmark : { ...landmark, z: z * zScale };
     }
 
     results.push({ box, confidence: peakScore, landmarks });
@@ -282,7 +282,7 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
       ),
     });
 
-    const channels = variant === 'withDepth' ? 4 : 3;
+    const channels = KEYPOINT_CHANNELS[variant];
     const [N, targetH, targetW] = dims.constant('N', 'H', 'W');
     const inpShape = [1, 3, targetH, targetW];
     const outShape = { boxes: [N, 4], scores: [N], keypoints: [N, landmarks.length, channels] };
