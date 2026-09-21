@@ -177,10 +177,6 @@ const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorc
 // over to NEXT_VERSION_TAG. Both tags are pinned snapshots, so a model only
 // changes when its URL is moved here.
 const VERSION_TAG = 'resolve/v0.10.0';
-// Semantic segmentation models re-exported for 0.11: their Core ML variants now
-// emit an index map instead of per-class logits (see the `batchedIndex` and
-// `unbatchedIndex` schema variants). The XNNPACK variants are unchanged and stay
-// on VERSION_TAG.
 const NEXT_VERSION_TAG = 'resolve/v0.11.0';
 
 // =============================================================================
