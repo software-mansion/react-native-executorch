@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, Platform } from 'react-native';
 import {
   useTextToSpeech,
@@ -6,12 +6,12 @@ import {
   KOKORO_SAMPLE_RATE,
   type KokoroTtsModel,
 } from 'react-native-executorch';
-import { AudioContext, type AudioBufferQueueSourceNode } from 'react-native-audio-api';
 
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelPicker } from '../../components/ModelPicker';
 import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
+import { useAudioPlayer } from '../../hooks/useAudioPlayer';
 import { theme } from '../../theme';
 
 const LANGUAGE_OPTIONS = [
@@ -71,7 +71,6 @@ function KokoroContent() {
   const [text, setText] = useState(SAMPLE_TEXTS.EN_US);
   const [speed, setSpeed] = useState(1.0);
   const [isSynthesizing, setIsSynthesizing] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [chunkProgress, setChunkProgress] = useState<string | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
   const [totalDuration, setTotalDuration] = useState<number | null>(null);
@@ -82,8 +81,7 @@ function KokoroContent() {
   const voiceNames = Object.keys(model.voices);
   const [voice, setVoice] = useState(voiceNames[0]!);
 
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const queueSourceRef = useRef<AudioBufferQueueSourceNode | null>(null);
+  const { isPlaying, playStream, stop } = useAudioPlayer(KOKORO_SAMPLE_RATE);
 
   const { isReady, downloadProgress, error, synthesize, synthesizeStop } = useTextToSpeech(model);
 
@@ -92,78 +90,46 @@ function KokoroContent() {
     setText(SAMPLE_TEXTS[language]);
   }, [language]);
 
-  const getAudioContext = useCallback(async () => {
-    if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-      audioCtxRef.current = new AudioContext({ sampleRate: KOKORO_SAMPLE_RATE });
-    }
-    if (audioCtxRef.current.state === 'suspended') {
-      await audioCtxRef.current.resume();
-    }
-    return audioCtxRef.current;
-  }, []);
-
-  const stopAudioQueue = useCallback(() => {
-    if (queueSourceRef.current) {
-      queueSourceRef.current.clearBuffers();
-      queueSourceRef.current.stop();
-      queueSourceRef.current = null;
-    }
-    setIsPlaying(false);
-  }, []);
-
   useEffect(() => {
     return () => {
       synthesizeStop?.();
-      stopAudioQueue();
-      if (audioCtxRef.current) {
-        audioCtxRef.current.close().catch(() => {});
-        audioCtxRef.current = null;
-      }
+      stop();
     };
-  }, [stopAudioQueue, synthesizeStop]);
-
-  const preparePlaybackSource = useCallback(async () => {
-    stopAudioQueue();
-    const ctx = await getAudioContext();
-
-    const source = ctx.createBufferQueueSource();
-    source.connect(ctx.destination);
-    source.onBufferEnded = (event) => {
-      if (event.isLastBufferInQueue) setIsPlaying(false);
-    };
-    queueSourceRef.current = source;
-    return { ctx, source };
-  }, [getAudioContext, stopAudioQueue]);
+  }, [stop, synthesizeStop]);
 
   const handleSynthesize = async () => {
-    if (!synthesize || isSynthesizing || !text.trim()) return;
+    if (!synthesize || isSynthesizing || isPlaying || !text.trim()) return;
 
     setRunError(null);
     setChunkProgress(null);
     setTotalDuration(null);
     setIsSynthesizing(true);
 
+    let durationSum = 0;
+    let ttfa: number | null = null;
+    const t0 = performance.now();
+
     try {
-      const { ctx, source } = await preparePlaybackSource();
-      let durationSum = 0;
-      let started = false;
+      const chunks = synthesize(text, { voice, speed });
 
-      for await (const chunk of synthesize(text, { voice, speed })) {
-        setChunkProgress(
-          `Chunk ${chunk.chunkIndex + 1}/${chunk.totalChunks} (${chunk.duration.toFixed(1)}s)`
-        );
-        durationSum += chunk.duration;
-
-        const buffer = ctx.createBuffer(1, chunk.audio.length, KOKORO_SAMPLE_RATE);
-        buffer.copyToChannel(chunk.audio as Float32Array<ArrayBuffer>, 0);
-        source.enqueueBuffer(buffer);
-
-        if (!started) {
-          started = true;
-          setIsPlaying(true);
-          source.start(0, 0);
+      await playStream(
+        chunks,
+        (chunk) => {
+          setChunkProgress(
+            `Chunk ${chunk.chunkIndex + 1}/${chunk.totalChunks} (${chunk.duration.toFixed(1)}s)`
+          );
+          durationSum += chunk.duration;
+        },
+        () => {
+          ttfa = (performance.now() - t0) / 1000;
         }
-      }
+      );
+
+      const synthMs = performance.now() - t0;
+      const rtf = durationSum > 0 ? synthMs / 1000 / durationSum : 0;
+      console.log(
+        `[Kokoro TTS] TTFA ${(ttfa as number | null)?.toFixed(2)}s, synth ${(synthMs / 1000).toFixed(2)}s, audio ${durationSum.toFixed(2)}s, RTF ${rtf.toFixed(3)}`
+      );
 
       setTotalDuration(durationSum);
       setChunkProgress(null);
@@ -176,7 +142,7 @@ function KokoroContent() {
 
   const handleStopPlayback = () => {
     synthesizeStop?.();
-    stopAudioQueue();
+    stop();
     setIsSynthesizing(false);
   };
 
