@@ -11,9 +11,10 @@
  *
  *   headers.tar.gz                   -- ExecuTorch + c10 + torch + tokenizers + opencv
  *                                       headers (platform-independent; always downloaded)
- *   core-android-arm64-v8a.tar.gz    -- executorch, pthreadpool, cpuinfo for arm64
- *   core-android-x86_64.tar.gz       -- executorch for x86_64
- *   core-ios.tar.gz                  -- ExecutorchLib.xcframework (without xnnpack/coreml)
+ *   core-android-arm64-v8a.tar.gz    -- libexecutorch.so (+ executorch.jar) for arm64;
+ *                                       pthreadpool and cpuinfo are statically linked in
+ *   core-android-x86_64.tar.gz       -- libexecutorch.so for x86_64
+ *   core-ios.tar.gz                  -- ExecutorchLib.xcframework + libthreadpool_*.a
  *   opencv-android-arm64-v8a.tar.gz  -- OpenCV for arm64
  *   opencv-android-x86_64.tar.gz     -- OpenCV for x86_64
  *   opencv-ios.tar.gz                -- OpenCV xcframework
@@ -151,8 +152,10 @@ const FEATURE_MAP = {
   // YOLO is xnnpack-only, ssdlite/rf_detr add coreml → union.
   objectDetection: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
   // Keypoint detection (#1280): BlazeFace + YOLO26-pose ship xnnpack; RF-DETR
-  // keypoint adds coreml + mlx → union. (Named to track the useKeypointDetector
-  // hook; main calls this poseEstimation.)
+  // keypoint adds coreml → union. mlx stays for the legacy API, whose
+  // RF_DETR_KEYPOINT_PREVIEW_MLX_FP32_MODEL outlived the new registry's MLX
+  // keypoint export (dropped in #1418).
+  // (Named to track the useKeypointDetector hook; main calls this poseEstimation.)
   keypointDetection: { backends: ['xnnpack', 'coreml', 'mlx'], libs: ['opencv'] },
   // DeepLab/FCN/LR-ASPP/selfie all ship xnnpack + coreml.
   semanticSegmentation: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
@@ -461,6 +464,68 @@ async function isCacheValid(artifact) {
   return expectedChecksum === actualChecksum;
 }
 
+// The backend binaries each artifact owns, relative to the extraction dir. Used
+// to clear stale copies: nothing else removes them, and `isCacheValid()`
+// short-circuits the download, so turning a backend OFF after an install would
+// otherwise leave the old binary in place and (on Android) keep shipping it.
+const BACKEND_FILES = {
+  android: {
+    xnnpack: ['executorch/*/libxnnpack_executorch_backend.so'],
+    vulkan: ['executorch/*/libvulkan_executorch_backend.so'],
+  },
+  ios: {
+    xnnpack: ['XnnpackBackend.xcframework'],
+    coreml: ['CoreMLBackend.xcframework'],
+    mlx: ['MLXBackend.xcframework', 'libs/executorch/mlx.metallib'],
+  },
+};
+
+// Removes the binaries of backends the resolved config does not ask for, so a
+// config change takes effect without anyone deleting third-party/ by hand.
+function pruneDisabledBackends(targets, { backends }) {
+  for (const target of targets) {
+    const platform = target.startsWith('android') ? 'android' : 'ios';
+    const destDir =
+      platform === 'android'
+        ? path.join(THIRD_PARTY_DIR, 'android', 'libs')
+        : path.join(THIRD_PARTY_DIR, 'ios');
+    if (!fs.existsSync(destDir)) continue;
+
+    for (const [backend, patterns] of Object.entries(BACKEND_FILES[platform])) {
+      if (backends.includes(backend)) continue;
+      for (const pattern of patterns) {
+        for (const stale of expandPattern(destDir, pattern)) {
+          console.log(
+            `[react-native-executorch] Removing ${backend} binary (not enabled): ${path.relative(THIRD_PARTY_DIR, stale)}`
+          );
+          fs.rmSync(stale, { recursive: true, force: true });
+        }
+      }
+    }
+  }
+}
+
+// Resolves a path that may contain a single `*` segment (the Android ABI dir).
+// A dependency-free stand-in for a glob, since this script runs at postinstall
+// with nothing but Node's stdlib available.
+function expandPattern(root, pattern) {
+  const segments = pattern.split('/');
+  let candidates = [root];
+  for (const segment of segments) {
+    const next = [];
+    for (const base of candidates) {
+      if (segment === '*') {
+        if (!fs.existsSync(base)) continue;
+        for (const entry of fs.readdirSync(base)) next.push(path.join(base, entry));
+      } else {
+        next.push(path.join(base, segment));
+      }
+    }
+    candidates = next;
+  }
+  return candidates.filter((candidate) => fs.existsSync(candidate));
+}
+
 function extract(tarball, destDir) {
   ensureDir(destDir);
   // `-m` stamps extracted files with the extraction time instead of the mtime
@@ -525,6 +590,10 @@ async function main() {
     console.log(`  ✓ Done`);
   }
 
+  // Belt and braces to core no longer carrying backends: this also clears
+  // binaries left by an EARLIER install that had the backend enabled.
+  pruneDisabledBackends(targets, config);
+
   console.log('[react-native-executorch] Native libs ready.');
 }
 
@@ -536,4 +605,12 @@ if (require.main === module) {
   });
 }
 
-module.exports = { ALL_BACKENDS, ALL_LIBS, FEATURE_MAP, findUserConfig, readUserConfig };
+module.exports = {
+  ALL_BACKENDS,
+  ALL_LIBS,
+  BACKEND_FILES,
+  FEATURE_MAP,
+  findUserConfig,
+  readUserConfig,
+  pruneDisabledBackends,
+};
