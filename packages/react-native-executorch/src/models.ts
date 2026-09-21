@@ -172,12 +172,12 @@ function family<V extends Record<string, { readonly DEFAULT: unknown }>>(
 }
 
 const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorch';
-// Every model currently resolves through VERSION_TAG, the latest published
-// stable tag. `NEXT_VERSION_TAG = 'resolve/v0.11.0'` gets declared next to this
-// one by the first model re-exported for 0.11, and each such model's URL moves
-// over to it; the constant is absent until then rather than declared and unused,
-// because noUnusedLocals rejects a constant nothing reads.
+// Models resolve through VERSION_TAG, the latest published stable tag, unless
+// they have been re-exported for the next release, in which case their URL moves
+// over to NEXT_VERSION_TAG. Both tags are pinned snapshots, so a model only
+// changes when its URL is moved here.
 const VERSION_TAG = 'resolve/v0.10.0';
+const NEXT_VERSION_TAG = 'resolve/v0.11.0';
 
 // =============================================================================
 // Classification
@@ -303,7 +303,7 @@ const LRASPP_MOBILENET_V3_LARGE_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLa
   modelOpts: LRASPP_MOBILENET_V3_LARGE_OPTS,
 };
 const LRASPP_MOBILENET_V3_LARGE_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-lraspp/${VERSION_TAG}/coreml/lraspp_mobilenet_v3_large_coreml_fp16.pte`,
+  modelPath: `${BASE_URL}-lraspp/${NEXT_VERSION_TAG}/coreml/lraspp_mobilenet_v3_large_coreml_fp16.pte`,
   modelOpts: LRASPP_MOBILENET_V3_LARGE_OPTS,
 };
 
@@ -323,7 +323,7 @@ const DEEPLAB_V3_RESNET50_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> =
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_RESNET50_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-deeplab-v3/${VERSION_TAG}/coreml/deeplab_v3_resnet50_coreml_fp16.pte`,
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/coreml/deeplab_v3_resnet50_coreml_fp16.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_RESNET101_XNNPACK_FP32: SemanticSegmenterModel<PascalVocLabel> = {
@@ -335,7 +335,7 @@ const DEEPLAB_V3_RESNET101_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> 
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_RESNET101_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-deeplab-v3/${VERSION_TAG}/coreml/deeplab_v3_resnet101_coreml_fp16.pte`,
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/coreml/deeplab_v3_resnet101_coreml_fp16.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_FP32: SemanticSegmenterModel<PascalVocLabel> = {
@@ -347,7 +347,7 @@ const DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_INT8: SemanticSegmenterModel<PascalV
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_MOBILENET_V3_LARGE_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-deeplab-v3/${VERSION_TAG}/coreml/deeplab_v3_mobilenet_v3_large_coreml_fp16.pte`,
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/coreml/deeplab_v3_mobilenet_v3_large_coreml_fp16.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 
@@ -367,7 +367,7 @@ const FCN_RESNET50_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> = {
   modelOpts: FCN_OPTS,
 };
 const FCN_RESNET50_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-fcn/${VERSION_TAG}/coreml/fcn_resnet50_coreml_fp16.pte`,
+  modelPath: `${BASE_URL}-fcn/${NEXT_VERSION_TAG}/coreml/fcn_resnet50_coreml_fp16.pte`,
   modelOpts: FCN_OPTS,
 };
 const FCN_RESNET101_XNNPACK_FP32: SemanticSegmenterModel<PascalVocLabel> = {
@@ -379,7 +379,7 @@ const FCN_RESNET101_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> = {
   modelOpts: FCN_OPTS,
 };
 const FCN_RESNET101_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-fcn/${VERSION_TAG}/coreml/fcn_resnet101_coreml_fp16.pte`,
+  modelPath: `${BASE_URL}-fcn/${NEXT_VERSION_TAG}/coreml/fcn_resnet101_coreml_fp16.pte`,
   modelOpts: FCN_OPTS,
 };
 
