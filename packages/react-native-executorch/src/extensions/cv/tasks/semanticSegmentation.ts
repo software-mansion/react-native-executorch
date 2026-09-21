@@ -157,7 +157,7 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
     const { modelPath, modelOpts } = config;
     const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
-    const { variant, dims } = validateSpec(model.schema, {
+    const { variant, dim, dims } = validateSpec(model.schema, {
       batched: method(
         'forward', // prettier-ignore
         [f32(1, 3, 'H', 'W')],
@@ -187,9 +187,9 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
     // An index-map model has no K in its output shape, so the class count comes
     // from the labels the caller configured. The logit models keep reading it
     // off the shape, which also keeps the labels/classes guard meaningful.
-    const indexMap = variant === 'batchedIndex' || variant === 'unbatchedIndex';
+    const returnsIndex = variant === 'batchedIndex' || variant === 'unbatchedIndex';
     const [H, W] = dims.constant('H', 'W');
-    const nClasses = indexMap ? modelOpts.labels.length : dims.constant('K')[0]!;
+    const nClasses = returnsIndex ? modelOpts.labels.length : dim('K', 'constant');
     const inpShape = {
       batched: [1, 3, H, W],
       unbatched: [3, H, W],
@@ -218,7 +218,7 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
     }
 
     const tensors = [
-      tensor(indexMap ? 'int32' : 'float32', outShape),
+      tensor(returnsIndex ? 'int32' : 'float32', outShape),
       tensor('float32', [nClasses, H, W]),
       tensor('float32', [nClasses, H, W]),
       tensor('float32', [H, W, nClasses]),
@@ -257,9 +257,9 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
         // transpose over H*W*K floats and the reduction are skipped and the
         // (1,H,W) indices go straight into the (H,W,1) the colormap wants.
         tOutput
-          .copyTo(indexMap ? tMask : tReshape)
-          .throughIf(!indexMap, toChannelsLast, tChanLast)
-          .throughIf(!indexMap, argmax, tMask, -1)
+          .copyTo(returnsIndex ? tMask : tReshape)
+          .throughIf(!returnsIndex, toChannelsLast, tChanLast)
+          .throughIf(!returnsIndex, argmax, tMask, -1)
           .through(applyColormap, tRgba, colormapData);
       } else {
         tOutput
