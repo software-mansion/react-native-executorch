@@ -212,6 +212,7 @@ let registeredBackends: string[] = ['XnnpackBackend', 'CoreMLBackend'];
 
 const jsi = {
   isEmulator: false,
+  qnnHtpArch: undefined as string | undefined,
 
   createTensor: (shape: number[], dtype: DType) => new FakeTensor(dtype, shape),
 
@@ -292,6 +293,15 @@ export const fakeJsi = {
     jsi.isEmulator = value;
   },
 
+  /**
+   * Sets the Hexagon version the native installer would report for QNN.
+   * @param value The version (e.g. `'v81'`), or `undefined` for a device that
+   * cannot run QNN models.
+   */
+  setQnnHtpArch(value: string | undefined): void {
+    jsi.qnnHtpArch = value;
+  },
+
   /** @returns Every `execute` call made so far, in order. */
   executions(): readonly { path: string; methodName: string }[] {
     return executions;
@@ -326,6 +336,7 @@ export const fakeJsi = {
     executions.length = 0;
     registeredBackends = ['XnnpackBackend', 'CoreMLBackend'];
     jsi.isEmulator = false;
+    jsi.qnnHtpArch = undefined;
     fakePhonemizer.reset();
     llm.reset();
     tensorTracker.reset();
