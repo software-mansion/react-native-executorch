@@ -206,7 +206,7 @@ function cropToFace(src: ImageBuffer, face: KeypointDetection<'xyxy', BlazeFaceL
 }
 ```
 
-Nearest-neighbour keeps the example short; the demo app's version samples bilinearly. Multiply `depth` by `scale` to keep it in source pixels too.
+Nearest-pixel sampling keeps the example short; the demo app interpolates instead. Multiply `depth` by `scale` to keep it in source pixels too.
 
 ## Configuration & Options
 
