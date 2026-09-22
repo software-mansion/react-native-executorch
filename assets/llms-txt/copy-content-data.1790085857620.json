@@ -24455,6 +24455,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/Landmark": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/type-aliases/Landmarks": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -25200,6 +25212,18 @@
     ]
   },
   "/react-native-executorch/docs/next/api-reference/variables/defaultWorkletRuntime": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/variables/FACEMESH_LANDMARKS": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
