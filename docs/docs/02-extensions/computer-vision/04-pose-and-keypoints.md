@@ -139,7 +139,7 @@ For human pose models ([`YOLO26_POSE`](../../06-api-reference/variables/models.m
 
 For face models ([`BLAZEFACE`](../../06-api-reference/variables/models.md#keypointdetectionblazeface)), [`landmarks`](../../06-api-reference/type-aliases/KeypointDetection.md#landmarks) includes 6 facial points from [`BLAZEFACE_LANDMARKS`](../../06-api-reference/variables/BLAZEFACE_LANDMARKS.md): `leftEye`, `rightEye`, `noseTip`, `mouthCenter`, `leftEar`, `rightEar`.
 
-Models that regress depth add a `z` to each landmark, on the same scale as `x` and negative towards the camera. It is `undefined` for the flat models.
+Models that regress depth add a `depth` to each landmark, on the same scale as `x` and negative towards the camera. It is `undefined` for the flat models.
 
 ## Face Mesh
 
@@ -161,7 +161,7 @@ const [face] = await detector.detectKeypoints(imageBuffer);
 if (face) {
   const crop = cropToBox(imageBuffer, face.box); // see below
   const [result] = await mesh.detectKeypoints(crop);
-  console.log(result?.landmarks[33]); // { x, y, confidence: 1, z }
+  console.log(result?.landmarks[33]); // { x, y, confidence: 1, depth }
 }
 ```
 

@@ -84,7 +84,7 @@ export type Landmark = Point & {
    * Present only for models whose keypoint output carries a fourth channel;
    * `undefined` for the flat ones.
    */
-  readonly z?: number;
+  readonly depth?: number;
 };
 
 /**
@@ -150,7 +150,7 @@ export type KeypointDetector<F extends BoxFormat, L extends PropertyKey> = {
 };
 
 /** Channels per landmark for each accepted keypoint output layout. */
-const KEYPOINT_CHANNELS = { flat: 3, withDepth: 4 } as const;
+const KEYPOINT_CHANNELS = { '2d': 3, '3d': 4 } as const;
 
 /**
  * Post-processes model outputs by applying Non-Maximum Suppression (NMS) and
@@ -221,13 +221,13 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
     // Reading that off the origin's displacement keeps it true for every
     // resize mode without restating each mode's algebra here.
     const origin = scalePoint({ x: 0, y: 0 }, options);
-    const zScale = scalePoint({ x: 1, y: 0 }, options).x - origin.x;
+    const depthScale = scalePoint({ x: 1, y: 0 }, options).x - origin.x;
 
     for (const [i, key] of options.landmarks.entries()) {
-      // `z` is undefined when the landmark has no fourth channel.
-      const [x, y, confidence, z] = weightedKpt.subarray(i * channels, (i + 1) * channels);
+      // `depth` is undefined when the landmark has no fourth channel.
+      const [x, y, confidence, depth] = weightedKpt.subarray(i * channels, (i + 1) * channels);
       const landmark = { ...scalePoint({ x: x!, y: y! }, options), confidence: confidence! };
-      landmarks[key] = z === undefined ? landmark : { ...landmark, z: z * zScale };
+      landmarks[key] = depth === undefined ? landmark : { ...landmark, depth: depth * depthScale };
     }
 
     results.push({ box, confidence: peakScore, landmarks });
@@ -267,7 +267,7 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
     const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
     const { variant, dims } = validateSpec(model.schema, {
-      flat: method(
+      '2d': method(
         'forward',
         [f32(1, 3, 'H', 'W')],
         [f32('N', 4), f32('N'), f32('N', landmarks.length, 3)]
@@ -275,7 +275,7 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
       // Models that also regress depth, e.g. a face mesh, add a fourth
       // channel. The first three keep their meaning, so only the stride and
       // the extra read change downstream.
-      withDepth: method(
+      '3d': method(
         'forward',
         [f32(1, 3, 'H', 'W')],
         [f32('N', 4), f32('N'), f32('N', landmarks.length, 4)]

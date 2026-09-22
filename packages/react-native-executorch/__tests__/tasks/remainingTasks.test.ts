@@ -73,7 +73,7 @@ describe('createKeypointDetector', () => {
    * Face-mesh style models regress a depth per landmark and so publish a
    * fourth keypoint channel. The first three keep their meaning, so the only
    * things worth pinning are that the wider output is accepted, that the
-   * stride moves with it, and that `z` scales the way `x` does.
+   * stride moves with it, and that `depth` scales the way `x` does.
    */
   describe('a fourth keypoint channel', () => {
     const withDepth = (keypoints: readonly number[]) =>
@@ -97,11 +97,11 @@ describe('createKeypointDetector', () => {
 
       const [detection] = await detector.detectKeypoints(imageBuffer(8, 8));
 
-      expect(detection!.landmarks.nose).toEqual({ x: 1, y: 2, confidence: 0.75, z: 10 });
-      expect(detection!.landmarks.right_eye).toEqual({ x: 5, y: 6, confidence: 0.25, z: 30 });
+      expect(detection!.landmarks.nose).toEqual({ x: 1, y: 2, confidence: 0.75, depth: 10 });
+      expect(detection!.landmarks.right_eye).toEqual({ x: 5, y: 6, confidence: 0.25, depth: 30 });
     });
 
-    it('scales z by the same factor as x', async () => {
+    it('scales depth by the same factor as x', async () => {
       // prettier-ignore
       withDepth([
         1, 2, 0.75, 10,
@@ -110,13 +110,13 @@ describe('createKeypointDetector', () => {
       ]);
       const detector = tracked(await createKeypointDetector(config));
 
-      // A 16x8 image stretched into the model's 8x8 box doubles x, so z doubles.
+      // A 16x8 image stretched into the model's 8x8 box doubles x, so depth doubles.
       const [detection] = await detector.detectKeypoints(imageBuffer(16, 8));
 
-      expect(detection!.landmarks.nose).toEqual({ x: 2, y: 2, confidence: 0.75, z: 20 });
+      expect(detection!.landmarks.nose).toEqual({ x: 2, y: 2, confidence: 0.75, depth: 20 });
     });
 
-    it('leaves z undefined on a 3-channel model', async () => {
+    it('leaves depth undefined on a 3-channel model', async () => {
       fakeJsi.registerModel(MODEL_PATH, {
         schema: exported(
           method('forward', [f32(1, 3, 8, 8)], [f32(1, 4), f32(1), f32(1, LANDMARKS.length, 3)])
