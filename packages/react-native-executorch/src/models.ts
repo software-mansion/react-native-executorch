@@ -67,7 +67,7 @@ import {
 // that order pins one per platform — see the second argument of `variants`.
 
 /** Every backend the registry publishes for, spelled as the variant keys spell it. */
-const ALL_BACKENDS = ['xnnpack', 'coreml', 'mlx', 'vulkan'] as const;
+const ALL_BACKENDS = ['xnnpack', 'coreml', 'mlx', 'vulkan', 'qnn'] as const;
 
 /** The backend prefix a variant key starts with. */
 type BackendTag = (typeof ALL_BACKENDS)[number];
@@ -81,14 +81,24 @@ const PLATFORM: TargetPlatform = Platform.OS === 'ios' ? 'ios' : 'android';
 // MLX or Vulkan once it has been shown to run better there, and XNNPACK is the
 // one backend every model exports to. Core ML sits above MLX only to make the
 // order deterministic; every group publishing both pins its winner explicitly.
+// QNN leads on Android: it runs on the Hexagon NPU, and a model only gets a
+// QNN export once it beats the GPU there.
 //
 // The iOS simulator links the Core ML backend but cannot run it: no Neural
 // Engine, and MPSGraph refuses the compiled models. MLX only ever ships a
 // device slice, so it has nothing to run there either.
 const BACKEND_ORDER: Record<TargetPlatform, readonly BackendTag[]> = {
   ios: rnexecutorchJsi.isEmulator === true ? ['xnnpack'] : ['coreml', 'mlx', 'xnnpack'],
-  android: ['vulkan', 'xnnpack'],
+  android: ['qnn', 'vulkan', 'xnnpack'],
 };
+
+/**
+ * The Hexagon version (`v69` … `v81`) this device's QNN models are compiled
+ * for, or `undefined` when it cannot run them. A QNN `.pte` targets a single
+ * Hexagon version, so QNN variants are published once per version and resolve
+ * to this device's file.
+ */
+const QNN_HTP_ARCH: string | undefined = rnexecutorchJsi.qnnHtpArch;
 
 /**
  * The backends this platform may default to, best first.
@@ -106,7 +116,13 @@ function getCandidateBackends(): readonly BackendTag[] {
   if (registered.length === 0) return BACKEND_ORDER[PLATFORM];
 
   const names = registered.map((name) => name.toLowerCase());
-  return BACKEND_ORDER[PLATFORM].filter((tag) => names.some((name) => name.startsWith(tag)));
+  return BACKEND_ORDER[PLATFORM].filter(
+    (tag) =>
+      names.some((name) => name.startsWith(tag)) &&
+      // A linked QNN backend is not enough: the SoC also has to be one the
+      // published files target, with its Hexagon skel reachable.
+      (tag !== 'qnn' || QNN_HTP_ARCH !== undefined)
+  );
 }
 
 const CANDIDATE_BACKENDS = getCandidateBackends();
@@ -199,6 +215,12 @@ const EFFICIENTNET_V2_S_XNNPACK_FP32: ClassifierModel<ImageNet1KLabel> = {
 };
 const EFFICIENTNET_V2_S_COREML_FP16: ClassifierModel<ImageNet1KLabel> = {
   modelPath: `${BASE_URL}-efficientnet-v2-s/${VERSION_TAG}/coreml/efficientnet_v2_s_coreml_fp16.pte`,
+  modelOpts: EFFICIENTNET_V2_S_OPTS,
+};
+// Resolves to this device's Hexagon version; off Snapdragon the v81 file stands
+// in, and DEFAULT never picks it there.
+const EFFICIENTNET_V2_S_QNN_A16W8: ClassifierModel<ImageNet1KLabel> = {
+  modelPath: `${BASE_URL}-efficientnet-v2-s/${NEXT_VERSION_TAG}/qnn/efficientnet_v2_s_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: EFFICIENTNET_V2_S_OPTS,
 };
 
@@ -2063,6 +2085,7 @@ export const models = {
       XNNPACK_INT8: EFFICIENTNET_V2_S_XNNPACK_INT8,
       XNNPACK_FP32: EFFICIENTNET_V2_S_XNNPACK_FP32,
       COREML_FP16: EFFICIENTNET_V2_S_COREML_FP16,
+      QNN_A16W8: EFFICIENTNET_V2_S_QNN_A16W8,
     }),
   },
 

@@ -6,6 +6,7 @@ executorch
 RNET
 libexecutorch
 libxnnpack
+libqnn
 libvulkan
 xcframework
 metallib
