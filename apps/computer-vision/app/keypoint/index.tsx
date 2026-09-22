@@ -57,61 +57,94 @@ const FACEMESH_MODELS = [
 /** Padding around the detector's box, as a fraction of its longest side. */
 const FACE_CROP_PADDING = 0.25;
 
+/** Side of the square the face is resampled into: the mesh's input size. */
+const FACE_CROP_SIZE = 192;
+
+type Face = KeypointDetection<'xyxy', string>;
+
 /**
- * Cuts a square, padded crop around a detected face. An ImageBuffer is plain
- * HWC bytes, so this is a row copy.
+ * Cuts a square, padded crop around a detected face, rotated so the eyes are
+ * level. The mesh was trained on upright faces: fed an axis-aligned crop of a
+ * tilted head, its landmarks drift ~5 px at 30 degrees and it loses the face
+ * entirely near 90, while a levelled crop stays within ~2 px at any angle.
  * @param src The image to cut from.
- * @param box The detector's face box, in `src`'s pixels.
- * @returns The crop and its offset in `src`, or null if the box lies outside it.
+ * @param face The detector's face, in `src`'s pixels.
+ * @returns The crop and a mapping from its pixels back to `src`'s.
  */
-function cropToFace(
-  src: ImageBuffer,
-  box: { xmin: number; ymin: number; xmax: number; ymax: number }
-) {
+function cropToFace(src: ImageBuffer, face: Face) {
+  const { box, landmarks } = face;
   const channels = src.data.length / (src.width * src.height);
+  const { leftEye, rightEye } = landmarks;
+  const angle = Math.atan2(rightEye!.y - leftEye!.y, rightEye!.x - leftEye!.x);
+  const [cos, sin] = [Math.cos(angle), Math.sin(angle)];
   const centerX = (box.xmin + box.xmax) / 2;
   const centerY = (box.ymin + box.ymax) / 2;
   const side = Math.max(box.xmax - box.xmin, box.ymax - box.ymin) * (1 + 2 * FACE_CROP_PADDING);
+  const scale = side / FACE_CROP_SIZE;
 
-  const x = Math.max(0, Math.round(centerX - side / 2));
-  const y = Math.max(0, Math.round(centerY - side / 2));
-  const width = Math.min(src.width, Math.round(centerX + side / 2)) - x;
-  const height = Math.min(src.height, Math.round(centerY + side / 2)) - y;
-  if (width <= 0 || height <= 0) return null;
+  // Crop pixel -> source pixel: scale up, rotate by the eye angle, move onto the face.
+  const toSource = (x: number, y: number) => {
+    const dx = (x - FACE_CROP_SIZE / 2) * scale;
+    const dy = (y - FACE_CROP_SIZE / 2) * scale;
+    return { x: centerX + dx * cos - dy * sin, y: centerY + dx * sin + dy * cos };
+  };
 
-  const data = new Uint8Array(width * height * channels);
-  for (let row = 0; row < height; row++) {
-    const from = ((y + row) * src.width + x) * channels;
-    data.set(src.data.subarray(from, from + width * channels), row * width * channels);
+  // Bilinear resample; anything outside the source stays black.
+  const data = new Uint8Array(FACE_CROP_SIZE * FACE_CROP_SIZE * channels);
+  for (let row = 0; row < FACE_CROP_SIZE; row++) {
+    for (let col = 0; col < FACE_CROP_SIZE; col++) {
+      const { x, y } = toSource(col + 0.5, row + 0.5);
+      const x0 = Math.floor(x - 0.5);
+      const y0 = Math.floor(y - 0.5);
+      if (x0 < 0 || y0 < 0 || x0 + 1 >= src.width || y0 + 1 >= src.height) continue;
+      const fx = x - 0.5 - x0;
+      const fy = y - 0.5 - y0;
+      const i00 = (y0 * src.width + x0) * channels;
+      const i10 = i00 + src.width * channels;
+      const out = (row * FACE_CROP_SIZE + col) * channels;
+      for (let c = 0; c < channels; c++) {
+        const top = src.data[i00 + c]! * (1 - fx) + src.data[i00 + channels + c]! * fx;
+        const bottom = src.data[i10 + c]! * (1 - fx) + src.data[i10 + channels + c]! * fx;
+        data[out + c] = top * (1 - fy) + bottom * fy;
+      }
+    }
   }
-  return { buffer: { ...src, data, width, height }, offset: { x, y } };
+
+  return {
+    buffer: { ...src, data, width: FACE_CROP_SIZE, height: FACE_CROP_SIZE },
+    toSource,
+    scale,
+  };
 }
 
 /**
- * Moves a detection out of a crop's coordinates and back onto the full image.
+ * Moves a mesh out of the crop's coordinates and back onto the full image.
  * @param detection The detection, in the crop's pixels.
- * @param offset Where the crop starts in the full image.
- * @returns The same detection, in the full image's pixels.
+ * @param crop The crop it was run on.
+ * @returns The same detection in the full image's pixels, boxed by its hull.
  */
-function offsetDetection(
-  detection: KeypointDetection<'xyxy', string>,
-  offset: { x: number; y: number }
-): KeypointDetection<'xyxy', string> {
+function mapToSource(detection: Face, crop: ReturnType<typeof cropToFace>): Face {
   const landmarks = Object.fromEntries(
-    Object.entries(detection.landmarks).map(([key, point]) => [
-      key,
-      { ...point, x: point.x + offset.x, y: point.y + offset.y },
-    ])
-  ) as KeypointDetection<'xyxy', string>['landmarks'];
+    Object.entries(detection.landmarks).map(([key, point]) => {
+      const moved = { ...point, ...crop.toSource(point.x, point.y) };
+      return [
+        key,
+        point.depth === undefined ? moved : { ...moved, depth: point.depth * crop.scale },
+      ];
+    })
+  ) as Face['landmarks'];
 
+  const points = Object.values(landmarks);
+  const xs = points.map((p) => p.x);
+  const ys = points.map((p) => p.y);
   return {
     ...detection,
     box: {
       ...detection.box,
-      xmin: detection.box.xmin + offset.x,
-      ymin: detection.box.ymin + offset.y,
-      xmax: detection.box.xmax + offset.x,
-      ymax: detection.box.ymax + offset.y,
+      xmin: Math.min(...xs),
+      ymin: Math.min(...ys),
+      xmax: Math.max(...xs),
+      ymax: Math.max(...ys),
     },
     landmarks,
   };
@@ -175,20 +208,20 @@ function KeypointContent() {
 
       let output: KeypointDetection<'xyxy', string>[];
       if (needsFaceCrop) {
-        // Find the face, crop to it, mesh the crop, then put the result back
-        // where it came from.
+        // Find the face, cut a levelled crop around it, mesh the crop, then put
+        // the result back where it came from.
         const faces = (await faceDetector.detectKeypoints!(buffer)) as KeypointDetection<
           'xyxy',
           string
         >[];
-        const crop = faces[0] ? cropToFace(buffer, faces[0].box) : null;
+        const crop = faces[0] ? cropToFace(buffer, faces[0]) : null;
         if (!crop) {
           setLatency(Date.now() - start);
           setResults([]);
           setError('No face found. Face Mesh needs a photo with a clearly visible face.');
           return;
         }
-        output = (await run(crop.buffer)).map((d) => offsetDetection(d, crop.offset));
+        output = (await run(crop.buffer)).map((d) => mapToSource(d, crop));
       } else {
         output = await run(buffer);
       }

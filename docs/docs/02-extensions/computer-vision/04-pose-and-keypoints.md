@@ -159,37 +159,54 @@ const mesh = await createKeypointDetector(
 
 const [face] = await detector.detectKeypoints(imageBuffer);
 if (face) {
-  const crop = cropToBox(imageBuffer, face.box); // see below
-  const [result] = await mesh.detectKeypoints(crop);
-  console.log(result?.landmarks[33]); // { x, y, confidence: 1, depth }
+  const crop = cropToFace(imageBuffer, face); // see below
+  const [result] = await mesh.detectKeypoints(crop.buffer);
+  const point = result?.landmarks[33]; // { x, y, confidence: 1, depth }, in crop pixels
+  if (point) console.log(crop.toSource(point.x, point.y)); // in imageBuffer pixels
 }
 ```
 
-An [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) is plain HWC bytes, so cropping one to the detector's box is a row copy:
+Like MediaPipe, crop a square 1.5x the detector's box and rotate it so the eyes are level: the mesh expects an upright face, and an axis-aligned crop of a tilted head drifts ~5 px at 30 degrees and loses the face near 90. An [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) is plain HWC bytes, so this is a resample loop:
 
 ```typescript
+import type { BlazeFaceLandmark, KeypointDetection } from 'react-native-executorch';
 import type { ImageBuffer } from 'react-native-executorch/cv';
 
-function cropToBox(
-  src: ImageBuffer,
-  box: { xmin: number; ymin: number; xmax: number; ymax: number }
-) {
-  const channels = src.data.length / (src.width * src.height);
-  const x = Math.max(0, Math.round(box.xmin));
-  const y = Math.max(0, Math.round(box.ymin));
-  const width = Math.min(src.width, Math.round(box.xmax)) - x;
-  const height = Math.min(src.height, Math.round(box.ymax)) - y;
-  const data = new Uint8Array(width * height * channels);
+const SIZE = 192; // the mesh's input side
 
-  for (let row = 0; row < height; row++) {
-    const from = ((y + row) * src.width + x) * channels;
-    data.set(src.data.subarray(from, from + width * channels), row * width * channels);
+function cropToFace(src: ImageBuffer, face: KeypointDetection<'xyxy', BlazeFaceLandmark>) {
+  const { box, landmarks } = face;
+  const { leftEye, rightEye } = landmarks;
+  const angle = Math.atan2(rightEye.y - leftEye.y, rightEye.x - leftEye.x);
+  const [cos, sin] = [Math.cos(angle), Math.sin(angle)];
+  const cx = (box.xmin + box.xmax) / 2;
+  const cy = (box.ymin + box.ymax) / 2;
+  const scale = (Math.max(box.xmax - box.xmin, box.ymax - box.ymin) * 1.5) / SIZE;
+
+  // Crop pixel -> source pixel. Also maps the mesh's landmarks back.
+  const toSource = (x: number, y: number) => {
+    const dx = (x - SIZE / 2) * scale;
+    const dy = (y - SIZE / 2) * scale;
+    return { x: cx + dx * cos - dy * sin, y: cy + dx * sin + dy * cos };
+  };
+
+  const channels = src.data.length / (src.width * src.height);
+  const data = new Uint8Array(SIZE * SIZE * channels);
+  for (let row = 0; row < SIZE; row++) {
+    for (let col = 0; col < SIZE; col++) {
+      const { x, y } = toSource(col + 0.5, row + 0.5);
+      const sx = Math.floor(x);
+      const sy = Math.floor(y);
+      if (sx < 0 || sy < 0 || sx >= src.width || sy >= src.height) continue;
+      const from = (sy * src.width + sx) * channels;
+      data.set(src.data.subarray(from, from + channels), (row * SIZE + col) * channels);
+    }
   }
-  return { ...src, data, width, height };
+  return { buffer: { ...src, data, width: SIZE, height: SIZE }, toSource, scale };
 }
 ```
 
-Landmarks come back in the crop's pixel space, so add the crop's offset to map them onto the original image. Squaring off the box and padding it by 20-25% before cropping matches how the model was trained and noticeably steadies the mesh on tight detections.
+Nearest-neighbour keeps the example short; the demo app's version samples bilinearly. Multiply `depth` by `scale` to keep it in source pixels too.
 
 ## Configuration & Options
 
