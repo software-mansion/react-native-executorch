@@ -71,11 +71,28 @@ export type DetectKeypointsOptions = {
 };
 
 /**
+ * A single landmark: where it sits in the input image, how sure the model is of
+ * it, and — only for models that regress depth — how far it lies from the
+ * subject's own plane.
+ * @category CV / Types
+ */
+export type Landmark = Point & {
+  /** Confidence score of this landmark (between 0.0 and 1.0). */
+  readonly confidence: number;
+  /**
+   * Relative depth, on the same scale as `x`, negative towards the camera.
+   * Present only for models whose keypoint output carries a fourth channel;
+   * `undefined` for the flat ones.
+   */
+  readonly depth?: number;
+};
+
+/**
  * Plural landmarks mapped by their names to coordinates and detection
  * confidence.
  * @category CV / Types
  */
-export type Landmarks<L extends PropertyKey> = Record<L, Point & { readonly confidence: number }>;
+export type Landmarks<L extends PropertyKey> = Record<L, Landmark>;
 
 /**
  * Result structure representing a single detected bounding box and its
@@ -132,6 +149,9 @@ export type KeypointDetector<F extends BoxFormat, L extends PropertyKey> = {
   ) => KeypointDetection<F, L>[];
 };
 
+/** Channels per landmark for each accepted keypoint output layout. */
+const KEYPOINT_CHANNELS = { '2d': 3, '3d': 4 } as const;
+
 /**
  * Post-processes model outputs by applying Non-Maximum Suppression (NMS) and
  * scaling coordinates.
@@ -153,10 +173,13 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
     readonly iouThreshold: number;
     readonly confidenceThreshold: number;
     readonly resizeMode: Exclude<ResizeMode, 'crop'>;
+    /** Channels per landmark: 3 for `x, y, confidence`, 4 to add a depth. */
+    readonly channels: 3 | 4;
   }
 ): KeypointDetection<F, L>[] {
   'worklet';
 
+  const { channels } = options;
   const nmsGroups = nms(tBoxes, tScores, { ...options, nmsType: 'weighted' });
 
   const boxes = tBoxes.getData(new Float32Array(tBoxes.numel));
@@ -169,7 +192,7 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
     const totalScore = group.reduce((total, idx) => total + (scores[idx] ?? 0), 0);
     const peakScore = group.reduce((peak, idx) => Math.max(peak, scores[idx] ?? 0), 0);
     const weightedBox = new Float32Array(4);
-    const weightedKpt = new Float32Array(options.landmarks.length * 3);
+    const weightedKpt = new Float32Array(options.landmarks.length * channels);
 
     for (const idx of group) {
       const score = totalScore === 0 ? 1 / group.length : scores[idx]!;
@@ -177,7 +200,7 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
         weightedBox[i] = v + score * boxes[idx * 4 + i]!;
       });
       weightedKpt.forEach((v, i) => {
-        weightedKpt[i] = v + score * keypoints[idx * options.landmarks.length * 3 + i]!;
+        weightedKpt[i] = v + score * keypoints[idx * options.landmarks.length * channels + i]!;
       });
     }
 
@@ -194,10 +217,17 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
     const box = scaleBox(decodeBox([a!, b!, c!, d!], options.boxFormat), options);
     const landmarks = {} as Landmarks<L>;
 
+    // Depth shares x's units, so it follows whatever scaling x undergoes.
+    // Reading that off the origin's displacement keeps it true for every
+    // resize mode without restating each mode's algebra here.
+    const origin = scalePoint({ x: 0, y: 0 }, options);
+    const depthScale = scalePoint({ x: 1, y: 0 }, options).x - origin.x;
+
     for (const [i, key] of options.landmarks.entries()) {
-      const point = scalePoint({ x: weightedKpt[i * 3]!, y: weightedKpt[i * 3 + 1]! }, options);
-      const confidence = weightedKpt[i * 3 + 2]!;
-      landmarks[key] = { ...point, confidence };
+      // `depth` is undefined when the landmark has no fourth channel.
+      const [x, y, confidence, depth] = weightedKpt.subarray(i * channels, (i + 1) * channels);
+      const landmark = { ...scalePoint({ x: x!, y: y! }, options), confidence: confidence! };
+      landmarks[key] = depth === undefined ? landmark : { ...landmark, depth: depth * depthScale };
     }
 
     results.push({ box, confidence: peakScore, landmarks });
@@ -236,17 +266,26 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
     const { landmarks } = modelOpts;
     const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
-    const { dims } = validateSpec(model.schema, {
-      default: method(
+    const { variant, dims } = validateSpec(model.schema, {
+      '2d': method(
         'forward',
         [f32(1, 3, 'H', 'W')],
         [f32('N', 4), f32('N'), f32('N', landmarks.length, 3)]
       ),
+      // Models that also regress depth, e.g. a face mesh, add a fourth
+      // channel. The first three keep their meaning, so only the stride and
+      // the extra read change downstream.
+      '3d': method(
+        'forward',
+        [f32(1, 3, 'H', 'W')],
+        [f32('N', 4), f32('N'), f32('N', landmarks.length, 4)]
+      ),
     });
 
+    const channels = KEYPOINT_CHANNELS[variant];
     const [N, targetH, targetW] = dims.constant('N', 'H', 'W');
     const inpShape = [1, 3, targetH, targetW];
-    const outShape = { boxes: [N, 4], scores: [N], keypoints: [N, landmarks.length, 3] };
+    const outShape = { boxes: [N, 4], scores: [N], keypoints: [N, landmarks.length, channels] };
 
     const tensors = [
       tensor('float32', outShape.boxes),
@@ -273,6 +312,7 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
 
       return postprocess(tBoxes, tScores, tKeypoints, {
         ...modelOpts,
+        channels,
         iouThreshold,
         confidenceThreshold,
         from: { width: targetW, height: targetH },
