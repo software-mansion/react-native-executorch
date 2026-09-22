@@ -1,7 +1,7 @@
 {
   "name": "react-native-executorch",
   "version": "0.11.0",
-  "nativeLibsVersion": "0.10.0",
+  "nativeLibsVersion": "0.10.2",
   "description": "An easy way to run AI models in React Native with ExecuTorch",
   "main": "./lib/module/index.js",
   "module": "./lib/module/index.js",
@@ -150,7 +150,7 @@
     }
   },
   "devDependencies": {
-    "@babel/core": "^7.29.6",
+    "@babel/core": "^7.29.7",
     "@react-native/babel-preset": "0.83.6",
     "@react-native/metro-config": "^0.86.0",
     "@testing-library/react-native": "^14.0.1",

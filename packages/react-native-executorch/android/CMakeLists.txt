@@ -55,6 +55,20 @@ file(GLOB_RECURSE LEGACY_CPP_SOURCES
     ${LEGACY_CPP_DIR}/runner/*.cpp
 )
 list(FILTER LEGACY_CPP_SOURCES EXCLUDE REGEX "/tests/")
+# The legacy TTS models are the one part of the legacy tree that needs phonemis,
+# so they follow the same toggle as the current phonemizer rather than being
+# compiled unconditionally against a library that is not there.
+if(NOT RNE_ENABLE_PHONEMIS)
+  list(FILTER LEGACY_CPP_SOURCES EXCLUDE REGEX "/models/text_to_speech/")
+endif()
+# Same story for opencv: the legacy vision models, the image/frame helpers they
+# share and the multimodal LLM's vision encoder all compile against opencv2.
+# Only the sources are dropped - the Types.h headers next to them are
+# opencv-free and JsiConversions.h includes them unconditionally.
+if(NOT RNE_ENABLE_OPENCV)
+  list(FILTER LEGACY_CPP_SOURCES EXCLUDE REGEX
+      "/data_processing/ImageProcessing\\.cpp$|/models/VisionModel\\.cpp$|/utils/Frame[^/]*\\.cpp$|/encoders/vision_encoder\\.cpp$|/models/(classification|embeddings/image|instance_segmentation|object_detection|ocr|pose_estimation|semantic_segmentation|style_transfer|text_to_image|vertical_ocr)/")
+endif()
 # ==============================================================================
 
 set(PHONEMIS_SOURCES ${CPP_DIR}/extensions/speech/phonemizer.cpp)

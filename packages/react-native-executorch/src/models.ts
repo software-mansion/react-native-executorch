@@ -173,11 +173,10 @@ function family<V extends Record<string, { readonly DEFAULT: unknown }>>(
 }
 
 const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorch';
-// Every model currently resolves through VERSION_TAG, the latest published
-// stable tag. `NEXT_VERSION_TAG = 'resolve/v0.11.0'` gets declared next to this
-// one by the first model re-exported for 0.11, and each such model's URL moves
-// over to it; the constant is absent until then rather than declared and unused,
-// because noUnusedLocals rejects a constant nothing reads.
+// Models resolve through VERSION_TAG, the latest published stable tag, unless
+// they have been re-exported for the next release, in which case their URL moves
+// over to NEXT_VERSION_TAG. Both tags are pinned snapshots, so a model only
+// changes when its URL is moved here.
 const VERSION_TAG = 'resolve/v0.10.0';
 const NEXT_VERSION_TAG = 'resolve/v0.11.0';
 
@@ -305,7 +304,7 @@ const LRASPP_MOBILENET_V3_LARGE_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLa
   modelOpts: LRASPP_MOBILENET_V3_LARGE_OPTS,
 };
 const LRASPP_MOBILENET_V3_LARGE_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-lraspp/${VERSION_TAG}/coreml/lraspp_mobilenet_v3_large_coreml_fp16.pte`,
+  modelPath: `${BASE_URL}-lraspp/${NEXT_VERSION_TAG}/coreml/lraspp_mobilenet_v3_large_coreml_fp16.pte`,
   modelOpts: LRASPP_MOBILENET_V3_LARGE_OPTS,
 };
 
@@ -325,7 +324,7 @@ const DEEPLAB_V3_RESNET50_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> =
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_RESNET50_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-deeplab-v3/${VERSION_TAG}/coreml/deeplab_v3_resnet50_coreml_fp16.pte`,
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/coreml/deeplab_v3_resnet50_coreml_fp16.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_RESNET101_XNNPACK_FP32: SemanticSegmenterModel<PascalVocLabel> = {
@@ -337,7 +336,7 @@ const DEEPLAB_V3_RESNET101_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> 
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_RESNET101_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-deeplab-v3/${VERSION_TAG}/coreml/deeplab_v3_resnet101_coreml_fp16.pte`,
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/coreml/deeplab_v3_resnet101_coreml_fp16.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_FP32: SemanticSegmenterModel<PascalVocLabel> = {
@@ -349,7 +348,7 @@ const DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_INT8: SemanticSegmenterModel<PascalV
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_MOBILENET_V3_LARGE_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-deeplab-v3/${VERSION_TAG}/coreml/deeplab_v3_mobilenet_v3_large_coreml_fp16.pte`,
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/coreml/deeplab_v3_mobilenet_v3_large_coreml_fp16.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 
@@ -369,7 +368,7 @@ const FCN_RESNET50_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> = {
   modelOpts: FCN_OPTS,
 };
 const FCN_RESNET50_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-fcn/${VERSION_TAG}/coreml/fcn_resnet50_coreml_fp16.pte`,
+  modelPath: `${BASE_URL}-fcn/${NEXT_VERSION_TAG}/coreml/fcn_resnet50_coreml_fp16.pte`,
   modelOpts: FCN_OPTS,
 };
 const FCN_RESNET101_XNNPACK_FP32: SemanticSegmenterModel<PascalVocLabel> = {
@@ -381,7 +380,7 @@ const FCN_RESNET101_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> = {
   modelOpts: FCN_OPTS,
 };
 const FCN_RESNET101_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-fcn/${VERSION_TAG}/coreml/fcn_resnet101_coreml_fp16.pte`,
+  modelPath: `${BASE_URL}-fcn/${NEXT_VERSION_TAG}/coreml/fcn_resnet101_coreml_fp16.pte`,
   modelOpts: FCN_OPTS,
 };
 
@@ -839,6 +838,10 @@ const ALL_MINILM_L6_V2_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/xnnpack/all_minilm_l6_v2_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`,
 };
+const ALL_MINILM_L6_V2_COREML_INT8: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/coreml/all_minilm_l6_v2_coreml_int8.pte`,
+  tokenizerPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
 const ALL_MINILM_L6_V2_COREML_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/coreml/all_minilm_l6_v2_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`,
@@ -862,6 +865,10 @@ const ALL_MPNET_BASE_V2_VULKAN_FP16: TextEmbedderModel = {
 const MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/xnnpack/multi_qa_minilm_l6_cos_v1_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/tokenizer.json`,
+};
+const MULTI_QA_MINILM_L6_COS_V1_COREML_INT8: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${NEXT_VERSION_TAG}/coreml/multi_qa_minilm_l6_cos_v1_coreml_int8.pte`,
+  tokenizerPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
 const MULTI_QA_MINILM_L6_COS_V1_COREML_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/coreml/multi_qa_minilm_l6_cos_v1_coreml_fp16.pte`,
@@ -891,6 +898,10 @@ const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_XNNPACK_FP32: TextEmbedderModel = {
   modelPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${VERSION_TAG}/xnnpack/paraphrase_multilingual_minilm_l12_v2_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${VERSION_TAG}/tokenizer.json`,
 };
+const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_COREML_INT8: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${NEXT_VERSION_TAG}/coreml/paraphrase_multilingual_minilm_l12_v2_coreml_int8.pte`,
+  tokenizerPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
 const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_COREML_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${VERSION_TAG}/coreml/paraphrase_multilingual_minilm_l12_v2_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${VERSION_TAG}/tokenizer.json`,
@@ -907,6 +918,10 @@ const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_XNNPACK_FP32: TextEmbedderModel = {
   modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${VERSION_TAG}/xnnpack/distiluse_base_multilingual_cased_v2_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${VERSION_TAG}/tokenizer.json`,
 };
+const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_INT8: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/coreml/distiluse_base_multilingual_cased_v2_coreml_int8.pte`,
+  tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
+};
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${VERSION_TAG}/coreml/distiluse_base_multilingual_cased_v2_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${VERSION_TAG}/tokenizer.json`,
@@ -922,6 +937,10 @@ const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_VULKAN_FP16: TextEmbedderModel = {
 const CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-clip-vit-base-patch32/${VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}-clip-vit-base-patch32/${VERSION_TAG}/tokenizer.json`,
+};
+const CLIP_VIT_BASE_PATCH32_TEXT_COREML_INT8: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/coreml/clip_vit_base_patch32_text_coreml_int8.pte`,
+  tokenizerPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
 const CLIP_VIT_BASE_PATCH32_TEXT_COREML_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-clip-vit-base-patch32/${VERSION_TAG}/coreml/clip_vit_base_patch32_text_coreml_fp16.pte`,
@@ -2719,6 +2738,7 @@ export const models = {
      */
     ALL_MINILM_L6_V2: variants({
       XNNPACK_FP32: ALL_MINILM_L6_V2_EMBEDDINGS,
+      COREML_INT8: ALL_MINILM_L6_V2_COREML_INT8,
       COREML_FP16: ALL_MINILM_L6_V2_COREML_FP16,
       VULKAN_FP16: ALL_MINILM_L6_V2_VULKAN_FP16,
     }),
@@ -2737,6 +2757,7 @@ export const models = {
      */
     MULTI_QA_MINILM_L6_COS_V1: variants({
       XNNPACK_FP32: MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS,
+      COREML_INT8: MULTI_QA_MINILM_L6_COS_V1_COREML_INT8,
       COREML_FP16: MULTI_QA_MINILM_L6_COS_V1_COREML_FP16,
       VULKAN_FP16: MULTI_QA_MINILM_L6_COS_V1_VULKAN_FP16,
     }),
@@ -2756,6 +2777,7 @@ export const models = {
     PARAPHRASE_MULTILINGUAL_MINILM_L12_V2: variants({
       XNNPACK_8DA4W: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_EMBEDDINGS,
       XNNPACK_FP32: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_XNNPACK_FP32,
+      COREML_INT8: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_COREML_INT8,
       COREML_FP16: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_COREML_FP16,
       VULKAN_FP16: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_VULKAN_FP16,
     }),
@@ -2767,6 +2789,7 @@ export const models = {
       {
         XNNPACK_8DA4W: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS,
         XNNPACK_FP32: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_XNNPACK_FP32,
+        COREML_INT8: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_INT8,
         COREML_FP16: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16,
         MLX_INT8: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8,
         VULKAN_FP16: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_VULKAN_FP16,
@@ -2785,6 +2808,7 @@ export const models = {
      */
     CLIP_VIT_BASE_PATCH32_TEXT: variants({
       XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS,
+      COREML_INT8: CLIP_VIT_BASE_PATCH32_TEXT_COREML_INT8,
       COREML_FP16: CLIP_VIT_BASE_PATCH32_TEXT_COREML_FP16,
       VULKAN_FP16: CLIP_VIT_BASE_PATCH32_TEXT_VULKAN_FP16,
     }),

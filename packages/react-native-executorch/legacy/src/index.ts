@@ -135,27 +135,11 @@ declare global {
 }
 // eslint-disable no-var
 
-if (
-  global.loadStyleTransfer == null ||
-  global.loadSemanticSegmentation == null ||
-  global.loadInstanceSegmentation == null ||
-  global.loadTextToImage == null ||
-  global.loadExecutorchModule == null ||
-  global.loadClassification == null ||
-  global.loadObjectDetection == null ||
-  global.loadPoseEstimation == null ||
-  global.loadTokenizerModule == null ||
-  global.loadTextEmbeddings == null ||
-  global.loadImageEmbeddings == null ||
-  global.loadVAD == null ||
-  global.loadLLM == null ||
-  global.loadPrivacyFilter == null ||
-  global.loadSpeechToText == null ||
-  global.loadTextToSpeechKokoro == null ||
-  global.loadOCR == null ||
-  global.loadVerticalOCR == null ||
-  global.__rne_isEmulator == null
-) {
+// Only the globals that are registered unconditionally. The per-task ones are
+// absent by design when an app opts out of opencv or phonemis, so including
+// them here would pin the condition to true and re-run install() on every
+// module evaluation.
+if (global.loadExecutorchModule == null || global.__rne_isEmulator == null) {
   if (!ETInstallerNativeModule) {
     throw new Error(
       `Failed to install react-native-executorch: The native module could not be found.`

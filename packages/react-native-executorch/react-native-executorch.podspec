@@ -136,6 +136,38 @@ Pod::Spec.new do |s|
   # ==============================================================================
   exclude_files += opencv_source_files unless enable_opencv
   exclude_files += phonemis_source_files unless enable_phonemis
+  # ==============================================================================
+  # LEGACY SUPPORT: the legacy TTS models need phonemis too, and `legacy/cpp/**`
+  # above sweeps them in unconditionally. Without this they compile — the
+  # phonemis headers stay on HEADER_SEARCH_PATHS — and fail at link with
+  # undefined phonemis::Pipeline symbols.
+  # (Remove when react-native-executorch/legacy is dropped)
+  # ==============================================================================
+  unless enable_phonemis
+    exclude_files += ["legacy/cpp/rnexecutorch/models/text_to_speech/**/*.{cpp,c,h,hpp}"]
+  end
+  # ==============================================================================
+  # LEGACY SUPPORT: the same for opencv. The legacy vision models, the
+  # image/frame helpers they share and the multimodal LLM's vision encoder all
+  # compile against opencv2, which is not linked when opencv is off. Only the
+  # sources are excluded: the `Types.h` headers sitting next to them are
+  # opencv-free and `JsiConversions.h` includes them unconditionally.
+  # (Remove when react-native-executorch/legacy is dropped)
+  # ==============================================================================
+  unless enable_opencv
+    legacy_dir = "legacy/cpp/rnexecutorch"
+    exclude_files += [
+      "#{legacy_dir}/data_processing/ImageProcessing.cpp",
+      "#{legacy_dir}/models/VisionModel.cpp",
+      "#{legacy_dir}/utils/Frame*.cpp",
+      "legacy/cpp/runner/encoders/vision_encoder.cpp",
+    ]
+    exclude_files += %w[
+      classification embeddings/image instance_segmentation object_detection ocr
+      pose_estimation semantic_segmentation style_transfer text_to_image vertical_ocr
+    ].map { |task| "#{legacy_dir}/models/#{task}/**/*.{cpp,c}" }
+  end
+  # ==============================================================================
   s.exclude_files = exclude_files
 
   # --- Public headers ---

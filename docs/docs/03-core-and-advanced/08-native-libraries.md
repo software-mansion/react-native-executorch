@@ -39,11 +39,11 @@ Add a `react-native-executorch` block to your `package.json`:
 
 ### Options
 
-| Option     | Purpose                                                                              | Accepted values                                                                                                                                                                                                                                                                                                                                                              |
-| ---------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Option     | Purpose                                                                              | Accepted values                                                                                                                                                                                                                                                                                                                                           |
+| ---------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `features` | High-level tasks — each automatically expands to the backends and libraries it needs | `"classification"`, `"imageEmbeddings"`, `"instanceSegmentation"`, `"keypointDetection"`, `"llm"`, `"multimodalLLM"`, `"objectDetection"`, `"ocr"`, `"privacyFilter"`, `"segmentAnything"`, `"semanticSegmentation"`, `"speechToText"`, `"styleTransfer"`, `"textEmbeddings"`, `"textToImage"`, `"textToSpeech"`, `"tokenizer"`, `"vad"`, `"verticalOCR"` |
-| `backends` | Hardware acceleration backends directly                                              | `"xnnpack"`, `"coreml"`, `"mlx"`, `"vulkan"`                                                                                                                                                                                                                                                                                                                                 |
-| `libs`     | Extra native C++ libraries                                                           | `"opencv"`, `"phonemis"`                                                                                                                                                                                                                                                                                                                                                     |
+| `backends` | Hardware acceleration backends directly                                              | `"xnnpack"`, `"coreml"`, `"mlx"`, `"vulkan"`                                                                                                                                                                                                                                                                                                              |
+| `libs`     | Extra native C++ libraries                                                           | `"opencv"`, `"phonemis"`                                                                                                                                                                                                                                                                                                                                  |
 
 The three lists are merged, so you can pair high-level `features` with specific `backends` or `libs`. Re-run your package manager install after editing.
 
@@ -102,3 +102,14 @@ Specifying a task under `features` is shorthand: it automatically expands to the
 | `textToImage`          | xnnpack, coreml              | opencv              |
 | `segmentAnything`      | xnnpack, coreml              | opencv              |
 | `tokenizer`            | —                            | —                   |
+
+## Binary size
+
+Approximate size each backend adds to a release `arm64` build:
+
+| Backend   | Android  | iOS     |
+| --------- | -------- | ------- |
+| `xnnpack` | +1.7 MB  | +1.4 MB |
+| `coreml`  | —        | +0.4 MB |
+| `mlx`     | —        | +6.0 MB |
+| `vulkan`  | +10.3 MB | —       |

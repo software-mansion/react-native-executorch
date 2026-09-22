@@ -7,7 +7,9 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
 #include <runner/encoders/audio_encoder.h>
+#ifdef RNE_ENABLE_OPENCV
 #include <runner/encoders/vision_encoder.h>
+#endif
 #include <runner/multimodal_runner.h>
 #include <runner/text_runner.h>
 
@@ -29,8 +31,17 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
         std::map<llm::MultimodalType, std::unique_ptr<llm::IEncoder>> encoders;
         for (const auto &cap : capabilities) {
             if (cap == "vision") {
+#ifdef RNE_ENABLE_OPENCV
                 encoders[llm::MultimodalType::Image] =
                     std::make_unique<llm::VisionEncoder>(*module_);
+#else
+                // The vision encoder decodes and resizes the image with opencv,
+                // so it is only there when opencv is.
+                throw RnExecutorchError(
+                    RnExecutorchErrorCode::InvalidUserInput,
+                    "The 'vision' capability requires the opencv native library, "
+                    "which this app opted out of in package.json");
+#endif
             } else if (cap == "audio") {
                 encoders[llm::MultimodalType::Audio] =
                     std::make_unique<llm::AudioEncoder>(*module_);
