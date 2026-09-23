@@ -149,17 +149,8 @@ function generateChatTurnWorklet(
 
   let response = '';
 
-  const callback = (rawToken: string) => {
-    // Cut rather than compare: the native generator flushes its decode cache
-    // when it hits a stop token, so the terminal token arrives appended to
-    // whatever text was still batched with it rather than on its own. A stop
-    // token decodes from a single id, so it can never straddle two callbacks.
-    let token = rawToken;
-    for (const stopToken of stopTokens) {
-      if (token.includes(stopToken)) token = token.split(stopToken).join('');
-    }
-    if (!token) return;
-
+  const callback = (token: string) => {
+    if (stopTokens.includes(token)) return;
     response += token;
 
     if (onToken) scheduleOnRN(onToken, token);
