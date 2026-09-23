@@ -22,6 +22,8 @@ const MODEL_PATH = '/models/llm.pte';
 const TOKENIZER_PATH = '/models/tokenizer.json';
 const TOKENIZER_CONFIG_PATH = '/models/tokenizer_config.json';
 const EOS = '<|eot|>';
+const PAD = '<|endoftext|>';
+const EOT = '<|end_of_turn|>';
 
 // A minimal but real Jinja chat template: the session renders the prompt with
 // `@huggingface/jinja`, so a hand-written string here exercises the same path a
@@ -171,6 +173,46 @@ describe('createLLMChatSession — a turn', () => {
 
     expect(result.messages.at(-1)!.content).toBe('done ');
     expect(tokens).not.toContain(EOS);
+  });
+
+  // The native generator flushes its decode cache on reaching a stop token, so
+  // the terminal token comes back glued to the text batched with it. Comparing
+  // a whole callback against the token would let it straight through.
+  it('cuts the eos token out of a chunk that carries text with it', async () => {
+    fakeJsi.registerLLMRunner(MODEL_PATH, { generations: [{ response: `done${EOS}` }] });
+    const session = tracked(await createLLMChatSession(config));
+    const tokens: string[] = [];
+
+    const result = await session.sendMessage('hi', (token) => tokens.push(token));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(result.messages.at(-1)!.content).toBe('done');
+    expect(tokens.join('')).toBe('done');
+  });
+
+  // Qwen ends a turn with `<|im_end|>` but also stops on `<|endoftext|>`, which
+  // its config only names as `pad_token`.
+  it('keeps a terminal token named only as pad_token out of the response', async () => {
+    writeTokenizerConfig({ pad_token: PAD }); // eslint-disable-line camelcase
+    fakeJsi.registerLLMRunner(MODEL_PATH, { generations: [{ response: `done ${PAD}` }] });
+    const session = tracked(await createLLMChatSession(config));
+    const tokens: string[] = [];
+
+    const result = await session.sendMessage('hi', (token) => tokens.push(token));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(result.messages.at(-1)!.content).toBe('done ');
+    expect(tokens.join('')).not.toContain(PAD);
+  });
+
+  it('keeps a terminal token named only as eot_token out of the response', async () => {
+    writeTokenizerConfig({ eot_token: EOT }); // eslint-disable-line camelcase
+    fakeJsi.registerLLMRunner(MODEL_PATH, { generations: [{ response: `done ${EOT}` }] });
+    const session = tracked(await createLLMChatSession(config));
+
+    const result = await session.sendMessage('hi');
+
+    expect(result.messages.at(-1)!.content).toBe('done ');
   });
 
   it('stops generating as soon as the stop pattern matches', async () => {

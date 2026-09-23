@@ -14,6 +14,15 @@ export type TokenizerChatConfig = {
   readonly chatTemplate: string;
   /** End-of-sequence token string. */
   readonly eosToken: string;
+  /**
+   * Every terminal token the model may decode into its output, `eosToken`
+   * first. A `.pte` declares its stop token ids itself, and they routinely
+   * outnumber `eos_token`: Qwen ends a turn with `<|im_end|>` but also stops on
+   * `<|endoftext|>`, which the config only names as `pad_token`. The runner
+   * emits the text of whichever one it hit before it breaks, so a caller that
+   * strips `eosToken` alone still shows the others to the user.
+   */
+  readonly stopTokens: readonly string[];
 };
 
 function resolveToken(token: unknown): string | undefined {
@@ -57,5 +66,15 @@ export function parseTokenizerConfig(config: any): TokenizerChatConfig {
     );
   }
 
-  return { chatTemplate, eosToken };
+  // `eot_token` and `pad_token` are the other two fields a published config
+  // uses to name a terminal token, and Qwen-family models reach the user
+  // through `pad_token`. Order puts `eosToken` first and drops duplicates, so a
+  // config where pad and eos coincide yields a single entry.
+  const stopTokens = [
+    eosToken,
+    resolveToken(config.eot_token),
+    resolveToken(config.pad_token),
+  ].filter((token, index, all): token is string => !!token && all.indexOf(token) === index);
+
+  return { chatTemplate, eosToken, stopTokens };
 }
