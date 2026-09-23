@@ -388,3 +388,4 @@ basenames
 xcconfig
 toggleable
 Adreno
+Exynos
