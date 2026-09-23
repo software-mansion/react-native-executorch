@@ -139,18 +139,18 @@ function generateChatTurnWorklet(
   prompt: Prompt,
   options: {
     readonly genConfig: LLMGenerationConfig;
-    readonly eosToken: string;
+    readonly stopTokens: readonly string[];
     readonly stopRegex?: RegExp;
     readonly onToken?: (token: string) => void;
   }
 ): { readonly response: string; readonly stats: LLMGenerationStats } {
   'worklet';
-  const { genConfig, eosToken, stopRegex, onToken } = options;
+  const { genConfig, stopTokens, stopRegex, onToken } = options;
 
   let response = '';
 
   const callback = (token: string) => {
-    if (token === eosToken) return;
+    if (stopTokens.includes(token)) return;
     response += token;
 
     if (onToken) scheduleOnRN(onToken, token);
@@ -196,7 +196,7 @@ export async function createLLMChatSession(
     // Read and parse tokenizer_config.json
     const tokenizerConfigStr = await RNBlobUtil.fs.readFile(tokenizerConfigPath, 'utf8');
     const tokenizerConfig = parseTokenizerConfig(JSON.parse(tokenizerConfigStr));
-    const { chatTemplate, eosToken } = tokenizerConfig;
+    const { chatTemplate, stopTokens } = tokenizerConfig;
 
     // Prepare chat preprocessor
     const chatPreprocessorConfig = { chatTemplate, modalities, preprocessorConfig, tools };
@@ -233,7 +233,7 @@ export async function createLLMChatSession(
       genConfig?: LLMGenerationConfig
     ): Promise<LLMChatTurnResult> => {
       const turnGenConfig = { ...defaultGenerationConfig, ...genConfig };
-      const generationOpts = { genConfig: turnGenConfig, eosToken, stopRegex, onToken };
+      const generationOpts = { genConfig: turnGenConfig, stopTokens, stopRegex, onToken };
 
       const initialCommitted = committed;
       const initialPos = runner.getKVCacheState().pos;
