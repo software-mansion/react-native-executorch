@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.faa4be2e.css">
-<script src="/react-native-executorch/assets/js/runtime~main.089a31a2.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.0a4c05b1.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.510f460a.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.cce120fc.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -75,9 +75,7 @@ overall progress in <code>[0, 1]</code>, weighted by each file&#x27;s byte size 
 isn&#x27;t reported the same as a small tokenizer.</li>
 <li class=""><a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/DownloadOptions#signal"><strong><code>signal</code></strong></a> — an
 <code>AbortSignal</code> to cancel. The bytes fetched so far are kept so a later download
-of the same source resumes instead of restarting (except on Android without
-the optional background downloader, where the system <code>DownloadManager</code> discards
-a cancelled transfer).</li>
+of the same source resumes instead of restarting.</li>
 <li class=""><a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/DownloadOptions#forcedownload"><strong><code>forceDownload</code></strong></a> —
 re-download even when cached.</li>
 </ul>
@@ -87,10 +85,8 @@ launches fast:</p>
 <ul>
 <li class="">A file that is already cached resolves immediately — no network round trip.</li>
 <li class="">Concurrent downloads of the same URL are deduplicated into one transfer.</li>
-<li class="">Without extra dependencies, fetching falls back to what each platform supports
-natively: the system <code>DownloadManager</code> on Android (which continues in the
-background), and a streaming request on iOS (which pauses when the app is
-suspended and resumes when reopened).</li>
+<li class="">Without extra dependencies, both platforms fall back to the same streaming
+request, which pauses when the app is suspended and resumes when reopened.</li>
 <li class="">To keep transfers running in the background across both iOS and Android and survive
 the app being killed, install the optional peer dependency
 <a href="https://github.com/kesha-antonov/react-native-background-downloader" target="_blank" rel="noopener noreferrer" class=""><code>@kesha-antonov/react-native-background-downloader</code></a>
