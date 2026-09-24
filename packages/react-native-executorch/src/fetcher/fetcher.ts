@@ -14,9 +14,11 @@ const IS_ANDROID = Platform.OS === 'android';
 // Persistent, per-app directory where downloaded model assets are cached.
 //   iOS: internal DocumentDir (not CacheDir) so the OS won't evict large models
 //        between runs and force a costly re-download.
-//   Android: the app-private EXTERNAL files dir (getExternalFilesDir), so the
-//        system DownloadManager can write there and same-volume moves stay cheap
-//        even for multi-GB files. Falls back to DocumentDir if unmounted.
+//   Android: the app-private EXTERNAL files dir (getExternalFilesDir). It was
+//        picked so the system DownloadManager could stage into it; that backend
+//        is gone, but every model already on disk lives here, so moving the
+//        cache now would silently orphan all of them and re-download multi-GB
+//        files. Falls back to DocumentDir if unmounted.
 const ANDROID_DIRECTORY = RNBlobUtil.fs.dirs.SDCardDir || RNBlobUtil.fs.dirs.DocumentDir;
 const RNE_DIRECTORY = IS_ANDROID
   ? `${ANDROID_DIRECTORY}/react-native-executorch`
@@ -31,9 +33,7 @@ export interface DownloadOptions {
   onProgress?: (progress: number) => void;
   /**
    * Aborts the download. The bytes fetched so far are kept so a later
-   * {@link download} of the same source resumes instead of restarting, except on
-   * Android without the optional background downloader, where the system
-   * DownloadManager discards a cancelled transfer.
+   * {@link download} of the same source resumes instead of restarting.
    */
   signal?: AbortSignal;
   /**
@@ -176,24 +176,6 @@ async function foldResumedChunkIntoPartial(
   await RNBlobUtil.fs.unlink(chunkPath).catch(() => {});
 }
 
-// DownloadManager's byte counter is 64-bit, but blob-util reads it out of the
-// cursor with `getInt`, so what reaches JS is the low 32 bits reinterpreted as
-// a signed int: past 2 GB it arrives NEGATIVE and wraps every 4 GB after that.
-// Multi-GB LLM models spend most of their download inside that range, which is
-// what collapsed their progress bar. The counter only ever grows, so the
-// discarded high bits can be rebuilt by counting how often the low ones wrap.
-const UINT32 = 0x100000000;
-function reassemble32BitCounter(): (raw: number) => number {
-  let wraps = 0;
-  let previous = 0;
-  return (raw) => {
-    const low = raw < 0 ? raw + UINT32 : raw;
-    if (low < previous) wraps += 1;
-    previous = low;
-    return low + wraps * UINT32;
-  };
-}
-
 // Reports absolute bytes for one file. `total` is 0 when the transfer does not
 // know the length yet — the receiver keeps using whatever length it already
 // had rather than treating the file as complete.
@@ -249,8 +231,7 @@ async function downloadUrl(url: string, cb: DownloadUrlCallbacks): Promise<strin
     // something a later download would CONTINUE from: the staged `.partial` and,
     // with the background downloader in play, a paused task holding resume data.
     // Clear it, or "download it again" quietly resumes the very attempt the
-    // caller is trying to replace. The DownloadManager backend needs nothing
-    // here — it unlinks its own staging file before every transfer.
+    // caller is trying to replace.
     await discardPartialDownload(dest);
   } else if (await RNBlobUtil.fs.exists(dest)) {
     // Cache hit — nothing to download.
@@ -296,30 +277,19 @@ async function startDownload(url: string, dest: string, entry: InFlightDownload)
   };
 
   // The optional background downloader wins on BOTH platforms when the app has
-  // it, so a caller that installs it gets one transfer mechanism that behaves
-  // the same everywhere instead of a per-platform one it cannot see.
-  //
-  // Without it each platform falls back to the best it can do on its own, and
-  // only iOS loses background transfers by doing so — blob-util's in-process
-  // reader is broken on Android (RonRadtke/react-native-blob-util#475: it stops
-  // after 8 KB), so the system DownloadManager is not a preference there but the
-  // only backend that works at all.
+  // it; without it both fall back to the same in-process stream. One mechanism
+  // plus one shared fallback, so a caller sees the same behavior everywhere.
   const backgroundDownloader = loadBackgroundDownloader();
 
-  let path: string;
-  if (backgroundDownloader) {
-    path = await downloadUrlViaBackgroundSession(backgroundDownloader, url, dest, cb);
-  } else if (IS_ANDROID) {
-    path = await downloadUrlViaAndroidDownloadManager(url, dest, cb);
-  } else {
-    path = await downloadUrlViaIosStream(url, dest, cb);
-  }
+  const path = backgroundDownloader
+    ? await downloadUrlViaBackgroundSession(backgroundDownloader, url, dest, cb)
+    : await downloadUrlViaStream(url, dest, cb);
 
-  // Neither backend is guaranteed to emit a last sample at 100%: blob-util
-  // throttles progress events, and DownloadManager is polled, so the final
-  // chunk usually lands between two polls. Without this a finished file stays
-  // stuck a little short of its own size, and in a multi-file config that
-  // shortfall is what the user sees while the remaining files download.
+  // Neither backend is guaranteed to emit a last sample at 100%: blob-util only
+  // started reporting the final event reliably in 0.25.0, and the background
+  // downloader throttles its own. Without this a finished file stays stuck a
+  // little short of its own size, and in a multi-file config that shortfall is
+  // what the user sees while the remaining files download.
   const finalSize = await fileSize(path);
   if (finalSize > 0) cb.onBytes?.(finalSize, finalSize);
 
@@ -345,72 +315,6 @@ function joinDownload(entry: InFlightDownload, cb: DownloadUrlCallbacks): Promis
       cb.signal?.removeEventListener('abort', onAbort);
     });
   });
-}
-
-// Android fallback used when that optional dependency is absent: the system
-// DownloadManager streams to app-private external storage. blob-util's
-// in-process reader cannot stand in for it — upstream #475 makes that path stop
-// after 8 KB — and DownloadManager also handles files larger than 2 GB, keeps
-// downloading while the app is in the background or killed, and resumes across
-// transient network drops on its own, so no manual Range logic.
-async function downloadUrlViaAndroidDownloadManager(
-  url: string,
-  dest: string,
-  cb: DownloadUrlCallbacks
-): Promise<string> {
-  const tmp = `${dest}.downloading`;
-  await RNBlobUtil.fs.unlink(tmp).catch(() => {});
-
-  if (cb.signal?.aborted) throw abortError();
-
-  const task = RNBlobUtil.config({
-    addAndroidDownloads: {
-      useDownloadManager: true,
-      path: tmp,
-      notification: false,
-      mediaScannable: false,
-      mime: 'application/octet-stream',
-    },
-  }).fetch('GET', url);
-
-  const onAbort = () => task.cancel();
-  cb.signal?.addEventListener('abort', onAbort);
-
-  // DownloadManager reports total as -1 until the size is known; pass that on
-  // as 0 rather than echoing the received count, which would otherwise look
-  // like a file that is complete at every sample.
-  const absoluteBytes = reassemble32BitCounter();
-  task.progress({ count: 100 }, (received, total) => {
-    const tot = Number(total);
-    cb.onBytes?.(absoluteBytes(Number(received)), tot > 0 ? tot : 0);
-  });
-
-  try {
-    await task;
-  } catch (e) {
-    await RNBlobUtil.fs.unlink(tmp).catch(() => {});
-    throw cb.signal?.aborted ? abortError() : e;
-  } finally {
-    cb.signal?.removeEventListener('abort', onAbort);
-  }
-
-  // DownloadManager doesn't surface an HTTP status; an empty file means failure.
-  const size = await fileSize(tmp);
-  if (size <= 0) {
-    await RNBlobUtil.fs.unlink(tmp).catch(() => {});
-    throw RnExecuTorchError('DOWNLOAD_FAILED', `Download of ${url} failed (empty response).`);
-  }
-  // A non-empty file is not necessarily a complete one, and DownloadManager
-  // gives us no status to check. Promoting a short file would cache it under
-  // its final name forever — the existence-only cache check can't tell the
-  // difference, and a truncated .pte only fails much later, at load.
-  const expected = await expectedBytesFor(url, cb.expectedBytes, cb.signal);
-  if (isTruncated(size, expected)) {
-    await RNBlobUtil.fs.unlink(tmp).catch(() => {});
-    throw incompleteError(url, size, expected);
-  }
-  await RNBlobUtil.fs.mv(tmp, dest);
-  return dest;
 }
 
 // One background task per destination file, under an id that stays the same
@@ -579,14 +483,19 @@ async function downloadUrlViaBackgroundSession(
   return dest;
 }
 
-// iOS fallback used when that optional dependency is absent: blob-util streams
-// via the iOS URL session straight to disk. It does NOT survive the app being
-// suspended — iOS tears the connection down about a second later — so an
-// interrupted transfer is picked up by the next `download` call instead.
-// Interrupted downloads resume from a `.partial` file via an HTTP Range request.
-// `canResume` is set to `false` on an internal retry to avoid recursing forever
-// if partial-file assembly ever fails.
-async function downloadUrlViaIosStream(
+// The fallback used on either platform when that optional dependency is absent:
+// blob-util streams the response straight to disk, in process. It does NOT
+// survive the app being suspended — iOS tears the connection down about a
+// second later, and Android may kill the process outright — so an interrupted
+// transfer is picked up by the next `download` call instead: it resumes from a
+// `.partial` file via an HTTP Range request. `canResume` is set to `false` on an
+// internal retry to avoid recursing forever if partial-file assembly ever fails.
+//
+// This path needs react-native-blob-util >=0.24.11 on Android. 0.24.10's reader
+// stopped after exactly 8 KB with "Download interrupted"
+// (RonRadtke/react-native-blob-util#475), which is why Android used the system
+// DownloadManager until that fix shipped.
+async function downloadUrlViaStream(
   url: string,
   dest: string,
   cb: DownloadUrlCallbacks,
@@ -638,9 +547,9 @@ async function downloadUrlViaIosStream(
     });
   }
 
-  // Same granularity as Android. blob-util still floors the rate at one event
-  // per 250 ms, so this only means a large file advances in ~1% steps instead
-  // of the 5% ones that made a multi-GB download look stalled between jumps.
+  // blob-util floors the rate at one event per 250 ms regardless, so this only
+  // means a large file advances in ~1% steps instead of the 5% ones that made a
+  // multi-GB download look stalled between jumps.
   task.progress({ count: 100 }, (received, total) => {
     const recv = Number(received);
     const tot = Number(total);
@@ -733,14 +642,14 @@ async function downloadUrlViaIosStream(
     // once as a plain full download so correctness never depends on resume.
     await RNBlobUtil.fs.unlink(part).catch(() => {});
     await RNBlobUtil.fs.unlink(target).catch(() => {});
-    if (canResume) return downloadUrlViaIosStream(url, dest, cb, false);
+    if (canResume) return downloadUrlViaStream(url, dest, cb, false);
     throw assemblyErr;
   }
 
   if (restart) {
     await RNBlobUtil.fs.unlink(part).catch(() => {});
     await RNBlobUtil.fs.unlink(target).catch(() => {});
-    return downloadUrlViaIosStream(url, dest, cb, false);
+    return downloadUrlViaStream(url, dest, cb, false);
   }
 
   // The transfer can also report success while the body was cut short — a
@@ -756,7 +665,7 @@ async function downloadUrlViaIosStream(
     // start over rather than fail. A fresh transfer that overshoots is a wrong
     // expectation instead, and falls through to be accepted.
     await RNBlobUtil.fs.unlink(part).catch(() => {});
-    return downloadUrlViaIosStream(url, dest, cb, false);
+    return downloadUrlViaStream(url, dest, cb, false);
   }
   if (isTruncated(assembled, expected)) {
     // Short: keep the partial so the next call resumes and finishes it.
@@ -859,10 +768,8 @@ function substituteRemoteSources<T>(node: T, resolved: ReadonlyMap<string, strin
  * and survive it being killed. The fetcher uses it automatically on both platforms
  * when it is present, so the behavior is the same on each; nothing else changes.
  *
- * Without it the fetcher falls back to what each platform can do on its own: the
- * system DownloadManager on Android, which still continues in the background,
- * and on iOS a streaming request that stops when the app is suspended and is
- * resumed by the next `download` call.
+ * Without it both platforms fall back to the same streaming request, which stops
+ * when the app is suspended and is resumed by the next `download` call.
  * @category Utils / Functions
  * @typeParam T The shape of the value being resolved.
  * @param source A URL, a local path, or any nested object/array holding them.
