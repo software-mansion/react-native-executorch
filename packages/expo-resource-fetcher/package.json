@@ -37,13 +37,13 @@
     "react-native-executorch": "*"
   },
   "devDependencies": {
-    "@types/react": "~19.2.0",
-    "expo": "^56.0.8",
-    "expo-asset": "~56.0.15",
-    "expo-file-system": "~56.0.7",
-    "react": "19.2.3",
-    "react-native": "0.85.3",
+    "@types/react": "~19.3.0",
+    "expo": "^57.0.24",
+    "expo-asset": "~57.0.18",
+    "expo-file-system": "~57.0.7",
+    "react": "19.3.0",
+    "react-native": "0.87.1",
     "react-native-executorch": "workspace:*",
-    "typescript": "~5.9.2"
+    "typescript": "~7.0.2"
   }
 }
