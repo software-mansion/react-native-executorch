@@ -389,6 +389,13 @@ const DEEPLAB_V3_MOBILENET_V3_LARGE_COREML_FP16: SemanticSegmenterModel<PascalVo
   modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/coreml/deeplab_v3_mobilenet_v3_large_coreml_fp16.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
+// Resolves to this device's Hexagon version; off Snapdragon the v81 file stands
+// in, and DEFAULT never picks it there. Returns a class index per pixel rather
+// than 21 logit planes, which the segmenter reads as its index-map variant.
+const DEEPLAB_V3_MOBILENET_V3_LARGE_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/qnn/deeplab_v3_mobilenet_v3_large_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: DEEPLAB_V3_OPTS,
+};
 
 const FCN_OPTS = {
   labels: PASCAL_VOC_LABELS,
@@ -2197,6 +2204,7 @@ export const models = {
       XNNPACK_INT8: DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_INT8,
       XNNPACK_FP32: DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_FP32,
       COREML_FP16: DEEPLAB_V3_MOBILENET_V3_LARGE_COREML_FP16,
+      QNN_A16W8: DEEPLAB_V3_MOBILENET_V3_LARGE_QNN_A16W8,
     }),
     /**
      * Fully Convolutional Network (FCN) semantic segmentation model with
