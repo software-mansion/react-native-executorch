@@ -32,6 +32,11 @@ const SEGMENTATION_OPTIONS: ModelOption[] = [
     value: models.semanticSegmentation.DEEPLAB_V3_RESNET50.XNNPACK_INT8,
   },
   {
+    label: 'DeepLab V3 ResNet50 (QNN A16W8)',
+    value: models.semanticSegmentation.DEEPLAB_V3_RESNET50.QNN_A16W8,
+    disabled: Platform.OS !== 'android',
+  },
+  {
     label: 'DeepLab V3 ResNet101 (INT8)',
     value: models.semanticSegmentation.DEEPLAB_V3_RESNET101.XNNPACK_INT8,
   },
