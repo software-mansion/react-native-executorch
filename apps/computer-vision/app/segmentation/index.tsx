@@ -28,6 +28,11 @@ const SEGMENTATION_OPTIONS: ModelOption[] = [
     value: models.semanticSegmentation.LRASPP_MOBILENET_V3_LARGE.XNNPACK_INT8,
   },
   {
+    label: 'LRASPP MobileNet V3 (QNN A16W8)',
+    value: models.semanticSegmentation.LRASPP_MOBILENET_V3_LARGE.QNN_A16W8,
+    disabled: Platform.OS !== 'android',
+  },
+  {
     label: 'DeepLab V3 ResNet50 (INT8)',
     value: models.semanticSegmentation.DEEPLAB_V3_RESNET50.XNNPACK_INT8,
   },
