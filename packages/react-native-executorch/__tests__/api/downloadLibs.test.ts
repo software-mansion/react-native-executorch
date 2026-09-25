@@ -6,7 +6,9 @@
  * `sha256sum` prefixes its whole output line with a backslash when the filename
  * contains one, so every hash of a `C:\...` path came back as `\<hex>` and no
  * artifact validated; and `tar -f C:\...` is the `host:file` form to GNU tar,
- * which then tried to resolve a host named `C`. These suites pin the
+ * which then tried to resolve a host named `C`. GNU tar also unquotes `-C`, so
+ * the `\r` and `\t` of `\react-native-executorch\third-party` turned into
+ * control characters. These suites pin the
  * shell-free replacements against paths that reproduce both.
  */
 import { createHash, randomBytes } from 'crypto';
@@ -78,6 +80,17 @@ describe('extract', () => {
   it('unpacks an archive whose path contains a backslash', () => {
     const tarball = makeTarball('C\\cache\\core-android-arm64-v8a.tar.gz');
     const destDir = join(workDir, 'dest');
+
+    extract(tarball, destDir);
+
+    expect(existsSync(join(destDir, 'executorch', 'libexecutorch.so'))).toBe(true);
+  });
+
+  it('unpacks into a destination whose path contains backslash escapes', () => {
+    const tarball = makeTarball('core-android-arm64-v8a.tar.gz');
+    // `\r` and `\t` are what GNU tar's default unquoting turns into control
+    // characters, as in `node_modules\react-native-executorch\third-party`.
+    const destDir = join(workDir, 'node_modules\\react-native-executorch\\third-party');
 
     extract(tarball, destDir);
 

@@ -563,14 +563,17 @@ function extract(tarball, destDir) {
   // up as an undefined symbol for whatever API changed between the two
   // releases, far away from the actual cause.
   //
-  // The archive is fed in on stdin instead of named with `-f <path>`: GNU tar
-  // reads `C:\Users\...` as the `host:file` form and tries to reach a remote
-  // host named `C` ("Cannot connect to C: resolve failed"), which is what any
-  // Windows install hit. `-C` is a plain chdir and takes the native path fine.
+  // No path reaches tar's argv, because GNU tar (Git for Windows' is the one
+  // on PATH under Git Bash) mangles Windows paths two ways: `-f C:\Users\...`
+  // is the `host:file` form, so it tries to reach a remote host named `C`; and
+  // `-C` is unquoted by default, so the `\r` and `\t` in
+  // `node_modules\react-native-executorch\third-party` become a carriage
+  // return and a tab. The archive arrives on stdin and `cwd` does the chdir.
   const fd = fs.openSync(tarball, 'r');
   let result;
   try {
-    result = spawnSync('tar', ['-xzm', '-f', '-', '-C', destDir], {
+    result = spawnSync('tar', ['-xzm', '-f', '-'], {
+      cwd: destDir,
       stdio: [fd, 'inherit', 'pipe'],
       encoding: 'utf8',
     });
