@@ -30,13 +30,14 @@ The figures come from the `v0.10.0` model registry.
 |---|---|---|---|
 | Samsung Galaxy S26 Ultra (SM-S948B) | Snapdragon SM8850, 8 cores, 11 GB, Android 16 | XNNPACK (100), Vulkan (24) | 124 |
 | Samsung Galaxy S20+ (SM-G986B) | Exynos 990, Mali-G77 MP11, 8 cores, 11 GB, Android 13 | XNNPACK (100), Vulkan (24) | 124 |
-| Google Pixel 10 | Tensor G5 | XNNPACK (74), Vulkan (15) | 89 |
+| Google Pixel 10 | Tensor G5 | XNNPACK (100), Vulkan (24) | 124 |
 | iPhone 17 | A19 | XNNPACK (100), Core ML (75), MLX (16) | 191 |
 | iPhone SE (3rd gen) | A15 Bionic | XNNPACK (60), Core ML (58), MLX (6) | 124 |
 
 The Galaxy S26 Ultra and the S20+ each ran the **complete** Android registry, and
 the iPhone 17 the complete iOS one, so those are the reference columns. The Pixel
-10 and the SE ran subsets.
+10 covers the full registry across two runs, 35 of its variants from a run
+taken while charging (marked `†`). The SE ran a subset.
 
 The S20+ is a 2020 flagship, six model generations behind the S26 Ultra, and it is
 here to show the floor on Android the way the SE does on iOS. One iOS variant
@@ -169,6 +170,6 @@ dominate for convolutional models. The four style-transfer variants download at
 
 ## Where to go next
 
-- [Android](./02-android.md) — the full 124-variant registry on the S26 Ultra and the S20+, with Pixel 10 alongside
+- [Android](./02-android.md) — the full 124-variant registry on the S26 Ultra, the Pixel 10 and the S20+
 - [iOS](./03-ios.md) — the full 191-variant registry on iPhone 17, with iPhone SE (3rd gen) alongside
 - [LLMs](./04-llms.md) — decode throughput, measured separately
