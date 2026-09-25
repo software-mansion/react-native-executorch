@@ -8,6 +8,7 @@
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -77,6 +78,12 @@ private:
     std::string tokenizerPath_;
     /** List of supported non-text input modalities. */
     std::vector<std::string> modalities_;
+    /**
+     * Longest token sequence the loaded graph accepts in one prefill step, read
+     * off the model's own method metadata. 0 when the model does not declare
+     * one, in which case prompts are passed through unsplit.
+     */
+    int64_t prefillBound_ = 0;
 };
 
 void install_createLLMRunner(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
