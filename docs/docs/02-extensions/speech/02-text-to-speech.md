@@ -131,6 +131,8 @@ type TtsChunk = {
 };
 ```
 
+Kokoro chunks also carry [`words`](../../06-api-reference/type-aliases/KokoroTtsChunk.md#words): the input words spoken in the chunk, each with its `offset` in the input text and `start`/`end` times in seconds from the beginning of the first chunk, e.g. to highlight the word being read.
+
 ## How Streaming Works
 
 On-device text-to-speech is built for instant audio feedback:
@@ -192,7 +194,7 @@ Because Text-to-Speech architectures require distinct multi-model orchestration 
 - [`SupertonicTextToSpeech`](../../06-api-reference/type-aliases/SupertonicTextToSpeech.md) — Supertonic pipeline runner interface ([`synthesize`](../../06-api-reference/type-aliases/SupertonicTextToSpeech.md#synthesize), [`synthesizeStop`](../../06-api-reference/type-aliases/SupertonicTextToSpeech.md#synthesizestop), `dispose`).
 - [`KokoroTextToSpeech`](../../06-api-reference/type-aliases/KokoroTextToSpeech.md) — Kokoro pipeline runner interface ([`synthesize`](../../06-api-reference/type-aliases/KokoroTextToSpeech.md#synthesize), [`synthesizeStop`](../../06-api-reference/type-aliases/KokoroTextToSpeech.md#synthesizestop), `dispose`).
 - [`SupertonicTtsChunk`](../../06-api-reference/type-aliases/SupertonicTtsChunk.md) — Audio buffer chunk yielded by Supertonic ([`audio`](../../06-api-reference/type-aliases/SupertonicTtsChunk.md#audio), [`sampleRate`](../../06-api-reference/type-aliases/SupertonicTtsChunk.md#samplerate), [`duration`](../../06-api-reference/type-aliases/SupertonicTtsChunk.md#duration), [`chunkIndex`](../../06-api-reference/type-aliases/SupertonicTtsChunk.md#chunkindex), [`totalChunks`](../../06-api-reference/type-aliases/SupertonicTtsChunk.md#totalchunks)).
-- [`KokoroTtsChunk`](../../06-api-reference/type-aliases/KokoroTtsChunk.md) — Audio buffer chunk yielded by Kokoro ([`audio`](../../06-api-reference/type-aliases/KokoroTtsChunk.md#audio), [`sampleRate`](../../06-api-reference/type-aliases/KokoroTtsChunk.md#samplerate), [`duration`](../../06-api-reference/type-aliases/KokoroTtsChunk.md#duration), [`chunkIndex`](../../06-api-reference/type-aliases/KokoroTtsChunk.md#chunkindex), [`totalChunks`](../../06-api-reference/type-aliases/KokoroTtsChunk.md#totalchunks)).
+- [`KokoroTtsChunk`](../../06-api-reference/type-aliases/KokoroTtsChunk.md) — Audio buffer chunk yielded by Kokoro ([`audio`](../../06-api-reference/type-aliases/KokoroTtsChunk.md#audio), [`sampleRate`](../../06-api-reference/type-aliases/KokoroTtsChunk.md#samplerate), [`duration`](../../06-api-reference/type-aliases/KokoroTtsChunk.md#duration), [`chunkIndex`](../../06-api-reference/type-aliases/KokoroTtsChunk.md#chunkindex), [`totalChunks`](../../06-api-reference/type-aliases/KokoroTtsChunk.md#totalchunks), [`words`](../../06-api-reference/type-aliases/KokoroTtsChunk.md#words)).
 - [`SupertonicTtsModel`](../../06-api-reference/type-aliases/SupertonicTtsModel.md) — Supertonic model and asset configuration spec.
 - [`KokoroTtsModel`](../../06-api-reference/type-aliases/KokoroTtsModel.md) — Kokoro model and asset configuration spec.
 - [`SupertonicTtsOptions`](../../06-api-reference/type-aliases/SupertonicTtsOptions.md) — Execution options for Supertonic synthesis (`voice`, `speed`, `totalSteps`).
