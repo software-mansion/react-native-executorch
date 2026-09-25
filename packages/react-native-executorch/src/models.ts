@@ -550,6 +550,10 @@ const DEEPLAB_V3_RESNET50_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
   modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/qnn/deeplab_v3_resnet50_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
+const DEEPLAB_V3_RESNET101_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/qnn/deeplab_v3_resnet101_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: DEEPLAB_V3_OPTS,
+};
 const DEEPLAB_V3_RESNET101_XNNPACK_FP32: SemanticSegmenterModel<PascalVocLabel> = {
   modelPath: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/xnnpack/deeplab_v3_resnet101_xnnpack_fp32.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
@@ -611,6 +615,16 @@ const FCN_RESNET101_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> = {
 };
 const FCN_RESNET101_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
   modelPath: `${BASE_URL}/FCN-ExecuTorch/${VERSION_TAG}/coreml/fcn_resnet101_coreml_fp16.pte`,
+  modelOpts: FCN_OPTS,
+};
+// Same Hexagon-version resolution and index-map output as the DeepLabV3 QNN
+// variants.
+const FCN_RESNET50_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-fcn/${NEXT_VERSION_TAG}/qnn/fcn_resnet50_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: FCN_OPTS,
+};
+const FCN_RESNET101_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-fcn/${NEXT_VERSION_TAG}/qnn/fcn_resnet101_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: FCN_OPTS,
 };
 
@@ -2743,6 +2757,7 @@ export const models = {
       /** @deprecated Use `XNNPACK_INT8`. Removed in v1.0.0. */
       XNNPACK_FP32: deprecated(DEEPLAB_V3_RESNET101_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: DEEPLAB_V3_RESNET101_COREML_FP16,
+      QNN_A16W8: DEEPLAB_V3_RESNET101_QNN_A16W8,
     }),
     /**
      * DeepLabV3 semantic segmentation model with MobileNetV3-Large backbone (21
@@ -2767,6 +2782,7 @@ export const models = {
       /** @deprecated Use `XNNPACK_INT8`. Removed in v1.0.0. */
       XNNPACK_FP32: deprecated(FCN_RESNET50_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: FCN_RESNET50_COREML_FP16,
+      QNN_A16W8: FCN_RESNET50_QNN_A16W8,
     }),
     /**
      * Fully Convolutional Network (FCN) semantic segmentation model with
@@ -2777,6 +2793,7 @@ export const models = {
       /** @deprecated Use `XNNPACK_INT8`. Removed in v1.0.0. */
       XNNPACK_FP32: deprecated(FCN_RESNET101_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: FCN_RESNET101_COREML_FP16,
+      QNN_A16W8: FCN_RESNET101_QNN_A16W8,
     }),
   },
 
