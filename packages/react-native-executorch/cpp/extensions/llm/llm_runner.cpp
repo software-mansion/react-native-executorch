@@ -58,8 +58,8 @@ namespace {
 // COUPLING / MAINTENANCE WARNING:
 // This creates a direct compile-time coupling with the internal implementation
 // details of ExecuTorch's `TextLLMRunner` and `MultimodalRunner`. If upstream
-// ExecuTorch renames or alters `pos_`, `prefill_next_token_`, or `metadata_`,
-// this code will fail to compile and must be adjusted accordingly.
+// ExecuTorch renames or alters any member accessed below, this code will fail
+// to compile and must be adjusted accordingly.
 // ============================================================================
 
 template <typename Tag, auto MemberPtr>
@@ -97,9 +97,7 @@ constexpr auto getPrivateMember(MMRunnerPrefillTag /*tag*/);
 template struct PrivateMemberAccessor<MMRunnerMetadataTag, &MultimodalRunner::metadata_>;
 constexpr auto getPrivateMember(MMRunnerMetadataTag /*tag*/);
 
-// The same injection is needed to reach the pieces that decide how a prompt is
-// split: the `Module` (to read the graph's real sequence capacity), the
-// `TextPrefiller` and its chunk size, and the multimodal runner's tokenizer.
+// Members that decide how a prompt is split into prefill chunks.
 using executorch::extension::llm::TextPrefiller;
 
 struct TextRunnerModuleTag {};
@@ -123,19 +121,11 @@ constexpr auto getPrivateMember(MMRunnerModuleTag /*tag*/);
 template struct PrivateMemberAccessor<MMRunnerTokenizerTag, &MultimodalRunner::tokenizer_>;
 constexpr auto getPrivateMember(MMRunnerTokenizerTag /*tag*/);
 
-// A .pte advertises `get_max_seq_len`, but that is the KV/context budget, not
-// the widest tensor the graph will accept. `gemma4_e2b_mlx_int4.pte` reports
-// 2048 while its `forward` token input is DYNAMIC_BOUND to 511 elements, and
-// the Vulkan gemma4 export bounds at 128. Upstream sizes its prefill chunks
-// from the advertised number, so it never chunks these models at all and the
-// first prompt past the real bound fails inside
-// `TensorImpl::internal_resize_contiguous` with `Error::NotSupported`.
-//
-// Read the capacity the graph actually declares. The legacy runner has always
-// done this (`legacy/cpp/runner/text_runner.cpp` reads the same metadata); this
-// is the new API catching up. Returns nullopt when the method does not start
-// with a rank>=2 integer sequence tensor, in which case the advertised number
-// is left alone.
+// Upstream sizes prefill chunks from `get_max_seq_len`, which is the KV budget,
+// not the widest token input the graph accepts (e.g. gemma4 MLX: 2048 vs 511).
+// Prompts past the real bound then fail with `Error::NotSupported`. Returns the
+// bound declared by the method's first input, or nullopt if it is not a
+// rank>=2 integer tensor.
 std::optional<int64_t> readPrefillBound(executorch::extension::Module *module, const std::string &methodName) {
     if (module == nullptr) {
         return std::nullopt;
@@ -171,14 +161,8 @@ std::optional<int64_t> readPrefillBound(executorch::extension::Module *module, c
     return (r->*getPrivateMember(MMRunnerTokenizerTag{})).get();
 }
 
-// Upstream's `MultimodalPrefiller` has no chunking of any kind: it embeds and
-// prefills a whole text input in one step, so the bound above is a hard ceiling
-// on a single input rather than something it splits around. Cut the text into
-// pieces that fit and let `MultimodalRunner` prefill them in order, which it
-// already does, advancing the KV position between them.
-//
-// Text that fits is left as text, because upstream only echoes an input it can
-// still read back as a string.
+// `MultimodalPrefiller` does not chunk, so split text into token inputs that fit
+// the bound; `MultimodalRunner` prefills them in order.
 void appendTextInput(std::vector<executorch::extension::llm::MultimodalInput> &inputs,
                      std::string text,
                      ::tokenizers::Tokenizer *tokenizer,
@@ -196,11 +180,6 @@ void appendTextInput(std::vector<executorch::extension::llm::MultimodalInput> &i
 
     const auto &tokens = encoded.get();
     const auto chunk = static_cast<size_t>(prefillBound);
-    if (tokens.size() <= chunk) {
-        inputs.emplace_back(std::move(text));
-        return;
-    }
-
     for (size_t offset = 0; offset < tokens.size(); offset += chunk) {
         const auto end = std::min(offset + chunk, tokens.size());
         inputs.emplace_back(std::vector<uint64_t>(tokens.begin() + static_cast<ptrdiff_t>(offset),
@@ -387,11 +366,8 @@ LLMRunnerHostObject::LLMRunnerHostObject(const std::string &modelPath,
         throw error::LoadFailed(std::format("LLMRunner: Failed to load model: {}", errorMsg), loadStatus);
     }
 
-    // See `readPrefillBound`: the model's real sequence capacity can be far
-    // below the `get_max_seq_len` upstream sizes its chunks from, and every
-    // prompt past it fails with `Error::NotSupported`. The method that carries
-    // the token input differs by runner: text models take it on `forward`,
-    // multimodal ones on `token_embedding`.
+    // Clamp prefill chunks to the graph's real bound (see `readPrefillBound`).
+    // Text models take tokens on `forward`, multimodal ones on `token_embedding`.
     if (modalities_.empty()) {
         auto *textRunner = dynamic_cast<TextLLMRunner *>(runner_.get());
         if (textRunner != nullptr) {
@@ -399,10 +375,7 @@ LLMRunnerHostObject::LLMRunnerHostObject(const std::string &modelPath,
             const auto bound = readPrefillBound(module.get(), "forward");
             auto &prefiller = textRunner->*getPrivateMember(TextRunnerPrefillerTag{});
             if (bound.has_value() && prefiller) {
-                // Lowering the prefiller's chunk size is the supported way to
-                // say this: upstream's generate() explicitly allows
-                // max_seq_len < max_context_len and splits the prompt itself,
-                // sampling only off the final chunk.
+                // Upstream allows max_seq_len < max_context_len and chunks itself.
                 auto &maxSeqLen = (*prefiller).*getPrivateMember(PrefillerMaxSeqLenTag{});
                 maxSeqLen = std::min(maxSeqLen, *bound);
                 prefillBound_ = maxSeqLen;
@@ -455,11 +428,9 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
             }
 
             executorch::extension::llm::GenerationConfig config;
+            config.echo = false;
             if (count > 1 && !args[1].isUndefined() && !args[1].isNull()) {
                 auto configObj = conversions::asType<jsi::Object>(rt, "LLMRunner.generate: config", args[1]);
-                if (auto echoOpt = conversions::getOptionalProperty<bool>(rt, "LLMRunner.generate: config", configObj, "echo")) {
-                    config.echo = *echoOpt;
-                }
                 if (auto ignoreEosOpt = conversions::getOptionalProperty<bool>(rt, "LLMRunner.generate: config", configObj, "ignoreEos")) {
                     config.ignore_eos = *ignoreEosOpt;
                 }
