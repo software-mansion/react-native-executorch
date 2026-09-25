@@ -288,7 +288,6 @@ export function parseLlamaToolCalls(text: string): llm.ToolParserResult | undefi
 export const DEFAULT_GENERATION_CONFIG: llm.LLMGenerationConfig = {
   temperature: 0.7,
   maxNewTokens: 512,
-  echo: false,
 };
 
 export const DEFAULT_SYSTEM_PROMPT = 'You are a helpful assistant. Your name is HAL-9000';
