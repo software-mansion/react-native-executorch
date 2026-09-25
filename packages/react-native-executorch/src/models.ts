@@ -346,6 +346,12 @@ const LRASPP_MOBILENET_V3_LARGE_COREML_FP16: SemanticSegmenterModel<PascalVocLab
   modelPath: `${BASE_URL}-lraspp/${NEXT_VERSION_TAG}/coreml/lraspp_mobilenet_v3_large_coreml_fp16.pte`,
   modelOpts: LRASPP_MOBILENET_V3_LARGE_OPTS,
 };
+// Same Hexagon-version resolution and index-map output as the DeepLabV3 QNN
+// variants.
+const LRASPP_MOBILENET_V3_LARGE_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-lraspp/${NEXT_VERSION_TAG}/qnn/lraspp_mobilenet_v3_large_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: LRASPP_MOBILENET_V3_LARGE_OPTS,
+};
 
 const DEEPLAB_V3_OPTS = {
   labels: PASCAL_VOC_LABELS,
@@ -2215,6 +2221,7 @@ export const models = {
       XNNPACK_INT8: LRASPP_MOBILENET_V3_LARGE_XNNPACK_INT8,
       XNNPACK_FP32: LRASPP_MOBILENET_V3_LARGE_XNNPACK_FP32,
       COREML_FP16: LRASPP_MOBILENET_V3_LARGE_COREML_FP16,
+      QNN_A16W8: LRASPP_MOBILENET_V3_LARGE_QNN_A16W8,
     }),
     /**
      * DeepLabV3 semantic segmentation model with ResNet-50 backbone (21
