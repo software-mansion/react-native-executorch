@@ -234,6 +234,10 @@ MATEUSZ
 BLAZEFACE
 Blazeface
 blazeface
+FACEMESH
+Facemesh
+facemesh
+depthwise
 nums
 Pressable
 cvtColor

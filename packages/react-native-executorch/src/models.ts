@@ -43,6 +43,7 @@ import {
   COCO_CLASSES,
   COCO_CLASSES_YOLO,
   BLAZEFACE_LANDMARKS,
+  FACEMESH_LANDMARKS,
   COCO_LANDMARKS,
   SUPERTONIC_DEFAULT_VOICE_NAMES,
   PRIVACY_FILTER_OPENAI_LABELS,
@@ -753,6 +754,26 @@ const RFDETR_KEYPOINT_COREML_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> =
 const RFDETR_KEYPOINT_VULKAN_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
   modelPath: `${BASE_URL}-rfdetr-keypoint/${NEXT_VERSION_TAG}/vulkan/rfdetr_keypoint_preview_vulkan_fp16.pte`,
   modelOpts: RFDETR_KEYPOINT_OPTS,
+};
+
+const FACEMESH_OPTS = {
+  boxFormat: 'xyxy' as const,
+  resizeMode: 'letterbox' as const,
+  interpolation: 'linear' as const,
+  normalizeOpts: { alpha: 1 / 127.5, beta: -1.0 },
+  // One face in, one mesh out: there is nothing for NMS to suppress, so the IoU
+  // threshold only ever compares the single candidate with itself.
+  defaultIouThreshold: 1.0,
+  defaultConfidenceThreshold: 0.5,
+  landmarks: FACEMESH_LANDMARKS,
+};
+const FACEMESH_XNNPACK_FP32: KeypointDetectorModel<'xyxy', number> = {
+  modelPath: `${BASE_URL}-facemesh/${NEXT_VERSION_TAG}/xnnpack/facemesh_xnnpack_fp32.pte`,
+  modelOpts: FACEMESH_OPTS,
+};
+const FACEMESH_COREML_FP16: KeypointDetectorModel<'xyxy', number> = {
+  modelPath: `${BASE_URL}-facemesh/${NEXT_VERSION_TAG}/coreml/facemesh_coreml_fp16.pte`,
+  modelOpts: FACEMESH_OPTS,
 };
 
 // =============================================================================
@@ -2376,6 +2397,17 @@ export const models = {
     BLAZEFACE: variants({
       XNNPACK_FP32: BLAZEFACE_XNNPACK_FP32,
       VULKAN_FP16: BLAZEFACE_VULKAN_FP16,
+    }),
+    /**
+     * MediaPipe Face Mesh: a dense 468-point 3-D mesh (see
+     * {@link FACEMESH_LANDMARKS}) and a face-presence score, regressed from a
+     * 192x192 crop of one face. It does not search an image for faces — feed
+     * it the crop of a detector such as `BLAZEFACE`. Its landmarks carry a
+     * `z`, and its box is the hull of the mesh rather than a detection.
+     */
+    FACEMESH: variants({
+      XNNPACK_FP32: FACEMESH_XNNPACK_FP32,
+      COREML_FP16: FACEMESH_COREML_FP16,
     }),
     /**
      * YOLO26 human pose estimation model predicting 17 COCO body keypoints (see

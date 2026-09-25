@@ -162,12 +162,15 @@ const FEATURE_MAP = {
   // nano ship vulkan Android exports → union.
   objectDetection: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
   // Keypoint detection (#1280): BlazeFace + YOLO26-pose ship xnnpack; RF-DETR
-  // keypoint adds coreml → union. mlx stays for the legacy API, whose
-  // RF_DETR_KEYPOINT_PREVIEW_MLX_FP32_MODEL outlived the new registry's MLX
-  // keypoint export (dropped in #1418).
+  // keypoint and the face mesh (#1140) add coreml, and BlazeFace, YOLO26-pose
+  // and RF-DETR keypoint add vulkan Android exports → union. mlx stays for the
+  // legacy API, whose RF_DETR_KEYPOINT_PREVIEW_MLX_FP32_MODEL outlived the new
+  // registry's MLX keypoint export (dropped in #1418).
   // (Named to track the useKeypointDetector hook; main calls this poseEstimation.)
-  // BlazeFace, YOLO26-pose and RF-DETR keypoint all add vulkan Android exports.
-  keypointDetection: { backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'], libs: ['opencv'] },
+  keypointDetection: {
+    backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'],
+    libs: ['opencv'],
+  },
   // DeepLab/FCN/LR-ASPP/selfie all ship xnnpack + coreml.
   semanticSegmentation: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
   // YOLO-seg xnnpack-only, rf_detr-seg/fastsam add coreml, and all three ship

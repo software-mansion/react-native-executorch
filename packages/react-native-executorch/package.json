@@ -141,7 +141,7 @@
     "@kesha-antonov/react-native-background-downloader": ">=4.4.0",
     "react": "*",
     "react-native": "*",
-    "react-native-blob-util": "^0.24.0",
+    "react-native-blob-util": ">=0.24.11",
     "react-native-worklets": ">=0.10.0 <0.13.0"
   },
   "peerDependenciesMeta": {
@@ -160,7 +160,7 @@
     "jest": "^29.7.0",
     "react": "19.2.0",
     "react-native": "0.83.6",
-    "react-native-blob-util": "^0.24.0",
+    "react-native-blob-util": "^0.25.0",
     "react-native-builder-bob": "^0.40.18",
     "react-native-worklets": "0.10.3",
     "test-renderer": "^1.2.0",

@@ -14,6 +14,10 @@ export type TokenizerChatConfig = {
   readonly chatTemplate: string;
   /** End-of-sequence token string. */
   readonly eosToken: string;
+  /**
+   * Every terminal token the model may decode into its output.
+   */
+  readonly stopTokens: readonly string[];
 };
 
 function resolveToken(token: unknown): string | undefined {
@@ -57,5 +61,11 @@ export function parseTokenizerConfig(config: any): TokenizerChatConfig {
     );
   }
 
-  return { chatTemplate, eosToken };
+  const stopTokens = [
+    eosToken,
+    resolveToken(config.eot_token),
+    resolveToken(config.pad_token),
+  ].filter((token, index, all): token is string => !!token && all.indexOf(token) === index);
+
+  return { chatTemplate, eosToken, stopTokens };
 }

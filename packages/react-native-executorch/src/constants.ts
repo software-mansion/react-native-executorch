@@ -1298,6 +1298,16 @@ export const COCO_LANDMARKS = [
 ] as const;
 
 /**
+ * Face Mesh landmark indices, 0 to 467.
+ *
+ * MediaPipe names none of its 468 mesh vertices; they are identified by
+ * position in its canonical face model, so the index is the name. Any lip, eye
+ * or face-oval index list published for MediaPipe Face Mesh applies unchanged.
+ * @category CV / Constants
+ */
+export const FACEMESH_LANDMARKS: readonly number[] = Array.from({ length: 468 }, (_, i) => i);
+
+/**
  * Type representing a valid BlazeFace landmark string.
  * @category CV / Types
  */
