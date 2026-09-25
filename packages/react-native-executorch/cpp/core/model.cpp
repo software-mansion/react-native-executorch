@@ -51,7 +51,10 @@ using rnexecutorch::core::tensor::TensorHostObject;
 
 ModelHostObject::ModelHostObject(const std::string &modelPath, const bool eagerLoadMethods)
     : modelPath_(modelPath),
-      etModule_(std::make_unique<executorch::extension::Module>(modelPath)) {
+      // Plain mmap leaves the weights as clean, file-backed pages the kernel
+      // can evict. The upstream default (File) copies them onto the heap.
+      etModule_(std::make_unique<executorch::extension::Module>(
+          modelPath, executorch::extension::Module::LoadMode::Mmap)) {
 
     auto loadError = etModule_->load();
     if (!etModule_->is_loaded()) {
