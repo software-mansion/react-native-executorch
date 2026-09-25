@@ -75,7 +75,9 @@ const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { spawnSync } = require('child_process');
+const { createHash } = require('crypto');
+const { Buffer } = require('buffer');
 
 // ---- Config ----------------------------------------------------------------
 
@@ -434,15 +436,33 @@ function download(url, dest) {
     };
     get(url);
     file.on('error', (err) => {
-      fs.unlinkSync(dest);
+      // Close before removing: on Windows an open handle makes the unlink fail
+      // with EBUSY, which then replaces the real error with the cleanup's. And
+      // `force` covers the case where the file was never created.
+      file.close(() => fs.rmSync(dest, { force: true }));
       reject(err);
     });
   });
 }
 
+// Hashes in-process rather than shelling out to `sha256sum` / `shasum`. Those
+// are not on PATH everywhere, and GNU `sha256sum` escapes a filename holding a
+// backslash by prefixing its whole output line with one -- so on Windows every
+// hash came back as `\<hex>` and no artifact could ever validate. Read in
+// chunks: some artifacts are hundreds of megabytes and this runs at install.
 function sha256(filePath) {
-  const result = execSync(`sha256sum "${filePath}" || shasum -a 256 "${filePath}"`);
-  return result.toString().split(' ')[0].trim();
+  const hash = createHash('sha256');
+  const buffer = Buffer.alloc(1024 * 1024);
+  const fd = fs.openSync(filePath, 'r');
+  try {
+    let bytesRead;
+    while ((bytesRead = fs.readSync(fd, buffer, 0, buffer.length, null)) > 0) {
+      hash.update(buffer.subarray(0, bytesRead));
+    }
+  } finally {
+    fs.closeSync(fd);
+  }
+  return hash.digest('hex');
 }
 
 async function isCacheValid(artifact) {
@@ -536,7 +556,36 @@ function extract(tarball, destDir) {
   // and they get archived and linked against the new libraries -- which shows
   // up as an undefined symbol for whatever API changed between the two
   // releases, far away from the actual cause.
-  execSync(`tar -xzmf "${tarball}" -C "${destDir}"`);
+  //
+  // No path reaches tar's argv, because GNU tar (Git for Windows' is the one
+  // on PATH under Git Bash) mangles Windows paths two ways: `-f C:\Users\...`
+  // is the `host:file` form, so it tries to reach a remote host named `C`; and
+  // `-C` is unquoted by default, so the `\r` and `\t` in
+  // `node_modules\react-native-executorch\third-party` become a carriage
+  // return and a tab. The archive arrives on stdin and `cwd` does the chdir.
+  const fd = fs.openSync(tarball, 'r');
+  let result;
+  try {
+    result = spawnSync('tar', ['-xzm', '-f', '-'], {
+      cwd: destDir,
+      stdio: [fd, 'inherit', 'pipe'],
+      encoding: 'utf8',
+    });
+  } finally {
+    fs.closeSync(fd);
+  }
+  if (result.error) {
+    throw new Error(
+      `Could not run \`tar\` to extract ${tarball}: ${result.error.message}. ` +
+        'Install tar (it ships with Windows 10 1803+, Git for Windows and every Unix) and reinstall.'
+    );
+  }
+  if (result.status !== 0) {
+    throw new Error(
+      `tar exited with ${result.status ?? result.signal} while extracting ${tarball}` +
+        `${result.stderr ? `:\n${result.stderr.trim()}` : ''}`
+    );
+  }
 }
 
 // ---- Main ------------------------------------------------------------------
@@ -613,4 +662,6 @@ module.exports = {
   findUserConfig,
   readUserConfig,
   pruneDisabledBackends,
+  sha256,
+  extract,
 };
