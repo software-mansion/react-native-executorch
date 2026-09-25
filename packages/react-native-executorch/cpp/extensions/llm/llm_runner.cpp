@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cstring>
 #include <format>
+#include <optional>
 
 #include <executorch/extension/llm/runner/constants.h>
 #include <executorch/extension/llm/runner/llm_runner_helper.h>
@@ -254,10 +255,16 @@ LLMRunnerHostObject::LLMRunnerHostObject(const std::string &modelPath,
         throw error::LoadFailed(std::format("LLMRunner: Failed to load runner tokenizer at path: {}", tokenizerPath));
     }
 
+    // Plain mmap leaves the weights as clean, file-backed pages the kernel
+    // can evict, which is what the legacy binding has always passed.
+    constexpr auto kLoadMode = executorch::extension::Module::LoadMode::Mmap;
+
     if (modalities_.empty()) {
-        runner_ = executorch::extension::llm::create_text_llm_runner(modelPath, std::move(tokenizer));
+        runner_ = executorch::extension::llm::create_text_llm_runner(
+            modelPath, std::move(tokenizer), std::nullopt, -1.0f, "forward", kLoadMode);
     } else {
-        runner_ = executorch::extension::llm::create_multimodal_runner(modelPath, std::move(tokenizer));
+        runner_ = executorch::extension::llm::create_multimodal_runner(
+            modelPath, std::move(tokenizer), std::nullopt, kLoadMode);
     }
 
     if (!runner_) {
