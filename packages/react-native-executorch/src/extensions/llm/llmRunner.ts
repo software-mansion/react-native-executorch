@@ -13,8 +13,6 @@ declare const llmRunnerBrand: unique symbol;
  * @category LLM / Types
  */
 export type LLMGenerationConfig = {
-  /** Whether to echo the prompt in the generated output. */
-  readonly echo?: boolean;
   /** Whether to ignore EOS tokens during generation. */
   readonly ignoreEos?: boolean;
   /** Maximum number of new tokens to generate. */

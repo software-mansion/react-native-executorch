@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cstring>
 #include <format>
+#include <optional>
 
 #include <executorch/extension/llm/runner/constants.h>
 #include <executorch/extension/llm/runner/llm_runner_helper.h>
@@ -18,6 +19,8 @@
 #include <executorch/extension/llm/runner/multimodal_runner.h>
 #include <executorch/extension/llm/runner/stats.h>
 #include <executorch/extension/llm/runner/text_llm_runner.h>
+#include <executorch/extension/llm/runner/text_prefiller.h>
+#include <executorch/extension/module/module.h>
 #include <executorch/runtime/core/error.h>
 
 #include "core/conversions.h"
@@ -56,8 +59,8 @@ namespace {
 // COUPLING / MAINTENANCE WARNING:
 // This creates a direct compile-time coupling with the internal implementation
 // details of ExecuTorch's `TextLLMRunner` and `MultimodalRunner`. If upstream
-// ExecuTorch renames or alters `pos_`, `prefill_next_token_`, or `metadata_`,
-// this code will fail to compile and must be adjusted accordingly.
+// ExecuTorch renames or alters any member accessed below, this code will fail
+// to compile and must be adjusted accordingly.
 // ============================================================================
 
 template <typename Tag, auto MemberPtr>
@@ -94,6 +97,96 @@ constexpr auto getPrivateMember(MMRunnerPrefillTag /*tag*/);
 
 template struct PrivateMemberAccessor<MMRunnerMetadataTag, &MultimodalRunner::metadata_>;
 constexpr auto getPrivateMember(MMRunnerMetadataTag /*tag*/);
+
+// Members that decide how a prompt is split into prefill chunks.
+using executorch::extension::llm::TextPrefiller;
+
+struct TextRunnerModuleTag {};
+struct TextRunnerPrefillerTag {};
+struct PrefillerMaxSeqLenTag {};
+struct MMRunnerModuleTag {};
+struct MMRunnerTokenizerTag {};
+
+template struct PrivateMemberAccessor<TextRunnerModuleTag, &TextLLMRunner::module_>;
+constexpr auto getPrivateMember(TextRunnerModuleTag /*tag*/);
+
+template struct PrivateMemberAccessor<TextRunnerPrefillerTag, &TextLLMRunner::text_prefiller_>;
+constexpr auto getPrivateMember(TextRunnerPrefillerTag /*tag*/);
+
+template struct PrivateMemberAccessor<PrefillerMaxSeqLenTag, &TextPrefiller::max_seq_len_>;
+constexpr auto getPrivateMember(PrefillerMaxSeqLenTag /*tag*/);
+
+template struct PrivateMemberAccessor<MMRunnerModuleTag, &MultimodalRunner::module_>;
+constexpr auto getPrivateMember(MMRunnerModuleTag /*tag*/);
+
+template struct PrivateMemberAccessor<MMRunnerTokenizerTag, &MultimodalRunner::tokenizer_>;
+constexpr auto getPrivateMember(MMRunnerTokenizerTag /*tag*/);
+
+// Upstream sizes prefill chunks from `get_max_seq_len`, which is the KV budget,
+// not the widest token input the graph accepts (e.g. gemma4 MLX: 2048 vs 511).
+// Prompts past the real bound then fail with `Error::NotSupported`. Returns the
+// bound declared by the method's first input, or nullopt if it is not a
+// rank>=2 integer tensor.
+std::optional<int64_t> readPrefillBound(executorch::extension::Module *module, const std::string &methodName) {
+    if (module == nullptr) {
+        return std::nullopt;
+    }
+    auto meta = module->method_meta(methodName);
+    if (!meta.ok() || meta->num_inputs() == 0) {
+        return std::nullopt;
+    }
+    auto inputMeta = meta->input_tensor_meta(0);
+    if (!inputMeta.ok()) {
+        return std::nullopt;
+    }
+    const auto dtype = inputMeta->scalar_type();
+    if (dtype != executorch::aten::ScalarType::Long && dtype != executorch::aten::ScalarType::Int) {
+        return std::nullopt;
+    }
+    const auto sizes = inputMeta->sizes();
+    if (sizes.size() < 2) {
+        return std::nullopt;
+    }
+    const auto bound = static_cast<int64_t>(sizes[sizes.size() - 1]);
+    if (bound <= 0) {
+        return std::nullopt;
+    }
+    return bound;
+}
+
+::tokenizers::Tokenizer *getRunnerTokenizer(executorch::extension::llm::IRunner *runner) {
+    auto *r = dynamic_cast<MultimodalRunner *>(runner);
+    if (r == nullptr) {
+        return nullptr;
+    }
+    return (r->*getPrivateMember(MMRunnerTokenizerTag{})).get();
+}
+
+// `MultimodalPrefiller` does not chunk, so split text into token inputs that fit
+// the bound; `MultimodalRunner` prefills them in order.
+void appendTextInput(std::vector<executorch::extension::llm::MultimodalInput> &inputs,
+                     std::string text,
+                     ::tokenizers::Tokenizer *tokenizer,
+                     int64_t prefillBound) {
+    if (tokenizer == nullptr || prefillBound <= 0) {
+        inputs.emplace_back(std::move(text));
+        return;
+    }
+
+    auto encoded = tokenizer->encode(text, 0, 0);
+    if (!encoded.ok()) {
+        inputs.emplace_back(std::move(text));
+        return;
+    }
+
+    const auto &tokens = encoded.get();
+    const auto chunk = static_cast<size_t>(prefillBound);
+    for (size_t offset = 0; offset < tokens.size(); offset += chunk) {
+        const auto end = std::min(offset + chunk, tokens.size());
+        inputs.emplace_back(std::vector<uint64_t>(tokens.begin() + static_cast<ptrdiff_t>(offset),
+                                                  tokens.begin() + static_cast<ptrdiff_t>(end)));
+    }
+}
 
 int64_t getRunnerPos(executorch::extension::llm::IRunner *runner, bool isMultimodal) {
     if (runner == nullptr) {
@@ -178,10 +271,14 @@ std::vector<executorch::extension::llm::MultimodalInput> parsePrompt(
     jsi::Runtime &rt,
     const std::string &ctx,
     const jsi::Value &value,
-    const std::vector<std::string> &supportedModalities) {
+    const std::vector<std::string> &supportedModalities,
+    ::tokenizers::Tokenizer *tokenizer,
+    int64_t prefillBound) {
 
     if (value.isString()) {
-        return {executorch::extension::llm::MultimodalInput(conversions::asType<std::string>(rt, ctx, value))};
+        std::vector<executorch::extension::llm::MultimodalInput> inputs;
+        appendTextInput(inputs, conversions::asType<std::string>(rt, ctx, value), tokenizer, prefillBound);
+        return inputs;
     }
 
     auto arr = conversions::asType<jsi::Array>(rt, ctx, value);
@@ -195,7 +292,7 @@ std::vector<executorch::extension::llm::MultimodalInput> parsePrompt(
         std::string itemCtx = std::format("{}[{}]", ctx, i);
 
         if (elem.isString()) {
-            inputs.emplace_back(conversions::asType<std::string>(rt, itemCtx, elem));
+            appendTextInput(inputs, conversions::asType<std::string>(rt, itemCtx, elem), tokenizer, prefillBound);
             continue;
         }
         auto mediaObj = conversions::asType<jsi::Object>(rt, itemCtx, elem);
@@ -254,10 +351,16 @@ LLMRunnerHostObject::LLMRunnerHostObject(const std::string &modelPath,
         throw error::LoadFailed(std::format("LLMRunner: Failed to load runner tokenizer at path: {}", tokenizerPath));
     }
 
+    // Plain mmap leaves the weights as clean, file-backed pages the kernel
+    // can evict, which is what the legacy binding has always passed.
+    constexpr auto kLoadMode = executorch::extension::Module::LoadMode::Mmap;
+
     if (modalities_.empty()) {
-        runner_ = executorch::extension::llm::create_text_llm_runner(modelPath, std::move(tokenizer));
+        runner_ = executorch::extension::llm::create_text_llm_runner(
+            modelPath, std::move(tokenizer), std::nullopt, -1.0f, "forward", kLoadMode);
     } else {
-        runner_ = executorch::extension::llm::create_multimodal_runner(modelPath, std::move(tokenizer));
+        runner_ = executorch::extension::llm::create_multimodal_runner(
+            modelPath, std::move(tokenizer), std::nullopt, kLoadMode);
     }
 
     if (!runner_) {
@@ -268,6 +371,33 @@ LLMRunnerHostObject::LLMRunnerHostObject(const std::string &modelPath,
     if (loadStatus != executorch::runtime::Error::Ok) {
         std::string errorMsg = executorch::runtime::to_string(loadStatus);
         throw error::LoadFailed(std::format("LLMRunner: Failed to load model: {}", errorMsg), loadStatus);
+    }
+
+    // Clamp prefill chunks to the graph's real bound (see `readPrefillBound`).
+    // Text models take tokens on `forward`, multimodal ones on `token_embedding`.
+    if (modalities_.empty()) {
+        auto *textRunner = dynamic_cast<TextLLMRunner *>(runner_.get());
+        if (textRunner != nullptr) {
+            const auto &module = textRunner->*getPrivateMember(TextRunnerModuleTag{});
+            const auto bound = readPrefillBound(module.get(), "forward");
+            auto &prefiller = textRunner->*getPrivateMember(TextRunnerPrefillerTag{});
+            if (bound.has_value() && prefiller) {
+                // Upstream allows max_seq_len < max_context_len and chunks itself.
+                auto &maxSeqLen = (*prefiller).*getPrivateMember(PrefillerMaxSeqLenTag{});
+                maxSeqLen = std::min(maxSeqLen, *bound);
+                prefillBound_ = maxSeqLen;
+            }
+        }
+    } else {
+        auto *mmRunner = dynamic_cast<MultimodalRunner *>(runner_.get());
+        if (mmRunner != nullptr) {
+            const auto &module = mmRunner->*getPrivateMember(MMRunnerModuleTag{});
+            const auto bound =
+                readPrefillBound(module.get(), executorch::extension::llm::kTokenEmbeddingMethod);
+            if (bound.has_value()) {
+                prefillBound_ = *bound;
+            }
+        }
     }
 }
 
@@ -305,11 +435,9 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
             }
 
             executorch::extension::llm::GenerationConfig config;
+            config.echo = false;
             if (count > 1 && !args[1].isUndefined() && !args[1].isNull()) {
                 auto configObj = conversions::asType<jsi::Object>(rt, "LLMRunner.generate: config", args[1]);
-                if (auto echoOpt = conversions::getOptionalProperty<bool>(rt, "LLMRunner.generate: config", configObj, "echo")) {
-                    config.echo = *echoOpt;
-                }
                 if (auto ignoreEosOpt = conversions::getOptionalProperty<bool>(rt, "LLMRunner.generate: config", configObj, "ignoreEos")) {
                     config.ignore_eos = *ignoreEosOpt;
                 }
@@ -348,7 +476,8 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 auto prompt = conversions::asType<std::string>(rt, "LLMRunner.generate: prompt", args[0]);
                 genStatus = self->runner_->generate(prompt, config, tokenCallback, statsCallback);
             } else {
-                auto inputs = parsePrompt(rt, "LLMRunner.generate", args[0], self->modalities_);
+                auto inputs = parsePrompt(rt, "LLMRunner.generate", args[0], self->modalities_,
+                                          getRunnerTokenizer(self->runner_.get()), self->prefillBound_);
                 auto *multimodalRunner = dynamic_cast<executorch::extension::llm::MultimodalRunner *>(self->runner_.get());
                 if (multimodalRunner == nullptr) {
                     throw error::InvalidArgument("LLMRunner.generate: Runner instance is not a multimodal model");
@@ -375,7 +504,8 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
 
             auto lock = self->tryLockUnique("LLMRunner.prefill");
 
-            auto inputs = parsePrompt(rt, "LLMRunner.prefill", args[0], self->modalities_);
+            auto inputs = parsePrompt(rt, "LLMRunner.prefill", args[0], self->modalities_,
+                                      getRunnerTokenizer(self->runner_.get()), self->prefillBound_);
             auto result = self->runner_->prefill(inputs);
 
             if (!result.ok()) {
