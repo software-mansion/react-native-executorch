@@ -544,6 +544,12 @@ const DEEPLAB_V3_RESNET50_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = 
   modelPath: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/coreml/deeplab_v3_resnet50_coreml_fp16.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
+// Same Hexagon-version resolution and index-map output as the MobileNetV3 QNN
+// variant below.
+const DEEPLAB_V3_RESNET50_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/qnn/deeplab_v3_resnet50_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: DEEPLAB_V3_OPTS,
+};
 const DEEPLAB_V3_RESNET101_XNNPACK_FP32: SemanticSegmenterModel<PascalVocLabel> = {
   modelPath: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/xnnpack/deeplab_v3_resnet101_xnnpack_fp32.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
@@ -2725,6 +2731,7 @@ export const models = {
       /** @deprecated Use `XNNPACK_INT8`. Removed in v1.0.0. */
       XNNPACK_FP32: deprecated(DEEPLAB_V3_RESNET50_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: DEEPLAB_V3_RESNET50_COREML_FP16,
+      QNN_A16W8: DEEPLAB_V3_RESNET50_QNN_A16W8,
     }),
     /**
      * DeepLabV3 semantic segmentation model with ResNet-101 backbone (21
