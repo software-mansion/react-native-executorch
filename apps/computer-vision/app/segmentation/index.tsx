@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { commonStyles, theme } from '../../theme';
 import {
@@ -28,24 +28,54 @@ const SEGMENTATION_OPTIONS: ModelOption[] = [
     value: models.semanticSegmentation.LRASPP_MOBILENET_V3_LARGE.XNNPACK_INT8,
   },
   {
+    label: 'LRASPP MobileNet V3 (QNN A16W8)',
+    value: models.semanticSegmentation.LRASPP_MOBILENET_V3_LARGE.QNN_A16W8,
+    disabled: Platform.OS !== 'android',
+  },
+  {
     label: 'DeepLab V3 ResNet50 (INT8)',
     value: models.semanticSegmentation.DEEPLAB_V3_RESNET50.XNNPACK_INT8,
+  },
+  {
+    label: 'DeepLab V3 ResNet50 (QNN A16W8)',
+    value: models.semanticSegmentation.DEEPLAB_V3_RESNET50.QNN_A16W8,
+    disabled: Platform.OS !== 'android',
   },
   {
     label: 'DeepLab V3 ResNet101 (INT8)',
     value: models.semanticSegmentation.DEEPLAB_V3_RESNET101.XNNPACK_INT8,
   },
   {
+    label: 'DeepLab V3 ResNet101 (QNN A16W8)',
+    value: models.semanticSegmentation.DEEPLAB_V3_RESNET101.QNN_A16W8,
+    disabled: Platform.OS !== 'android',
+  },
+  {
     label: 'DeepLab V3 MobileNet V3 (INT8)',
     value: models.semanticSegmentation.DEEPLAB_V3_MOBILENET_V3_LARGE.XNNPACK_INT8,
+  },
+  {
+    label: 'DeepLab V3 MobileNet V3 (QNN A16W8)',
+    value: models.semanticSegmentation.DEEPLAB_V3_MOBILENET_V3_LARGE.QNN_A16W8,
+    disabled: Platform.OS !== 'android',
   },
   {
     label: 'FCN ResNet50 (INT8)',
     value: models.semanticSegmentation.FCN_RESNET50.XNNPACK_INT8,
   },
   {
+    label: 'FCN ResNet50 (QNN A16W8)',
+    value: models.semanticSegmentation.FCN_RESNET50.QNN_A16W8,
+    disabled: Platform.OS !== 'android',
+  },
+  {
     label: 'FCN ResNet101 (INT8)',
     value: models.semanticSegmentation.FCN_RESNET101.XNNPACK_INT8,
+  },
+  {
+    label: 'FCN ResNet101 (QNN A16W8)',
+    value: models.semanticSegmentation.FCN_RESNET101.QNN_A16W8,
+    disabled: Platform.OS !== 'android',
   },
 ];
 
