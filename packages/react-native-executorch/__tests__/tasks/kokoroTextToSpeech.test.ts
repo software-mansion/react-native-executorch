@@ -15,6 +15,7 @@ import {
   KOKORO_SAMPLE_RATE,
   createKokoroTextToSpeech,
 } from '../../src/extensions/speech/tasks/kokoroTextToSpeech';
+import { stripAudio } from '../../src/extensions/speech/utils/kokoroUtils';
 import { fakeJsi } from '../support/fakeJsi';
 import { fakePhonemizer } from '../support/fakeOps';
 import { fakeFs } from '../support/blobUtilMock';
@@ -351,6 +352,9 @@ describe('createKokoroTextToSpeech — synthesis', () => {
     await expect(
       collect(tts.synthesize('hello', { voice: 'af_heart', maxChunkLength: 4 }))
     ).rejects.toThrow(/below minimum/);
+
+    // The failed call must not leave the pipeline marked as busy
+    await expect(collect(tts.synthesize('hello', { voice: 'af_heart' }))).resolves.not.toEqual([]);
   });
 
   it('stops streaming when synthesizeStop is called mid-stream', async () => {
@@ -393,5 +397,129 @@ describe('createKokoroTextToSpeech — synthesis', () => {
     await stream.return(undefined as never);
 
     expect(fakeJsi.liveTensors()).toBe(before);
+  });
+});
+
+describe('createKokoroTextToSpeech — word timings', () => {
+  // Every token lasts 8 ticks of 600 samples, i.e. 0.2 s, and the leading
+  // padding token plays before the first phoneme. The tone has no silence for
+  // the trimming to cut, so each phoneme stays exactly where it was predicted.
+  const TOKEN_SECONDS = (8 * TICKS_PER_DURATION) / KOKORO_SAMPLE_RATE;
+  const at = (tokens: number) => tokens * TOKEN_SECONDS;
+
+  const wordsOf = (chunks: { words: readonly unknown[] }[]) => chunks.flatMap((c) => c.words);
+
+  it('reports when each word is spoken, from its first to its last phoneme', async () => {
+    const tts = tracked(await createKokoroTextToSpeech(config));
+
+    const chunks = await collect(tts.synthesize('ab cd', { voice: 'af_heart' }));
+
+    // Tokens: pad, a, b, space, c, d, pad
+    expect(wordsOf(chunks)).toEqual([
+      { text: 'ab', offset: 0, start: expect.closeTo(at(1)), end: expect.closeTo(at(3)) },
+      { text: 'cd', offset: 3, start: expect.closeTo(at(4)), end: expect.closeTo(at(6)) },
+    ]);
+  });
+
+  it('measures times in the audio left after trimming leading silence', async () => {
+    const silentSamples = 2 * 8 * TICKS_PER_DURATION;
+    fakeJsi.registerModel(SYNTHESIZER_PATH, {
+      schema: synthesizerSchema(),
+      execute: (_methodName, _inputs, outputs) => {
+        const audio = outputs[0]!;
+        for (let i = 0; i < audio.numel; i++) audio.setElement(i, i < silentSamples ? 0 : 0.5);
+      },
+    });
+    const tts = tracked(await createKokoroTextToSpeech(config));
+
+    const [chunk] = await collect(tts.synthesize('ab cd', { voice: 'af_heart' }));
+
+    // Where the pipeline's own trimming starts the audio it returns
+    const waveform = new Float32Array(6 * 8 * TICKS_PER_DURATION);
+    waveform.fill(0.5, silentSamples);
+    const trimmed = stripAudio(waveform, 50 * (KOKORO_SAMPLE_RATE / 1000)).byteOffset / 4;
+
+    expect(trimmed).toBeGreaterThan(0);
+    expect(chunk!.words[1]).toEqual({
+      text: 'cd',
+      offset: 3,
+      start: expect.closeTo(at(4) - trimmed / KOKORO_SAMPLE_RATE),
+      end: expect.closeTo(at(6) - trimmed / KOKORO_SAMPLE_RATE),
+    });
+  });
+
+  it('times a spelled-out number as the input word it came from', async () => {
+    fakePhonemizer.serveNormalization('so 25 now', 'so twenty five now');
+    fakePhonemizer.serveNormalization('25', 'twenty five');
+    const tts = tracked(await createKokoroTextToSpeech(config));
+
+    const chunks = await collect(tts.synthesize('so 25 now', { voice: 'af_heart' }));
+
+    // Tokens: pad, s, o, space, t w e n t y, space, f i v e, space, n o w, pad
+    expect(wordsOf(chunks)).toEqual([
+      { text: 'so', offset: 0, start: expect.closeTo(at(1)), end: expect.closeTo(at(3)) },
+      { text: '25', offset: 3, start: expect.closeTo(at(4)), end: expect.closeTo(at(15)) },
+      { text: 'now', offset: 6, start: expect.closeTo(at(16)), end: expect.closeTo(at(19)) },
+    ]);
+  });
+
+  it('reports every word once, in the chunk that speaks it, on one timeline', async () => {
+    const text = 'one two three four five six seven eight nine ten eleven twelve';
+    const tts = tracked(await createKokoroTextToSpeech(config));
+
+    const chunks = await collect(tts.synthesize(text, { voice: 'af_heart' }));
+
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(wordsOf(chunks).map((word) => (word as { text: string }).text)).toEqual(text.split(' '));
+
+    let chunkStart = 0;
+    let lastEnd = 0;
+    for (const chunk of chunks) {
+      const chunkEnd = chunkStart + chunk.duration;
+      for (const word of chunk.words) {
+        expect(word.start).toBeGreaterThanOrEqual(Math.max(chunkStart, lastEnd) - 1e-9);
+        expect(word.end).toBeGreaterThan(word.start);
+        expect(word.end).toBeLessThanOrEqual(chunkEnd + 1e-9);
+        lastEnd = word.end;
+      }
+      chunkStart = chunkEnd;
+    }
+  });
+
+  it('times the words of phoneme input without phonemizing it', async () => {
+    const tts = tracked(await createKokoroTextToSpeech(config));
+
+    const chunks = await collect(
+      tts.synthesize('həlˈoʊ wˈɜɹld', { voice: 'af_heart', phonemize: false })
+    );
+
+    expect(wordsOf(chunks)).toEqual([
+      { text: 'həlˈoʊ', offset: 0, start: expect.closeTo(at(1)), end: expect.closeTo(at(7)) },
+      { text: 'wˈɜɹld', offset: 7, start: expect.closeTo(at(8)), end: expect.closeTo(at(14)) },
+    ]);
+  });
+
+  it('leaves out words that are not pronounced', async () => {
+    fakePhonemizer.serve('hello — world', 'həlˈO — wˈɜɹld');
+    const tts = tracked(await createKokoroTextToSpeech(config));
+
+    const chunks = await collect(tts.synthesize('hello — world', { voice: 'af_heart' }));
+
+    expect(wordsOf(chunks).map((word) => (word as { text: string }).text)).toEqual([
+      'hello',
+      'world',
+    ]);
+  });
+
+  it('still synthesizes when the words cannot be aligned', async () => {
+    fakePhonemizer.serveNormalization('x 7 y', 'x seven y');
+    fakePhonemizer.serveNormalization('7', 'seven more');
+    const tts = tracked(await createKokoroTextToSpeech(config));
+
+    const chunks = await collect(tts.synthesize('x 7 y', { voice: 'af_heart' }));
+
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0]!.audio.length).toBeGreaterThan(0);
+    expect(chunks[0]!.words).toEqual([]);
   });
 });

@@ -21,7 +21,13 @@ import {
 import { wrapAsync } from '../../../core/runtime';
 import { createResourceScope } from '../../../core/lifetime';
 import { RnExecuTorchError } from '../../../core/error';
-import { createPhonemizer, type PhonemizerConfig } from '../utils/phonemizer';
+import {
+  createPhonemizer,
+  phonemizeWords,
+  type PhonemizedText,
+  type PhonemizedWord,
+  type PhonemizerConfig,
+} from '../utils/phonemizer';
 import { partition } from '../utils/textPartitioner';
 import { repeatInterleave } from '../../math';
 import {
@@ -52,6 +58,8 @@ const SILENCE_PADDING_MS = 50; // silence kept at both edges of a synthesized ch
 
 // Distinguishes spoken phonemes from punctuation and suprasegmental markers.
 const LETTER_PATTERN = /\p{L}/u;
+// Phonemes a word's timing is measured over, leaving out its punctuation.
+const SPOKEN_PATTERN = /[\p{L}\p{M}]/u;
 
 // Token counts a Kokoro sub-model accepts. A padded model takes one count and
 // one only, so its bounds collapse onto that single constant.
@@ -99,6 +107,21 @@ export type KokoroTtsOptions<K extends PropertyKey> = {
 };
 
 /**
+ * A word of the input text, with the time it is spoken at.
+ * @category Speech / Types
+ */
+export type KokoroTtsWord = {
+  /** The word as it appears in the input text. */
+  readonly text: string;
+  /** UTF-16 offset of the word in the input text. */
+  readonly offset: number;
+  /** Time the word starts, in seconds since the beginning of the first chunk. */
+  readonly start: number;
+  /** Time the word ends, in seconds since the beginning of the first chunk. */
+  readonly end: number;
+};
+
+/**
  * Audio output chunk yielded by the {@link createKokoroTextToSpeech} generator.
  * @category Speech / Types
  */
@@ -113,6 +136,12 @@ export type KokoroTtsChunk = {
   readonly chunkIndex: number;
   /** Total number of chunks partitioned from the input text. */
   readonly totalChunks: number;
+  /**
+   * Words of the input text whose speech ends in this chunk, in order. Words
+   * with nothing to pronounce (e.g. standalone punctuation) are left out, and
+   * the list is empty if the text could not be aligned with its phonemes.
+   */
+  readonly words: readonly KokoroTtsWord[];
 };
 
 /**
@@ -295,7 +324,14 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
     const synthesizeChunkWorklet = (
       chunkPhonemes: string,
       chunkOpts: { voice: K; speed: number }
-    ): { audio: Float32Array; sampleRate: number; duration: number } => {
+    ): {
+      audio: Float32Array;
+      sampleRate: number;
+      duration: number;
+      // Sample range of each phoneme in `audio`, or -1 if it was not synthesized
+      phonemeStarts: Int32Array;
+      phonemeEnds: Int32Array;
+    } => {
       'worklet';
 
       const phonemes = Array.from(chunkPhonemes.trim());
@@ -310,7 +346,11 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
 
       // 2 tokens are reserved for the leading and trailing padding
       const numTokens = Math.min(Math.max(phonemes.length + 2, minTokens), maxTokens);
-      const tokens = tokenize(phonemes, numTokens);
+      const phonemeIndices = new Int32Array(numTokens);
+      const tokens = tokenize(phonemes, numTokens, phonemeIndices);
+
+      const phonemeStarts = new Int32Array(phonemes.length).fill(-1);
+      const phonemeEnds = new Int32Array(phonemes.length).fill(-1);
 
       // Exclude all paddings except the leading and the trailing one
       const textMask = new Uint8Array(numTokens);
@@ -366,7 +406,13 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
         for (let i = 0; i < numTokens; i++) tokenIndices[i] = BigInt(i);
         const indices = repeatInterleave(tokenIndices, tokenDurations);
         if (indices.length === 0) {
-          return { audio: new Float32Array(0), sampleRate: KOKORO_SAMPLE_RATE, duration: 0 };
+          return {
+            audio: new Float32Array(0),
+            sampleRate: KOKORO_SAMPLE_RATE,
+            duration: 0,
+            phonemeStarts,
+            phonemeEnds,
+          };
         }
 
         // 3. Synthesize the waveform
@@ -411,9 +457,26 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
           audio = audio.subarray(0, Math.min(lastTimestamp * TICKS_PER_DURATION, audio.length));
         }
 
+        const unstripped = audio;
         audio = stripAudio(audio, SILENCE_PADDING_MS * SAMPLES_PER_MS);
+        const strippedSamples =
+          (audio.byteOffset - unstripped.byteOffset) / Float32Array.BYTES_PER_ELEMENT;
 
-        // 5. Append a natural pause matching the chunk's ending punctuation
+        // 5. Locate each phoneme in the trimmed audio
+        let tick = 0;
+        for (let i = 0; i < numTokens; i++) {
+          const phonemeIndex = phonemeIndices[i]!;
+          const nextTick = tick + tokenDurations[i]!;
+          if (phonemeIndex >= 0) {
+            const start = tick * TICKS_PER_DURATION - strippedSamples;
+            const end = nextTick * TICKS_PER_DURATION - strippedSamples;
+            phonemeStarts[phonemeIndex] = Math.min(Math.max(start, 0), audio.length);
+            phonemeEnds[phonemeIndex] = Math.min(Math.max(end, 0), audio.length);
+          }
+          tick = nextTick;
+        }
+
+        // 6. Append a natural pause matching the chunk's ending punctuation
         const pauseSamples = (KOKORO_PAUSE_MS[lastPhoneme] ?? 0) * SAMPLES_PER_MS;
         const result = new Float32Array(audio.length + pauseSamples);
         result.set(audio);
@@ -422,6 +485,8 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
           audio: result,
           sampleRate: KOKORO_SAMPLE_RATE,
           duration: result.length / KOKORO_SAMPLE_RATE,
+          phonemeStarts,
+          phonemeEnds,
         };
       } finally {
         auxTensors.forEach((t) => t.dispose());
@@ -429,7 +494,10 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
     };
 
     const synthesizeChunk = wrapAsync(synthesizeChunkWorklet, runtime);
-    const phonemize = wrapAsync(phonemizer.phonemize, runtime);
+    const phonemize = wrapAsync((text: string): PhonemizedText => {
+      'worklet';
+      return phonemizeWords(phonemizer, text);
+    }, runtime);
 
     let isSynthesizing = false;
     const synthesizeStop = (): void => {
@@ -467,17 +535,54 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
 
       isSynthesizing = true;
 
-      // Phonemize once up front, then partition the phonemes — every chunk is
-      // then guaranteed to fit the models' token limit.
-      const phonemes = options.phonemize === false ? text : await phonemize(text);
-      const chunks = partition(phonemes, maxChunkLength, { prioritizeInitialTtfa: true });
-
       try {
+        // Phonemize once up front, then partition the phonemes — every chunk is
+        // then guaranteed to fit the models' token limit.
+        const { phonemes, words } =
+          options.phonemize === false ? splitWords(text) : await phonemize(text);
+        const chunks = partition(phonemes, maxChunkLength, { prioritizeInitialTtfa: true });
+
+        // Start and end time of each phoneme, by its UTF-16 offset in `phonemes`
+        const phonemeStarts = new Float64Array(phonemes.length).fill(NaN);
+        const phonemeEnds = new Float64Array(phonemes.length).fill(NaN);
+        let chunkEnd = 0;
+        let elapsed = 0;
+        let nextWord = 0;
+
         for (const [chunkIndex, chunk] of chunks.entries()) {
           if (!isSynthesizing) break;
 
-          const audioChunk = await synthesizeChunk(chunk, { voice: options.voice, speed });
-          yield { ...audioChunk, chunkIndex, totalChunks: chunks.length };
+          const {
+            phonemeStarts: starts,
+            phonemeEnds: ends,
+            ...audioChunk
+          } = await synthesizeChunk(chunk, { voice: options.voice, speed });
+
+          // Chunks are trimmed, in-order slices of the phonemes
+          let offset = phonemes.indexOf(chunk, chunkEnd);
+          let index = 0;
+          for (const phoneme of chunk) {
+            if (starts[index]! >= 0) {
+              phonemeStarts[offset] = elapsed + starts[index]! / KOKORO_SAMPLE_RATE;
+              phonemeEnds[offset] = elapsed + ends[index]! / KOKORO_SAMPLE_RATE;
+            }
+            offset += phoneme.length;
+            index++;
+          }
+          chunkEnd = offset;
+          elapsed += audioChunk.duration;
+
+          // Report the words whose phonemes have all been synthesized by now
+          const chunkWords: KokoroTtsWord[] = [];
+          while (nextWord < words.length) {
+            const word = words[nextWord]!;
+            if (word.phonemeOffset + word.phonemeLength > chunkEnd) break;
+            const timed = timeWord(word, phonemes, phonemeStarts, phonemeEnds);
+            if (timed) chunkWords.push(timed);
+            nextWord++;
+          }
+
+          yield { ...audioChunk, words: chunkWords, chunkIndex, totalChunks: chunks.length };
         }
       } finally {
         isSynthesizing = false;
@@ -489,4 +594,36 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
     dispose();
     throw error;
   }
+}
+
+// Treats IPA input as its own phonemization, one word per whitespace-separated group.
+function splitWords(phonemes: string): PhonemizedText {
+  const words = Array.from(phonemes.matchAll(/[^ \t\n\v\f\r]+/g), (match) => ({
+    text: match[0],
+    offset: match.index,
+    phonemeOffset: match.index,
+    phonemeLength: match[0].length,
+  }));
+  return { phonemes, words };
+}
+
+// Times a word by its spoken phonemes, or returns undefined if none were synthesized.
+function timeWord(
+  word: PhonemizedWord,
+  phonemes: string,
+  phonemeStarts: Float64Array,
+  phonemeEnds: Float64Array
+): KokoroTtsWord | undefined {
+  let start = Infinity;
+  let end = -Infinity;
+  let offset = word.phonemeOffset;
+  for (const phoneme of phonemes.slice(offset, offset + word.phonemeLength)) {
+    if (SPOKEN_PATTERN.test(phoneme) && !Number.isNaN(phonemeStarts[offset]!)) {
+      start = Math.min(start, phonemeStarts[offset]!);
+      end = Math.max(end, phonemeEnds[offset]!);
+    }
+    offset += phoneme.length;
+  }
+
+  return start <= end ? { text: word.text, offset: word.offset, start, end } : undefined;
 }

@@ -93,17 +93,26 @@ export function parseVoice(base64: string): Float32Array {
  * @category Speech / Functions
  * @param phonemes The phoneme sequence, split into code points.
  * @param totalLength The exact token count to produce, including padding.
+ * @param phonemeIndices Optional `totalLength`-long output receiving, for every
+ * token, the index of the phoneme it encodes, or -1 for padding.
  * @returns Token ids ready to be written into an `int64` tensor.
  */
-export function tokenize(phonemes: string[], totalLength: number): BigInt64Array {
+export function tokenize(
+  phonemes: string[],
+  totalLength: number,
+  phonemeIndices?: Int32Array
+): BigInt64Array {
   'worklet';
   const tokens = new BigInt64Array(totalLength).fill(PAD_TOKEN);
   const count = Math.min(totalLength - 2, phonemes.length);
+  phonemeIndices?.fill(-1);
 
   let next = 1;
   for (let i = 0; i < count; i++) {
     const token = VOCAB[phonemes[i]!];
-    if (token !== undefined) tokens[next++] = BigInt(token);
+    if (token === undefined) continue;
+    if (phonemeIndices) phonemeIndices[next] = i;
+    tokens[next++] = BigInt(token);
   }
 
   return tokens;
