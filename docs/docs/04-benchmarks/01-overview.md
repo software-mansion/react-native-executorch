@@ -32,17 +32,19 @@ The figures come from the `v0.10.0` model registry.
 | Samsung Galaxy S20+ (SM-G986B) | Exynos 990, Mali-G77 MP11, 8 cores, 11 GB, Android 13 | XNNPACK (100), Vulkan (24) | 124 |
 | Google Pixel 10 | Tensor G5 | XNNPACK (100), Vulkan (24) | 124 |
 | iPhone 17 | A19 | XNNPACK (100), Core ML (75), MLX (16) | 191 |
-| iPhone SE (3rd gen) | A15 Bionic | XNNPACK (60), Core ML (58), MLX (6) | 124 |
+| iPhone SE (3rd gen) | A15 Bionic | XNNPACK (99), Core ML (73), MLX (15) | 187 |
 
 The Galaxy S26 Ultra and the S20+ each ran the **complete** Android registry, and
 the iPhone 17 the complete iOS one, so those are the reference columns. The Pixel
 10 covers the full registry across two runs, 35 of its variants from a run
-taken while charging (marked `†`). The SE ran a subset.
+taken while charging (marked `†`). The SE ran 187 of the 191; the other four
+crashed or timed out, most likely out of memory.
 
 The S20+ is a 2020 flagship, six model generations behind the S26 Ultra, and it is
 here to show the floor on Android the way the SE does on iOS. One iOS variant
-(`text-embeddings/lfm2-5-embedding-350-m` `mlx` `int4`) failed to load and is
-marked `???`; it has been re-exported and will be measured on the next sweep.
+(`text-embeddings/lfm2-5-embedding-350-m` `mlx` `int4`) failed to load on iPhone
+17 and is marked `???`; it has been re-exported and will be measured on the next
+sweep.
 
 ## What each task was given
 
@@ -100,15 +102,15 @@ model.
 ### Core ML is not a small win on iOS
 
 Across the 75 model families that publish both backends, Core ML beat XNNPACK in
-**all 75** on iPhone 17, median **10.9x**. On the 58 of those also measured on
-the iPhone SE (3rd gen) it won **58 of 58**, median **16.8x**.
+**all 75** on iPhone 17, median **10.9x**. On the 73 of those also measured on
+the iPhone SE (3rd gen) it won **73 of 73**, median **13.2x**.
 
 | | iPhone 17 | iPhone SE (3rd gen) |
 |---|---|---|
-| Families where Core ML wins | 75 / 75 | 58 / 58 |
-| Median speedup | 10.9x | 16.8x |
-| Best case | 50.9x (`yolo26-xlarge-size-640`) | 92.2x (`fastsam-x`) |
-| Worst case | 1.04x (`deeplab-v3-mobilenet-v3-large`) | 1.36x (`deeplab-v3-mobilenet-v3-large`) |
+| Families where Core ML wins | 75 / 75 | 73 / 73 |
+| Median speedup | 10.9x | 13.2x |
+| Best case | 50.9x (`yolo26-xlarge-size-640`) | 136.8x (`fastsam-x`) |
+| Worst case | 1.04x (`deeplab-v3-mobilenet-v3-large`) | 1.55x (`deeplab-v3-mobilenet-v3-large`) |
 
 Much of that headline is an unfair fight, and worth stating plainly: 58 of the 75
 families have no quantized XNNPACK build, so it is fp32 on the CPU against fp16
