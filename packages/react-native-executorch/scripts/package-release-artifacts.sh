@@ -16,6 +16,7 @@
 #   xnnpack-android-x86_64.tar.gz   + .sha256
 #   vulkan-android-arm64-v8a.tar.gz + .sha256
 #   vulkan-android-x86_64.tar.gz   + .sha256
+#   qnn-android-arm64-v8a.tar.gz    + .sha256  (arm64 only; Qualcomm runtime comes from Maven)
 #   core-ios.tar.gz       + .sha256  (ExecutorchLib.xcframework + libthreadpool_*.a)
 #   xnnpack-ios.tar.gz    + .sha256
 #   coreml-ios.tar.gz     + .sha256
@@ -217,6 +218,10 @@ package_file "vulkan-android-arm64-v8a" \
 
 package_file "vulkan-android-x86_64" \
   "executorch/x86_64"       "$ANDROID_LIBS/executorch/x86_64/libvulkan_executorch_backend.so"
+
+# QNN runs on the Snapdragon Hexagon NPU, so there is no x86_64 build.
+package_file "qnn-android-arm64-v8a" \
+  "executorch/arm64-v8a"    "$ANDROID_LIBS/executorch/arm64-v8a/libqnn_executorch_backend.so"
 
 # ---- iOS --------------------------------------------------------------------
 # Note: OpenCV for iOS is provided by CocoaPods (opencv-rne dependency).

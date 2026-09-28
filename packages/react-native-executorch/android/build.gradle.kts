@@ -52,6 +52,8 @@ fun rneBuildConfig(): Map<*, *> {
 
 val rneConfig = rneBuildConfig()
 fun rneFlag(key: String): String = if (rneConfig[key] != false) "ON" else "OFF"
+// QNN is opt-in, so a config written before it existed (no key) means off.
+val enableQnn = rneConfig["enableQnn"] == true
 
 /**
  * The prebuilt ExecuTorch runtime is not in the npm tarball - `package.json`
@@ -126,7 +128,8 @@ android {
                     "-DRNE_ENABLE_OPENCV=${rneFlag("enableOpencv")}",
                     "-DRNE_ENABLE_PHONEMIS=${rneFlag("enablePhonemis")}",
                     "-DRNE_ENABLE_XNNPACK=${rneFlag("enableXnnpack")}",
-                    "-DRNE_ENABLE_VULKAN=${rneFlag("enableVulkan")}"
+                    "-DRNE_ENABLE_VULKAN=${rneFlag("enableVulkan")}",
+                    "-DRNE_ENABLE_QNN=${if (enableQnn) "ON" else "OFF"}"
                 )
 
                 abiFilters.addAll(reactNativeArchitectures())
@@ -176,10 +179,11 @@ android {
         // user who provisions third-party/ by hand gets the same treatment.
         val backendLibs = mapOf(
             "enableXnnpack" to "libxnnpack_executorch_backend.so",
-            "enableVulkan" to "libvulkan_executorch_backend.so"
+            "enableVulkan" to "libvulkan_executorch_backend.so",
+            "enableQnn" to "libqnn_executorch_backend.so"
         )
         for ((flag, soName) in backendLibs) {
-            if (rneConfig[flag] == false) {
+            if (rneConfig[flag] == false || (flag == "enableQnn" && !enableQnn)) {
                 logger.lifecycle("[RnExecutorch] $flag is off; excluding $soName from the APK")
                 jniLibs.excludes.add("**/$soName")
             }
@@ -211,6 +215,13 @@ dependencies {
     // rides in the core-android-arm64-v8a artifact, extracted by download-libs.js
     // to third-party/android/libs/executorch.jar.
     implementation(files("../third-party/android/libs/executorch.jar"))
+
+    // Qualcomm's QNN runtime (libQnnHtp, libQnnSystem and the per-arch Hexagon
+    // stubs/skels) for the QNN backend. Its version must match the QAIRT SDK the
+    // backend and the .pte files were built with.
+    if (enableQnn) {
+        implementation("com.qualcomm.qti:qnn-runtime:2.47.0")
+    }
 
     // Recommended for modern Kotlin Android development
     implementation("androidx.core:core-ktx:1.12.0")

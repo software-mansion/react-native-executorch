@@ -68,7 +68,7 @@ import {
 // that order pins one per platform — see the second argument of `variants`.
 
 /** Every backend the registry publishes for, spelled as the variant keys spell it. */
-const ALL_BACKENDS = ['xnnpack', 'coreml', 'mlx', 'vulkan'] as const;
+const ALL_BACKENDS = ['xnnpack', 'coreml', 'mlx', 'vulkan', 'qnn'] as const;
 
 /** The backend prefix a variant key starts with. */
 type BackendTag = (typeof ALL_BACKENDS)[number];
@@ -82,14 +82,24 @@ const PLATFORM: TargetPlatform = Platform.OS === 'ios' ? 'ios' : 'android';
 // MLX or Vulkan once it has been shown to run better there, and XNNPACK is the
 // one backend every model exports to. Core ML sits above MLX only to make the
 // order deterministic; every group publishing both pins its winner explicitly.
+// QNN leads on Android: it runs on the Hexagon NPU, and a model only gets a
+// QNN export once it beats the GPU there.
 //
 // The iOS simulator links the Core ML backend but cannot run it: no Neural
 // Engine, and MPSGraph refuses the compiled models. MLX only ever ships a
 // device slice, so it has nothing to run there either.
 const BACKEND_ORDER: Record<TargetPlatform, readonly BackendTag[]> = {
   ios: rnexecutorchJsi.isEmulator === true ? ['xnnpack'] : ['coreml', 'mlx', 'xnnpack'],
-  android: ['vulkan', 'xnnpack'],
+  android: ['qnn', 'vulkan', 'xnnpack'],
 };
+
+/**
+ * The Hexagon version (`v69` … `v81`) this device's QNN models are compiled
+ * for, or `undefined` when it cannot run them. A QNN `.pte` targets a single
+ * Hexagon version, so QNN variants are published once per version and resolve
+ * to this device's file.
+ */
+const QNN_HTP_ARCH: string | undefined = rnexecutorchJsi.qnnHtpArch;
 
 /**
  * The backends this platform may default to, best first.
@@ -107,7 +117,13 @@ function getCandidateBackends(): readonly BackendTag[] {
   if (registered.length === 0) return BACKEND_ORDER[PLATFORM];
 
   const names = registered.map((name) => name.toLowerCase());
-  return BACKEND_ORDER[PLATFORM].filter((tag) => names.some((name) => name.startsWith(tag)));
+  return BACKEND_ORDER[PLATFORM].filter(
+    (tag) =>
+      names.some((name) => name.startsWith(tag)) &&
+      // A linked QNN backend is not enough: the SoC also has to be one the
+      // published files target, with its Hexagon skel reachable.
+      (tag !== 'qnn' || QNN_HTP_ARCH !== undefined)
+  );
 }
 
 const CANDIDATE_BACKENDS = getCandidateBackends();
@@ -173,10 +189,11 @@ function family<V extends Record<string, { readonly DEFAULT: unknown }>>(
 }
 
 const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorch';
-// Models resolve through VERSION_TAG, the latest published stable tag, unless
-// they have been re-exported for the next release, in which case their URL moves
-// over to NEXT_VERSION_TAG. Both tags are pinned snapshots, so a model only
-// changes when its URL is moved here.
+// Most models still resolve through VERSION_TAG, the latest published stable
+// tag. A model re-exported for 0.11 moves the URLs it re-exported over to
+// NEXT_VERSION_TAG. The two coexist because a tag carries only the files cut
+// under it, so a backend first published in 0.11 sits on the newer tag while
+// the same model's older exports stay on the older one.
 const VERSION_TAG = 'resolve/v0.10.0';
 const NEXT_VERSION_TAG = 'resolve/v0.11.0';
 
@@ -199,6 +216,12 @@ const EFFICIENTNET_V2_S_XNNPACK_FP32: ClassifierModel<ImageNet1KLabel> = {
 };
 const EFFICIENTNET_V2_S_COREML_FP16: ClassifierModel<ImageNet1KLabel> = {
   modelPath: `${BASE_URL}-efficientnet-v2-s/${VERSION_TAG}/coreml/efficientnet_v2_s_coreml_fp16.pte`,
+  modelOpts: EFFICIENTNET_V2_S_OPTS,
+};
+// Resolves to this device's Hexagon version; off Snapdragon the v81 file stands
+// in, and DEFAULT never picks it there.
+const EFFICIENTNET_V2_S_QNN_A16W8: ClassifierModel<ImageNet1KLabel> = {
+  modelPath: `${BASE_URL}-efficientnet-v2-s/${NEXT_VERSION_TAG}/qnn/efficientnet_v2_s_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: EFFICIENTNET_V2_S_OPTS,
 };
 
@@ -323,6 +346,12 @@ const LRASPP_MOBILENET_V3_LARGE_COREML_FP16: SemanticSegmenterModel<PascalVocLab
   modelPath: `${BASE_URL}-lraspp/${NEXT_VERSION_TAG}/coreml/lraspp_mobilenet_v3_large_coreml_fp16.pte`,
   modelOpts: LRASPP_MOBILENET_V3_LARGE_OPTS,
 };
+// Same Hexagon-version resolution and index-map output as the DeepLabV3 QNN
+// variants.
+const LRASPP_MOBILENET_V3_LARGE_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-lraspp/${NEXT_VERSION_TAG}/qnn/lraspp_mobilenet_v3_large_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: LRASPP_MOBILENET_V3_LARGE_OPTS,
+};
 
 const DEEPLAB_V3_OPTS = {
   labels: PASCAL_VOC_LABELS,
@@ -341,6 +370,16 @@ const DEEPLAB_V3_RESNET50_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> =
 };
 const DEEPLAB_V3_RESNET50_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
   modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/coreml/deeplab_v3_resnet50_coreml_fp16.pte`,
+  modelOpts: DEEPLAB_V3_OPTS,
+};
+// Same Hexagon-version resolution and index-map output as the MobileNetV3 QNN
+// variant below.
+const DEEPLAB_V3_RESNET50_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/qnn/deeplab_v3_resnet50_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: DEEPLAB_V3_OPTS,
+};
+const DEEPLAB_V3_RESNET101_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/qnn/deeplab_v3_resnet101_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_RESNET101_XNNPACK_FP32: SemanticSegmenterModel<PascalVocLabel> = {
@@ -365,6 +404,13 @@ const DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_INT8: SemanticSegmenterModel<PascalV
 };
 const DEEPLAB_V3_MOBILENET_V3_LARGE_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
   modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/coreml/deeplab_v3_mobilenet_v3_large_coreml_fp16.pte`,
+  modelOpts: DEEPLAB_V3_OPTS,
+};
+// Resolves to this device's Hexagon version; off Snapdragon the v81 file stands
+// in, and DEFAULT never picks it there. Returns a class index per pixel rather
+// than 21 logit planes, which the segmenter reads as its index-map variant.
+const DEEPLAB_V3_MOBILENET_V3_LARGE_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/qnn/deeplab_v3_mobilenet_v3_large_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 
@@ -397,6 +443,16 @@ const FCN_RESNET101_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> = {
 };
 const FCN_RESNET101_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
   modelPath: `${BASE_URL}-fcn/${NEXT_VERSION_TAG}/coreml/fcn_resnet101_coreml_fp16.pte`,
+  modelOpts: FCN_OPTS,
+};
+// Same Hexagon-version resolution and index-map output as the DeepLabV3 QNN
+// variants.
+const FCN_RESNET50_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-fcn/${NEXT_VERSION_TAG}/qnn/fcn_resnet50_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: FCN_OPTS,
+};
+const FCN_RESNET101_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-fcn/${NEXT_VERSION_TAG}/qnn/fcn_resnet101_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: FCN_OPTS,
 };
 
@@ -2083,6 +2139,7 @@ export const models = {
       XNNPACK_INT8: EFFICIENTNET_V2_S_XNNPACK_INT8,
       XNNPACK_FP32: EFFICIENTNET_V2_S_XNNPACK_FP32,
       COREML_FP16: EFFICIENTNET_V2_S_COREML_FP16,
+      QNN_A16W8: EFFICIENTNET_V2_S_QNN_A16W8,
     }),
   },
 
@@ -2164,6 +2221,7 @@ export const models = {
       XNNPACK_INT8: LRASPP_MOBILENET_V3_LARGE_XNNPACK_INT8,
       XNNPACK_FP32: LRASPP_MOBILENET_V3_LARGE_XNNPACK_FP32,
       COREML_FP16: LRASPP_MOBILENET_V3_LARGE_COREML_FP16,
+      QNN_A16W8: LRASPP_MOBILENET_V3_LARGE_QNN_A16W8,
     }),
     /**
      * DeepLabV3 semantic segmentation model with ResNet-50 backbone (21
@@ -2174,6 +2232,7 @@ export const models = {
       XNNPACK_INT8: DEEPLAB_V3_RESNET50_XNNPACK_INT8,
       XNNPACK_FP32: DEEPLAB_V3_RESNET50_XNNPACK_FP32,
       COREML_FP16: DEEPLAB_V3_RESNET50_COREML_FP16,
+      QNN_A16W8: DEEPLAB_V3_RESNET50_QNN_A16W8,
     }),
     /**
      * DeepLabV3 semantic segmentation model with ResNet-101 backbone (21
@@ -2184,6 +2243,7 @@ export const models = {
       XNNPACK_INT8: DEEPLAB_V3_RESNET101_XNNPACK_INT8,
       XNNPACK_FP32: DEEPLAB_V3_RESNET101_XNNPACK_FP32,
       COREML_FP16: DEEPLAB_V3_RESNET101_COREML_FP16,
+      QNN_A16W8: DEEPLAB_V3_RESNET101_QNN_A16W8,
     }),
     /**
      * DeepLabV3 semantic segmentation model with MobileNetV3-Large backbone (21
@@ -2194,6 +2254,7 @@ export const models = {
       XNNPACK_INT8: DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_INT8,
       XNNPACK_FP32: DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_FP32,
       COREML_FP16: DEEPLAB_V3_MOBILENET_V3_LARGE_COREML_FP16,
+      QNN_A16W8: DEEPLAB_V3_MOBILENET_V3_LARGE_QNN_A16W8,
     }),
     /**
      * Fully Convolutional Network (FCN) semantic segmentation model with
@@ -2203,6 +2264,7 @@ export const models = {
       XNNPACK_INT8: FCN_RESNET50_XNNPACK_INT8,
       XNNPACK_FP32: FCN_RESNET50_XNNPACK_FP32,
       COREML_FP16: FCN_RESNET50_COREML_FP16,
+      QNN_A16W8: FCN_RESNET50_QNN_A16W8,
     }),
     /**
      * Fully Convolutional Network (FCN) semantic segmentation model with
@@ -2212,6 +2274,7 @@ export const models = {
       XNNPACK_INT8: FCN_RESNET101_XNNPACK_INT8,
       XNNPACK_FP32: FCN_RESNET101_XNNPACK_FP32,
       COREML_FP16: FCN_RESNET101_COREML_FP16,
+      QNN_A16W8: FCN_RESNET101_QNN_A16W8,
     }),
   },
 

@@ -23,6 +23,7 @@ option(RNE_ENABLE_OPENCV "Compile + link OpenCV-dependent sources" ON)
 option(RNE_ENABLE_PHONEMIS "Compile phonemis (TTS) sources" ON)
 option(RNE_ENABLE_XNNPACK "Link the XNNPACK backend shared library" ON)
 option(RNE_ENABLE_VULKAN "Link the Vulkan backend shared library" ON)
+option(RNE_ENABLE_QNN "Link the Qualcomm QNN backend shared library (arm64 only)" OFF)
 
 find_package(ReactAndroid REQUIRED CONFIG)
 
@@ -169,6 +170,15 @@ if(RNE_ENABLE_VULKAN)
       IMPORTED_LOCATION "${LIBS_DIR}/executorch/${ANDROID_ABI}/libvulkan_executorch_backend.so")
 endif()
 
+# ------- QNN backend (optional, arm64 only) -------
+# The Qualcomm runtime it dlopens at load time (libQnnHtp.so and the Hexagon
+# skels) comes from the com.qualcomm.qti:qnn-runtime Maven artifact.
+if(RNE_ENABLE_QNN AND ANDROID_ABI STREQUAL "arm64-v8a")
+  add_library(qnn_executorch_backend SHARED IMPORTED)
+  set_target_properties(qnn_executorch_backend PROPERTIES
+      IMPORTED_LOCATION "${LIBS_DIR}/executorch/${ANDROID_ABI}/libqnn_executorch_backend.so")
+endif()
+
 # ------- OpenCV (optional, static) -------
 set(OPENCV_LINK_LIBS "")
 if(RNE_ENABLE_OPENCV)
@@ -223,4 +233,7 @@ if(RNE_ENABLE_XNNPACK)
 endif()
 if(RNE_ENABLE_VULKAN)
   target_link_libraries(${CMAKE_PROJECT_NAME} vulkan_executorch_backend)
+endif()
+if(TARGET qnn_executorch_backend)
+  target_link_libraries(${CMAKE_PROJECT_NAME} qnn_executorch_backend)
 endif()

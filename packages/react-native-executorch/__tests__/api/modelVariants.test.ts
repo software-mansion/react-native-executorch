@@ -79,11 +79,13 @@ function registryFor(options: {
   os: 'ios' | 'android';
   backends?: string[];
   isEmulator?: boolean;
+  qnnHtpArch?: string;
 }): Node {
   fakeJsi.setRegisteredBackends(
     options.backends ?? ['XnnpackBackend', 'CoreMLBackend', 'MLXBackend', 'VulkanBackend']
   );
   fakeJsi.setIsEmulator(options.isEmulator ?? false);
+  fakeJsi.setQnnHtpArch(options.qnnHtpArch);
 
   jest.resetModules();
   setPlatform(options.os);
@@ -323,6 +325,47 @@ describe('variant selection rules', () => {
   it('applies a pin only on the platform it names', () => {
     // The same group pins MLX for iOS only; Android resolves by its own order.
     expect(defaultKeyOf(distiluse(registryFor({ os: 'android' })))).toBe('VULKAN_FP16');
+  });
+});
+
+describe('QNN variants', () => {
+  const ANDROID_WITH_QNN = ['XnnpackBackend', 'VulkanBackend', 'QnnBackend'];
+  const efficientnet = (registry: Node): Node =>
+    (registry.classification as Node).EFFICIENTNET_V2_S as Node;
+
+  it('prefers QNN on Android when the backend is linked and the SoC is known', () => {
+    const registry = registryFor({ os: 'android', backends: ANDROID_WITH_QNN, qnnHtpArch: 'v75' });
+    expect(defaultKeyOf(efficientnet(registry))).toBe('QNN_A16W8');
+  });
+
+  it("resolves a QNN variant to the device's Hexagon version", () => {
+    const registry = registryFor({ os: 'android', backends: ANDROID_WITH_QNN, qnnHtpArch: 'v75' });
+    expect(modelPathsOf(efficientnet(registry).DEFAULT as Node)).toMatch(
+      /\/qnn\/efficientnet_v2_s_qnn_a16w8_v75\.pte$/
+    );
+  });
+
+  it('skips QNN on a device that cannot run it, even with the backend linked', () => {
+    const registry = registryFor({ os: 'android', backends: ANDROID_WITH_QNN });
+    expect(defaultKeyOf(efficientnet(registry))).toBe('XNNPACK_INT8');
+  });
+
+  it('skips QNN when the app did not link the backend', () => {
+    const registry = registryFor({ os: 'android', qnnHtpArch: 'v81' });
+    expect(defaultKeyOf(efficientnet(registry))).toBe('XNNPACK_INT8');
+  });
+
+  it('never picks QNN on iOS', () => {
+    const registry = registryFor({
+      os: 'ios',
+      backends: ['XnnpackBackend', 'CoreMLBackend', 'QnnBackend'],
+      qnnHtpArch: 'v81',
+    });
+    expect(
+      defaultsOf(registry)
+        .filter(({ key }) => key?.startsWith('QNN'))
+        .map(({ label, key }) => `${label}: ${key}`)
+    ).toEqual([]);
   });
 });
 

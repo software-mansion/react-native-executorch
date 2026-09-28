@@ -105,9 +105,16 @@ const namedVariants = (group: Node): Node[] =>
 const BACKENDS = /^(xnnpack|coreml|mlx|qnn|vulkan)$/;
 // `spinquant` is a quantization recipe rather than a plain precision, but it is
 // what the published Llama builds are named after.
-const PRECISIONS = /^(fp32|fp16|bf16|int8|int4|8da4w|8da8w|4w|dynamic|spinquant)$/;
+const PRECISIONS = /^(fp32|fp16|bf16|int8|int4|8da4w|8da8w|4w|a16w8|dynamic|spinquant)$/;
 
-const basename = (url: string) => url.split('/').pop()!.replace('.pte', '');
+// A QNN .pte targets one Hexagon version and carries it as a trailing `_vNN`,
+// after the usual modelname_backend_precision.
+const basename = (url: string) =>
+  url
+    .split('/')
+    .pop()!
+    .replace('.pte', '')
+    .replace(/(_qnn_[a-z0-9]+)_v\d+$/, '$1');
 
 /** The backend a `.pte` filename declares, or `undefined` when it declares none. */
 const backendOf = (url: string): string | undefined => {

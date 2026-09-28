@@ -23,6 +23,7 @@
  *   xnnpack-ios.tar.gz               -- XnnpackBackend.xcframework (iOS)
  *   vulkan-android-arm64-v8a.tar.gz  -- libvulkan_executorch_backend.so (Android only)
  *   vulkan-android-x86_64.tar.gz
+ *   qnn-android-arm64-v8a.tar.gz     -- libqnn_executorch_backend.so (Android arm64 only)
  *   coreml-ios.tar.gz                -- CoreMLBackend.xcframework (iOS only)
  *   mlx-ios.tar.gz                   -- MLXBackend.xcframework + mlx.metallib (iOS only)
  *
@@ -31,16 +32,17 @@
  *
  * User configuration (in the app's package.json) — three optional arrays, all merged into a single set:
  *   "react-native-executorch": {
- *     "backends": ["xnnpack", "coreml", "mlx", "vulkan"],
+ *     "backends": ["xnnpack", "coreml", "mlx", "vulkan", "qnn"],
  *     "libs":     ["opencv", "phonemis"],
  *     "features": ["llm", "textToSpeech", "objectDetection"]
  *   }
  *
  *   `features` is sugar — each one expands to a set of backends + libs via FEATURE_MAP below.
- *   If no `react-native-executorch` block is present, every backend and lib defaults to ON.
+ *   If no `react-native-executorch` block is present, every backend and lib defaults to ON,
+ *   except qnn, which is opt-in only (see below).
  *
  * Recognized values:
- *   backends:  xnnpack, coreml (iOS), mlx (iOS), vulkan (Android)
+ *   backends:  xnnpack, coreml (iOS), mlx (iOS), vulkan (Android), qnn (Android arm64)
  *   libs:      opencv, phonemis
  *   features:  llm, multimodalLLM, speechToText, textToSpeech, vad, privacyFilter,
  *              textEmbeddings, imageEmbeddings,
@@ -56,6 +58,9 @@
  *   coreml      iOS only — toggles CoreMLBackend.xcframework.
  *   mlx         iOS only — toggles MLXBackend.xcframework + mlx.metallib resource.
  *   vulkan      Android only — toggles libvulkan_executorch_backend.so.
+ *   qnn         Android arm64 only — toggles libqnn_executorch_backend.so and the Qualcomm
+ *               runtime (Maven com.qualcomm.qti:qnn-runtime). Opt-in: the runtime adds tens of
+ *               MB to the APK, so an app without a config block does not get it.
  *
  * Environment variables:
  *   RNET_SKIP_DOWNLOAD=1           -- skip download entirely (for CI with pre-cached libs)
@@ -112,7 +117,11 @@ const CACHE_DIR = process.env.RNET_LIBS_CACHE_DIR || DEFAULT_CACHE_DIR;
 
 // ---- User config -----------------------------------------------------------
 
-const ALL_BACKENDS = ['xnnpack', 'coreml', 'mlx', 'vulkan'];
+const ALL_BACKENDS = ['xnnpack', 'coreml', 'mlx', 'vulkan', 'qnn'];
+// What an app without a config block gets. qnn stays out: it pulls the
+// Qualcomm runtime from Maven, which is far larger than any other backend and
+// only pays off on Snapdragon devices.
+const DEFAULT_BACKENDS = ALL_BACKENDS.filter((b) => b !== 'qnn');
 const ALL_LIBS = ['opencv', 'phonemis'];
 
 // features -> { backends, libs }
@@ -231,7 +240,11 @@ function findUserConfig() {
 }
 
 function readUserConfig() {
-  const allOn = () => ({ backends: [...ALL_BACKENDS], libs: [...ALL_LIBS], opencvPod: undefined });
+  const allOn = () => ({
+    backends: [...DEFAULT_BACKENDS],
+    libs: [...ALL_LIBS],
+    opencvPod: undefined,
+  });
 
   const { config: rneConfig, manifest } = findUserConfig();
 
@@ -293,6 +306,7 @@ function writeBuildConfig({ backends, libs, opencvPod }) {
     enableCoreml: backends.includes('coreml'),
     enableMlx: backends.includes('mlx'),
     enableVulkan: backends.includes('vulkan'),
+    enableQnn: backends.includes('qnn'),
   };
   // Which pod provides opencv2 on iOS. Only set when the app asks for a
   // specific one; otherwise the podspec picks, preferring an OpenCV the app
@@ -319,6 +333,11 @@ function warnAboutPlatformAsymmetry({ backends }, targets) {
   if (hasAndroid && !hasIos && backends.includes('mlx')) {
     console.warn(
       '[react-native-executorch] mlx is enabled but the build targets only Android; the MLX backend is iOS-only and the flag has no effect here.'
+    );
+  }
+  if (hasIos && !hasAndroid && backends.includes('qnn')) {
+    console.warn(
+      '[react-native-executorch] qnn is enabled but the build targets only iOS; the QNN backend is Android-only and the flag has no effect here.'
     );
   }
   if (hasIos && !hasAndroid && backends.includes('vulkan')) {
@@ -397,6 +416,11 @@ function getArtifacts(targets, { backends, libs }) {
     // Vulkan is Android only
     if (backends.includes('vulkan') && target.startsWith('android')) {
       artifacts.push(makeArtifact(`vulkan-${target}`, destDir));
+    }
+
+    // QNN targets Snapdragon's Hexagon NPU, so it is Android arm64 only
+    if (backends.includes('qnn') && target === 'android-arm64-v8a') {
+      artifacts.push(makeArtifact(`qnn-${target}`, destDir));
     }
   }
 
@@ -498,6 +522,7 @@ const BACKEND_FILES = {
   android: {
     xnnpack: ['executorch/*/libxnnpack_executorch_backend.so'],
     vulkan: ['executorch/*/libvulkan_executorch_backend.so'],
+    qnn: ['executorch/*/libqnn_executorch_backend.so'],
   },
   ios: {
     xnnpack: ['XnnpackBackend.xcframework'],
@@ -611,7 +636,7 @@ async function main() {
     `[react-native-executorch] Backends: [${config.backends.join(', ') || '—'}]; Libs: [${config.libs.join(', ') || '—'}]`
   );
   console.log(
-    `[react-native-executorch] Build flags: opencv=${buildConfig.enableOpencv}, phonemis=${buildConfig.enablePhonemis}, xnnpack=${buildConfig.enableXnnpack}, coreml=${buildConfig.enableCoreml}, mlx=${buildConfig.enableMlx}, vulkan=${buildConfig.enableVulkan}`
+    `[react-native-executorch] Build flags: opencv=${buildConfig.enableOpencv}, phonemis=${buildConfig.enablePhonemis}, xnnpack=${buildConfig.enableXnnpack}, coreml=${buildConfig.enableCoreml}, mlx=${buildConfig.enableMlx}, vulkan=${buildConfig.enableVulkan}, qnn=${buildConfig.enableQnn}`
   );
 
   const targets = detectTargets();

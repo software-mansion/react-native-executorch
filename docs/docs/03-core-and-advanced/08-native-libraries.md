@@ -3,15 +3,25 @@ title: Native Libraries
 slug: /core-and-advanced/native-libraries
 description: 'How React Native ExecuTorch downloads, ships, and links native binaries on demand.'
 keywords:
-  [react native executorch, executorch, native libraries, backends, xnnpack, coreml, mlx, vulkan]
+  [
+    react native executorch,
+    executorch,
+    native libraries,
+    backends,
+    xnnpack,
+    coreml,
+    mlx,
+    vulkan,
+    qnn,
+  ]
 ---
 
 React Native ExecuTorch ships the core runtime, hardware-accelerated backends
-(XNNPACK, Core ML, MLX, Vulkan), and native third-party libraries (OpenCV,
+(XNNPACK, Core ML, MLX, Vulkan, QNN), and native third-party libraries (OpenCV,
 phonemis) as **separate downloadable artifacts**.
 
-By default, **everything is downloaded and enabled**, so no configuration is
-required to get started. However, because on-device AI backends and vision
+By default, **everything except QNN is downloaded and enabled**, so no
+configuration is required to get started. However, because on-device AI backends and vision
 libraries add substantial binary weight, you can tailor exactly what gets
 pulled into your app. Declaring only the features or backends you use reduces
 install times, speeds up builds, and significantly shrinks the final app bundle.
@@ -42,7 +52,7 @@ Add a `react-native-executorch` block to your `package.json`:
 | Option     | Purpose                                                                              | Accepted values                                                                                                                                                                                                                                                                                                                                           |
 | ---------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `features` | High-level tasks — each automatically expands to the backends and libraries it needs | `"classification"`, `"imageEmbeddings"`, `"instanceSegmentation"`, `"keypointDetection"`, `"llm"`, `"multimodalLLM"`, `"objectDetection"`, `"ocr"`, `"privacyFilter"`, `"segmentAnything"`, `"semanticSegmentation"`, `"speechToText"`, `"styleTransfer"`, `"textEmbeddings"`, `"textToImage"`, `"textToSpeech"`, `"tokenizer"`, `"vad"`, `"verticalOCR"` |
-| `backends` | Hardware acceleration backends directly                                              | `"xnnpack"`, `"coreml"`, `"mlx"`, `"vulkan"`                                                                                                                                                                                                                                                                                                              |
+| `backends` | Hardware acceleration backends directly                                              | `"xnnpack"`, `"coreml"`, `"mlx"`, `"vulkan"`, `"qnn"`                                                                                                                                                                                                                                                                                                     |
 | `libs`     | Extra native C++ libraries                                                           | `"opencv"`, `"phonemis"`                                                                                                                                                                                                                                                                                                                                  |
 
 The three lists are merged, so you can pair high-level `features` with specific `backends` or `libs`. Re-run your package manager install after editing.
@@ -71,6 +81,7 @@ Hardware backends provide optimized execution kernels for specific processors an
 - **[Core ML](https://docs.pytorch.org/executorch/stable/backends/coreml/coreml-overview.html)** — Apple's framework for hardware-accelerated machine learning on Apple Silicon, targeting the Apple Neural Engine (ANE) and GPU. Supported on **iOS only**.
 - **[MLX](https://github.com/ml-explore/mlx)** — An array framework designed for efficient machine learning on Apple silicon via Metal compute shaders, used primarily for accelerated LLM generation. Supported on **iOS only** (physical device only, no simulator).
 - **[Vulkan](https://docs.pytorch.org/executorch/stable/backends/vulkan/vulkan-overview.html)** — Cross-platform 3D graphics and compute API, leveraging mobile GPUs on **Android only** for accelerated neural network inference and tensor compute operations.
+- **[QNN](https://docs.pytorch.org/executorch/stable/backends-qualcomm.html)** — Qualcomm AI Engine Direct, running models on the Hexagon NPU of Snapdragon 8 Gen 1 and newer (SM8450, SM8475, SM8550, SM8650, SM8750, SM8845, SM8850). **Android arm64 only**, and **opt-in**: it is never enabled by default and no `feature` expands to it, so add `"qnn"` to `backends` explicitly. See [QNN](#qnn) below.
 
 ### Third-Party Libraries
 
@@ -103,6 +114,29 @@ Specifying a task under `features` is shorthand: it automatically expands to the
 | `segmentAnything`      | xnnpack, coreml, vulkan      | opencv              |
 | `tokenizer`            | —                            | —                   |
 
+## QNN
+
+Enabling `qnn` links the ExecuTorch QNN backend and adds Qualcomm's runtime
+(`com.qualcomm.qti:qnn-runtime`) from Maven. A QNN model is compiled for one
+Hexagon version, so each QNN variant is published once per version and the
+registry resolves it to the device's file. On any other device, or when the
+requirements below are not met, `DEFAULT` falls back to the next backend.
+
+The Hexagon DSP loads Qualcomm's skel libraries from disk, so the app has to
+extract its native libraries. In `android/app/build.gradle`:
+
+```groovy
+android {
+  packaging {
+    jniLibs {
+      useLegacyPackaging = true
+      // Not needed for the precompiled models the registry ships.
+      excludes += ['**/libQnnHtpPrepare.so', '**/libQnnGpu.so', '**/libQnnDsp*.so', '**/libQnnHtpV68*.so']
+    }
+  }
+}
+```
+
 ## Binary size
 
 Approximate size each backend adds to a release `arm64` build:
@@ -113,3 +147,6 @@ Approximate size each backend adds to a release `arm64` build:
 | `coreml`  | —        | +0.4 MB |
 | `mlx`     | —        | +6.0 MB |
 | `vulkan`  | +10.3 MB | —       |
+| `qnn`     | +92 MB¹  | —       |
+
+¹ Uncompressed, with the excludes shown in [QNN](#qnn); 202 MB without them.
