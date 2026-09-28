@@ -1,0 +1,47 @@
+{
+  "name": "benchmarks",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "react-native-executorch": {
+    "backends": [
+      "xnnpack",
+      "coreml",
+      "mlx",
+      "vulkan"
+    ],
+    "libs": [
+      "opencv",
+      "phonemis"
+    ]
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "typecheck": "tsc",
+    "lint": "eslint . --ext .ts,.tsx --fix",
+    "bench": "node scripts/run-benchmarks.mjs",
+    "bench:compare": "node scripts/compare.mjs",
+    "bench:summary": "node scripts/summarize.mjs",
+    "bench:sizes": "node scripts/fetch-variant-sizes.mjs"
+  },
+  "dependencies": {
+    "expo": "~56.0.9",
+    "expo-build-properties": "~56.0.17",
+    "expo-keep-awake": "~56.0.3",
+    "react": "19.2.3",
+    "react-native": "0.85.3",
+    "react-native-blob-util": "^0.24.0",
+    "react-native-executorch": "workspace:*",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-worklets": "0.10.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@react-native/metro-config": "^0.86.0",
+    "@types/react": "~19.2.0",
+    "babel-preset-expo": "~56.0.14",
+    "react-refresh": "^0.14.0"
+  },
+  "private": true
+}
