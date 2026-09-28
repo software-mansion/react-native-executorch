@@ -35,9 +35,9 @@ import { RnExecuTorchError } from '../../../core/error';
  */
 // prettier-ignore
 export const SUPERTONIC_SUPPORTED_LANGUAGES = [
-  'ar', 'bg', 'cs', 'da', 'de', 'el', 'en', 'es', 'fi', 'fr', 'hi', 'hr',
-  'hu', 'id', 'it', 'ja', 'ko', 'ms', 'nl', 'no', 'pl', 'pt', 'ro', 'ru',
-  'sk', 'sv', 'sw', 'ta', 'th', 'tl', 'tr', 'na',
+  'ar', 'bg', 'cs', 'da', 'de', 'el', 'en', 'es', 'et', 'fi', 'fr', 'hi',
+  'hr', 'hu', 'id', 'it', 'ja', 'ko', 'lt', 'lv', 'nl', 'pl', 'pt', 'ro',
+  'ru', 'sk', 'sl', 'sv', 'tr', 'uk', 'vi', 'na',
 ] as const;
 
 /**

@@ -8,6 +8,7 @@
  */
 import * as constants from '../../src/constants';
 import { models } from '../../src/models';
+import * as speech from '../../src/extensions/speech';
 
 // Sizes are asserted by name rather than by passing the arrays through
 // `it.each`, which would print a thousand ImageNet labels into the test title.
@@ -187,6 +188,26 @@ describe('SUPERTONIC_DEFAULT_VOICE_NAMES', () => {
     const names = constants.SUPERTONIC_DEFAULT_VOICE_NAMES;
     expect(new Set(names).size).toBe(names.length);
     for (const name of names) expect(name).toMatch(/^[FM][1-5]$/);
+  });
+});
+
+describe('SUPERTONIC_SUPPORTED_LANGUAGES', () => {
+  // Supertonic 3's upstream AVAILABLE_LANGS. The model is conditioned only by
+  // the `<lang>` text tag, so an untrained code synthesizes without an error.
+  // prettier-ignore
+  const UPSTREAM = [
+    'en', 'ko', 'ja', 'ar', 'bg', 'cs', 'da', 'de', 'el', 'es', 'et', 'fi',
+    'fr', 'hi', 'hr', 'hu', 'id', 'it', 'lt', 'lv', 'nl', 'pl', 'pt', 'ro',
+    'ru', 'sk', 'sl', 'sv', 'tr', 'uk', 'vi', 'na',
+  ];
+
+  it('matches the upstream language set', () => {
+    expect([...speech.SUPERTONIC_SUPPORTED_LANGUAGES].sort()).toEqual([...UPSTREAM].sort());
+  });
+
+  it('rejects a language the model was not trained on', () => {
+    expect(() => speech.formatChunk('Hello.', 'th')).toThrow(/Unsupported language: th/);
+    expect(speech.formatChunk('Hello.', 'vi')).toBe('<vi>Hello.</vi>');
   });
 });
 
