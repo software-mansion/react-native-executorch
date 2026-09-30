@@ -1,0 +1,185 @@
+---
+title: Benchmarks
+slug: /benchmarks
+description: 'On-device latency, memory usage, and model size across React Native ExecuTorch models, measured on physical mobile devices.'
+keywords:
+  [
+    react native executorch,
+    benchmark,
+    performance,
+    on-device ai,
+    latency,
+    xnnpack,
+    core ml,
+    vulkan,
+    mlx,
+    llm,
+  ]
+---
+
+import BenchmarkChart from '@site/src/components/Benchmarks';
+
+# Benchmarks
+
+Real silicon, real numbers. Every benchmark here was measured on physical iOS and Android devices running models directly from the React Native ExecuTorch registry—no simulator estimates, no theoretical FLOPs.
+
+We profile the complete on-device inference lifecycle:
+- **End-to-End Pipeline**: Total latency from raw input (pixels, audio, text) to final result, capturing pre-processing, forward passes, and post-processing.
+- **ExecuTorch Model Time**: Time spent strictly executing model forward passes inside the runtime.
+- **Memory & Binary Footprint**: Peak resident RAM and binary download size across precision formats.
+- **Cold-Start Init**: Time to map weights into memory and initialize the runtime session.
+
+Explore the charts below to compare backends and find the optimal trade-off for your app.
+
+## Devices
+
+Measurements were collected on physical iOS and Android devices spanning flagship, modern mid-tier, and legacy hardware tiers.
+
+| Device | Backends tested | Variants | Notes |
+|---|---|---|---|
+| Samsung Galaxy S26 Ultra | XNNPACK (100), Vulkan (24) | 124 | Flagship Android test device (Snapdragon SM8850); covers all standard tasks and 23 LLM variants |
+| Google Pixel 10 | XNNPACK (100), Vulkan (24) | 124 | Modern Android device featuring Google Tensor G5 |
+| Samsung Galaxy S20+ | XNNPACK (100), Vulkan (24) | 124 | Baseline Android device (Exynos 990) representing older generation hardware |
+| iPhone 17 | XNNPACK (100), Core ML (75), MLX (15) | 190 | Flagship iOS reference device (A19) testing XNNPACK, Core ML, and MLX execution |
+| iPhone SE (3rd gen) | XNNPACK (99), Core ML (73), MLX (15) | 187 | Compact iOS hardware (A15 Bionic) with 4 GB RAM to test performance and memory bounds |
+
+## Results
+
+:::note Performance and Precision Trade-offs
+These benchmarks measure execution latency, memory utilization, and initialization times. Quantized models (such as `int8` or `8da4w`) significantly reduce memory footprint and download size while accelerating inference, but should always be evaluated for task accuracy on your specific application datasets. Run-to-run variations on physical mobile devices are common due to background system tasks and dynamic thermal management.
+:::
+
+### [Image Classification](../02-extensions/computer-vision/02-image-classification.md)
+
+:::info Input & Pipeline Details
+- **Input:** 512x512 RGBA frame (evaluated on a synthetic test image with color gradients and geometric shapes).
+- **Preprocessing Impact:** The input image is resized, center-cropped, and normalized into model input dimensions (e.g. 224x224). Passing larger source camera frames (such as 1080p or 4K) increases image decoding and downscaling time during the pre-processing phase before tensor execution.
+:::
+
+<BenchmarkChart task="classification" />
+
+### [Object Detection](../02-extensions/computer-vision/03-object-detection.md)
+
+:::info Input & Pipeline Details
+- **Input:** 640x640 RGBA frame.
+- **Preprocessing & Post-processing Impact:** Input frames are scaled with aspect-ratio padding to 640x640. Post-processing duration depends directly on visual complexity: scenes with many candidate bounding boxes require more Non-Maximum Suppression (NMS) computations, while sparse scenes resolve quickly.
+:::
+
+<BenchmarkChart task="object-detection" />
+
+### [Instance Segmentation](../02-extensions/computer-vision/07-instance-segmentation.md)
+
+:::info Input & Pipeline Details
+- **Input:** 640x640 RGBA frame.
+- **Preprocessing & Post-processing Impact:** Higher source image resolutions add pre-processing resizing overhead. In post-processing, each detected instance requires bounding box scaling and dense binary mask thresholding/decoding, which accounts for a substantial portion of overall pipeline time.
+:::
+
+<BenchmarkChart task="instance-segmentation" />
+
+### [Semantic Segmentation](../02-extensions/computer-vision/06-semantic-segmentation.md)
+
+:::info Input & Pipeline Details
+- **Input:** 512x512 RGBA frame.
+- **Preprocessing & Post-processing Impact:** The model outputs a full-resolution `[H, W]` class index map. Pre-processing resizes the input canvas, while post-processing performs an argmax over class logits and upsamples the mask back to display dimensions, scaling with target canvas area.
+:::
+
+<BenchmarkChart task="semantic-segmentation" />
+
+### [Pose & Keypoints](../02-extensions/computer-vision/04-pose-and-keypoints.md)
+
+:::info Input & Pipeline Details
+- **Input:** 512x512 RGBA frame.
+- **Preprocessing & Post-processing Impact:** Pre-processing letterboxes and normalizes input frames. Post-processing decodes heatmaps into (x, y) coordinates and confidence scores for 17 body keypoints; this step is relatively fixed in complexity and represents only a minor fraction of the total pipeline.
+:::
+
+<BenchmarkChart task="keypoint-detection" />
+
+### [Style Transfer](../02-extensions/computer-vision/08-style-transfer.md)
+
+:::info Input & Pipeline Details
+- **Input:** 512x512 RGBA frame.
+- **Preprocessing & Memory Impact:** Feedforward style networks process entire feature maps without heavy spatial downsampling bottlenecks. Input frame dimensions directly govern internal activation tensor sizes, meaning doubling input resolution quadruples runtime RAM usage and computational workload.
+:::
+
+<BenchmarkChart task="style-transfer" />
+
+### [Image Embeddings](../02-extensions/computer-vision/09-image-embeddings.md)
+
+:::info Input & Pipeline Details
+- **Input:** 512x512 RGBA frame.
+- **Preprocessing & Post-processing Impact:** Input images are resized and normalized to standard vision backbone dimensions (e.g. 224x224 or 384x384). Post-processing consists of a fast L2 feature vector normalization, meaning almost all pipeline latency is spent in model inference.
+:::
+
+<BenchmarkChart task="image-embeddings" />
+
+### [OCR](../02-extensions/computer-vision/05-optical-character-recognition.md)
+
+:::info Input & Pipeline Details
+- **Input:** 640x640 RGBA frame.
+- **Pipeline Structure & Latency Impact:** OCR operates as a two-stage pipeline: a text detector first locates text bounding boxes on the 640x640 frame, and a text recognizer runs on each detected crop. Pipeline latency scales linearly with the number of text words/lines present in the image.
+:::
+
+<BenchmarkChart task="ocr" />
+
+### [Text to Image](../02-extensions/computer-vision/10-text-to-image.md)
+
+:::info Input & Pipeline Details
+- **Input:** Prompt (`a small wooden sailboat on a calm lake at sunrise`), fixed random seed.
+- **Pipeline Structure & Memory Impact:** The pipeline tokenizes text, embeds prompt conditioning, runs iterative latent diffusion denoising steps, and decodes the latent representation to a 512x512 image via a VAE decoder. Denoising step count and latent resolution dominate execution time and peak memory.
+:::
+
+<BenchmarkChart task="text-to-image" />
+
+### [Text Embeddings](../02-extensions/natural-language/03-text-embeddings.md)
+
+:::info Input & Pipeline Details
+- **Input:** Fixed 4-sentence English paragraph (~80 words).
+- **Preprocessing & Sequence Length Impact:** Preprocessing converts text to token IDs and attention masks. Model execution latency scales with token sequence length; post-processing applies mean pooling across token embeddings with negligible runtime cost.
+:::
+
+<BenchmarkChart task="text-embeddings" />
+
+### [Privacy Filter](../02-extensions/natural-language/04-privacy-filter.md)
+
+:::info Input & Pipeline Details
+- **Input:** Fixed 3-sentence paragraph containing sample PII entities (names, email, phone number, address, and account numbers).
+- **Preprocessing & Post-processing Impact:** Pre-processing handles subword tokenization. Post-processing maps token classification labels (BIO tags) back to original character offsets to apply redaction masks, scaling with document character count.
+:::
+
+<BenchmarkChart task="privacy-filter" />
+
+### [LLM Chat & Text Generation](../02-extensions/natural-language/02-llm-chat-and-generation.md)
+
+:::info Input & Pipeline Details
+- **Input:** Prompt (`List three uses for a paperclip.`), 64 tokens generated at temperature 0 (greedy decoding).
+- **Prefill vs. Decode & Memory Impact:** Longer input prompts increase initial prefill time (time to first token), while autoregressive decoding generates one token per forward pass. Memory footprint is primarily driven by model weights and allocated key-value (KV) cache buffers.
+:::
+
+<BenchmarkChart task="llm" />
+
+### [Speech to Text](../02-extensions/speech/03-speech-to-text.md)
+
+:::info Input & Pipeline Details
+- **Input:** 10 seconds of mono audio sampled at 16 kHz.
+- **Preprocessing & Decoding Impact:** Pre-processing transforms raw PCM audio into 80-channel log-mel spectrogram features. Audio duration governs encoder computation time, while the density of spoken speech determines the number of autoregressive decoder steps.
+:::
+
+<BenchmarkChart task="speech-to-text" />
+
+### [Text to Speech](../02-extensions/speech/02-text-to-speech.md)
+
+:::info Input & Pipeline Details
+- **Input:** Fixed 2-sentence English paragraph.
+- **Pipeline Structure & Latency Impact:** Text is normalized and phonemized before acoustic and vocoder model stages synthesize the audio waveform. Total synthesis duration scales proportionally with input character length and output audio duration.
+:::
+
+<BenchmarkChart task="text-to-speech" />
+
+### [Voice Activity Detection](../02-extensions/speech/04-voice-activity-detection.md)
+
+:::info Input & Pipeline Details
+- **Input:** 10 seconds of mono audio sampled at 16 kHz.
+- **Preprocessing & Chunking Impact:** Audio is streamed in small sequential chunks (e.g. 30–50 ms). Acoustic feature extraction and classification have very low compute overhead, making the pipeline suitable for continuous background execution.
+:::
+
+<BenchmarkChart task="voice-activity-detection" />

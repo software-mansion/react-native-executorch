@@ -1,0 +1,417 @@
+.wrapper {
+  margin: 1.5rem 0 2rem;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem 1rem;
+  background: var(--ifm-background-surface-color);
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1.1rem;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fieldLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.select {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.32rem 1.9rem 0.32rem 0.65rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  background-color: var(--ifm-background-surface-color);
+  color: var(--ifm-font-color-base);
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    right 0.85rem top 55%,
+    right 0.55rem top 55%;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  max-width: 16rem;
+}
+
+.select:hover {
+  border-color: var(--ifm-color-emphasis-500);
+}
+
+.metricGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.metricButtonWrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.metricTooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--ifm-background-surface-color);
+  color: var(--ifm-font-color-base);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  width: max-content;
+  max-width: 280px;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0.18s;
+  z-index: 50;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.metricTooltip strong {
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+.metricTooltipDesc {
+  color: var(--ifm-font-color-base);
+}
+
+.metricTooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--ifm-color-emphasis-300) transparent transparent transparent;
+}
+
+.metricButtonWrapper:hover .metricTooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.metricButton {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ifm-color-emphasis-700);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.metricButton:hover {
+  border-color: var(--swm-navy-light-100);
+  color: var(--swm-navy-light-100);
+}
+
+[data-theme='dark'] .metricButton:hover {
+  border-color: var(--swm-cornflower-100);
+  color: var(--swm-cornflower-100);
+}
+
+.metricButtonActive {
+  background: var(--swm-navy-light-100);
+  border-color: var(--swm-navy-light-100);
+  color: var(--swm-off-white);
+}
+
+[data-theme='dark'] .metricButtonActive {
+  background: var(--swm-cornflower-100);
+  border-color: var(--swm-cornflower-100);
+  color: var(--swm-off-white);
+}
+
+.metricButtonActive:hover {
+  background: var(--swm-navy-light-100);
+  border-color: var(--swm-navy-light-100);
+  color: var(--swm-off-white);
+}
+
+[data-theme='dark'] .metricButtonActive:hover {
+  background: var(--swm-cornflower-100);
+  border-color: var(--swm-cornflower-100);
+  color: var(--swm-off-white);
+}
+
+.plotOuter {
+  position: relative;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.gridLine {
+  stroke: var(--ifm-color-emphasis-200);
+  stroke-width: 1;
+}
+
+.tickLabel {
+  fill: var(--ifm-color-emphasis-600);
+  font-size: 13px;
+}
+
+.bar {
+  fill: var(--bench-color);
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: barGrow 0.45s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.barXnnpack {
+  --bench-color: #4d7cfe;
+}
+
+.barCoreml {
+  --bench-color: #8b5cf6;
+}
+
+.barVulkan {
+  --bench-color: #14b8a6;
+}
+
+.barMlx {
+  --bench-color: #f59e0b;
+}
+
+.valueLabel {
+  fill: var(--ifm-font-color-base);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  animation: labelFade 0.45s ease both;
+}
+
+.precisionLabel {
+  fill: var(--ifm-color-emphasis-600);
+  font-size: 10px;
+  animation: labelFade 0.45s ease both;
+}
+
+.deviceLabel {
+  fill: var(--ifm-font-color-base);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.missingLabel {
+  fill: var(--ifm-color-emphasis-400);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.barGroup {
+  cursor: pointer;
+}
+
+.hoverTarget {
+  fill: transparent;
+  pointer-events: all;
+  cursor: pointer;
+}
+
+.tooltip {
+  position: absolute;
+  min-width: 11rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 10px;
+  background: var(--ifm-background-surface-color);
+  box-shadow: 0 6px 22px rgb(0 0 0 / 18%);
+  pointer-events: none;
+  z-index: 5;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.tooltipTitle {
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  white-space: nowrap;
+}
+
+.tooltipTable td {
+  padding: 0 0 0.05rem;
+  border: none;
+}
+
+.tooltipTable td:first-child {
+  padding-right: 0.9rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.tooltipTable td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.footer {
+  margin-top: 1.25rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.legendRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1.25rem;
+}
+
+.legendBackends {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.legendLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.legendBadges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.55rem;
+}
+
+.legendBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.77rem;
+  color: var(--ifm-color-emphasis-800);
+  background: var(--ifm-color-emphasis-100);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  line-height: 1.3;
+}
+
+.legendDot {
+  width: 0.58rem;
+  height: 0.58rem;
+  border-radius: 2px;
+  background: var(--bench-color);
+  flex-shrink: 0;
+}
+
+.legendDirection {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ifm-color-emphasis-600);
+  white-space: nowrap;
+}
+
+.legendDescriptionRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1.25rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.metricSummary {
+  margin: 0;
+  flex: 1 1 20rem;
+}
+
+.metricSummaryName {
+  font-weight: 600;
+  color: var(--ifm-font-color-base);
+}
+
+.metricSummaryText {
+  color: var(--ifm-color-emphasis-700);
+}
+
+.precisionNote {
+  font-size: 0.73rem;
+  color: var(--ifm-color-emphasis-500);
+  white-space: nowrap;
+}
+
+@keyframes barGrow {
+  from {
+    transform: scaleY(0);
+    opacity: 0.4;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes labelFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar,
+  .valueLabel,
+  .precisionLabel {
+    animation: none;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .wrapper {
+    padding: 0.85rem 0.75rem 0.85rem;
+  }
+}
