@@ -52,8 +52,8 @@ These benchmarks measure execution latency, memory utilization, and initializati
 ### [Image Classification](../02-extensions/computer-vision/02-image-classification.md)
 
 :::info Input & Pipeline Details
-- **Input:** 512x512 RGBA frame (evaluated on a synthetic test image with color gradients and geometric shapes).
-- **Preprocessing Impact:** The input image is resized, center-cropped, and normalized into model input dimensions (e.g. 224x224). Passing larger source camera frames (such as 1080p or 4K) increases image decoding and downscaling time during the pre-processing phase before tensor execution.
+- **Input:** 512x512 RGBA frame (synthetic test image: vertical color gradient with three solid ellipses).
+- **Pipeline Structure:** The preprocessor resizes the raw image buffer to the model's input dimensions `[1, 3, H, W]` (using `stretch` mode for EfficientNet-V2-S), converts format layout to channels-first `[3, H, W]`, and normalizes pixel values. Post-processing applies `softmax` over output logits, maps confidence scores to ImageNet-1K class labels, and sorts the predictions by confidence.
 :::
 
 <BenchmarkChart task="classification" />
@@ -61,8 +61,8 @@ These benchmarks measure execution latency, memory utilization, and initializati
 ### [Object Detection](../02-extensions/computer-vision/03-object-detection.md)
 
 :::info Input & Pipeline Details
-- **Input:** 640x640 RGBA frame.
-- **Preprocessing & Post-processing Impact:** Input frames are scaled with aspect-ratio padding to 640x640. Post-processing duration depends directly on visual complexity: scenes with many candidate bounding boxes require more Non-Maximum Suppression (NMS) computations, while sparse scenes resolve quickly.
+- **Input:** 640x640 RGBA frame (vertical color gradient with three solid ellipses).
+- **Pipeline Structure:** Preprocessing resizes or letterboxes the input frame into the model's expected dimensions `[1, 3, H, W]` (ranging from 320x320 for SSDLite to 384x384, 512x512, or 640x640 across YOLO26 and RF-DETR variants). The model outputs candidate bounding boxes `[N, 4]`, confidence scores `[N]`, and class indices `[N]`. Post-processing executes Non-Maximum Suppression (NMS) to eliminate overlapping detections, maps class indices to COCO labels, and decodes and scales bounding boxes back to the original image dimensions.
 :::
 
 <BenchmarkChart task="object-detection" />
@@ -71,7 +71,7 @@ These benchmarks measure execution latency, memory utilization, and initializati
 
 :::info Input & Pipeline Details
 - **Input:** 640x640 RGBA frame.
-- **Preprocessing & Post-processing Impact:** Higher source image resolutions add pre-processing resizing overhead. In post-processing, each detected instance requires bounding box scaling and dense binary mask thresholding/decoding, which accounts for a substantial portion of overall pipeline time.
+- **Pipeline Structure:** Preprocessing resizes the input buffer to the model's input shape `[1, 3, H, W]` (ranging from 384x384 to 640x640 across FastSAM, YOLO26, and RF-DETR variants). The model outputs candidate boxes `[N, 4]`, confidence scores `[N]`, class indices `[N]`, and prototype mask logits `[N, MH, MW]`. Post-processing runs NMS on boxes, then for each surviving detection: scales the box to image coordinates, resizes the instance mask to original dimensions, thresholds mask logits, crops to the bounding box, and generates a grayscale mask buffer.
 :::
 
 <BenchmarkChart task="instance-segmentation" />
@@ -80,7 +80,7 @@ These benchmarks measure execution latency, memory utilization, and initializati
 
 :::info Input & Pipeline Details
 - **Input:** 512x512 RGBA frame.
-- **Preprocessing & Post-processing Impact:** The model outputs a full-resolution `[H, W]` class index map. Pre-processing resizes the input canvas, while post-processing performs an argmax over class logits and upsamples the mask back to display dimensions, scaling with target canvas area.
+- **Pipeline Structure:** Preprocessing resizes and normalizes the image to the model input dimensions `[1, 3, H, W]`. The model outputs class logits `[1, K, H, W]` (or `[1, 1, H, W]` for single-class/selfie models). For multi-class models, post-processing performs an `argmax` across class channels, applies a color palette (`applyColormap`) to create an RGBA mask buffer, and resizes the colored mask to original input dimensions. For single-class models, it applies `sigmoid` and grayscale mapping.
 :::
 
 <BenchmarkChart task="semantic-segmentation" />
@@ -89,7 +89,7 @@ These benchmarks measure execution latency, memory utilization, and initializati
 
 :::info Input & Pipeline Details
 - **Input:** 512x512 RGBA frame.
-- **Preprocessing & Post-processing Impact:** Pre-processing letterboxes and normalizes input frames. Post-processing decodes heatmaps into (x, y) coordinates and confidence scores for 17 body keypoints; this step is relatively fixed in complexity and represents only a minor fraction of the total pipeline.
+- **Pipeline Structure:** Preprocessing resizes and normalizes the image buffer to `[1, 3, H, W]`. The model directly outputs candidate bounding boxes `[N, 4]`, confidence scores `[N]`, and landmark coordinates `[N, K, 3]` (17 body keypoints for YOLO/RF-DETR or 6 facial landmarks for BlazeFace, with x, y, confidence per point). Post-processing executes weighted Non-Maximum Suppression (NMS) to cluster overlapping candidates, computes confidence-weighted averages for both box and landmark coordinates, and scales them back to original image dimensions.
 :::
 
 <BenchmarkChart task="keypoint-detection" />
@@ -98,7 +98,8 @@ These benchmarks measure execution latency, memory utilization, and initializati
 
 :::info Input & Pipeline Details
 - **Input:** 512x512 RGBA frame.
-- **Preprocessing & Memory Impact:** Feedforward style networks process entire feature maps without heavy spatial downsampling bottlenecks. Input frame dimensions directly govern internal activation tensor sizes, meaning doubling input resolution quadruples runtime RAM usage and computational workload.
+- **Pipeline Structure:** Preprocessing resizes the input buffer to the model's fixed input dimensions `[3, H, W]` and normalizes it. The feedforward style network outputs stylized feature maps `[3, H, W]`. Post-processing denormalizes values, converts RGB to RGBA, and resizes the styled image back to the original canvas dimensions.
+- **Memory Footprint:** Feedforward style networks maintain full spatial resolution across internal feature representations without heavy pooling, which produces massive intermediate activation tensors. Peak memory routinely exceeds 1.1 GB despite tiny weight files (~2 MB).
 :::
 
 <BenchmarkChart task="style-transfer" />
@@ -107,7 +108,7 @@ These benchmarks measure execution latency, memory utilization, and initializati
 
 :::info Input & Pipeline Details
 - **Input:** 512x512 RGBA frame.
-- **Preprocessing & Post-processing Impact:** Input images are resized and normalized to standard vision backbone dimensions (e.g. 224x224 or 384x384). Post-processing consists of a fast L2 feature vector normalization, meaning almost all pipeline latency is spent in model inference.
+- **Pipeline Structure:** Powered by CLIP ViT-B/32, preprocessing resizes and normalizes the input image buffer to 224x224 (`[1, 3, 224, 224]`). The model outputs a 512-dimensional embedding vector `[1, 512]`. Post-processing reads the raw float32 tensor data directly into a `Float32Array` with virtually zero compute overhead, meaning total pipeline time is dominated almost entirely by model execution and image preprocessing.
 :::
 
 <BenchmarkChart task="image-embeddings" />
@@ -116,7 +117,8 @@ These benchmarks measure execution latency, memory utilization, and initializati
 
 :::info Input & Pipeline Details
 - **Input:** 640x640 RGBA frame.
-- **Pipeline Structure & Latency Impact:** OCR operates as a two-stage pipeline: a text detector first locates text bounding boxes on the 640x640 frame, and a text recognizer runs on each detected crop. Pipeline latency scales linearly with the number of text words/lines present in the image.
+- **Pipeline Structure:** Powered by PP-OCRv6 inside a single fused model with two execution methods. First, DBNet text detection (`forward_detect`) letterboxes the 640x640 frame and detects oriented quadrilaterals (`Quad` with 4 corner points). The detected quads are sorted into reading order. Second, each quad is rectified to the text recognizer canvas and evaluated by SVTR (`forward_recognize`), followed by greedy CTC decoding to text strings.
+- **Mixed Precision:** The model uses mixed precision: an int8 DBNet detector paired with an fp32 SVTR recognizer (kept in fp32 because int8 quantization degrades accuracy on the SVTR attention stack).
 :::
 
 <BenchmarkChart task="ocr" />
@@ -125,7 +127,7 @@ These benchmarks measure execution latency, memory utilization, and initializati
 
 :::info Input & Pipeline Details
 - **Input:** Prompt (`a small wooden sailboat on a calm lake at sunrise`), fixed random seed.
-- **Pipeline Structure & Memory Impact:** The pipeline tokenizes text, embeds prompt conditioning, runs iterative latent diffusion denoising steps, and decodes the latent representation to a 512x512 image via a VAE decoder. Denoising step count and latent resolution dominate execution time and peak memory.
+- **Pipeline Structure:** Powered by SDXS-512-DreamShaper, a distilled **single-step** latent diffusion model with no iterative denoising loop and no classifier-free guidance. First, a CLIP text encoder (`encode`) transforms 77 token IDs into text conditioning `[1, 77, 768]`. Next, a single UNet forward pass (`denoise`) updates initial Gaussian noise latents at timestep 999. Finally, a TAESD tiny decoder (`decode`) reconstructs the 4-channel latents `[1, 4, 64, 64]` into a full 512x512 RGBA image.
 :::
 
 <BenchmarkChart task="text-to-image" />
@@ -134,7 +136,7 @@ These benchmarks measure execution latency, memory utilization, and initializati
 
 :::info Input & Pipeline Details
 - **Input:** Fixed 4-sentence English paragraph (~80 words).
-- **Preprocessing & Sequence Length Impact:** Preprocessing converts text to token IDs and attention masks. Model execution latency scales with token sequence length; post-processing applies mean pooling across token embeddings with negligible runtime cost.
+- **Pipeline Structure:** The tokenizer converts input text into `int64` token IDs and an attention mask `[1, sequence_length]`, truncated only if exceeding the model's maximum sequence length. Sequence pooling and normalization are baked directly into the exported `.pte` model graph, which outputs the final embedding vector `[1, D]` (or `[D]`). Post-processing reads the raw embedding vector with negligible overhead.
 :::
 
 <BenchmarkChart task="text-embeddings" />
@@ -142,8 +144,8 @@ These benchmarks measure execution latency, memory utilization, and initializati
 ### [Privacy Filter](../02-extensions/natural-language/04-privacy-filter.md)
 
 :::info Input & Pipeline Details
-- **Input:** Fixed 3-sentence paragraph containing sample PII entities (names, email, phone number, address, and account numbers).
-- **Preprocessing & Post-processing Impact:** Pre-processing handles subword tokenization. Post-processing maps token classification labels (BIO tags) back to original character offsets to apply redaction masks, scaling with document character count.
+- **Input:** Fixed 3-sentence paragraph containing sample PII entities (name, email, phone number, address, and account number).
+- **Pipeline Structure:** The tokenizer converts input text into subword token IDs and an attention mask. The model evaluates token-level classification logits over a BIOES label space (`B-`, `I-`, `O`, `E-`, `S-`). Post-processing parses the BIOES grammar and detects structured entity spans (`PiiEntity` with entity type label, character start/end offsets, text, and confidence). Inputs exceeding the model window are evaluated via 50% overlapping sliding windows.
 :::
 
 <BenchmarkChart task="privacy-filter" />
@@ -151,8 +153,8 @@ These benchmarks measure execution latency, memory utilization, and initializati
 ### [LLM Chat & Text Generation](../02-extensions/natural-language/02-llm-chat-and-generation.md)
 
 :::info Input & Pipeline Details
-- **Input:** Prompt (`List three uses for a paperclip.`), 64 tokens generated at temperature 0 (greedy decoding).
-- **Prefill vs. Decode & Memory Impact:** Longer input prompts increase initial prefill time (time to first token), while autoregressive decoding generates one token per forward pass. Memory footprint is primarily driven by model weights and allocated key-value (KV) cache buffers.
+- **Input:** Prompt (`List three uses for a paperclip.`), 64 tokens decoded with EOS ignored, temperature 0 (greedy decoding).
+- **Prefill vs. Decode & Memory:** The short prompt isolates autoregressive token generation throughput (tokens/second) and time to first token (TTFT). Autoregressive decoding executes one forward pass per generated token. Peak memory is driven by model weights and allocated key-value (KV) cache buffers, with models larger than 2 GB peaking between 2.4 and 3.5 GB of resident RAM.
 :::
 
 <BenchmarkChart task="llm" />
@@ -161,7 +163,8 @@ These benchmarks measure execution latency, memory utilization, and initializati
 
 :::info Input & Pipeline Details
 - **Input:** 10 seconds of mono audio sampled at 16 kHz.
-- **Preprocessing & Decoding Impact:** Pre-processing transforms raw PCM audio into 80-channel log-mel spectrogram features. Audio duration governs encoder computation time, while the density of spoken speech determines the number of autoregressive decoder steps.
+- **Pipeline Structure:** The Whisper model's `encode` method ingests the raw 1D Float32 audio waveform directly, internally computing log-mel spectrogram features and encoder representations. Autoregressive decoding (`decode`) runs token by token to generate transcript text.
+- **Synthetic Input Note:** The benchmark uses synthetic, voice-shaped audio rather than meaningful human speech. Because the recognizer transcribes no semantic content, Whisper emits minimal tokens, meaning decoder iterations are low and benchmark numbers are dominated by the encoder. Expect higher latency on real audio with continuous speech.
 :::
 
 <BenchmarkChart task="speech-to-text" />
@@ -170,7 +173,10 @@ These benchmarks measure execution latency, memory utilization, and initializati
 
 :::info Input & Pipeline Details
 - **Input:** Fixed 2-sentence English paragraph.
-- **Pipeline Structure & Latency Impact:** Text is normalized and phonemized before acoustic and vocoder model stages synthesize the audio waveform. Total synthesis duration scales proportionally with input character length and output audio duration.
+- **Pipeline Structure:** Covers multi-stage neural TTS architectures:
+  - **Kokoro:** Text is normalized, phonemized via espeak-ng, and synthesized into 24 kHz audio through two sub-models (duration predictor and acoustic synthesizer conditioned on reference voice embeddings).
+  - **Supertonic:** Text is cleaned, unicode-indexed, and synthesized into 44.1 kHz audio across four sub-models (text encoder, duration predictor, flow-matching vector estimator denoising steps, and vocoder).
+- **Latency Scaling:** Synthesis latency scales with input text length and generated audio duration.
 :::
 
 <BenchmarkChart task="text-to-speech" />
@@ -179,7 +185,7 @@ These benchmarks measure execution latency, memory utilization, and initializati
 
 :::info Input & Pipeline Details
 - **Input:** 10 seconds of mono audio sampled at 16 kHz.
-- **Preprocessing & Chunking Impact:** Audio is streamed in small sequential chunks (e.g. 30–50 ms). Acoustic feature extraction and classification have very low compute overhead, making the pipeline suitable for continuous background execution.
+- **Pipeline Structure:** Native JSI `extractFrames` slices the 1D audio waveform into 25 ms overlapping frames with a 10 ms hop length, applying per-frame mean removal, pre-emphasis filtering (0.97), and a periodic Hann window. The FSMN-VAD model processes the framed representations to compute per-frame speech probabilities. Post-processing applies thresholding with hysteresis, segment padding, and silence merging to output speech intervals `[start, end]` in seconds.
 :::
 
 <BenchmarkChart task="voice-activity-detection" />
