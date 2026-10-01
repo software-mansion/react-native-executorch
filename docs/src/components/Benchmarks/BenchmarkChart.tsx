@@ -57,6 +57,7 @@ const PADDING = { top: 34, right: 16, bottom: 64, left: 78 };
 function formatValue(value: number, unit: Metric['unit']): string {
   if (unit === '%') return `${Math.round(value)}`;
   if (unit === 'MB') {
+    if (value >= 1000) return `${Math.round(value).toLocaleString('en-US')}`;
     if (value >= 10) return `${Math.round(value)}`;
     if (value >= 1) return value.toFixed(1);
     return value.toFixed(2);
@@ -64,9 +65,42 @@ function formatValue(value: number, unit: Metric['unit']): string {
   if (unit === 'tok/s') {
     return value >= 10 ? value.toFixed(1) : value.toFixed(2);
   }
+  if (value >= 1000) return `${Math.round(value).toLocaleString('en-US')}`;
   if (value >= 100) return `${Math.round(value)}`;
   if (value >= 10) return value.toFixed(1).replace(/\.0$/, '');
   return value.toFixed(1);
+}
+
+function formatTooltipValue(value: number, unit: Metric['unit']): string {
+  if (unit === '%') {
+    return `${Number.isInteger(value) ? value : value.toFixed(1)}%`;
+  }
+  let numStr: string;
+  if (unit === 'tok/s') {
+    numStr = value >= 10 ? value.toFixed(1) : value.toFixed(2);
+  } else if (unit === 'MB') {
+    if (value >= 100) {
+      numStr = Math.round(value).toLocaleString('en-US');
+    } else if (value >= 10) {
+      numStr = value.toFixed(1).replace(/\.0$/, '');
+    } else if (value >= 1) {
+      numStr = value.toFixed(1);
+    } else {
+      numStr = value.toFixed(2);
+    }
+  } else {
+    // ms
+    if (value >= 1000) {
+      numStr = value.toLocaleString('en-US', { maximumFractionDigits: 1 });
+    } else if (value >= 10) {
+      numStr = value.toFixed(1).replace(/\.0$/, '');
+    } else if (value >= 1) {
+      numStr = value.toFixed(1);
+    } else {
+      numStr = value.toFixed(2);
+    }
+  }
+  return `${numStr}\u00A0${unit}`;
 }
 
 function niceCeil(value: number): number {
@@ -379,55 +413,56 @@ export default function BenchmarkChart({ task }: Props) {
             );
           })}
         </svg>
-        {tooltip && (
-          <div
-            className={styles.tooltip}
-            style={{
-              left: `${tooltip.x}%`,
-              top: tooltip.y < 35 ? `${tooltip.y + 6}%` : `${tooltip.y}%`,
-              transform:
-                tooltip.y < 35 ? 'translate(-50%, 8px)' : 'translate(-50%, calc(-100% - 8px))',
-            }}
-          >
-            <div className={styles.tooltipTitle}>{tooltip.label}</div>
-            {isSizeMetric ? (
-              <table className={styles.tooltipTable}>
-                <tbody>
-                  <tr>
-                    <td>Backend</td>
-                    <td>{BACKEND_DISPLAY[tooltip.row.backend] ?? tooltip.row.backend}</td>
-                  </tr>
-                  <tr>
-                    <td>Precision</td>
-                    <td>{tooltip.row.precision}</td>
-                  </tr>
-                  <tr>
-                    <td>Model Size</td>
-                    <td>{formatValue(tooltip.row.sizeMb, 'MB')} MB</td>
-                  </tr>
-                </tbody>
-              </table>
-            ) : (
-              <table className={styles.tooltipTable}>
-                <tbody>
-                  {availableMetrics.map((entry) => {
-                    const val = tooltip.row[entry.id];
-                    if (typeof val !== 'number') return null;
-                    return (
-                      <tr key={entry.id}>
-                        <td>{entry.label}</td>
-                        <td>
-                          {formatValue(val, entry.unit)}
-                          {entry.unit === '%' ? '%' : ` ${entry.unit}`}
-                        </td>
+        {tooltip &&
+          (() => {
+            const translateX = tooltip.x < 18 ? '-15%' : tooltip.x > 82 ? '-85%' : '-50%';
+            const translateY = tooltip.y < 35 ? '8px' : 'calc(-100% - 8px)';
+            return (
+              <div
+                className={styles.tooltip}
+                style={{
+                  left: `${tooltip.x}%`,
+                  top: tooltip.y < 35 ? `${tooltip.y + 6}%` : `${tooltip.y}%`,
+                  transform: `translate(${translateX}, ${translateY})`,
+                }}
+              >
+                <div className={styles.tooltipTitle}>{tooltip.label}</div>
+                {isSizeMetric ? (
+                  <table className={styles.tooltipTable}>
+                    <tbody>
+                      <tr>
+                        <td>Backend</td>
+                        <td>{BACKEND_DISPLAY[tooltip.row.backend] ?? tooltip.row.backend}</td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
-        )}
+                      <tr>
+                        <td>Precision</td>
+                        <td>{tooltip.row.precision}</td>
+                      </tr>
+                      <tr>
+                        <td>Model Size</td>
+                        <td>{formatTooltipValue(tooltip.row.sizeMb, 'MB')}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                ) : (
+                  <table className={styles.tooltipTable}>
+                    <tbody>
+                      {availableMetrics.map((entry) => {
+                        const val = tooltip.row[entry.id];
+                        if (typeof val !== 'number') return null;
+                        return (
+                          <tr key={entry.id}>
+                            <td>{entry.label}</td>
+                            <td>{formatTooltipValue(val, entry.unit)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            );
+          })()}
       </div>
 
       <div className={styles.footer}>
