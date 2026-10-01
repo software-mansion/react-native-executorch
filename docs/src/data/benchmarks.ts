@@ -100,8 +100,7 @@ export const METRICS: Metric[] = [
     id: 'sizeMb',
     label: 'Model Size',
     unit: 'MB',
-    description:
-      'Binary download file size of the compiled model bundle (depends on backend and precision, independent of device).',
+    description: 'Binary download file size of the compiled model bundle.',
     lowerIsBetter: true,
   },
 ];
