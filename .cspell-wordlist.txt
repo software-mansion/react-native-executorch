@@ -391,3 +391,7 @@ repoints
 basenames
 xcconfig
 toggleable
+Adreno
+Exynos
+iphonese
+upsamples

@@ -20,6 +20,15 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: 'Benchmarks',
+      className: 'hide-api-items',
+      collapsible: true,
+      collapsed: true,
+      link: { type: 'doc', id: 'benchmarks/benchmarks' },
+      items: [{ type: 'doc', id: 'benchmarks/benchmarks', label: 'Benchmarks' }],
+    },
+    {
+      type: 'category',
       label: 'Core & Advanced',
       link: {
         type: 'generated-index',
