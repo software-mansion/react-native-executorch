@@ -37,6 +37,19 @@ const BACKEND_DISPLAY: Record<string, string> = {
   mlx: 'MLX (Apple GPU)',
 };
 
+const BACKEND_NAMES: Record<string, string> = {
+  xnnpack: 'XNNPACK',
+  coreml: 'Core ML',
+  vulkan: 'Vulkan',
+  mlx: 'MLX',
+};
+
+type ChartGroup = {
+  id: string;
+  label: string;
+  bars: BenchmarkRow[];
+};
+
 const WIDTH = 960;
 const HEIGHT = 430;
 const PADDING = { top: 34, right: 16, bottom: 64, left: 78 };
@@ -119,18 +132,54 @@ export default function BenchmarkChart({ task }: Props) {
     availableMetrics[0] ??
     METRICS[0];
 
-  const groups = useMemo(() => {
+  const isSizeMetric = activeMetricId === 'sizeMb';
+
+  const groups = useMemo<ChartGroup[]>(() => {
+    const modelRows = rows.filter((row) => row.model === model);
+
+    if (isSizeMetric) {
+      const modelBackends = BACKEND_ORDER.filter((backend) =>
+        modelRows.some((row) => row.backend === backend)
+      );
+
+      return modelBackends.map((backend) => {
+        const backendRows = modelRows.filter((row) => row.backend === backend);
+        const precisions = [...new Set(backendRows.map((r) => r.precision))].sort(
+          (a, b) => rankPrecision(a) - rankPrecision(b)
+        );
+
+        const bars: BenchmarkRow[] = precisions.map((precision) => {
+          const variantRows = backendRows.filter((r) => r.precision === precision);
+          const sizes = variantRows.map((r) => r.sizeMb).sort((a, b) => a - b);
+          const mid = Math.floor(sizes.length / 2);
+          const canonicalSize =
+            sizes.length % 2 !== 0 ? sizes[mid] : Math.round((sizes[mid - 1] + sizes[mid]) / 2);
+
+          return {
+            ...variantRows[0],
+            sizeMb: canonicalSize,
+          };
+        });
+
+        return {
+          id: backend,
+          label: BACKEND_NAMES[backend] ?? backend,
+          bars,
+        };
+      });
+    }
+
     return DEVICES.map((device) => {
-      const bars = rows
-        .filter((row) => row.model === model && row.device === device.id)
+      const bars = modelRows
+        .filter((row) => row.device === device.id)
         .sort((a, b) => {
           const backend = BACKEND_ORDER.indexOf(a.backend) - BACKEND_ORDER.indexOf(b.backend);
           if (backend !== 0) return backend;
           return rankPrecision(a.precision) - rankPrecision(b.precision);
         });
-      return { device, bars };
+      return { id: device.id, label: device.shortName, bars };
     });
-  }, [rows, model]);
+  }, [rows, model, isSizeMetric]);
 
   const maxValue = Math.max(
     1,
@@ -142,7 +191,8 @@ export default function BenchmarkChart({ task }: Props) {
 
   const plotWidth = WIDTH - PADDING.left - PADDING.right;
   const plotHeight = HEIGHT - PADDING.top - PADDING.bottom;
-  const groupWidth = plotWidth / DEVICES.length;
+  const groupCount = Math.max(groups.length, 1);
+  const groupWidth = plotWidth / groupCount;
 
   const yOf = (value: number) => PADDING.top + plotHeight * (1 - value / scaleMax);
 
@@ -196,10 +246,13 @@ export default function BenchmarkChart({ task }: Props) {
 
       <div className={styles.plotOuter}>
         <svg
+          key={`${model}-${activeMetricId}`}
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
           className={styles.svg}
           role="img"
-          aria-label={`${model} — ${metric.label} per device and backend`}
+          aria-label={`${model} — ${metric.label} per ${
+            isSizeMetric ? 'backend and precision' : 'device and backend'
+          }`}
         >
           {[...Array(tickCount + 1)].map((_, index) => {
             const value = step * index;
@@ -230,10 +283,13 @@ export default function BenchmarkChart({ task }: Props) {
           {groups.map((group, groupIndex) => {
             const center = PADDING.left + groupWidth * (groupIndex + 0.5);
             const barCount = Math.max(group.bars.length, 1);
-            const barWidth = Math.min(32, (groupWidth * (barCount > 2 ? 0.76 : 0.64)) / barCount);
+            const barWidth = Math.min(
+              isSizeMetric ? 40 : 32,
+              (groupWidth * (barCount > 2 ? 0.76 : 0.64)) / barCount
+            );
             const clusterWidth = barWidth * group.bars.length;
             return (
-              <g key={group.device.id}>
+              <g key={group.id}>
                 {group.bars.length === 0 && (
                   <text
                     x={center}
@@ -262,7 +318,13 @@ export default function BenchmarkChart({ task }: Props) {
                       onMouseEnter={() =>
                         setTooltip({
                           row: bar,
-                          label: `${group.device.shortName} · ${bar.backend} · ${bar.precision}`,
+                          label: isSizeMetric
+                            ? `${model} · ${BACKEND_NAMES[bar.backend] ?? bar.backend} · ${
+                                bar.precision
+                              }`
+                            : `${group.label} · ${
+                                BACKEND_NAMES[bar.backend] ?? bar.backend
+                              } · ${bar.precision}`,
                           x: ((x + barWidth / 2) / WIDTH) * 100,
                           y: (y / HEIGHT) * 100,
                         })
@@ -311,7 +373,7 @@ export default function BenchmarkChart({ task }: Props) {
                   className={styles.deviceLabel}
                   textAnchor="middle"
                 >
-                  {group.device.shortName}
+                  {group.label}
                 </text>
               </g>
             );
@@ -328,23 +390,42 @@ export default function BenchmarkChart({ task }: Props) {
             }}
           >
             <div className={styles.tooltipTitle}>{tooltip.label}</div>
-            <table className={styles.tooltipTable}>
-              <tbody>
-                {availableMetrics.map((entry) => {
-                  const val = tooltip.row[entry.id];
-                  if (typeof val !== 'number') return null;
-                  return (
-                    <tr key={entry.id}>
-                      <td>{entry.label}</td>
-                      <td>
-                        {formatValue(val, entry.unit)}
-                        {entry.unit === '%' ? '%' : ` ${entry.unit}`}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            {isSizeMetric ? (
+              <table className={styles.tooltipTable}>
+                <tbody>
+                  <tr>
+                    <td>Backend</td>
+                    <td>{BACKEND_DISPLAY[tooltip.row.backend] ?? tooltip.row.backend}</td>
+                  </tr>
+                  <tr>
+                    <td>Precision</td>
+                    <td>{tooltip.row.precision}</td>
+                  </tr>
+                  <tr>
+                    <td>Model Size</td>
+                    <td>{formatValue(tooltip.row.sizeMb, 'MB')} MB</td>
+                  </tr>
+                </tbody>
+              </table>
+            ) : (
+              <table className={styles.tooltipTable}>
+                <tbody>
+                  {availableMetrics.map((entry) => {
+                    const val = tooltip.row[entry.id];
+                    if (typeof val !== 'number') return null;
+                    return (
+                      <tr key={entry.id}>
+                        <td>{entry.label}</td>
+                        <td>
+                          {formatValue(val, entry.unit)}
+                          {entry.unit === '%' ? '%' : ` ${entry.unit}`}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
           </div>
         )}
       </div>
@@ -374,7 +455,11 @@ export default function BenchmarkChart({ task }: Props) {
             <span className={styles.metricSummaryName}>{metric.label}:</span>{' '}
             <span className={styles.metricSummaryText}>{metric.description}</span>
           </p>
-          <span className={styles.precisionNote}>Labels below bars indicate model precision</span>
+          <span className={styles.precisionNote}>
+            {isSizeMetric
+              ? 'Model size depends on backend and precision, independent of device'
+              : 'Labels below bars indicate model precision'}
+          </span>
         </div>
       </div>
     </div>
