@@ -21,15 +21,16 @@ import BenchmarkChart from '@site/src/components/Benchmarks';
 
 # Benchmarks
 
-Real silicon, real numbers. Every benchmark here was measured on physical iOS and Android devices running models directly from the React Native ExecuTorch registry—no simulator estimates, no theoretical FLOPs.
+Every model variant in the React Native ExecuTorch registry is measured directly on physical iOS and Android hardware. We profile the complete end-to-end pipeline—from camera frames, audio, and text through pre-processing, forward inference on mobile silicon, and post-processing—alongside isolated ExecuTorch runtime latency, peak RAM, cold-start load times, and binary download sizes.
 
-We profile the complete on-device inference lifecycle:
-- **End-to-End Pipeline**: Total latency from raw input (pixels, audio, text) to final result, capturing pre-processing, forward passes, and post-processing.
-- **ExecuTorch Model Time**: Time spent strictly executing model forward passes inside the runtime.
-- **Memory & Binary Footprint**: Peak resident RAM and binary download size across precision formats.
-- **Cold-Start Init**: Time to map weights into memory and initialize the runtime session.
+### Backends and Precision
 
-Explore the charts below to compare backends and find the optimal trade-off for your app.
+Each variant is defined by two choices:
+
+- **Backend (Where it runs):** The hardware execution engine. **XNNPACK** runs on mobile CPUs for universal compatibility across iOS and Android; **Core ML** targets the Apple Neural Engine (NPU) and GPU on iOS; **Vulkan** runs on Android GPUs; and **MLX** uses Apple Silicon unified memory. To configure which backends are compiled into your app, see [Native Libraries](../03-core-and-advanced/08-native-libraries.md).
+- **Precision (How weights are stored):** The numerical format of model weights. Full precision (`fp32`) preserves original fidelity at the cost of larger downloads and RAM. Quantized formats (`fp16`, `int8`, `4-bit`) compress weights, drastically cutting file size and memory while speeding up compute with minimal impact on real-world accuracy. See [Exporting Custom Models](../03-core-and-advanced/07-exporting-custom-models.md) for lowering details.
+
+Explore the charts below to compare backends and find the optimal balance for your app.
 
 ## Devices
 
