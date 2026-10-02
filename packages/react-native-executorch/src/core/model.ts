@@ -22,7 +22,14 @@ export type ModelInput = Tensor | number | boolean | null;
  * A value returned from a model's `execute` method.
  * @category Core / Types
  */
-export type ModelOutput = Tensor | number | boolean | string | null;
+export type ModelOutput =
+  | Tensor
+  | number
+  | boolean
+  | string
+  | null
+  | readonly number[]
+  | readonly boolean[];
 
 /**
  * A compiled, ready-to-run ExecuTorch model loaded into native memory.
