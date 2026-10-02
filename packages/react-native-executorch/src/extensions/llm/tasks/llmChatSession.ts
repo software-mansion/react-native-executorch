@@ -203,9 +203,8 @@ export async function createLLMChatSession(
     const chatPreprocessor = scope.track(createChatPreprocessor(chatPreprocessorConfig));
 
     // Prepare runner
-    const runner = scope.track(
-      await wrapAsync(createLLMRunner, runtime)(modelPath, tokenizerPath, modalities)
-    );
+    const load = wrapAsync(createLLMRunner, runtime);
+    const runner = scope.track(await load(modelPath, tokenizerPath, modalities));
     const prefill = wrapAsync(runner.prefill, runtime);
 
     const history: ChatMessage[] = [];
