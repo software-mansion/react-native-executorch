@@ -248,12 +248,10 @@ export async function createLLMChatSession(
       }
 
       try {
-        let prefillStartMs = Date.now();
-
         // Prefill newly committed messages up to current user message without generation prompt
         const toCommit = history.length - committed;
         const userPrompt = chatPreprocessor.process(history, toCommit, { addGenPrompt: false });
-        await prefill(userPrompt);
+        const prefillStats = await prefill(userPrompt);
         chatPreprocessor.clear();
 
         // Record exact position at the end of the user message (before assistant generation header)
@@ -266,11 +264,10 @@ export async function createLLMChatSession(
           const uncommitted = history.length - committed;
           const prompt = chatPreprocessor.process(history, uncommitted, { addGenPrompt: true });
 
-          const prefillDurationMs = Date.now() - prefillStartMs;
-
           const { response, stats } = await generateChatTurn(runner, prompt, generationOpts);
+          const cumPrefillStats = currentTurn === 0 ? prefillStats : stats.prefill;
           chatPreprocessor.clear();
-          generationStatsList.push({ ...stats, prefillDurationMs });
+          generationStatsList.push({ ...stats, prefill: cumPrefillStats });
 
           // Always rewind KV cache back to posAtEndOfUser so next turn prefills
           // cleanly formatted message with tool outputs
@@ -313,8 +310,6 @@ export async function createLLMChatSession(
               content: toolContent,
             });
           }
-
-          prefillStartMs = Date.now();
         }
 
         // Prefill all uncommitted assistant & tool messages so KV cache contains
