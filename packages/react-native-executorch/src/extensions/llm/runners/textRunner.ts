@@ -2,8 +2,9 @@ import { createSynchronizable } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import type { Model } from '../../../core/model';
-import type { Tokenizer } from '../../nlp';
 import { RnExecuTorchError } from '../../../core/error';
+
+import type { Tokenizer } from '../../nlp';
 
 import type {
   LLMGenerationConfig,
