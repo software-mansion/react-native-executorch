@@ -158,12 +158,7 @@ export function createTextRunner(
     const durationMs = Date.now() - generateStartMs;
     const tokensPerSecond = durationMs > 0 ? (numTokens / durationMs) * 1000 : 0;
 
-    return {
-      numTokens,
-      durationMs,
-      tokensPerSecond,
-      prefill: prefillStats,
-    };
+    return { numTokens, durationMs, tokensPerSecond, prefill: prefillStats };
   };
 
   return {
