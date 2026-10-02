@@ -13,7 +13,7 @@ if (!globalObj.__rnexecutorch_jsi__) {
  * Provides low-level, synchronous bindings for ExecuTorch core runtime
  * operations (model loading, tensor allocation and manipulation, registered
  * backends inspection, emulator detection) and native extension namespaces
- * (`cv`, `llm`, `math`, `nlp`, `speech`).
+ * (`cv`, `math`, `nlp`, `speech`).
  * @internal
  */
 export const rnexecutorchJsi = globalObj.__rnexecutorch_jsi__;
