@@ -164,26 +164,27 @@ template <typename>
 inline constexpr bool kAlwaysFalse = false;
 
 /**
- * Converts a std::vector of values to a new facebook::jsi::Array.
+ * Converts a container (e.g. std::vector, ArrayRef) of values to a new facebook::jsi::Array.
  * Handles strings, booleans, and numeric types appropriately.
  *
- * @tparam T The element type in the vector.
+ * @tparam Container The container type (must support .size() and operator[]).
  * @param rt The JSI runtime instance.
- * @param vec The source vector to convert.
- * @return A new facebook::jsi::Array containing the elements from the vector.
+ * @param items The source container to convert.
+ * @return A new facebook::jsi::Array containing the elements from the container.
  */
-template <typename T>
-jsi::Array toJsiArray(jsi::Runtime &rt, const std::vector<T> &vec) {
-    jsi::Array arr(rt, vec.size());
-    for (size_t i = 0; i < vec.size(); ++i) {
+template <typename Container>
+jsi::Array toJsiArray(jsi::Runtime &rt, const Container &items) {
+    jsi::Array arr(rt, items.size());
+    for (size_t i = 0; i < items.size(); ++i) {
+        using T = std::decay_t<decltype(items[i])>;
         if constexpr (std::is_same_v<T, std::string>) {
-            arr.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, vec[i]));
+            arr.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, items[i]));
         } else if constexpr (std::is_same_v<T, bool>) {
-            arr.setValueAtIndex(rt, i, jsi::Value(static_cast<bool>(vec[i])));
+            arr.setValueAtIndex(rt, i, jsi::Value(static_cast<bool>(items[i])));
         } else if constexpr (std::is_arithmetic_v<T>) {
-            arr.setValueAtIndex(rt, i, jsi::Value(static_cast<double>(vec[i])));
+            arr.setValueAtIndex(rt, i, jsi::Value(static_cast<double>(items[i])));
         } else {
-            static_assert(kAlwaysFalse<T>, "Unsupported vector element type for toJsiArray");
+            static_assert(kAlwaysFalse<T>, "Unsupported element type for toJsiArray");
         }
     }
     return arr;
