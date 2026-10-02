@@ -4,11 +4,11 @@
 import type { Tensor } from '../../core/tensor';
 import { wrapAsync } from '../../core/runtime';
 import { loadModel } from '../../core/model';
+import { RnExecuTorchError } from '../../core/error';
 import { createResourceScope } from '../../core/lifetime';
 import { f32, i64, method, validateSpec } from '../../core/schema';
 
 import { loadTokenizer } from '../nlp';
-import { RnExecuTorchError } from '../../core/error';
 import { createTextRunner } from './runners/textRunner';
 
 declare const llmRunnerBrand: unique symbol;
