@@ -31,15 +31,11 @@ type Turn = {
 };
 
 function formatStats(stats: llm.LLMGenerationStats): string {
-  const decodeMs = stats.inferenceEndMs - stats.firstTokenMs;
-  const tokensPerSec = decodeMs > 0 ? (stats.numGeneratedTokens / decodeMs) * 1000 : 0;
-  const decodeTtftMs = stats.firstTokenMs - stats.inferenceStartMs;
-  const totalTtftMs = decodeTtftMs + (stats.prefillDurationMs ?? 0);
-  const totalMs = stats.inferenceEndMs - stats.inferenceStartMs + (stats.prefillDurationMs ?? 0);
+  const totalMs = stats.durationMs + stats.prefill.durationMs;
   return (
-    `${stats.numGeneratedTokens} tokens · ` +
-    `${tokensPerSec.toFixed(1)} tok/s · ` +
-    `${totalTtftMs.toFixed(0)}ms ttft · ` +
+    `${stats.numTokens} tokens · ` +
+    `${stats.tokensPerSecond.toFixed(1)} tok/s · ` +
+    `${stats.prefill.durationMs.toFixed(0)}ms prefill · ` +
     `${(totalMs / 1000).toFixed(2)}s`
   );
 }
@@ -302,7 +298,7 @@ function LLMContent() {
               <View style={styles.contextBarHeader}>
                 <Text style={styles.contextLabel}>Context Window</Text>
                 <Text style={styles.contextTokens}>
-                  {kvCacheState.pos} / {kvCacheState.maxSeqLen} tokens (
+                  {kvCacheState.pos} / {kvCacheState.maxContextLen} tokens (
                   {(kvCacheState.usageRatio * 100).toFixed(1)}%)
                 </Text>
               </View>

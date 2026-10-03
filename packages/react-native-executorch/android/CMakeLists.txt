@@ -41,7 +41,6 @@ file(GLOB CORE_SOURCES   ${CPP_DIR}/core/*.cpp)
 file(GLOB MATH_SOURCES   ${CPP_DIR}/extensions/math/*.cpp)
 file(GLOB NLP_SOURCES    ${CPP_DIR}/extensions/nlp/*.cpp)
 file(GLOB SPEECH_SOURCES ${CPP_DIR}/extensions/speech/*.cpp)
-file(GLOB LLM_SOURCES    ${CPP_DIR}/extensions/llm/*.cpp)
 file(GLOB OPENCV_SOURCES ${CPP_DIR}/extensions/cv/*.cpp)
 
 # ==============================================================================
@@ -80,7 +79,6 @@ set(RNE_SOURCES
     ${MATH_SOURCES}
     ${NLP_SOURCES}
     ${SPEECH_SOURCES}
-    ${LLM_SOURCES}
     cpp-adapter.cpp
 )
 

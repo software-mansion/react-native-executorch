@@ -391,3 +391,4 @@ repoints
 basenames
 xcconfig
 toggleable
+multinomial
