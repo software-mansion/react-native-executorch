@@ -284,15 +284,6 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 case executorch::runtime::Tag::String:
                     jsOutputArray.setValueAtIndex(rt, outputIdx, jsi::String::createFromUtf8(rt, std::string(output.toString())));
                     break;
-                case executorch::runtime::Tag::ListInt:
-                    jsOutputArray.setValueAtIndex(rt, outputIdx, conversions::toJsiArray(rt, output.toIntList()));
-                    break;
-                case executorch::runtime::Tag::ListDouble:
-                    jsOutputArray.setValueAtIndex(rt, outputIdx, conversions::toJsiArray(rt, output.toDoubleList()));
-                    break;
-                case executorch::runtime::Tag::ListBool:
-                    jsOutputArray.setValueAtIndex(rt, outputIdx, conversions::toJsiArray(rt, output.toBoolList()));
-                    break;
                 default:
                     throw error::ExecutionFailed(std::format("execute: Unsupported return type: {}",
                                                              executorch::runtime::tag_to_string(output.tag)));
