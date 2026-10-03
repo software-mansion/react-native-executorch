@@ -80,6 +80,7 @@ function insertSorted(arr: number[], val: number): void {
  * @category LLM / Functions
  */
 export function temperatureProcessor(temperature: number): LogitProcessor {
+  'worklet';
   return (logits) => {
     'worklet';
     for (let i = 0; i < logits.length; i++) {
@@ -95,6 +96,7 @@ export function temperatureProcessor(temperature: number): LogitProcessor {
  * @category LLM / Functions
  */
 export function topKProcessor(k: number): LogitProcessor {
+  'worklet';
   return (logits) => {
     'worklet';
     if (k <= 0 || k >= logits.length) return;
@@ -126,6 +128,7 @@ export function topKProcessor(k: number): LogitProcessor {
  * @category LLM / Functions
  */
 export function topPProcessor(p: number): LogitProcessor {
+  'worklet';
   return (logits) => {
     'worklet';
     if (p <= 0 || p >= 1) return;
@@ -188,6 +191,7 @@ export function topPProcessor(p: number): LogitProcessor {
  * @category LLM / Functions
  */
 export function minPProcessor(minP: number): LogitProcessor {
+  'worklet';
   return (logits) => {
     'worklet';
     if (minP <= 0) return;
@@ -215,6 +219,7 @@ export function minPProcessor(minP: number): LogitProcessor {
  * @category LLM / Functions
  */
 export function repetitionPenaltyProcessor(penalty: number): LogitProcessor {
+  'worklet';
   return (logits, ctx) => {
     'worklet';
     if (penalty === 1 || ctx.generatedTokens.length === 0) return;
@@ -237,6 +242,7 @@ export function repetitionPenaltyProcessor(penalty: number): LogitProcessor {
  * @category LLM / Functions
  */
 export function logitBiasProcessor(bias: ReadonlyMap<number, number>): LogitProcessor {
+  'worklet';
   return (logits) => {
     'worklet';
     for (const [token, value] of bias) {
@@ -253,6 +259,7 @@ export function logitBiasProcessor(bias: ReadonlyMap<number, number>): LogitProc
  * @category LLM / Functions
  */
 export function greedySelector(): TokenSelector {
+  'worklet';
   return (logits) => {
     'worklet';
     let best = 0;
@@ -274,6 +281,7 @@ export function greedySelector(): TokenSelector {
  * @category LLM / Functions
  */
 export function multinomialSelector(rng?: () => number): TokenSelector {
+  'worklet';
   return (logits) => {
     'worklet';
     return multinomial(logits, { rng });
@@ -287,6 +295,7 @@ export function multinomialSelector(rng?: () => number): TokenSelector {
  * @category LLM / Functions
  */
 export function createSampler(config?: SamplingConfig): Sampler {
+  'worklet';
   const processors: LogitProcessor[] = [];
 
   if (config?.repetitionPenalty !== undefined && config.repetitionPenalty !== 1) {
