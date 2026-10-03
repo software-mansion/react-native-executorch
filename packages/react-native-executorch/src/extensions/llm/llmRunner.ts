@@ -9,7 +9,9 @@ import { createResourceScope } from '../../core/lifetime';
 import { f32, i64, method, validateSpec } from '../../core/schema';
 
 import { loadTokenizer } from '../nlp';
+
 import { createTextRunner } from './runners/textRunner';
+import type { SamplingConfig } from './sampler';
 
 declare const llmRunnerBrand: unique symbol;
 
@@ -18,13 +20,11 @@ declare const llmRunnerBrand: unique symbol;
  * @experimental This API is experimental and might change in future releases.
  * @category LLM / Types
  */
-export type LLMGenerationConfig = {
+export type LLMGenerationConfig = SamplingConfig & {
   /** Whether to ignore EOS tokens during generation. */
   readonly ignoreEos?: boolean;
   /** Maximum number of new tokens to generate. */
   readonly maxNewTokens?: number;
-  /** Sampling temperature for token selection. */
-  readonly temperature?: number;
 };
 
 /**

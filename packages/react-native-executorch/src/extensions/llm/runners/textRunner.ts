@@ -5,7 +5,7 @@ import type { Model } from '../../../core/model';
 import { RnExecuTorchError } from '../../../core/error';
 
 import type { Tokenizer } from '../../nlp';
-
+import { createSampler } from '../sampler';
 import type {
   LLMGenerationConfig,
   LLMGenerationStats,
@@ -120,8 +120,11 @@ export function createTextRunner(
     const prefillStats = prefill(prompt);
 
     const generateStartMs = Date.now();
+    const generatedTokens: number[] = [];
     const maxNewTokens = config?.maxNewTokens ?? Infinity;
+
     const logits = tLogits.getData(new Float32Array(vocabSize));
+    const sample = createSampler(config);
 
     let numTokens = 0;
 
@@ -132,14 +135,14 @@ export function createTextRunner(
       while (numTokens < maxNewTokens && !isCancelled.getBlocking()) {
         if (pos >= maxContextLen) break;
 
-        // TODO: Implement sampling (e.g. temperature, top-k, top-p, penalties)
-        let nextToken = 0;
+        const nextToken = sample(logits, { generatedTokens });
+
+        onToken?.(tokenizer.decode(Int32Array.of(nextToken)));
+        generatedTokens.push(nextToken);
 
         if (!config?.ignoreEos && eosIds.includes(nextToken)) {
           break;
         }
-
-        onToken?.(tokenizer.decode(Int32Array.of(nextToken)));
 
         tToken.setData(BigInt64Array.of(BigInt(nextToken)));
         tCurPos.setData(BigInt64Array.of(BigInt(pos)));
