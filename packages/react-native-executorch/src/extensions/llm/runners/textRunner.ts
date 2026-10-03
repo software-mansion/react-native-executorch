@@ -60,7 +60,7 @@ export function createTextRunner(
   };
 
   // ==================================
-  // Prefill
+  // Generation methods
   // ==================================
   const isCancelled = createSynchronizable(false);
   const stop = (): void => isCancelled.setBlocking(true);
@@ -117,9 +117,6 @@ export function createTextRunner(
     };
   };
 
-  // ==================================
-  // Decode
-  // ==================================
   const generate = (
     prompt: Prompt,
     config?: LLMGenerationConfig,
