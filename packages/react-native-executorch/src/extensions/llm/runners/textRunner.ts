@@ -37,24 +37,30 @@ export function createTextRunner(
   // ==================================
   // KV Cache management
   // ==================================
-  let pos = 0;
+  const pos = createSynchronizable(0);
 
   const reset = (targetPos?: number): void => {
     if (targetPos !== undefined && (targetPos < 0 || targetPos >= maxContextLen)) {
-      throw RnExecuTorchError('INVALID_ARGUMENT', '');
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `targetPos (${targetPos}) must be in range [0, ${maxContextLen}).`
+      );
     }
-    pos = targetPos ?? 0;
+    pos.setBlocking(targetPos ?? 0);
   };
 
-  const getKVCacheState = (): LLMKVCacheState => ({
-    pos,
-    maxContextLen,
-    remainingTokens: maxContextLen - pos,
-    usageRatio: pos / maxContextLen,
-  });
+  const getKVCacheState = (): LLMKVCacheState => {
+    const curPos = pos.getBlocking();
+    return {
+      pos: curPos,
+      maxContextLen,
+      remainingTokens: maxContextLen - curPos,
+      usageRatio: curPos / maxContextLen,
+    };
+  };
 
   // ==================================
-  // Generation methods
+  // Prefill
   // ==================================
   const isCancelled = createSynchronizable(false);
   const stop = (): void => isCancelled.setBlocking(true);
@@ -64,11 +70,14 @@ export function createTextRunner(
     isCancelled.setBlocking(false);
 
     if (typeof prompt !== 'string') {
-      throw RnExecuTorchError('INVALID_ARGUMENT', '');
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `prefill: Expected text prompt string, got ${typeof prompt}.`
+      );
     }
 
     const startMs = Date.now();
-    const startPos = pos;
+    const startPos = pos.getBlocking();
     const tokens = tokenizer.encode(prompt);
 
     let offset = 0;
@@ -76,13 +85,16 @@ export function createTextRunner(
       const seqLen = Math.min(tokens.length - offset, maxSeqLen);
       const chunk = tokens.subarray(offset, offset + seqLen);
 
-      if (pos + seqLen > maxContextLen) {
-        throw RnExecuTorchError('EXECUTION_FAILED', '');
+      if (startPos + offset + seqLen > maxContextLen) {
+        throw RnExecuTorchError(
+          'EXECUTION_FAILED',
+          `prefill: Context length exceeded (${startPos + offset + seqLen} > ${maxContextLen}).`
+        );
       }
 
       // prettier-ignore
       const tTokens = tensor('int64', [1, seqLen], BigInt64Array.from(chunk, (v) => BigInt(v)));
-      const tCurPos = tensor('int64', [1], BigInt64Array.of(BigInt(pos)));
+      const tCurPos = tensor('int64', [1], BigInt64Array.of(BigInt(startPos + offset)));
       try {
         model.execute('forward', [tTokens, tCurPos], [tLogits]);
       } finally {
@@ -90,12 +102,12 @@ export function createTextRunner(
         tCurPos.dispose();
       }
 
-      pos += seqLen;
+      pos.setBlocking(startPos + offset + seqLen);
       offset += seqLen;
     }
 
     const durationMs = Date.now() - startMs;
-    const numTokens = pos - startPos;
+    const numTokens = offset;
     const tokensPerSecond = durationMs > 0 ? (numTokens / durationMs) * 1000 : 0;
 
     return {
@@ -105,6 +117,9 @@ export function createTextRunner(
     };
   };
 
+  // ==================================
+  // Decode
+  // ==================================
   const generate = (
     prompt: Prompt,
     config?: LLMGenerationConfig,
@@ -114,7 +129,10 @@ export function createTextRunner(
     isCancelled.setBlocking(false);
 
     if (typeof prompt !== 'string') {
-      throw RnExecuTorchError('INVALID_ARGUMENT', '');
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `generate: Expected text prompt string, got ${typeof prompt}.`
+      );
     }
 
     const prefillStats = prefill(prompt);
@@ -127,17 +145,30 @@ export function createTextRunner(
     const sample = createSampler(config);
 
     let numTokens = 0;
+    // TO-REMOVE: Timing breakdown for benchmarking
+    let totalModelExecuteMs = 0;
+    let totalSampleMs = 0;
+    let totalOnTokenMs = 0;
 
     const tToken = tensor('int64', [1, 1]);
     const tCurPos = tensor('int64', [1]);
 
+    let curPos = pos.getBlocking();
+
     try {
       while (numTokens < maxNewTokens && !isCancelled.getBlocking()) {
-        if (pos >= maxContextLen) break;
+        if (curPos >= maxContextLen) break;
 
+        // TO-REMOVE: Sample timing
+        const tSample0 = Date.now();
         const nextToken = sample(logits, { generatedTokens });
+        totalSampleMs += Date.now() - tSample0;
 
+        // TO-REMOVE: onToken timing
+        const tOnToken0 = Date.now();
         onToken?.(tokenizer.decode(Int32Array.of(nextToken)));
+        totalOnTokenMs += Date.now() - tOnToken0;
+
         generatedTokens.push(nextToken);
 
         if (!config?.ignoreEos && eosIds.includes(nextToken)) {
@@ -145,11 +176,15 @@ export function createTextRunner(
         }
 
         tToken.setData(BigInt64Array.of(BigInt(nextToken)));
-        tCurPos.setData(BigInt64Array.of(BigInt(pos)));
+        tCurPos.setData(BigInt64Array.of(BigInt(curPos)));
 
+        // TO-REMOVE: model.execute timing
+        const tExec0 = Date.now();
         model.execute('forward', [tToken, tCurPos], [tLogits]);
+        totalModelExecuteMs += Date.now() - tExec0;
 
-        pos += 1;
+        curPos += 1;
+        pos.setBlocking(curPos);
         numTokens += 1;
         tLogits.getData(logits);
       }
@@ -160,6 +195,15 @@ export function createTextRunner(
 
     const durationMs = Date.now() - generateStartMs;
     const tokensPerSecond = durationMs > 0 ? (numTokens / durationMs) * 1000 : 0;
+
+    // TO-REMOVE: Console log breakdown
+    // eslint-disable-next-line no-console
+    console.log(
+      `[textRunner] Generated ${numTokens} tokens in ${durationMs}ms (${tokensPerSecond.toFixed(1)} tok/s) | ` +
+        `model.execute: ${totalModelExecuteMs}ms (${durationMs > 0 ? ((totalModelExecuteMs / durationMs) * 100).toFixed(1) : 0}%) | ` +
+        `sample: ${totalSampleMs}ms (${durationMs > 0 ? ((totalSampleMs / durationMs) * 100).toFixed(1) : 0}%) | ` +
+        `onToken: ${totalOnTokenMs}ms (${durationMs > 0 ? ((totalOnTokenMs / durationMs) * 100).toFixed(1) : 0}%)`
+    );
 
     return { numTokens, durationMs, tokensPerSecond, prefill: prefillStats };
   };

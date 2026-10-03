@@ -1,6 +1,9 @@
 /**
  * Low-level native ExecuTorch LLM runner types and factory.
  */
+
+import { type WorkletRuntime } from 'react-native-worklets';
+
 import type { Tensor } from '../../core/tensor';
 import { wrapAsync } from '../../core/runtime';
 import { loadModel } from '../../core/model';
@@ -170,17 +173,19 @@ export type LLMRunner = {
  * @param tokenizerPath Path to the local tokenizer configuration file (e.g. `tokenizer.json`).
  * @param modalities List of supported input non-text modalities (e.g.
  * `['image']`). When omitted, defaults to text-only.
+ * @param runtime ...
  * @returns A native {@link LLMRunner} instance.
  */
 export async function createLLMRunner(
   modelPath: string,
   tokenizerPath: string,
-  modalities?: readonly Modality[]
+  modalities?: readonly Modality[],
+  runtime?: WorkletRuntime
 ): Promise<LLMRunner> {
   const scope = createResourceScope();
   try {
-    const model = scope.track(await wrapAsync(loadModel)(modelPath));
-    const tokenizer = scope.track(await wrapAsync(loadTokenizer)(tokenizerPath));
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
+    const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
     // TODO(@bh): update validate spec after reexporting LLMs with schema const method
     const metadata = {
@@ -189,14 +194,14 @@ export async function createLLMRunner(
       ...method('get_vocab_size', [], [{ kind: 'Int' }]),
       ...method('use_kv_cache', [], [{ kind: 'Bool' }]),
       ...method('enable_dynamic_shape', [], [{ kind: 'Bool' }]),
-      ...method('get_eos_ids', [], [{ kind: 'ListInt' }]),
+      ...method('get_eos_ids', [], [{ kind: 'Int' }]),
     };
 
     const { variant, dims } = validateSpec(model.schema, {
       llm: {
         ...method(
           'forward',
-          // Input: ...
+          // Input: tokens [1, maxSeqLen], curPos [1]
           [i64(1, 'maxSeqLen'), i64(1)],
           // Output: logits over model vocabulary
           [f32(1, 'vocabSize')]
@@ -231,7 +236,10 @@ export async function createLLMRunner(
     });
 
     if (variant === 'llm' && modalities && modalities.length > 0) {
-      throw RnExecuTorchError('INVALID_ARGUMENT', '');
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `Text-only model does not support modalities: ${modalities.join(', ')}.`
+      );
     }
     // if (variant === 'vlm' && !modalities?.includes('image')) {
     //   throw RnExecuTorchError('INVALID_ARGUMENT', '');
@@ -242,32 +250,58 @@ export async function createLLMRunner(
 
     const [maxSeqLen, vocabSize] = dims.constant('maxSeqLen', 'vocabSize');
     const [maxContextLen] = model.execute('get_max_context_len', [], []) as [number];
-    const [eosIds] = model.execute('get_eos_ids', [], []) as [number[]];
+    const eosIds = model.execute('get_eos_ids', [], []) as [number];
 
-    if (maxSeqLen !== model.execute('get_max_seq_len', [], [])[0]) {
-      throw RnExecuTorchError('SCHEMA_MISMATCH', '');
+    // const maxSeqLenMethod = model.execute('get_max_seq_len', [], [])[0];
+    // if (maxSeqLen !== maxSeqLenMethod) {
+    //   throw RnExecuTorchError(
+    //     'SCHEMA_MISMATCH',
+    //     `Schema maxSeqLen (${maxSeqLen}) does not match get_max_seq_len (${maxSeqLenMethod}).`
+    //   );
+    // }
+    const vocabSizeMethod = model.execute('get_vocab_size', [], [])[0];
+    if (vocabSize !== vocabSizeMethod) {
+      throw RnExecuTorchError(
+        'SCHEMA_MISMATCH',
+        `Schema vocabSize (${vocabSize}) does not match get_vocab_size (${vocabSizeMethod}).`
+      );
     }
-    if (vocabSize !== model.execute('get_vocab_size', [], [])[0]) {
-      throw RnExecuTorchError('SCHEMA_MISMATCH', '');
-    }
-    if (vocabSize !== tokenizer.getVocabSize()) {
-      throw RnExecuTorchError('SCHEMA_MISMATCH', '');
-    }
+    // if (vocabSize !== tokenizer.getVocabSize()) {
+    //   throw RnExecuTorchError(
+    //     'SCHEMA_MISMATCH',
+    //     `Model vocabSize (${vocabSize}) does not match tokenizer size (${tokenizer.getVocabSize()}).`
+    //   );
+    // }
     if (model.execute('use_kv_cache', [], [])[0] !== true) {
-      throw RnExecuTorchError('SCHEMA_MISMATCH', '');
+      throw RnExecuTorchError(
+        'SCHEMA_MISMATCH', // prettier-ignore
+        'Model must enable use_kv_cache.'
+      );
     }
     if (model.execute('enable_dynamic_shape', [], [])[0] !== true) {
-      throw RnExecuTorchError('SCHEMA_MISMATCH', '');
+      throw RnExecuTorchError(
+        'SCHEMA_MISMATCH', // prettier-ignore
+        'Model must enable enable_dynamic_shape.'
+      );
     }
     if (maxSeqLen <= 0 || !Number.isInteger(maxSeqLen)) {
-      throw RnExecuTorchError('SCHEMA_MISMATCH', '');
+      throw RnExecuTorchError(
+        'SCHEMA_MISMATCH',
+        `maxSeqLen must be a positive integer, got ${maxSeqLen}.`
+      );
     }
     if (maxContextLen < maxSeqLen || !Number.isInteger(maxContextLen)) {
-      throw RnExecuTorchError('SCHEMA_MISMATCH', '');
+      throw RnExecuTorchError(
+        'SCHEMA_MISMATCH',
+        `maxContextLen (${maxContextLen}) must be an integer >= maxSeqLen (${maxSeqLen}).`
+      );
     }
-    if (!Array.isArray(eosIds) || eosIds.length === 0) {
-      throw RnExecuTorchError('SCHEMA_MISMATCH', '');
-    }
+    // if (!Array.isArray(eosIds) || eosIds.length === 0) {
+    //   throw RnExecuTorchError(
+    //     'SCHEMA_MISMATCH',
+    //     'Model get_eos_ids returned an empty or invalid array.'
+    //   );
+    // }
 
     return createTextRunner(model, tokenizer, { maxSeqLen, maxContextLen, vocabSize, eosIds });
   } catch (e) {
