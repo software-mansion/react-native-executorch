@@ -552,12 +552,6 @@ function expandPattern(root, pattern) {
   return candidates.filter((candidate) => fs.existsSync(candidate));
 }
 
-// The v0.10.4-libs and v0.10.5-libs artifacts were packed on macOS, whose tar
-// stored an AppleDouble `._<name>` entry beside most files. A Mac's tar folds
-// those back into extended attributes, but GNU tar extracts them as files, and
-// Expo's fingerprint hashes them, so a Linux install hashed differently from a
-// macOS one (#1513). Nothing reads them, so every one is dropped. Symlinks are
-// not followed: the podspec's include-external-opencv mirror links into here.
 function removeAppleDoubleFiles(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const entryPath = path.join(dir, entry.name);
