@@ -324,16 +324,16 @@ function warnAboutPlatformAsymmetry({ backends }, targets) {
 
 // ---- Target detection ------------------------------------------------------
 
+// The iOS artifacts come down on every host, not only on macOS. Expo's
+// fingerprint runtime version hashes the whole package root for both platforms,
+// so a Mac install that held them and a Linux EAS builder that did not computed
+// different Android runtime versions (#1509). They are ~10 MB compressed.
 function detectTargets() {
   if (process.env.RNET_TARGET) {
     return [process.env.RNET_TARGET];
   }
 
-  const targets = [];
-  if (process.platform === 'darwin') {
-    targets.push('ios');
-  }
-  targets.push('android-arm64-v8a');
+  const targets = ['ios', 'android-arm64-v8a'];
   if (!process.env.RNET_NO_X86_64) {
     targets.push('android-x86_64');
   }
@@ -658,6 +658,7 @@ module.exports = {
   ALL_BACKENDS,
   ALL_LIBS,
   BACKEND_FILES,
+  detectTargets,
   FEATURE_MAP,
   findUserConfig,
   readUserConfig,

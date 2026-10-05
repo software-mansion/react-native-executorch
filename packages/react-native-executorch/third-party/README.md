@@ -16,7 +16,8 @@ Native ExecuTorch artifacts are split into **committed source** and
 `scripts/download-libs.js` runs at **postinstall** and downloads the prebuilt
 binaries from this repo's GitHub Releases (tag `v<package version>`), based on the
 app's opted-in `backends` / `libs` / `features` (see the getting-started docs).
-It writes `rne-build-config.json`, which the podspec and `android/build.gradle.kts`
+Both platforms' binaries are fetched on every host, so the package contents (and
+Expo's fingerprint) do not depend on the OS that ran the install. It writes `rne-build-config.json`, which the podspec and `android/build.gradle.kts`
 read to gate `RNE_ENABLE_*` and link only the requested backends.
 
 Extracted layout the podspec / `android/CMakeLists.txt` expect:
