@@ -5,7 +5,7 @@ import type { Model } from '../../../core/model';
 import { RnExecuTorchError } from '../../../core/error';
 
 import type { Tokenizer } from '../../nlp';
-import { createSampler } from '../sampler';
+import { sample } from '../sampler';
 import type {
   LLMGenerationConfig,
   LLMGenerationStats,
@@ -15,7 +15,7 @@ import type {
   Prompt,
 } from '../llmRunner';
 
-export function createTextRunner(
+export function createLLMTextRunner(
   model: Model,
   tokenizer: Tokenizer,
   meta: {
@@ -26,6 +26,8 @@ export function createTextRunner(
   }
 ): LLMRunner {
   const { maxSeqLen, maxContextLen, vocabSize, eosIds } = meta;
+  // Reused as the `forward` output buffer and clobbered in place by `sample()`;
+  // always refilled by `model.execute` before the next `sample()` call.
   const tLogits = tensor('float32', [1, vocabSize]);
 
   const dispose = () => {
@@ -34,9 +36,9 @@ export function createTextRunner(
     tokenizer.dispose();
   };
 
-  // ==================================
+  // ======================================================
   // KV Cache management
-  // ==================================
+  // ======================================================
   const pos = createSynchronizable(0);
 
   const reset = (targetPos?: number): void => {
@@ -59,11 +61,14 @@ export function createTextRunner(
     };
   };
 
-  // ==================================
+  // ======================================================
   // Generation methods
-  // ==================================
+  // ======================================================
   const isCancelled = createSynchronizable(false);
-  const stop = (): void => isCancelled.setBlocking(true);
+  const stop = (): void => {
+    'worklet';
+    isCancelled.setBlocking(true);
+  };
 
   const prefill = (prompt: Prompt): LLMPrefillStats => {
     'worklet';
@@ -138,9 +143,6 @@ export function createTextRunner(
     const generatedTokens: number[] = [];
     const maxNewTokens = config?.maxNewTokens ?? Infinity;
 
-    const logits = tLogits.getData(new Float32Array(vocabSize));
-    const sample = createSampler(config);
-
     let numTokens = 0;
     // TO-REMOVE: Timing breakdown for benchmarking
     let totalModelExecuteMs = 0;
@@ -158,7 +160,11 @@ export function createTextRunner(
 
         // TO-REMOVE: Sample timing
         const tSample0 = Date.now();
-        const nextToken = sample(logits, { generatedTokens });
+        const nextToken = sample(
+          tLogits,
+          { generatedTokens: Int32Array.from(generatedTokens) },
+          config
+        );
         totalSampleMs += Date.now() - tSample0;
 
         // TO-REMOVE: onToken timing
@@ -183,7 +189,6 @@ export function createTextRunner(
         curPos += 1;
         pos.setBlocking(curPos);
         numTokens += 1;
-        tLogits.getData(logits);
       }
     } finally {
       tToken.dispose();
@@ -196,7 +201,7 @@ export function createTextRunner(
     // TO-REMOVE: Console log breakdown
     // eslint-disable-next-line no-console
     console.log(
-      `[textRunner] Generated ${numTokens} tokens in ${durationMs}ms (${tokensPerSecond.toFixed(1)} tok/s) | ` +
+      `[llmTextRunner] Generated ${numTokens} tokens in ${durationMs}ms (${tokensPerSecond.toFixed(1)} tok/s) | ` +
         `model.execute: ${totalModelExecuteMs}ms (${durationMs > 0 ? ((totalModelExecuteMs / durationMs) * 100).toFixed(1) : 0}%) | ` +
         `sample: ${totalSampleMs}ms (${durationMs > 0 ? ((totalSampleMs / durationMs) * 100).toFixed(1) : 0}%) | ` +
         `onToken: ${totalOnTokenMs}ms (${durationMs > 0 ? ((totalOnTokenMs / durationMs) * 100).toFixed(1) : 0}%)`
