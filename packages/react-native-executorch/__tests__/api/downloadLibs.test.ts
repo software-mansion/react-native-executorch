@@ -13,11 +13,21 @@
  */
 import { createHash, randomBytes } from 'crypto';
 import { execFileSync } from 'child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from 'fs';
+import {
+  mkdtempSync,
+  mkdirSync,
+  writeFileSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  existsSync,
+} from 'fs';
+import { createServer, type Server, type ServerResponse } from 'http';
+import type { AddressInfo } from 'net';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
-const { sha256, extract } = require('../../scripts/download-libs.js');
+const { sha256, extract, download } = require('../../scripts/download-libs.js');
 
 let workDir: string;
 
@@ -102,5 +112,79 @@ describe('extract', () => {
     writeFileSync(tarball, randomBytes(128));
 
     expect(() => extract(tarball, join(workDir, 'dest'))).toThrow(/truncated\.tar\.gz/);
+  });
+});
+
+describe('download', () => {
+  let server: Server;
+  let baseUrl: string;
+  let handler: (res: ServerResponse) => void;
+
+  beforeEach(async () => {
+    server = createServer((_req, res) => handler(res));
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  });
+
+  afterEach(async () => {
+    server.closeAllConnections();
+    await new Promise((resolve) => server.close(resolve));
+  });
+
+  const filesIn = (dir: string) => readdirSync(dir).sort();
+
+  it('never exposes a partial file at the destination', async () => {
+    // Another copy of the package already cached a complete file here and may
+    // be reading it while this one refreshes it (#1510).
+    const dest = join(workDir, 'core.tar.gz.sha256');
+    writeFileSync(dest, 'cached');
+    let finish!: () => void;
+    handler = (res) => {
+      res.writeHead(200);
+      res.write('first-');
+      finish = () => res.end('second');
+    };
+
+    const downloading = download(`${baseUrl}/core.tar.gz.sha256`, dest);
+    // Wait until the first chunk has reached the disk somewhere in workDir.
+    while (!filesIn(workDir).some((f) => readFileSync(join(workDir, f), 'utf8') === 'first-')) {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+
+    expect(readFileSync(dest, 'utf8')).toBe('cached');
+    finish();
+    await downloading;
+    expect(readFileSync(dest, 'utf8')).toBe('first-second');
+    expect(filesIn(workDir)).toEqual(['core.tar.gz.sha256']);
+  });
+
+  it('leaves the destination untouched when the request fails', async () => {
+    const dest = join(workDir, 'core.tar.gz');
+    writeFileSync(dest, 'cached');
+    handler = (res) => {
+      res.writeHead(404);
+      res.end();
+    };
+
+    await expect(download(`${baseUrl}/core.tar.gz`, dest)).rejects.toThrow(/HTTP 404/);
+    expect(readFileSync(dest, 'utf8')).toBe('cached');
+    expect(filesIn(workDir)).toEqual(['core.tar.gz']);
+  });
+
+  it('lets concurrent downloads of the same file both complete', async () => {
+    const dest = join(workDir, 'core.tar.gz');
+    const body = randomBytes(256 * 1024);
+    handler = (res) => {
+      res.writeHead(200);
+      res.end(body);
+    };
+
+    await Promise.all([
+      download(`${baseUrl}/core.tar.gz`, dest),
+      download(`${baseUrl}/core.tar.gz`, dest),
+    ]);
+
+    expect(readFileSync(dest).equals(body)).toBe(true);
+    expect(filesIn(workDir)).toEqual(['core.tar.gz']);
   });
 });
