@@ -1,6 +1,7 @@
 #include "RnExecutorch.h"
 
 #include "core/install.h"
+#include "extensions/llm/install.h"
 #include "extensions/math/install.h"
 #include "extensions/nlp/install.h"
 #include "extensions/speech/install.h"
@@ -21,6 +22,7 @@ void install(jsi::Runtime &jsiRuntime) {
 #endif
     rnexecutorch::extensions::math::install(jsiRuntime, module);
     rnexecutorch::extensions::nlp::install(jsiRuntime, module);
+    rnexecutorch::extensions::llm::install(jsiRuntime, module);
     rnexecutorch::extensions::speech::install(jsiRuntime, module);
 
     jsiRuntime.global().setProperty(jsiRuntime, "__rnexecutorch_jsi__", std::move(module));
