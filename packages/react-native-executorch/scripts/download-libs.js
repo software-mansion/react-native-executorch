@@ -552,6 +552,23 @@ function expandPattern(root, pattern) {
   return candidates.filter((candidate) => fs.existsSync(candidate));
 }
 
+// The v0.10.4-libs and v0.10.5-libs artifacts were packed on macOS, whose tar
+// stored an AppleDouble `._<name>` entry beside most files. A Mac's tar folds
+// those back into extended attributes, but GNU tar extracts them as files, and
+// Expo's fingerprint hashes them, so a Linux install hashed differently from a
+// macOS one (#1513). Nothing reads them, so every one is dropped. Symlinks are
+// not followed: the podspec's include-external-opencv mirror links into here.
+function removeAppleDoubleFiles(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const entryPath = path.join(dir, entry.name);
+    if (entry.name.startsWith('._')) {
+      fs.rmSync(entryPath, { recursive: true, force: true });
+    } else if (entry.isDirectory()) {
+      removeAppleDoubleFiles(entryPath);
+    }
+  }
+}
+
 function extract(tarball, destDir) {
   ensureDir(destDir);
   // `-m` stamps extracted files with the extraction time instead of the mtime
@@ -645,6 +662,8 @@ async function main() {
     console.log(`  ✓ Done`);
   }
 
+  removeAppleDoubleFiles(THIRD_PARTY_DIR);
+
   // Belt and braces to core no longer carrying backends: this also clears
   // binaries left by an EARLIER install that had the backend enabled.
   pruneDisabledBackends(targets, config);
@@ -669,6 +688,7 @@ module.exports = {
   findUserConfig,
   readUserConfig,
   pruneDisabledBackends,
+  removeAppleDoubleFiles,
   sha256,
   extract,
 };
