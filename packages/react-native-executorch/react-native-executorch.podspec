@@ -209,11 +209,9 @@ Pod::Spec.new do |s|
 
   # --- Link flags ---
   physical_ldflags = [
-    '$(inherited)',
     "\"#{executorch_binaries_path}/libthreadpool_ios.a\"",
   ]
   simulator_ldflags = [
-    '$(inherited)',
     "\"#{executorch_binaries_path}/libthreadpool_simulator.a\"",
   ]
 
@@ -239,9 +237,10 @@ Pod::Spec.new do |s|
   end
 
   s.user_target_xcconfig = {
-    "OTHER_LDFLAGS[sdk=iphoneos*]"        => physical_ldflags.join(' '),
-    "OTHER_LDFLAGS[sdk=iphonesimulator*]" => simulator_ldflags.join(' '),
-    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
+    "RNE_OTHER_LDFLAGS[sdk=iphoneos*]"        => physical_ldflags.join(' '),
+    "RNE_OTHER_LDFLAGS[sdk=iphonesimulator*]" => simulator_ldflags.join(' '),
+    "OTHER_LDFLAGS"                           => '$(inherited) $(RNE_OTHER_LDFLAGS)',
+    'EXCLUDED_ARCHS[sdk=iphonesimulator*]'    => 'x86_64',
   }
 
   # iOS OpenCV is provided by a CocoaPod (not a downloaded tarball), normally
