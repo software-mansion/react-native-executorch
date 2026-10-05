@@ -13,7 +13,7 @@ import { f32, i64, method, validateSpec } from '../../core/schema';
 
 import { loadTokenizer } from '../nlp';
 
-import { createTextRunner } from './runners/textRunner';
+import { createLLMTextRunner } from './runners/llmTextRunner';
 import type { SamplingConfig } from './sampler';
 
 declare const llmRunnerBrand: unique symbol;
@@ -252,13 +252,6 @@ export async function createLLMRunner(
     const [maxContextLen] = model.execute('get_max_context_len', [], []) as [number];
     const eosIds = model.execute('get_eos_ids', [], []) as [number];
 
-    // const maxSeqLenMethod = model.execute('get_max_seq_len', [], [])[0];
-    // if (maxSeqLen !== maxSeqLenMethod) {
-    //   throw RnExecuTorchError(
-    //     'SCHEMA_MISMATCH',
-    //     `Schema maxSeqLen (${maxSeqLen}) does not match get_max_seq_len (${maxSeqLenMethod}).`
-    //   );
-    // }
     const vocabSizeMethod = model.execute('get_vocab_size', [], [])[0];
     if (vocabSize !== vocabSizeMethod) {
       throw RnExecuTorchError(
@@ -266,12 +259,6 @@ export async function createLLMRunner(
         `Schema vocabSize (${vocabSize}) does not match get_vocab_size (${vocabSizeMethod}).`
       );
     }
-    // if (vocabSize !== tokenizer.getVocabSize()) {
-    //   throw RnExecuTorchError(
-    //     'SCHEMA_MISMATCH',
-    //     `Model vocabSize (${vocabSize}) does not match tokenizer size (${tokenizer.getVocabSize()}).`
-    //   );
-    // }
     if (model.execute('use_kv_cache', [], [])[0] !== true) {
       throw RnExecuTorchError(
         'SCHEMA_MISMATCH', // prettier-ignore
@@ -296,14 +283,8 @@ export async function createLLMRunner(
         `maxContextLen (${maxContextLen}) must be an integer >= maxSeqLen (${maxSeqLen}).`
       );
     }
-    // if (!Array.isArray(eosIds) || eosIds.length === 0) {
-    //   throw RnExecuTorchError(
-    //     'SCHEMA_MISMATCH',
-    //     'Model get_eos_ids returned an empty or invalid array.'
-    //   );
-    // }
 
-    return createTextRunner(model, tokenizer, { maxSeqLen, maxContextLen, vocabSize, eosIds });
+    return createLLMTextRunner(model, tokenizer, { maxSeqLen, maxContextLen, vocabSize, eosIds });
   } catch (e) {
     scope.dispose();
     throw e;

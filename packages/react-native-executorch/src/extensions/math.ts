@@ -23,18 +23,6 @@ export type RandomNormalOptions = {
 };
 
 /**
- * Configuration options for categorical multinomial sampling from logits.
- * @category Math / Types
- */
-export type MultinomialOptions = {
-  /**
-   * Custom uniform random number generator producing values in `[0, 1)`.
-   * Defaults to `Math.random`.
-   */
-  readonly rng?: () => number;
-};
-
-/**
  * Computes the element-wise sigmoid activation on a float32 source tensor and
  * writes the result to a destination tensor.
  * @category Math / Functions
@@ -189,54 +177,6 @@ export function randomNormal(size: number, options?: RandomNormalOptions): Float
     if (i + 1 < size) out[i + 1] = mean + mag * Math.sin(2.0 * Math.PI * u2);
   }
   return out;
-}
-
-/**
- * Draws a single index from a categorical distribution defined by unnormalized logits.
- * @category Math / Functions
- * @param logits Unnormalized log-probabilities to sample from.
- * @param options Sampling options including an optional custom random number generator.
- * @returns The sampled index.
- * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `logits` is empty.
- */
-export function multinomial(logits: ArrayLike<number>, options?: MultinomialOptions): number {
-  'worklet';
-  const n = logits.length;
-  if (n === 0) {
-    throw RnExecuTorchError(
-      'INVALID_ARGUMENT',
-      'multinomial: cannot sample from an empty array of logits.'
-    );
-  }
-
-  const rng = options?.rng ?? Math.random;
-
-  let maxLogit = -Infinity;
-  for (let i = 0; i < n; i++) {
-    const val = logits[i]!;
-    if (val > maxLogit) maxLogit = val;
-  }
-  if (!Number.isFinite(maxLogit)) return 0;
-
-  let sum = 0;
-  for (let i = 0; i < n; i++) {
-    const val = logits[i]!;
-    if (val !== -Infinity) {
-      sum += Math.exp(val - maxLogit);
-    }
-  }
-  if (sum === 0) return 0;
-
-  const target = rng() * sum;
-  let cum = 0;
-  for (let i = 0; i < n; i++) {
-    const val = logits[i]!;
-    if (val !== -Infinity) {
-      cum += Math.exp(val - maxLogit);
-      if (cum >= target) return i;
-    }
-  }
-  return n - 1;
 }
 
 /**
