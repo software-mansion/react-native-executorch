@@ -34,11 +34,11 @@ Explore the charts below to compare backends and find the optimal balance for yo
 
 ## Devices
 
-Measurements were collected on physical iOS and Android devices spanning flagship, modern mid-tier, and legacy hardware tiers.
+Measurements were collected on physical iOS and Android devices spanning flagship, modern mid-tier, and legacy hardware tiers. All numbers come from release builds of React Native ExecuTorch v0.10.0, measured in September 2026.
 
 | Device | Backends tested | Variants | Notes |
 |---|---|---|---|
-| Samsung Galaxy S26 Ultra | XNNPACK (100), Vulkan (24) | 124 | Flagship Android test device (Snapdragon SM8850); covers all standard tasks and 23 LLM variants |
+| Samsung Galaxy S26 Ultra | XNNPACK (123), Vulkan (24) | 147 | Flagship Android test device (Snapdragon SM8850); covers all standard tasks and 23 LLM variants |
 | Google Pixel 10 | XNNPACK (100), Vulkan (24) | 124 | Modern Android device featuring Google Tensor G5 |
 | Samsung Galaxy S20+ | XNNPACK (100), Vulkan (24) | 124 | Baseline Android device (Exynos 990) representing older generation hardware |
 | iPhone 17 | XNNPACK (100), Core ML (75), MLX (15) | 190 | Flagship iOS reference device (A19) testing XNNPACK, Core ML, and MLX execution |

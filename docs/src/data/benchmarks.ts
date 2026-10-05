@@ -35,7 +35,8 @@ export type Metric = {
   label: string;
   unit: 'ms' | 'MB' | '%' | 'tok/s';
   description: string;
-  lowerIsBetter: boolean;
+  // null for metrics with no better direction, e.g. model time share.
+  lowerIsBetter: boolean | null;
 };
 
 export type Device = {
@@ -80,7 +81,7 @@ export const METRICS: Metric[] = [
     unit: '%',
     description:
       'Percentage of total pipeline time spent in ExecuTorch model execution vs. pre/post-processing.',
-    lowerIsBetter: false,
+    lowerIsBetter: null,
   },
   {
     id: 'peakMb',

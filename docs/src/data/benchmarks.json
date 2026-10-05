@@ -11,7 +11,7 @@
     "share": 98,
     "peakMb": 316,
     "loadMs": 55,
-    "sizeMb": 86
+    "sizeMb": 82
   },
   {
     "task": "classification",
@@ -25,7 +25,7 @@
     "share": 97,
     "peakMb": 250,
     "loadMs": 29,
-    "sizeMb": 23
+    "sizeMb": 22
   },
   {
     "task": "classification",
@@ -179,7 +179,7 @@
     "share": 99,
     "peakMb": 335,
     "loadMs": 72,
-    "sizeMb": 112
+    "sizeMb": 106
   },
   {
     "task": "object-detection",
@@ -193,7 +193,7 @@
     "share": 96,
     "peakMb": 230,
     "loadMs": 10,
-    "sizeMb": 14
+    "sizeMb": 13
   },
   {
     "task": "object-detection",
@@ -207,7 +207,7 @@
     "share": 99,
     "peakMb": 388,
     "loadMs": 87,
-    "sizeMb": 100
+    "sizeMb": 95
   },
   {
     "task": "object-detection",
@@ -221,7 +221,7 @@
     "share": 100,
     "peakMb": 427,
     "loadMs": 90,
-    "sizeMb": 100
+    "sizeMb": 95
   },
   {
     "task": "object-detection",
@@ -235,7 +235,7 @@
     "share": 100,
     "peakMb": 500,
     "loadMs": 85,
-    "sizeMb": 100
+    "sizeMb": 95
   },
   {
     "task": "object-detection",
@@ -249,7 +249,7 @@
     "share": 99,
     "peakMb": 358,
     "loadMs": 72,
-    "sizeMb": 82
+    "sizeMb": 78
   },
   {
     "task": "object-detection",
@@ -263,7 +263,7 @@
     "share": 99,
     "peakMb": 411,
     "loadMs": 67,
-    "sizeMb": 82
+    "sizeMb": 78
   },
   {
     "task": "object-detection",
@@ -277,7 +277,7 @@
     "share": 100,
     "peakMb": 478,
     "loadMs": 77,
-    "sizeMb": 82
+    "sizeMb": 78
   },
   {
     "task": "object-detection",
@@ -291,7 +291,7 @@
     "share": 98,
     "peakMb": 224,
     "loadMs": 7,
-    "sizeMb": 10
+    "sizeMb": 9.4
   },
   {
     "task": "object-detection",
@@ -305,7 +305,7 @@
     "share": 98,
     "peakMb": 247,
     "loadMs": 13,
-    "sizeMb": 10
+    "sizeMb": 9.4
   },
   {
     "task": "object-detection",
@@ -319,7 +319,7 @@
     "share": 99,
     "peakMb": 275,
     "loadMs": 18,
-    "sizeMb": 10
+    "sizeMb": 9.4
   },
   {
     "task": "object-detection",
@@ -333,7 +333,7 @@
     "share": 98,
     "peakMb": 283,
     "loadMs": 31,
-    "sizeMb": 38
+    "sizeMb": 36
   },
   {
     "task": "object-detection",
@@ -347,7 +347,7 @@
     "share": 98,
     "peakMb": 309,
     "loadMs": 42,
-    "sizeMb": 38
+    "sizeMb": 36
   },
   {
     "task": "object-detection",
@@ -361,7 +361,7 @@
     "share": 99,
     "peakMb": 349,
     "loadMs": 34,
-    "sizeMb": 38
+    "sizeMb": 36
   },
   {
     "task": "object-detection",
@@ -375,7 +375,7 @@
     "share": 100,
     "peakMb": 557,
     "loadMs": 179,
-    "sizeMb": 223
+    "sizeMb": 213
   },
   {
     "task": "object-detection",
@@ -389,7 +389,7 @@
     "share": 100,
     "peakMb": 629,
     "loadMs": 174,
-    "sizeMb": 223
+    "sizeMb": 213
   },
   {
     "task": "object-detection",
@@ -403,7 +403,7 @@
     "share": 100,
     "peakMb": 699,
     "loadMs": 175,
-    "sizeMb": 223
+    "sizeMb": 213
   },
   {
     "task": "object-detection",
@@ -1845,7 +1845,7 @@
     "share": 98,
     "peakMb": 468,
     "loadMs": 62,
-    "sizeMb": 47
+    "sizeMb": 45
   },
   {
     "task": "instance-segmentation",
@@ -1859,7 +1859,7 @@
     "share": 99,
     "peakMb": 824,
     "loadMs": 271,
-    "sizeMb": 289
+    "sizeMb": 276
   },
   {
     "task": "instance-segmentation",
@@ -1873,7 +1873,7 @@
     "share": 99,
     "peakMb": 494,
     "loadMs": 78,
-    "sizeMb": 124
+    "sizeMb": 118
   },
   {
     "task": "instance-segmentation",
@@ -1887,7 +1887,7 @@
     "share": 99,
     "peakMb": 403,
     "loadMs": 85,
-    "sizeMb": 112
+    "sizeMb": 107
   },
   {
     "task": "instance-segmentation",
@@ -1901,7 +1901,7 @@
     "share": 99,
     "peakMb": 464,
     "loadMs": 78,
-    "sizeMb": 112
+    "sizeMb": 107
   },
   {
     "task": "instance-segmentation",
@@ -1915,7 +1915,7 @@
     "share": 99,
     "peakMb": 548,
     "loadMs": 85,
-    "sizeMb": 112
+    "sizeMb": 107
   },
   {
     "task": "instance-segmentation",
@@ -1929,7 +1929,7 @@
     "share": 99,
     "peakMb": 460,
     "loadMs": 89,
-    "sizeMb": 95
+    "sizeMb": 90
   },
   {
     "task": "instance-segmentation",
@@ -1943,7 +1943,7 @@
     "share": 99,
     "peakMb": 523,
     "loadMs": 89,
-    "sizeMb": 95
+    "sizeMb": 90
   },
   {
     "task": "instance-segmentation",
@@ -1957,7 +1957,7 @@
     "share": 99,
     "peakMb": 531,
     "loadMs": 75,
-    "sizeMb": 95
+    "sizeMb": 90
   },
   {
     "task": "instance-segmentation",
@@ -2013,7 +2013,7 @@
     "share": 98,
     "peakMb": 394,
     "loadMs": 44,
-    "sizeMb": 42
+    "sizeMb": 40
   },
   {
     "task": "instance-segmentation",
@@ -2027,7 +2027,7 @@
     "share": 98,
     "peakMb": 436,
     "loadMs": 49,
-    "sizeMb": 42
+    "sizeMb": 40
   },
   {
     "task": "instance-segmentation",
@@ -2041,7 +2041,7 @@
     "share": 99,
     "peakMb": 499,
     "loadMs": 47,
-    "sizeMb": 42
+    "sizeMb": 40
   },
   {
     "task": "instance-segmentation",
@@ -2055,7 +2055,7 @@
     "share": 100,
     "peakMb": 574,
     "loadMs": 157,
-    "sizeMb": 252
+    "sizeMb": 240
   },
   {
     "task": "instance-segmentation",
@@ -2069,7 +2069,7 @@
     "share": 100,
     "peakMb": 660,
     "loadMs": 158,
-    "sizeMb": 252
+    "sizeMb": 240
   },
   {
     "task": "instance-segmentation",
@@ -2083,7 +2083,7 @@
     "share": 100,
     "peakMb": 752,
     "loadMs": 189,
-    "sizeMb": 252
+    "sizeMb": 240
   },
   {
     "task": "instance-segmentation",
@@ -3609,7 +3609,7 @@
     "share": 84,
     "peakMb": 393,
     "loadMs": 91,
-    "sizeMb": 44
+    "sizeMb": 42
   },
   {
     "task": "semantic-segmentation",
@@ -3623,7 +3623,7 @@
     "share": 99,
     "peakMb": 761,
     "loadMs": 294,
-    "sizeMb": 234
+    "sizeMb": 224
   },
   {
     "task": "semantic-segmentation",
@@ -3637,7 +3637,7 @@
     "share": 98,
     "peakMb": 637,
     "loadMs": 240,
-    "sizeMb": 159
+    "sizeMb": 151
   },
   {
     "task": "semantic-segmentation",
@@ -3651,7 +3651,7 @@
     "share": 99,
     "peakMb": 687,
     "loadMs": 186,
-    "sizeMb": 208
+    "sizeMb": 198
   },
   {
     "task": "semantic-segmentation",
@@ -3665,7 +3665,7 @@
     "share": 98,
     "peakMb": 612,
     "loadMs": 227,
-    "sizeMb": 132
+    "sizeMb": 126
   },
   {
     "task": "semantic-segmentation",
@@ -3679,7 +3679,7 @@
     "share": 79,
     "peakMb": 415,
     "loadMs": 35,
-    "sizeMb": 13
+    "sizeMb": 12
   },
   {
     "task": "semantic-segmentation",
@@ -3693,7 +3693,7 @@
     "share": 73,
     "peakMb": 224,
     "loadMs": 2,
-    "sizeMb": 0
+    "sizeMb": 0.47
   },
   {
     "task": "semantic-segmentation",
@@ -3707,7 +3707,7 @@
     "share": 80,
     "peakMb": 215,
     "loadMs": 1,
-    "sizeMb": 0
+    "sizeMb": 0.45
   },
   {
     "task": "semantic-segmentation",
@@ -3735,7 +3735,7 @@
     "share": 96,
     "peakMb": 603,
     "loadMs": 110,
-    "sizeMb": 62
+    "sizeMb": 59
   },
   {
     "task": "semantic-segmentation",
@@ -3749,7 +3749,7 @@
     "share": 92,
     "peakMb": 473,
     "loadMs": 106,
-    "sizeMb": 42
+    "sizeMb": 40
   },
   {
     "task": "semantic-segmentation",
@@ -3763,7 +3763,7 @@
     "share": 94,
     "peakMb": 521,
     "loadMs": 179,
-    "sizeMb": 55
+    "sizeMb": 52
   },
   {
     "task": "semantic-segmentation",
@@ -3777,7 +3777,7 @@
     "share": 91,
     "peakMb": 421,
     "loadMs": 138,
-    "sizeMb": 36
+    "sizeMb": 34
   },
   {
     "task": "semantic-segmentation",
@@ -3791,7 +3791,7 @@
     "share": 74,
     "peakMb": 379,
     "loadMs": 46,
-    "sizeMb": 4
+    "sizeMb": 3.4
   },
   {
     "task": "semantic-segmentation",
@@ -4813,7 +4813,7 @@
     "share": 95,
     "peakMb": 238,
     "loadMs": 2,
-    "sizeMb": 1
+    "sizeMb": 0.62
   },
   {
     "task": "keypoint-detection",
@@ -4827,7 +4827,7 @@
     "share": 100,
     "peakMb": 1017,
     "loadMs": 134,
-    "sizeMb": 146
+    "sizeMb": 139
   },
   {
     "task": "keypoint-detection",
@@ -4841,7 +4841,7 @@
     "share": 97,
     "peakMb": 255,
     "loadMs": 21,
-    "sizeMb": 12
+    "sizeMb": 11
   },
   {
     "task": "keypoint-detection",
@@ -4855,7 +4855,7 @@
     "share": 99,
     "peakMb": 271,
     "loadMs": 24,
-    "sizeMb": 12
+    "sizeMb": 11
   },
   {
     "task": "keypoint-detection",
@@ -4869,7 +4869,7 @@
     "share": 98,
     "peakMb": 293,
     "loadMs": 20,
-    "sizeMb": 12
+    "sizeMb": 11
   },
   {
     "task": "keypoint-detection",
@@ -5275,7 +5275,7 @@
     "share": 99,
     "peakMb": 1249,
     "loadMs": 47,
-    "sizeMb": 7
+    "sizeMb": 6.5
   },
   {
     "task": "style-transfer",
@@ -5289,7 +5289,7 @@
     "share": 99,
     "peakMb": 1256,
     "loadMs": 46,
-    "sizeMb": 7
+    "sizeMb": 6.5
   },
   {
     "task": "style-transfer",
@@ -5303,7 +5303,7 @@
     "share": 99,
     "peakMb": 1256,
     "loadMs": 79,
-    "sizeMb": 7
+    "sizeMb": 6.5
   },
   {
     "task": "style-transfer",
@@ -5317,7 +5317,7 @@
     "share": 99,
     "peakMb": 1259,
     "loadMs": 57,
-    "sizeMb": 7
+    "sizeMb": 6.5
   },
   {
     "task": "style-transfer",
@@ -5331,7 +5331,7 @@
     "share": 99,
     "peakMb": 1105,
     "loadMs": 32,
-    "sizeMb": 2
+    "sizeMb": 1.8
   },
   {
     "task": "style-transfer",
@@ -5345,7 +5345,7 @@
     "share": 99,
     "peakMb": 1116,
     "loadMs": 53,
-    "sizeMb": 2
+    "sizeMb": 1.8
   },
   {
     "task": "style-transfer",
@@ -5359,7 +5359,7 @@
     "share": 99,
     "peakMb": 1103,
     "loadMs": 53,
-    "sizeMb": 2
+    "sizeMb": 1.8
   },
   {
     "task": "style-transfer",
@@ -5373,7 +5373,7 @@
     "share": 99,
     "peakMb": 1139,
     "loadMs": 42,
-    "sizeMb": 2
+    "sizeMb": 1.8
   },
   {
     "task": "style-transfer",
@@ -5947,7 +5947,7 @@
     "share": 98,
     "peakMb": 673,
     "loadMs": 248,
-    "sizeMb": 352
+    "sizeMb": 335
   },
   {
     "task": "image-embeddings",
@@ -5961,7 +5961,7 @@
     "share": 99,
     "peakMb": 516,
     "loadMs": 108,
-    "sizeMb": 176
+    "sizeMb": 168
   },
   {
     "task": "image-embeddings",
@@ -6115,7 +6115,7 @@
     "share": 97,
     "peakMb": 569,
     "loadMs": 74,
-    "sizeMb": 24
+    "sizeMb": 23
   },
   {
     "task": "ocr",
@@ -6129,7 +6129,7 @@
     "share": 98,
     "peakMb": 690,
     "loadMs": 65,
-    "sizeMb": 31
+    "sizeMb": 30
   },
   {
     "task": "ocr",
@@ -6143,7 +6143,7 @@
     "share": 88,
     "peakMb": 583,
     "loadMs": 45,
-    "sizeMb": 26
+    "sizeMb": 25
   },
   {
     "task": "ocr",
@@ -6325,7 +6325,7 @@
     "share": 99,
     "peakMb": 2559,
     "loadMs": 1509,
-    "sizeMb": 1764
+    "sizeMb": 1682
   },
   {
     "task": "text-to-image",
@@ -6395,7 +6395,7 @@
     "share": 98,
     "peakMb": 691,
     "loadMs": 351,
-    "sizeMb": 396
+    "sizeMb": 378
   },
   {
     "task": "text-embeddings",
@@ -6409,7 +6409,7 @@
     "share": 99,
     "peakMb": 943,
     "loadMs": 871,
-    "sizeMb": 580
+    "sizeMb": 553
   },
   {
     "task": "text-embeddings",
@@ -6423,7 +6423,7 @@
     "share": 98,
     "peakMb": 827,
     "loadMs": 949,
-    "sizeMb": 414
+    "sizeMb": 395
   },
   {
     "task": "text-embeddings",
@@ -6437,7 +6437,7 @@
     "share": 97,
     "peakMb": 349,
     "loadMs": 101,
-    "sizeMb": 91
+    "sizeMb": 87
   },
   {
     "task": "text-embeddings",
@@ -6451,7 +6451,7 @@
     "share": 99,
     "peakMb": 725,
     "loadMs": 394,
-    "sizeMb": 437
+    "sizeMb": 416
   },
   {
     "task": "text-embeddings",
@@ -6465,7 +6465,7 @@
     "share": 96,
     "peakMb": 560,
     "loadMs": 252,
-    "sizeMb": 256
+    "sizeMb": 244
   },
   {
     "task": "text-embeddings",
@@ -6479,7 +6479,7 @@
     "share": 98,
     "peakMb": 820,
     "loadMs": 487,
-    "sizeMb": 544
+    "sizeMb": 518
   },
   {
     "task": "text-embeddings",
@@ -6493,7 +6493,7 @@
     "share": 97,
     "peakMb": 408,
     "loadMs": 75,
-    "sizeMb": 91
+    "sizeMb": 87
   },
   {
     "task": "text-embeddings",
@@ -6507,7 +6507,7 @@
     "share": 99,
     "peakMb": 758,
     "loadMs": 320,
-    "sizeMb": 437
+    "sizeMb": 416
   },
   {
     "task": "text-embeddings",
@@ -6521,7 +6521,7 @@
     "share": 97,
     "peakMb": 893,
     "loadMs": 1052,
-    "sizeMb": 487
+    "sizeMb": 465
   },
   {
     "task": "text-embeddings",
@@ -6535,7 +6535,7 @@
     "share": 98,
     "peakMb": 337,
     "loadMs": 79,
-    "sizeMb": 46
+    "sizeMb": 44
   },
   {
     "task": "text-embeddings",
@@ -6549,7 +6549,7 @@
     "share": 99,
     "peakMb": 553,
     "loadMs": 246,
-    "sizeMb": 219
+    "sizeMb": 209
   },
   {
     "task": "text-embeddings",
@@ -6563,7 +6563,7 @@
     "share": 96,
     "peakMb": 456,
     "loadMs": 239,
-    "sizeMb": 129
+    "sizeMb": 123
   },
   {
     "task": "text-embeddings",
@@ -6577,7 +6577,7 @@
     "share": 99,
     "peakMb": 586,
     "loadMs": 382,
-    "sizeMb": 273
+    "sizeMb": 261
   },
   {
     "task": "text-embeddings",
@@ -6591,7 +6591,7 @@
     "share": 97,
     "peakMb": 368,
     "loadMs": 92,
-    "sizeMb": 46
+    "sizeMb": 44
   },
   {
     "task": "text-embeddings",
@@ -6605,7 +6605,7 @@
     "share": 99,
     "peakMb": 587,
     "loadMs": 226,
-    "sizeMb": 219
+    "sizeMb": 209
   },
   {
     "task": "text-embeddings",
@@ -6619,7 +6619,7 @@
     "share": 99,
     "peakMb": 686,
     "loadMs": 918,
-    "sizeMb": 252
+    "sizeMb": 241
   },
   {
     "task": "text-embeddings",
@@ -6633,7 +6633,7 @@
     "share": 100,
     "peakMb": 460,
     "loadMs": 180,
-    "sizeMb": 134
+    "sizeMb": 128
   },
   {
     "task": "text-embeddings",
@@ -6647,7 +6647,7 @@
     "share": 100,
     "peakMb": 491,
     "loadMs": 151,
-    "sizeMb": 134
+    "sizeMb": 128
   },
   {
     "task": "text-embeddings",
@@ -7655,7 +7655,7 @@
     "share": 98,
     "peakMb": 2047,
     "loadMs": 2182,
-    "sizeMb": 1270
+    "sizeMb": 1211
   },
   {
     "task": "privacy-filter",
@@ -7669,7 +7669,7 @@
     "share": 99,
     "peakMb": 2151,
     "loadMs": 2395,
-    "sizeMb": 1270
+    "sizeMb": 1211
   },
   {
     "task": "privacy-filter",
@@ -7837,7 +7837,7 @@
     "share": 99,
     "peakMb": 917,
     "loadMs": 234,
-    "sizeMb": 403
+    "sizeMb": 384
   },
   {
     "task": "speech-to-text",
@@ -7851,7 +7851,7 @@
     "share": 100,
     "peakMb": 930,
     "loadMs": 223,
-    "sizeMb": 403
+    "sizeMb": 384
   },
   {
     "task": "speech-to-text",
@@ -7865,7 +7865,7 @@
     "share": 100,
     "peakMb": 1761,
     "loadMs": 619,
-    "sizeMb": 1133
+    "sizeMb": 1080
   },
   {
     "task": "speech-to-text",
@@ -7879,7 +7879,7 @@
     "share": 99,
     "peakMb": 700,
     "loadMs": 143,
-    "sizeMb": 237
+    "sizeMb": 226
   },
   {
     "task": "speech-to-text",
@@ -7893,7 +7893,7 @@
     "share": 100,
     "peakMb": 1744,
     "loadMs": 868,
-    "sizeMb": 1133
+    "sizeMb": 1081
   },
   {
     "task": "speech-to-text",
@@ -7907,7 +7907,7 @@
     "share": 99,
     "peakMb": 659,
     "loadMs": 176,
-    "sizeMb": 237
+    "sizeMb": 226
   },
   {
     "task": "speech-to-text",
@@ -7921,7 +7921,7 @@
     "share": 99,
     "peakMb": 676,
     "loadMs": 192,
-    "sizeMb": 252
+    "sizeMb": 240
   },
   {
     "task": "speech-to-text",
@@ -7935,7 +7935,7 @@
     "share": 100,
     "peakMb": 971,
     "loadMs": 349,
-    "sizeMb": 452
+    "sizeMb": 431
   },
   {
     "task": "speech-to-text",
@@ -7949,7 +7949,7 @@
     "share": 99,
     "peakMb": 536,
     "loadMs": 159,
-    "sizeMb": 180
+    "sizeMb": 172
   },
   {
     "task": "speech-to-text",
@@ -7963,7 +7963,7 @@
     "share": 99,
     "peakMb": 963,
     "loadMs": 249,
-    "sizeMb": 355
+    "sizeMb": 339
   },
   {
     "task": "speech-to-text",
@@ -7977,7 +7977,7 @@
     "share": 99,
     "peakMb": 987,
     "loadMs": 204,
-    "sizeMb": 355
+    "sizeMb": 339
   },
   {
     "task": "speech-to-text",
@@ -7991,7 +7991,7 @@
     "share": 99,
     "peakMb": 1944,
     "loadMs": 846,
-    "sizeMb": 928
+    "sizeMb": 885
   },
   {
     "task": "speech-to-text",
@@ -8005,7 +8005,7 @@
     "share": 98,
     "peakMb": 716,
     "loadMs": 146,
-    "sizeMb": 218
+    "sizeMb": 208
   },
   {
     "task": "speech-to-text",
@@ -8019,7 +8019,7 @@
     "share": 99,
     "peakMb": 1971,
     "loadMs": 682,
-    "sizeMb": 928
+    "sizeMb": 885
   },
   {
     "task": "speech-to-text",
@@ -8033,7 +8033,7 @@
     "share": 98,
     "peakMb": 698,
     "loadMs": 158,
-    "sizeMb": 218
+    "sizeMb": 208
   },
   {
     "task": "speech-to-text",
@@ -8047,7 +8047,7 @@
     "share": 99,
     "peakMb": 821,
     "loadMs": 206,
-    "sizeMb": 210
+    "sizeMb": 200
   },
   {
     "task": "speech-to-text",
@@ -8061,7 +8061,7 @@
     "share": 98,
     "peakMb": 858,
     "loadMs": 216,
-    "sizeMb": 210
+    "sizeMb": 200
   },
   {
     "task": "speech-to-text",
@@ -8075,7 +8075,7 @@
     "share": 99,
     "peakMb": 1589,
     "loadMs": 470,
-    "sizeMb": 512
+    "sizeMb": 488
   },
   {
     "task": "speech-to-text",
@@ -8089,7 +8089,7 @@
     "share": 98,
     "peakMb": 639,
     "loadMs": 142,
-    "sizeMb": 134
+    "sizeMb": 128
   },
   {
     "task": "speech-to-text",
@@ -8103,7 +8103,7 @@
     "share": 99,
     "peakMb": 1577,
     "loadMs": 415,
-    "sizeMb": 512
+    "sizeMb": 488
   },
   {
     "task": "speech-to-text",
@@ -8117,7 +8117,7 @@
     "share": 98,
     "peakMb": 621,
     "loadMs": 137,
-    "sizeMb": 134
+    "sizeMb": 128
   },
   {
     "task": "speech-to-text",
@@ -9419,7 +9419,7 @@
     "share": 99,
     "peakMb": 1180,
     "loadMs": 439,
-    "sizeMb": 339
+    "sizeMb": 324
   },
   {
     "task": "text-to-speech",
@@ -9433,7 +9433,7 @@
     "share": 99,
     "peakMb": 1257,
     "loadMs": 667,
-    "sizeMb": 349
+    "sizeMb": 333
   },
   {
     "task": "text-to-speech",
@@ -9447,7 +9447,7 @@
     "share": 99,
     "peakMb": 1234,
     "loadMs": 798,
-    "sizeMb": 350
+    "sizeMb": 334
   },
   {
     "task": "text-to-speech",
@@ -9461,7 +9461,7 @@
     "share": 99,
     "peakMb": 1118,
     "loadMs": 493,
-    "sizeMb": 340
+    "sizeMb": 324
   },
   {
     "task": "text-to-speech",
@@ -9475,7 +9475,7 @@
     "share": 99,
     "peakMb": 1181,
     "loadMs": 453,
-    "sizeMb": 339
+    "sizeMb": 324
   },
   {
     "task": "text-to-speech",
@@ -9489,7 +9489,7 @@
     "share": 99,
     "peakMb": 1178,
     "loadMs": 806,
-    "sizeMb": 343
+    "sizeMb": 327
   },
   {
     "task": "text-to-speech",
@@ -9503,7 +9503,7 @@
     "share": 99,
     "peakMb": 1133,
     "loadMs": 488,
-    "sizeMb": 340
+    "sizeMb": 324
   },
   {
     "task": "text-to-speech",
@@ -9517,7 +9517,7 @@
     "share": 99,
     "peakMb": 1111,
     "loadMs": 453,
-    "sizeMb": 339
+    "sizeMb": 324
   },
   {
     "task": "text-to-speech",
@@ -9531,7 +9531,7 @@
     "share": 100,
     "peakMb": 1079,
     "loadMs": 476,
-    "sizeMb": 340
+    "sizeMb": 324
   },
   {
     "task": "text-to-speech",
@@ -9545,7 +9545,7 @@
     "share": 99,
     "peakMb": 1154,
     "loadMs": 344,
-    "sizeMb": 401
+    "sizeMb": 382
   },
   {
     "task": "text-to-speech",
@@ -9559,7 +9559,7 @@
     "share": 98,
     "peakMb": 1586,
     "loadMs": 317,
-    "sizeMb": 202
+    "sizeMb": 193
   },
   {
     "task": "text-to-speech",
@@ -10427,7 +10427,7 @@
     "share": 86,
     "peakMb": 244,
     "loadMs": 3,
-    "sizeMb": 2
+    "sizeMb": 1.7
   },
   {
     "task": "voice-activity-detection",
@@ -10497,7 +10497,7 @@
     "ttftMs": 10,
     "peakMb": 597,
     "loadMs": 754,
-    "sizeMb": 168
+    "sizeMb": 160
   },
   {
     "task": "llm",
@@ -10511,7 +10511,7 @@
     "ttftMs": 7,
     "peakMb": 777,
     "loadMs": 587,
-    "sizeMb": 282
+    "sizeMb": 269
   },
   {
     "task": "llm",
@@ -10525,7 +10525,7 @@
     "ttftMs": 11,
     "peakMb": 1767,
     "loadMs": 1125,
-    "sizeMb": 654
+    "sizeMb": 624
   },
   {
     "task": "llm",
@@ -10539,7 +10539,7 @@
     "ttftMs": 19,
     "peakMb": 3082,
     "loadMs": 2177,
-    "sizeMb": 2432
+    "sizeMb": 2319
   },
   {
     "task": "llm",
@@ -10553,7 +10553,7 @@
     "ttftMs": 16,
     "peakMb": 944,
     "loadMs": 1170,
-    "sizeMb": 429
+    "sizeMb": 409
   },
   {
     "task": "llm",
@@ -10567,7 +10567,7 @@
     "ttftMs": 14,
     "peakMb": 945,
     "loadMs": 1031,
-    "sizeMb": 425
+    "sizeMb": 405
   },
   {
     "task": "llm",
@@ -10581,7 +10581,7 @@
     "ttftMs": 20,
     "peakMb": 1045,
     "loadMs": 722,
-    "sizeMb": 415
+    "sizeMb": 396
   },
   {
     "task": "llm",
@@ -10595,7 +10595,7 @@
     "ttftMs": 26,
     "peakMb": 1382,
     "loadMs": 1070,
-    "sizeMb": 1146
+    "sizeMb": 1093
   },
   {
     "task": "llm",
@@ -10609,7 +10609,7 @@
     "ttftMs": 21,
     "peakMb": 1212,
     "loadMs": 585,
-    "sizeMb": 849
+    "sizeMb": 810
   },
   {
     "task": "llm",
@@ -10623,7 +10623,7 @@
     "ttftMs": 29,
     "peakMb": 1489,
     "loadMs": 1120,
-    "sizeMb": 1143
+    "sizeMb": 1090
   },
   {
     "task": "llm",
@@ -10637,7 +10637,7 @@
     "ttftMs": 45,
     "peakMb": 1523,
     "loadMs": 1140,
-    "sizeMb": 1147
+    "sizeMb": 1094
   },
   {
     "task": "llm",
@@ -10651,7 +10651,7 @@
     "ttftMs": 52,
     "peakMb": 2865,
     "loadMs": 1802,
-    "sizeMb": 1819
+    "sizeMb": 1735
   },
   {
     "task": "llm",
@@ -10665,7 +10665,7 @@
     "ttftMs": 56,
     "peakMb": 1876,
     "loadMs": 1263,
-    "sizeMb": 1315
+    "sizeMb": 1254
   },
   {
     "task": "llm",
@@ -10679,7 +10679,7 @@
     "ttftMs": 33,
     "peakMb": 1806,
     "loadMs": 1372,
-    "sizeMb": 517
+    "sizeMb": 493
   },
   {
     "task": "llm",
@@ -10693,7 +10693,7 @@
     "ttftMs": 26,
     "peakMb": 1484,
     "loadMs": 1429,
-    "sizeMb": 801
+    "sizeMb": 764
   },
   {
     "task": "llm",
@@ -10707,7 +10707,7 @@
     "ttftMs": 47,
     "peakMb": 2450,
     "loadMs": 2013,
-    "sizeMb": 2064
+    "sizeMb": 1968
   },
   {
     "task": "llm",
@@ -10721,7 +10721,7 @@
     "ttftMs": 52,
     "peakMb": 2454,
     "loadMs": 2031,
-    "sizeMb": 2099
+    "sizeMb": 2002
   },
   {
     "task": "llm",
@@ -10735,7 +10735,7 @@
     "ttftMs": 56,
     "peakMb": 3134,
     "loadMs": 3221,
-    "sizeMb": 2831
+    "sizeMb": 2700
   },
   {
     "task": "llm",
@@ -10749,7 +10749,7 @@
     "ttftMs": 63,
     "peakMb": 2832,
     "loadMs": 2566,
-    "sizeMb": 2563
+    "sizeMb": 2444
   },
   {
     "task": "llm",
@@ -10763,7 +10763,7 @@
     "ttftMs": 89,
     "peakMb": 3374,
     "loadMs": 3001,
-    "sizeMb": 2693
+    "sizeMb": 2568
   },
   {
     "task": "llm",
@@ -10777,7 +10777,7 @@
     "ttftMs": 89,
     "peakMb": 2184,
     "loadMs": 2009,
-    "sizeMb": 925
+    "sizeMb": 882
   },
   {
     "task": "llm",
@@ -10791,7 +10791,7 @@
     "ttftMs": 180,
     "peakMb": 3428,
     "loadMs": 3089,
-    "sizeMb": 2667
+    "sizeMb": 2543
   },
   {
     "task": "llm",
@@ -10805,6 +10805,6 @@
     "ttftMs": 321,
     "peakMb": 1536,
     "loadMs": 500,
-    "sizeMb": 996
+    "sizeMb": 950
   }
 ]

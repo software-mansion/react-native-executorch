@@ -182,18 +182,10 @@ export default function BenchmarkChart({ task }: Props) {
           (a, b) => rankPrecision(a) - rankPrecision(b)
         );
 
-        const bars: BenchmarkRow[] = precisions.map((precision) => {
-          const variantRows = backendRows.filter((r) => r.precision === precision);
-          const sizes = variantRows.map((r) => r.sizeMb).sort((a, b) => a - b);
-          const mid = Math.floor(sizes.length / 2);
-          const canonicalSize =
-            sizes.length % 2 !== 0 ? sizes[mid] : Math.round((sizes[mid - 1] + sizes[mid]) / 2);
-
-          return {
-            ...variantRows[0],
-            sizeMb: canonicalSize,
-          };
-        });
+        // Model size is the same file on every device, so any row will do.
+        const bars: BenchmarkRow[] = precisions.map((precision) =>
+          backendRows.find((r) => r.precision === precision)!
+        );
 
         return {
           id: backend,
@@ -480,9 +472,11 @@ export default function BenchmarkChart({ task }: Props) {
               ))}
             </div>
           </div>
-          <div className={styles.legendDirection}>
-            {metric.lowerIsBetter ? '↓ Lower is better' : '↑ Higher is better'}
-          </div>
+          {metric.lowerIsBetter !== null && (
+            <div className={styles.legendDirection}>
+              {metric.lowerIsBetter ? '↓ Lower is better' : '↑ Higher is better'}
+            </div>
+          )}
         </div>
 
         <div className={styles.legendDescriptionRow}>
