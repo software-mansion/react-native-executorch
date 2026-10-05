@@ -4,8 +4,8 @@
 namespace rnexecutorch::extensions::llm {
 namespace jsi = facebook::jsi;
 
-void install(jsi::Runtime &rt, jsi::Object &module) {
-    jsi::Object llmModule(rt);
+void install(facebook::jsi::Runtime &rt, facebook::jsi::Object &module) {
+    jsi::Object llmModule = jsi::Object(rt);
 
     install_sample(rt, llmModule);
 
