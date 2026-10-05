@@ -144,6 +144,7 @@ set_property(TARGET et_tokenizers APPEND PROPERTY
 # OpenCV flag and phonemizer.cpp behind the phonemis flag. Built as one static
 # library so every test binary shares it.
 file(GLOB CORE_SOURCES   "${CPP_DIR}/core/*.cpp")
+file(GLOB LLM_SOURCES    "${CPP_DIR}/extensions/llm/*.cpp")
 file(GLOB MATH_SOURCES   "${CPP_DIR}/extensions/math/*.cpp")
 file(GLOB NLP_SOURCES    "${CPP_DIR}/extensions/nlp/*.cpp")
 file(GLOB SPEECH_SOURCES "${CPP_DIR}/extensions/speech/*.cpp")
@@ -156,7 +157,7 @@ list(FILTER SPEECH_SOURCES EXCLUDE REGEX "/phonemizer\\.cpp$")
 
 set(RNE_SOURCES
   "${CPP_DIR}/RnExecutorch.cpp"
-  ${CORE_SOURCES} ${MATH_SOURCES} ${NLP_SOURCES} ${SPEECH_SOURCES})
+  ${CORE_SOURCES} ${LLM_SOURCES} ${MATH_SOURCES} ${NLP_SOURCES} ${SPEECH_SOURCES})
 
 # The cv extension uses only core and imgproc. Prefer OpenCV's CMake package
 # when it is installed (Homebrew, or a full distro OpenCV), but fall back to

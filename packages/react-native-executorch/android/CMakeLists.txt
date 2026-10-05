@@ -38,6 +38,7 @@ find_package(fbjni REQUIRED CONFIG)
 # explicit, extensible list of opencv-dependent sources: when multimodal LLM
 # lands in nlp, its vision-encoder sources should be appended here too.
 file(GLOB CORE_SOURCES   ${CPP_DIR}/core/*.cpp)
+file(GLOB LLM_SOURCES    ${CPP_DIR}/extensions/llm/*.cpp)
 file(GLOB MATH_SOURCES   ${CPP_DIR}/extensions/math/*.cpp)
 file(GLOB NLP_SOURCES    ${CPP_DIR}/extensions/nlp/*.cpp)
 file(GLOB SPEECH_SOURCES ${CPP_DIR}/extensions/speech/*.cpp)
@@ -76,6 +77,7 @@ list(FILTER SPEECH_SOURCES EXCLUDE REGEX "/phonemizer\\.cpp$")
 set(RNE_SOURCES
     ${CPP_DIR}/RnExecutorch.cpp
     ${CORE_SOURCES}
+    ${LLM_SOURCES}
     ${MATH_SOURCES}
     ${NLP_SOURCES}
     ${SPEECH_SOURCES}

@@ -1,35 +1,92 @@
 /**
- * LLM generation sampling pipeline and logit processors.
+ * LLM generation sampling types and native sampler bridge function.
  */
 
-import { multinomial } from '../math';
+import { rnexecutorchJsi } from '../../native/bridge';
+import type { Tensor } from '../../core/tensor';
 
 /**
- * Contextual information available to logit processors during generation.
+ * Contextual information available to constraint callbacks and sampling
+ * strategies during generation.
  * @category LLM / Types
  */
 export type SamplingContext = {
   /** All token ids emitted so far in the current generation call. */
-  readonly generatedTokens: readonly number[];
+  readonly generatedTokens: Int32Array;
 };
 
 /**
- * Modifies a logit array in-place before token selection.
+ * Constraints returned by a {@link SamplingConstraintsCallback} to constrain token
+ * selection.
  * @category LLM / Types
  */
-export type LogitProcessor = (logits: Float32Array, ctx: SamplingContext) => void;
+export type SamplingConstraints = {
+  /**
+   * If specified, only these tokens are allowed. All other token logits are
+   * masked to `-Infinity`.
+   */
+  readonly allowedTokens?: Int32Array;
+  /**
+   * If specified, these tokens are forbidden. Their logits are masked to
+   * `-Infinity`.
+   */
+  readonly bannedTokens?: Int32Array;
+};
 
 /**
- * Selects a token id from a processed logit distribution.
+ * Callback invoked before token selection to dynamically apply token constraints.
+ * @param ctx Generation context containing emitted tokens.
+ * @returns Constraints specifying allowed or banned tokens.
  * @category LLM / Types
  */
-export type TokenSelector = (logits: Float32Array) => number;
+export type SamplingConstraintsCallback = (ctx: SamplingContext) => SamplingConstraints | undefined;
 
 /**
- * Samples the next token id given raw logits and generation context.
+ * Configuration options for Don't Repeat Yourself (DRY) repetition penalty.
+ *
+ * Penalizes tokens that would extend an already repeated n-gram sequence.
  * @category LLM / Types
  */
-export type Sampler = (logits: Float32Array, ctx: SamplingContext) => number;
+export type DryConfig = {
+  /**
+   * Multiplier penalty factor (e.g. 0.8). Set to 0 to disable.
+   */
+  readonly multiplier: number;
+  /**
+   * Exponential penalty base. Defaults to 1.75.
+   */
+  readonly base?: number;
+  /**
+   * Minimum match length before penalty is applied. Defaults to 2.
+   */
+  readonly allowedLength?: number;
+  /**
+   * Maximum number of recent tokens to consider (window). Defaults to -1
+   * (entire context).
+   */
+  readonly penaltyLastN?: number;
+  /**
+   * Sequence-breaking token IDs (e.g. newlines) that reset n-gram matching.
+   */
+  readonly sequenceBreakers?: Int32Array;
+};
+
+/**
+ * Configuration options for Exclude Top Choices (XTC) sampling.
+ * @category LLM / Types
+ */
+export type XTCConfig = {
+  /**
+   * Probability of excluding the top choice when multiple candidates meet the
+   * threshold, in `[0, 1]`. Required: it is the knob that turns XTC on, so it
+   * has no default — a `0` default would make an enabled `xtc` a silent no-op.
+   */
+  readonly probability: number;
+  /**
+   * Probability threshold for plausible tokens, in `[0, 0.5]`. Defaults to 0.1.
+   */
+  readonly threshold?: number;
+};
 
 /**
  * Configuration options for LLM token sampling.
@@ -38,301 +95,68 @@ export type Sampler = (logits: Float32Array, ctx: SamplingContext) => number;
 export type SamplingConfig = {
   /**
    * Sampling temperature. Values below 1 sharpen the distribution, while values
-   * above 1 flatten it. Defaults to greedy decoding when unset or set to 0.
+   * above 1 flatten it. Set to 0 for greedy decoding. Defaults to 0.8.
    */
   readonly temperature?: number;
-  /** Number of highest-probability tokens to retain. */
+  /** Number of highest-probability tokens to retain, `>= 1`. Use `1` for greedy decoding. Defaults to 40. */
   readonly topK?: number;
-  /** Cumulative probability threshold for nucleus sampling, in `(0, 1]`. */
+  /** Cumulative probability threshold for nucleus sampling, in `(0, 1]`. Defaults to 0.95. */
   readonly topP?: number;
-  /** Minimum token probability relative to the most likely token, in `(0, 1]`. */
+  /** Minimum token probability relative to the most likely token, in `[0, 1)`. Defaults to 0.05. */
   readonly minP?: number;
-  /** Penalty applied to previously generated tokens. Values greater than 1 discourage repetition. */
+  /**
+   * Penalty applied to previously generated tokens. Values greater than 1
+   * discourage repetition. Defaults to 1.0 (disabled).
+   */
   readonly repetitionPenalty?: number;
-  /** Additive logit offsets keyed by token id. */
-  readonly logitBias?: ReadonlyMap<number, number>;
-  /** Custom logit processors applied after standard processors. */
-  readonly logitProcessors?: readonly LogitProcessor[];
-  /** Custom token selector overriding greedy or multinomial sampling. */
-  readonly selector?: TokenSelector;
+  /** Configuration for Don't Repeat Yourself (DRY) repetition penalty. */
+  readonly dry?: DryConfig;
+  /** Configuration for Exclude Top Choices (XTC) sampling. */
+  readonly xtc?: XTCConfig;
+  /**
+   * Optional callback for dynamic token constraints and guided decoding (e.g.
+   * JSON schemas, grammars, choice whitelists, stop tokens).
+   */
+  readonly constraints?: SamplingConstraintsCallback;
 };
 
 /**
- * Inserts a value into a sorted array maintaining ascending order.
- * @param arr Target sorted array.
- * @param val Value to insert.
- */
-function insertSorted(arr: number[], val: number): void {
-  'worklet';
-  let [lo, hi] = [0, arr.length];
-  while (lo < hi) {
-    const mid = Math.floor((lo + hi) / 2);
-    if (arr[mid]! < val) lo = mid + 1;
-    else hi = mid;
-  }
-  arr.splice(lo, 0, val);
-}
-
-/**
- * Scales logits by the inverse temperature factor.
- * @param temperature Sampling temperature.
- * @returns A logit processor that applies temperature scaling.
+ * Samples a token directly from a native logits tensor given generation context and config.
+ *
+ * The logits buffer is written to in place (penalties, DRY and constraints are
+ * applied directly to it), so its contents are undefined after this call. Copy
+ * the tensor first if the original logits are still needed.
+ * @param logits 2D float32 logits Tensor of shape `[1, vocabSize]`. Clobbered by the call.
+ * @param ctx Generation context containing emitted token history.
+ * @param config Optional sampling configuration (defaults to `{}`).
+ * @returns The sampled token id.
+ * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the logits tensor is
+ * locked by another thread, or `INVALID_ARGUMENT` if the options are out of range.
  * @category LLM / Functions
  */
-export function temperatureProcessor(temperature: number): LogitProcessor {
+export function sample(logits: Tensor, ctx: SamplingContext, config: SamplingConfig = {}): number {
   'worklet';
-  return (logits) => {
-    'worklet';
-    for (let i = 0; i < logits.length; i++) {
-      logits[i]! /= temperature;
-    }
+  // Defaults mirror llama.cpp's `common_params_sampling` and are resolved here
+  // so the native sampler receives a fully-specified options object and treats
+  // every field as required.
+  const options = {
+    temperature: config.temperature ?? 0.8,
+    repetitionPenalty: config.repetitionPenalty ?? 1.0,
+    topK: config.topK ?? 40,
+    topP: config.topP ?? 0.95,
+    minP: config.minP ?? 0.05,
+    dry: config.dry && {
+      multiplier: config.dry.multiplier,
+      base: config.dry.base ?? 1.75,
+      penaltyLastN: config.dry.penaltyLastN ?? -1,
+      allowedLength: config.dry.allowedLength ?? 2,
+      sequenceBreakers: config.dry.sequenceBreakers ?? new Int32Array(0),
+    },
+    xtc: config.xtc && {
+      threshold: config.xtc.threshold ?? 0.1,
+      probability: config.xtc.probability,
+    },
+    constraints: config.constraints,
   };
-}
-
-/**
- * Retains only the top-k highest logits and masks the rest to `-Infinity`.
- * @param k Number of top tokens to keep.
- * @returns A logit processor that applies top-k filtering.
- * @category LLM / Functions
- */
-export function topKProcessor(k: number): LogitProcessor {
-  'worklet';
-  return (logits) => {
-    'worklet';
-    if (k <= 0 || k >= logits.length) return;
-
-    const top: number[] = [];
-    for (let i = 0; i < logits.length; i++) {
-      const val = logits[i]!;
-      if (top.length < k) {
-        insertSorted(top, val);
-      } else if (val > top[0]!) {
-        top.shift();
-        insertSorted(top, val);
-      }
-    }
-
-    const threshold = top[0]!;
-    for (let i = 0; i < logits.length; i++) {
-      if (logits[i]! < threshold) {
-        logits[i] = -Infinity;
-      }
-    }
-  };
-}
-
-/**
- * Applies nucleus (top-p) filtering, retaining tokens up to cumulative probability `p`.
- * @param p Cumulative probability threshold.
- * @returns A logit processor that applies top-p filtering.
- * @category LLM / Functions
- */
-export function topPProcessor(p: number): LogitProcessor {
-  'worklet';
-  return (logits) => {
-    'worklet';
-    if (p <= 0 || p >= 1) return;
-
-    let maxLogit = -Infinity;
-    for (let i = 0; i < logits.length; i++) {
-      if (logits[i]! > maxLogit) {
-        maxLogit = logits[i]!;
-      }
-    }
-    if (!Number.isFinite(maxLogit)) return;
-
-    const minLogitThreshold = maxLogit - 16;
-    let totalWeight = 0;
-    const candidates: number[] = [];
-
-    for (let i = 0; i < logits.length; i++) {
-      const val = logits[i]!;
-      if (val > minLogitThreshold) {
-        totalWeight += Math.exp(val - maxLogit);
-        candidates.push(i);
-      } else {
-        logits[i] = -Infinity;
-      }
-    }
-
-    if (candidates.length > 512) {
-      candidates.sort((a, b) => logits[b]! - logits[a]!);
-      for (let i = 512; i < candidates.length; i++) {
-        logits[candidates[i]!] = -Infinity;
-      }
-      candidates.length = 512;
-    } else {
-      candidates.sort((a, b) => logits[b]! - logits[a]!);
-    }
-
-    const targetWeight = p * totalWeight;
-    let cumWeight = 0;
-    let cutoff = candidates.length - 1;
-
-    for (let i = 0; i < candidates.length; i++) {
-      const idx = candidates[i]!;
-      cumWeight += Math.exp(logits[idx]! - maxLogit);
-      if (cumWeight >= targetWeight) {
-        cutoff = i;
-        break;
-      }
-    }
-
-    for (let i = cutoff + 1; i < candidates.length; i++) {
-      logits[candidates[i]!] = -Infinity;
-    }
-  };
-}
-
-/**
- * Filters out tokens whose probability is below `minP` times the top token's probability.
- * @param minP Minimum relative probability threshold.
- * @returns A logit processor that applies min-p filtering.
- * @category LLM / Functions
- */
-export function minPProcessor(minP: number): LogitProcessor {
-  'worklet';
-  return (logits) => {
-    'worklet';
-    if (minP <= 0) return;
-    let maxLogit = -Infinity;
-    for (let i = 0; i < logits.length; i++) {
-      if (logits[i]! > maxLogit) {
-        maxLogit = logits[i]!;
-      }
-    }
-    if (!Number.isFinite(maxLogit)) return;
-
-    const threshold = maxLogit + Math.log(minP);
-    for (let i = 0; i < logits.length; i++) {
-      if (logits[i]! < threshold) {
-        logits[i] = -Infinity;
-      }
-    }
-  };
-}
-
-/**
- * Penalizes logits of previously emitted tokens to discourage repetition.
- * @param penalty Multiplicative penalty factor.
- * @returns A logit processor that penalizes repeated tokens.
- * @category LLM / Functions
- */
-export function repetitionPenaltyProcessor(penalty: number): LogitProcessor {
-  'worklet';
-  return (logits, ctx) => {
-    'worklet';
-    if (penalty === 1 || ctx.generatedTokens.length === 0) return;
-    const seen = new Set<number>();
-    for (const token of ctx.generatedTokens) {
-      if (seen.has(token)) continue;
-      seen.add(token);
-      const logit = logits[token];
-      if (logit !== undefined) {
-        logits[token] = logit > 0 ? logit / penalty : logit * penalty;
-      }
-    }
-  };
-}
-
-/**
- * Applies additive biases to specific token logits.
- * @param bias Map from token id to additive logit offset.
- * @returns A logit processor that applies the offsets.
- * @category LLM / Functions
- */
-export function logitBiasProcessor(bias: ReadonlyMap<number, number>): LogitProcessor {
-  'worklet';
-  return (logits) => {
-    'worklet';
-    for (const [token, value] of bias) {
-      if (token >= 0 && token < logits.length) {
-        logits[token]! += value;
-      }
-    }
-  };
-}
-
-/**
- * Selects the token with the highest logit.
- * @returns A deterministic greedy token selector.
- * @category LLM / Functions
- */
-export function greedySelector(): TokenSelector {
-  'worklet';
-  return (logits) => {
-    'worklet';
-    let best = 0;
-    let bestVal = -Infinity;
-    for (let i = 0; i < logits.length; i++) {
-      if (logits[i]! > bestVal) {
-        bestVal = logits[i]!;
-        best = i;
-      }
-    }
-    return best;
-  };
-}
-
-/**
- * Draws a token from the categorical probability distribution of logits.
- * @param rng Optional custom uniform random number generator producing values in `[0, 1)`.
- * @returns A stochastic multinomial token selector.
- * @category LLM / Functions
- */
-export function multinomialSelector(rng?: () => number): TokenSelector {
-  'worklet';
-  return (logits) => {
-    'worklet';
-    return multinomial(logits, { rng });
-  };
-}
-
-/**
- * Creates a sampler function configured from generation options.
- * @param config Sampling configuration.
- * @returns A {@link Sampler} function.
- * @category LLM / Functions
- */
-export function createSampler(config?: SamplingConfig): Sampler {
-  'worklet';
-  const processors: LogitProcessor[] = [];
-
-  if (config?.repetitionPenalty !== undefined && config.repetitionPenalty !== 1) {
-    processors.push(repetitionPenaltyProcessor(config.repetitionPenalty));
-  }
-  if (config?.logitBias !== undefined && config.logitBias.size > 0) {
-    processors.push(logitBiasProcessor(config.logitBias));
-  }
-
-  const temperature = config?.temperature ?? 0;
-  const stochastic = temperature > 0;
-
-  if (stochastic) {
-    processors.push(temperatureProcessor(temperature));
-  }
-  if (config?.topK !== undefined) {
-    processors.push(topKProcessor(config.topK));
-  }
-  if (config?.topP !== undefined) {
-    processors.push(topPProcessor(config.topP));
-  }
-  if (config?.minP !== undefined) {
-    processors.push(minPProcessor(config.minP));
-  }
-  if (config?.logitProcessors) {
-    for (const processor of config.logitProcessors) {
-      processors.push(processor);
-    }
-  }
-
-  const selector = config?.selector ?? (stochastic ? multinomialSelector() : greedySelector());
-
-  return (logits: Float32Array, ctx: SamplingContext): number => {
-    'worklet';
-    for (const processor of processors) {
-      processor(logits, ctx);
-    }
-    return selector(logits);
-  };
+  return rnexecutorchJsi.llm.sample(logits, ctx, options);
 }
