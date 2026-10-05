@@ -114,6 +114,40 @@ describe('textPartitioner — partition', () => {
     });
   });
 
+  describe('fallback cuts at the exact limit boundary', () => {
+    it('splits a run of exactly limit characters followed by a space', () => {
+      const text = `${'a'.repeat(10)} b`;
+      const chunks = partition(text, 10);
+
+      expect(chunks).toEqual(['a'.repeat(10), 'b']);
+      expect(chunks.join(' ')).toBe(text);
+    });
+
+    it('splits a run of exactly limit characters followed by end-of-sentence punctuation', () => {
+      const text = `${'a'.repeat(10)}.`;
+
+      expect(partition(text, 10)).toEqual(['a'.repeat(10), '.']);
+    });
+
+    it('splits CJK text whose sentence length equals the limit exactly', () => {
+      const text = `${'あ'.repeat(120)}。`;
+
+      expect(partition(text, 120)).toEqual(['あ'.repeat(120), '。']);
+    });
+
+    it('keeps chunks within the limit when code points span two UTF-16 units', () => {
+      const text = '🙂'.repeat(11);
+      const chunks = partition(text, 11);
+
+      expect(chunks).toEqual(['🙂'.repeat(5), '🙂'.repeat(5), '🙂']);
+      expect(chunks.map((c) => [...c].length)).toEqual([5, 5, 1]);
+      for (const chunk of chunks) {
+        expect(chunk.length).toBeLessThanOrEqual(11);
+      }
+      expect(chunks.join('')).toBe(text);
+    });
+  });
+
   describe('partition options', () => {
     it('produces shorter initial chunks when prioritizeInitialTtfa is true', () => {
       const text =

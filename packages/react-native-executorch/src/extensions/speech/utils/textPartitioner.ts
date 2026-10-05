@@ -128,12 +128,13 @@ export function partition(text: string, limit: number, options?: PartitionOption
   for (const char of text) {
     const endIdx = charIdx + char.length - 1;
     const t = tagFromChar(char);
+    if (endIdx - lastBpIdx > limit) {
+      breakpoints.push({ idx: charIdx - 1, tag: 'whitespace' });
+      lastBpIdx = charIdx - 1;
+    }
     if (t) {
       breakpoints.push({ idx: endIdx, tag: t });
       lastBpIdx = endIdx;
-    } else if (endIdx - lastBpIdx > limit) {
-      breakpoints.push({ idx: charIdx - 1, tag: 'whitespace' });
-      lastBpIdx = charIdx - 1;
     }
     charIdx += char.length;
   }
