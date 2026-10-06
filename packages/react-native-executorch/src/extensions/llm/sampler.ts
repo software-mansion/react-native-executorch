@@ -148,7 +148,7 @@ const DEFAULT_XTC_OPTIONS = {
 /**
  * Samples a token directly from a native logits tensor given generation context and config.
  *
- * The logits buffer is written to in place (penalties, DRY and constraints are
+ * **Important:** The logits buffer is written to in place (penalties, DRY and constraints are
  * applied directly to it), so its contents are undefined after this call. Copy
  * the tensor first if the original logits are still needed.
  * @param logits 2D float32 logits Tensor of shape `[1, vocabSize]`. Clobbered by the call.
@@ -164,14 +164,8 @@ export function sample(logits: Tensor, ctx: SamplingContext, config: SamplingCon
   const options = {
     ...DEFAULT_SAMPLING_OPTIONS,
     ...config,
-    dry: config.dry && {
-      ...DEFAULT_DRY_OPTIONS,
-      ...config.dry,
-    },
-    xtc: config.xtc && {
-      ...DEFAULT_XTC_OPTIONS,
-      ...config.xtc,
-    },
+    dry: config.dry && { ...DEFAULT_DRY_OPTIONS, ...config.dry },
+    xtc: config.xtc && { ...DEFAULT_XTC_OPTIONS, ...config.xtc },
   };
   return rnexecutorchJsi.llm.sample(logits, ctx, options);
 }
