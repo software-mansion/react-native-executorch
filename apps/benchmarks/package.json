@@ -31,7 +31,7 @@
     "expo-keep-awake": "~56.0.3",
     "react": "19.2.3",
     "react-native": "0.85.3",
-    "react-native-blob-util": "^0.24.0",
+    "react-native-blob-util": "^0.25.0",
     "react-native-executorch": "workspace:*",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-worklets": "0.10.3"

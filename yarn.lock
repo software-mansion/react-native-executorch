@@ -87,7 +87,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/core@npm:^7.21.3, @babel/core@npm:^7.23.9, @babel/core@npm:^7.29.7":
+"@babel/core@npm:^7.21.3, @babel/core@npm:^7.23.9, @babel/core@npm:^7.29.0, @babel/core@npm:^7.29.7":
   version: 7.29.7
   resolution: "@babel/core@npm:7.29.7"
   dependencies:
@@ -8111,7 +8111,7 @@ __metadata:
     expo-keep-awake: "npm:~56.0.3"
     react: "npm:19.2.3"
     react-native: "npm:0.85.3"
-    react-native-blob-util: "npm:^0.24.0"
+    react-native-blob-util: "npm:^0.25.0"
     react-native-executorch: "workspace:*"
     react-native-safe-area-context: "npm:~5.7.0"
     react-native-worklets: "npm:0.10.3"

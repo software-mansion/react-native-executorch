@@ -2,12 +2,9 @@
 /**
  * Refreshes the cached download size of every file the registry publishes.
  *
- * The suite has to cover every variant the library publishes, and hand-writing
- * that list would guarantee it goes stale: a variant added to `models.ts` and
- * not to the suite is a model that silently never gets benchmarked, which is
- * the failure mode this harness exists to avoid. So the list is derived from
- * `models.ts` itself and committed, and CI can diff a regeneration against the
- * committed file to prove they still agree.
+ * The app derives its variant list from the registry at runtime; only the sizes
+ * need the network, so they alone are cached here. They drive the `--max-bytes`
+ * cap and the size column. Run it after the registry changes.
  *
  * Reading `models.ts` means evaluating it, not parsing it: variants are built
  * through `variants()` and `family()` helpers and assembled from shared option
@@ -28,7 +25,6 @@ import { fileURLToPath } from 'node:url';
 const APP_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PACKAGE_SRC = resolve(APP_ROOT, '../../packages/react-native-executorch/src');
 const SIZE_CACHE = join(APP_ROOT, 'scripts/variant-sizes.json');
-
 
 /**
  * Evaluates `models.ts` in Node and returns its `models` export.
@@ -53,10 +49,7 @@ function loadRegistry() {
         "import { getRegisteredBackends } from './utils';",
         "import { getRegisteredBackends } from './_stub.ts';"
       )
-      .replace(
-        "} from './extensions/speech/tasks/whisperSpeechToText';",
-        "} from './_stub.ts';"
-      )
+      .replace("} from './extensions/speech/tasks/whisperSpeechToText';", "} from './_stub.ts';")
       .replace("} from './constants';", "} from './constants.ts';")
       // Type-only imports name files that are not copied into the scratch dir.
       // Node strips the annotations but still resolves the specifier, so they
@@ -82,11 +75,9 @@ function loadRegistry() {
     );
     writeFileSync(
       join(scratch, 'dump.mjs'),
-      [
-        "import { models } from './models.ts';",
-        'console.log(JSON.stringify(models));',
-        '',
-      ].join('\n')
+      ["import { models } from './models.ts';", 'console.log(JSON.stringify(models));', ''].join(
+        '\n'
+      )
     );
 
     const result = spawnSync(process.execPath, ['--experimental-strip-types', 'dump.mjs'], {
@@ -107,24 +98,6 @@ function loadRegistry() {
 
 const isRemote = (value) => typeof value === 'string' && value.startsWith('https://');
 
-/** Every remote URL inside a config, in a stable order. */
-function remoteFiles(node) {
-  const found = [];
-  const walk = (value) => {
-    if (isRemote(value)) {
-      found.push(value);
-      return;
-    }
-    if (Array.isArray(value)) {
-      value.forEach(walk);
-      return;
-    }
-    if (value && typeof value === 'object') Object.values(value).forEach(walk);
-  };
-  walk(node);
-  return [...new Set(found)].sort();
-}
-
 /**
  * Measures every file over HTTP, so the suite can skip a variant too large for
  * the device before spending the download on finding out.
@@ -133,11 +106,14 @@ function remoteFiles(node) {
  * @returns A URL-to-bytes map. An unmeasurable URL maps to 0.
  */
 async function measure(urls, cached) {
-  const sizes = { ...cached };
+  // Only what the registry still publishes; a removed URL's size is noise.
+  const sizes = Object.fromEntries(
+    urls.filter((url) => url in cached).map((url) => [url, cached[url]])
+  );
   const pending = urls.filter((url) => !(url in sizes) || sizes[url] <= 0);
   if (pending.length === 0) return sizes;
+  console.log(`[sizes] measuring ${pending.length} files`);
 
-  process.stderr.write(`[variants] measuring ${pending.length} files\n`);
   const queue = [...pending];
   const workers = Array.from({ length: 12 }, async () => {
     for (let url = queue.pop(); url !== undefined; url = queue.pop()) {
@@ -157,11 +133,6 @@ async function measure(urls, cached) {
   await Promise.all(workers);
   return sizes;
 }
-
-main().catch((error) => {
-  console.error(`[variants] ${error.message}`);
-  process.exit(2);
-});
 
 /**
  * Walks the registry for every remote URL and measures each one.
@@ -185,7 +156,7 @@ async function main() {
 
   const sorted = [...urls].sort();
   const cached = existsSync(SIZE_CACHE) ? JSON.parse(readFileSync(SIZE_CACHE, 'utf8')) : {};
-  console.log(`[sizes] measuring ${sorted.length} files`);
+  console.log(`[sizes] ${sorted.length} files in the registry`);
   const sizes = await measure(sorted, cached);
   mkdirSync(dirname(SIZE_CACHE), { recursive: true });
   writeFileSync(SIZE_CACHE, `${JSON.stringify(sizes, null, 1)}\n`);
