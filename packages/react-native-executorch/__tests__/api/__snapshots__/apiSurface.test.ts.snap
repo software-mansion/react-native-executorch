@@ -165,7 +165,6 @@ exports[`public API surface matches the recorded export list 1`] = `
   "setTelemetryEnabled",
   "speech",
   "tensor",
-  "totalExecutionMs",
   "useClassifier",
   "useImageEmbedder",
   "useInstanceSegmenter",

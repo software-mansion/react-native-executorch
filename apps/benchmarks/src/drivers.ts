@@ -2,12 +2,11 @@
  * One driver per task pipeline.
  *
  * A driver is everything the runner needs that a registry entry cannot tell it:
- * which factory builds the pipeline, which synchronous call to time, and which
- * key holds the `.pte`. It is written once per task
- * rather than once per variant, because every variant of a task is driven
- * identically — only the weights differ. `src/suite.ts` joins these against the
- * generated variant list, which is what lets 261 published variants be covered
- * without 261 hand-written cases going stale.
+ * which factory builds the pipeline and which call to time. It is written once
+ * per task rather than once per variant, because every variant of a task is
+ * driven identically — only the weights differ. `src/suite.ts` joins these
+ * against the registry's variant list, which is what lets hundreds of published
+ * variants be covered without hand-written cases going stale.
  *
  * Every driver feeds an input from `src/inputs.ts`, never a device photo or a
  * recorded clip, so a run on a Pixel and a run on an iPhone measure the same
@@ -60,12 +59,6 @@ export interface Disposable {
 export interface Driver<TInstance extends Disposable = any> {
   /** Builds the pipeline from a config whose URLs are already local paths. */
   readonly create: (config: any) => Promise<TInstance>;
-  /**
-   * Key within the config holding the single `.pte` to benchmark in isolation.
-   * Omitted for pipelines built from several sub-models, which have no one
-   * program to time.
-   */
-  readonly modelPathKey?: string;
   /** Where the timing is taken. `async` pipelines pay a thread hop per call. */
   readonly mode?: 'worklet' | 'async';
   /** Builds the worklet to time. Returns the iteration's workload size. */
@@ -84,7 +77,6 @@ export interface Driver<TInstance extends Disposable = any> {
 
 const classification: Driver = {
   create: createClassifier,
-  modelPathKey: 'modelPath',
   run: (instance) => () => {
     'worklet';
     return instance.classifyWorklet(IMAGE_512, { topk: 5 }).length;
@@ -93,7 +85,6 @@ const classification: Driver = {
 
 const styleTransfer: Driver = {
   create: createStyleTransfer,
-  modelPathKey: 'modelPath',
   run: (instance) => () => {
     'worklet';
     return instance.transferStyleWorklet(IMAGE_512).width;
@@ -102,7 +93,6 @@ const styleTransfer: Driver = {
 
 const semanticSegmentation: Driver = {
   create: createSemanticSegmenter,
-  modelPathKey: 'modelPath',
   run: (instance) => () => {
     'worklet';
     return instance.segmentWorklet(IMAGE_512).buffer.width;
@@ -111,7 +101,6 @@ const semanticSegmentation: Driver = {
 
 const objectDetection: Driver = {
   create: createObjectDetector,
-  modelPathKey: 'modelPath',
   run: (instance) => () => {
     'worklet';
     return instance.detectObjectsWorklet(IMAGE_640).length;
@@ -120,7 +109,6 @@ const objectDetection: Driver = {
 
 const keypointDetection: Driver = {
   create: createKeypointDetector,
-  modelPathKey: 'modelPath',
   run: (instance) => () => {
     'worklet';
     return instance.detectKeypointsWorklet(IMAGE_512).length;
@@ -129,7 +117,6 @@ const keypointDetection: Driver = {
 
 const instanceSegmentation: Driver = {
   create: createInstanceSegmenter,
-  modelPathKey: 'modelPath',
   run: (instance) => () => {
     'worklet';
     return instance.segmentInstancesWorklet(IMAGE_640).length;
@@ -144,7 +131,6 @@ const instanceSegmentation: Driver = {
 
 const imageEmbeddings: Driver = {
   create: createImageEmbedder,
-  modelPathKey: 'modelPath',
   run: (instance) => () => {
     'worklet';
     return instance.embedWorklet(IMAGE_512).length;
@@ -153,7 +139,6 @@ const imageEmbeddings: Driver = {
 
 const textEmbeddings: Driver = {
   create: createTextEmbedder,
-  modelPathKey: 'modelPath',
   run: (instance) => () => {
     'worklet';
     return instance.embedWorklet(SAMPLE_TEXT).length;
@@ -162,7 +147,6 @@ const textEmbeddings: Driver = {
 
 const privacyFilter: Driver = {
   create: createPrivacyFilter,
-  modelPathKey: 'modelPath',
   run: (instance) => () => {
     'worklet';
     return instance.detectPiiWorklet(SAMPLE_PII_TEXT).length;
@@ -171,7 +155,6 @@ const privacyFilter: Driver = {
 
 const voiceActivityDetection: Driver = {
   create: createFsmnVoiceActivityDetector,
-  modelPathKey: 'modelPath',
   run: (instance) => () => {
     'worklet';
     return instance.detectVoiceWorklet(VAD_WAVEFORM).length;
@@ -180,7 +163,6 @@ const voiceActivityDetection: Driver = {
 
 const speechToText: Driver = {
   create: createWhisperSpeechToText,
-  modelPathKey: 'modelPath',
   run: (instance) => () => {
     'worklet';
     return instance.transcribeWorklet(WHISPER_WAVEFORM, { language: 'en' }).length;
@@ -194,7 +176,6 @@ const speechToText: Driver = {
 
 const ocr: Driver = {
   create: createPaddleOcr,
-  modelPathKey: 'modelPath',
   run: (instance) => () => {
     'worklet';
     return instance.recognizeCharactersWorklet(IMAGE_640).length;
@@ -204,7 +185,6 @@ const ocr: Driver = {
 
 const textToImage: Driver = {
   create: createSdxsTextToImage,
-  modelPathKey: 'modelPath',
   run: (instance) => () => {
     'worklet';
     return instance.generateWorklet(SDXS_PROMPT, SDXS_SEED).width;
@@ -245,7 +225,7 @@ const supertonicTts: Driver = {
     return samples;
   },
   // Four sub-models with JS-thread orchestration between chunks: no synchronous
-  // entry point to time, and no single `.pte`.
+  // entry point to time.
   note: 'timed on the RN thread; includes per-chunk thread hops',
 };
 
@@ -299,7 +279,6 @@ function llmDriver(): Driver {
         },
         resetOnTurn: true,
       }),
-    modelPathKey: 'modelPath',
     mode: 'async',
     runAsync: (session) => async () => {
       const turn = await session.sendMessage(LLM_PROMPT);

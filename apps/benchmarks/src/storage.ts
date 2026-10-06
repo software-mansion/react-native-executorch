@@ -39,7 +39,7 @@ async function unlinkIfPresent(path: string): Promise<number> {
  * @param resolved The config as `download` returned it.
  * @returns Absolute paths, deduplicated.
  */
-export function localFiles(resolved: unknown): string[] {
+function localFiles(resolved: unknown): string[] {
   const found = new Set<string>();
   const walk = (value: unknown) => {
     if (typeof value === 'string') {
@@ -69,18 +69,4 @@ export async function releaseModelFiles(resolved: unknown): Promise<number> {
     paths.map((path) => unlinkIfPresent(path.replace(/^file:\/\//, '')))
   );
   return freed.reduce((total, bytes) => total + bytes, 0);
-}
-
-/**
- * Free space on the volume the models are cached on.
- * @returns Free bytes, or null when the platform will not say.
- */
-export async function freeDiskBytes(): Promise<number | null> {
-  try {
-    const stats = await RNBlobUtil.fs.df();
-    const free = Number(stats.free ?? stats.internal_free);
-    return Number.isFinite(free) ? free : null;
-  } catch {
-    return null;
-  }
 }

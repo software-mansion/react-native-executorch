@@ -47,11 +47,6 @@ interface BenchProbeNativeModule {
    * counters miss entirely; that is why the sampler pays for the slower call.
    */
   memoryFootprintBytes(): number;
-  /**
-   * Native heap allocation in bytes. Cheap to read but blind to mapped model
-   * pages, so it is recorded alongside the footprint rather than instead of it.
-   */
-  nativeHeapBytes(): number;
   thermalState(): BenchThermalState;
   deviceInfo(): BenchDeviceInfo;
 }

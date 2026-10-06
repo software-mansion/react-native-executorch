@@ -23,12 +23,6 @@ const toMb = (bytes: number): number =>
  */
 export const footprintMb = (): number => toMb(BenchProbe.memoryFootprintBytes());
 
-/**
- * Reads the current native heap allocation.
- * @returns The allocation in MB, or -1 when the platform read failed.
- */
-export const nativeHeapMb = (): number => toMb(BenchProbe.nativeHeapBytes());
-
 export interface MemorySample {
   /** Highest footprint observed across the sampling window, in MB. */
   readonly peakMb: number;

@@ -12,7 +12,7 @@
  * declaring up to 510 tokens gets benchmarked at 510 while the pipeline ran 75,
  * and the resulting "share" is meaningless. Accumulating in place removes the
  * guess entirely, and it works for a pipeline that calls one method many times
- * (OCR recognises once per detected box) where a single replay would not.
+ * (OCR runs its recognizer once per detected box) where a single replay would not.
  */
 
 import { rnexecutorchJsi } from '../native/bridge';
@@ -49,14 +49,4 @@ export function getExecutionProfile(): ExecutionProfile {
 export function resetExecutionProfile(): void {
   'worklet';
   rnexecutorchJsi.resetExecutionProfile();
-}
-
-/**
- * Sums a profile to a single figure.
- * @param profile Totals as returned by {@link getExecutionProfile}.
- * @returns Milliseconds spent inside ExecuTorch across every method.
- * @category Core / Functions
- */
-export function totalExecutionMs(profile: ExecutionProfile): number {
-  return Object.values(profile).reduce((sum, entry) => sum + entry.totalMs, 0);
 }

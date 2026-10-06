@@ -53,12 +53,13 @@ export function watchThermal(intervalMs: number): ThermalWatch {
   const sample = () => {
     const state = BenchProbe.thermalState();
     samples++;
-    if (state.status !== null && (status === null || state.status > status)) {
+    // Both fields use -1 for "unknown"; iOS never reports a temperature.
+    if (state.status >= 0 && (status === null || state.status > status)) {
       status = state.status;
       statusName = state.statusName;
     }
     if (
-      state.batteryTemperatureC !== null &&
+      state.batteryTemperatureC >= 0 &&
       (temperature === null || state.batteryTemperatureC > temperature)
     ) {
       temperature = state.batteryTemperatureC;
@@ -75,22 +76,4 @@ export function watchThermal(intervalMs: number): ThermalWatch {
       return { status, statusName, batteryTemperatureC: temperature, samples };
     },
   };
-}
-
-/**
- * Whether a measurement ran without the device ever de-clocking.
- *
- * Stricter than a run can require of a model whose iterations take seconds:
- * sustained decode heats this class of phone past any workable ceiling from any
- * starting point, so a tier gated on this would report nothing. It describes a
- * pass rather than judging one, and the short-iteration tiers are where it is
- * worth asking.
- * @param peak The worst state seen during the measurement.
- * @param maxTempC The ceiling the run gates on.
- * @returns True when the device neither throttled nor passed the ceiling.
- */
-export function ranWithoutThrottling(peak: ThermalPeak, maxTempC: number): boolean {
-  if (peak.status !== null && peak.status > 0) return false;
-  if (peak.batteryTemperatureC !== null && peak.batteryTemperatureC > maxTempC) return false;
-  return true;
 }
