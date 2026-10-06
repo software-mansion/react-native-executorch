@@ -52,8 +52,7 @@ TEST_F(PhonemizerTest, IsStableAcrossCalls) {
 TEST_F(PhonemizerTest, ExposesItsMethods) {
     EXPECT_TRUE(evalBool(R"(
         const p = __rnexecutorch_jsi__.speech.createPhonemizer({ lang: 'pl' });
-        return typeof p.phonemize === 'function' && typeof p.preprocess === 'function' &&
-               typeof p.dispose === 'function';
+        return typeof p.phonemize === 'function' && typeof p.dispose === 'function';
     )"));
     // Unknown properties read as undefined rather than throwing, which is what
     // lets the TS layer feature-detect.
@@ -91,42 +90,42 @@ TEST_F(PhonemizerTest, RejectsWrongArgumentCountsOnPhonemize) {
         const p = __rnexecutorch_jsi__.speech.createPhonemizer({ lang: 'pl' });
         p.phonemize();
     )");
-    EXPECT_TRUE(isCodedError(thrown, "INVALID_ARGUMENT", "Usage: phonemize(text, preprocess?)"));
+    EXPECT_TRUE(isCodedError(thrown, "INVALID_ARGUMENT", "Usage: phonemize(text, options?)"));
 }
 
-TEST_F(PhonemizerTest, RejectsANonBooleanPreprocessFlag) {
+TEST_F(PhonemizerTest, RejectsNonObjectOptions) {
     auto thrown = evalThrowing(R"(
         const p = __rnexecutorch_jsi__.speech.createPhonemizer({ lang: 'pl' });
-        p.phonemize('kot', 'yes');
+        p.phonemize('kot', false);
     )");
-    EXPECT_TRUE(isCodedError(thrown, "INVALID_ARGUMENT", "phonemize: preprocess"));
+    EXPECT_TRUE(isCodedError(thrown, "INVALID_ARGUMENT", "phonemize: options"));
 }
 
-TEST_F(PhonemizerTest, AcceptsAnExplicitPreprocessFlag) {
+TEST_F(PhonemizerTest, RejectsANonBooleanWordsOption) {
+    auto thrown = evalThrowing(R"(
+        const p = __rnexecutorch_jsi__.speech.createPhonemizer({ lang: 'pl' });
+        p.phonemize('kot', { words: 'yes' });
+    )");
+    EXPECT_TRUE(isCodedError(thrown, "INVALID_ARGUMENT", "phonemize: options"));
+}
+
+TEST_F(PhonemizerTest, ReturnsAStringUnlessWordsAreAsked) {
     EXPECT_TRUE(evalBool(R"(
         const p = __rnexecutorch_jsi__.speech.createPhonemizer({ lang: 'pl' });
-        return typeof p.phonemize('kot', false) === 'string' &&
-               p.phonemize('kot', undefined) === p.phonemize('kot');
+        return p.phonemize('kot', undefined) === p.phonemize('kot') &&
+               p.phonemize('kot', {}) === p.phonemize('kot') &&
+               p.phonemize('kot', { words: false }) === p.phonemize('kot');
     )"));
 }
 
-// Unlike phonemization, preprocessing is rule-based and needs no data files, so
-// its actual output can be checked here. Callers rely on it to map phonemes back
-// onto the input words, which only works while numbers are spelled out.
-TEST_F(PhonemizerTest, PreprocessSpellsOutNumbers) {
-    EXPECT_EQ(evalString(R"(
+// The word matching itself is phonemis's and is tested there; what is pinned here
+// is the shape it crosses the bridge in.
+TEST_F(PhonemizerTest, ReturnsThePhonemesAndWordsWhenAsked) {
+    EXPECT_TRUE(evalBool(R"(
         const p = __rnexecutorch_jsi__.speech.createPhonemizer({ lang: 'en-us' });
-        return p.preprocess('  I have   25 cats');
-    )"),
-              "I have twenty five cats");
-}
-
-TEST_F(PhonemizerTest, RejectsWrongArgumentCountsOnPreprocess) {
-    auto thrown = evalThrowing(R"(
-        const p = __rnexecutorch_jsi__.speech.createPhonemizer({ lang: 'pl' });
-        p.preprocess();
-    )");
-    EXPECT_TRUE(isCodedError(thrown, "INVALID_ARGUMENT", "Usage: preprocess(text)"));
+        const r = p.phonemize('I have 25 cats', { words: true });
+        return r.phonemes === p.phonemize('I have 25 cats') && Array.isArray(r.words);
+    )"));
 }
 
 TEST_F(PhonemizerTest, RejectsNonStringText) {

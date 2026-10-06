@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "core/conversions.h"
 #include "core/error.h"
@@ -19,6 +20,44 @@ namespace conversions = rnexecutorch::core::conversions;
 namespace error = rnexecutorch::core::error;
 using phonemis::utils::conversions::u32_to_utf8;
 using phonemis::utils::conversions::utf8_to_u32;
+
+namespace {
+
+// UTF-16 offset of every code point of `text`, plus one past its end: JS
+// strings index by UTF-16 unit, phonemis by code point.
+std::vector<size_t> utf16Offsets(std::u32string_view text) {
+    std::vector<size_t> offsets(text.size() + 1, 0);
+    for (size_t i = 0; i < text.size(); ++i) {
+        offsets[i + 1] = offsets[i] + (text[i] > 0xFFFF ? 2 : 1);
+    }
+    return offsets;
+}
+
+jsi::Object toJs(jsi::Runtime &rt, std::u32string_view text, const phonemis::PhonemizedText &result) {
+    const auto textOffsets = utf16Offsets(text);
+    const auto phonemeOffsets = utf16Offsets(result.phonemes);
+
+    auto words = jsi::Array(rt, result.words.size());
+    for (size_t i = 0; i < result.words.size(); ++i) {
+        const auto &word = result.words[i];
+        const auto phonemeEnd = word.phoneme_offset + word.phoneme_length;
+
+        auto entry = jsi::Object(rt);
+        entry.setProperty(rt, "text", jsi::String::createFromUtf8(rt, u32_to_utf8(text.substr(word.offset, word.length))));
+        entry.setProperty(rt, "offset", static_cast<double>(textOffsets[word.offset]));
+        entry.setProperty(rt, "phonemeOffset", static_cast<double>(phonemeOffsets[word.phoneme_offset]));
+        entry.setProperty(rt, "phonemeLength",
+                          static_cast<double>(phonemeOffsets[phonemeEnd] - phonemeOffsets[word.phoneme_offset]));
+        words.setValueAtIndex(rt, i, std::move(entry));
+    }
+
+    auto object = jsi::Object(rt);
+    object.setProperty(rt, "phonemes", jsi::String::createFromUtf8(rt, u32_to_utf8(result.phonemes)));
+    object.setProperty(rt, "words", std::move(words));
+    return object;
+}
+
+} // namespace
 
 PhonemizerHostObject::PhonemizerHostObject(
     const std::string &lang,
@@ -55,43 +94,29 @@ jsi::Value PhonemizerHostObject::get(jsi::Runtime &rt,
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count < 1 || count > 2) {
-                throw error::InvalidArgument("phonemize: Usage: phonemize(text, preprocess?)");
+                throw error::InvalidArgument("phonemize: Usage: phonemize(text, options?)");
             }
 
-            // preprocess is optional and defaults to true. Skipping it lets a caller
-            // phonemize text it already ran through preprocess().
-            bool preprocess = true;
+            // With { words: true }, the result also locates each input word in the phonemes.
+            bool words = false;
             if (count == 2 && !args[1].isUndefined()) {
-                preprocess = conversions::asType<bool>(rt, "phonemize: preprocess", args[1]);
+                auto options = conversions::asType<jsi::Object>(rt, "phonemize: options", args[1]);
+                if (options.hasProperty(rt, "words")) {
+                    words = conversions::getRequiredProperty<bool>(rt, "phonemize: options", options, "words");
+                }
             }
+
+            auto text = utf8_to_u32(conversions::asType<std::string>(rt, "phonemize: text", args[0]));
 
             auto lock = self->tryLockUnique("phonemize: Phonemizer");
 
-            auto utf8 = conversions::asType<std::string>(rt, "phonemize: text", args[0]);
-            auto phonemes = (*self->pipeline_)(utf8_to_u32(utf8), preprocess);
-
-            return jsi::String::createFromUtf8(rt, u32_to_utf8(phonemes));
+            if (words) {
+                return toJs(rt, text, self->pipeline_->phonemize_words(std::u32string_view{text}));
+            }
+            return jsi::String::createFromUtf8(rt, u32_to_utf8((*self->pipeline_)(std::u32string_view{text})));
         };
         return jsi::Function::createFromHostFunction(
             rt, jsi::PropNameID::forAscii(rt, "phonemize"), 1, error::guarded(fnBody));
-    }
-
-    if (nameStr == "preprocess") {
-        auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args, size_t count) -> jsi::Value {
-            if (count != 1) {
-                throw error::InvalidArgument("preprocess: Usage: preprocess(text)");
-            }
-
-            auto lock = self->tryLockUnique("preprocess: Phonemizer");
-
-            auto utf8 = conversions::asType<std::string>(rt, "preprocess: text", args[0]);
-            auto text = self->pipeline_->preprocess(utf8_to_u32(utf8));
-
-            return jsi::String::createFromUtf8(rt, u32_to_utf8(text));
-        };
-        return jsi::Function::createFromHostFunction(
-            rt, jsi::PropNameID::forAscii(rt, "preprocess"), 1, error::guarded(fnBody));
     }
 
     if (nameStr == "dispose") {
@@ -115,7 +140,6 @@ std::vector<jsi::PropNameID> PhonemizerHostObject::getPropertyNames(
     jsi::Runtime &rt) {
     std::vector<jsi::PropNameID> props;
     props.push_back(jsi::PropNameID::forAscii(rt, "phonemize"));
-    props.push_back(jsi::PropNameID::forAscii(rt, "preprocess"));
     props.push_back(jsi::PropNameID::forAscii(rt, "dispose"));
     return props;
 }

@@ -23,7 +23,6 @@ import { createResourceScope } from '../../../core/lifetime';
 import { RnExecuTorchError } from '../../../core/error';
 import {
   createPhonemizer,
-  phonemizeWords,
   type PhonemizedText,
   type PhonemizedWord,
   type PhonemizerConfig,
@@ -496,7 +495,7 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
     const synthesizeChunk = wrapAsync(synthesizeChunkWorklet, runtime);
     const phonemize = wrapAsync((text: string): PhonemizedText => {
       'worklet';
-      return phonemizeWords(phonemizer, text);
+      return phonemizer.phonemize(text, { words: true });
     }, runtime);
 
     let isSynthesizing = false;

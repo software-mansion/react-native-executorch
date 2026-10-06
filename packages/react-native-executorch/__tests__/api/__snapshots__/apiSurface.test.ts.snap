@@ -102,7 +102,6 @@ exports[`public API surface matches the recorded contents of each namespace 1`] 
     "parseVoice",
     "parseVoiceStyle",
     "partition",
-    "phonemizeWords",
     "preprocessText",
     "scaleDurations",
     "stripAudio",
