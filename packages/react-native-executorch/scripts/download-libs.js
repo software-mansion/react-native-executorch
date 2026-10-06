@@ -577,6 +577,17 @@ function expandPattern(root, pattern) {
   return candidates.filter((candidate) => fs.existsSync(candidate));
 }
 
+function removeAppleDoubleFiles(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const entryPath = path.join(dir, entry.name);
+    if (entry.name.startsWith('._')) {
+      fs.rmSync(entryPath, { recursive: true, force: true });
+    } else if (entry.isDirectory()) {
+      removeAppleDoubleFiles(entryPath);
+    }
+  }
+}
+
 function extract(tarball, destDir) {
   ensureDir(destDir);
   // `-m` stamps extracted files with the extraction time instead of the mtime
@@ -670,6 +681,8 @@ async function main() {
     console.log(`  ✓ Done`);
   }
 
+  removeAppleDoubleFiles(THIRD_PARTY_DIR);
+
   // Belt and braces to core no longer carrying backends: this also clears
   // binaries left by an EARLIER install that had the backend enabled.
   pruneDisabledBackends(targets, config);
@@ -694,6 +707,7 @@ module.exports = {
   findUserConfig,
   readUserConfig,
   pruneDisabledBackends,
+  removeAppleDoubleFiles,
   sha256,
   extract,
   download,
