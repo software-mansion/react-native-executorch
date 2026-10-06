@@ -7,8 +7,8 @@ import { RnExecuTorchError } from '../../../core/error';
 type Tag = 'eos' | 'pause' | 'whitespace';
 
 // Punctuation Regex Patterns
-const EOS_PATTERN = /[.?!;…|।॥¿¡]/;
-const PAUSE_PATTERN = /[,:\u2014\u00AB\u00BB]/;
+const EOS_PATTERN = /[.?!;…|।॥¿¡。．！？；]/;
+const PAUSE_PATTERN = /[,:\u2014\u00AB\u00BB、，：〜～]/;
 const WHITESPACE_PATTERN = /\s/;
 
 // Standard Partitioning Constants
@@ -124,9 +124,18 @@ export function partition(text: string, limit: number, options?: PartitionOption
 
   const breakpoints: { idx: number; tag: Tag }[] = [];
   let charIdx = 0;
+  let lastBpIdx = -1;
   for (const char of text) {
+    const endIdx = charIdx + char.length - 1;
     const t = tagFromChar(char);
-    if (t) breakpoints.push({ idx: charIdx, tag: t });
+    if (endIdx - lastBpIdx > limit) {
+      breakpoints.push({ idx: charIdx - 1, tag: 'whitespace' });
+      lastBpIdx = charIdx - 1;
+    }
+    if (t) {
+      breakpoints.push({ idx: endIdx, tag: t });
+      lastBpIdx = endIdx;
+    }
     charIdx += char.length;
   }
 

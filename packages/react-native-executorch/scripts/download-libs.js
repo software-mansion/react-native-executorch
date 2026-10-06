@@ -76,7 +76,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const { createHash } = require('crypto');
+const { createHash, randomBytes } = require('crypto');
 const { Buffer } = require('buffer');
 
 // ---- Config ----------------------------------------------------------------
@@ -324,16 +324,16 @@ function warnAboutPlatformAsymmetry({ backends }, targets) {
 
 // ---- Target detection ------------------------------------------------------
 
+// The iOS artifacts come down on every host, not only on macOS. Expo's
+// fingerprint runtime version hashes the whole package root for both platforms,
+// so a Mac install that held them and a Linux EAS builder that did not computed
+// different Android runtime versions (#1509). They are ~10 MB compressed.
 function detectTargets() {
   if (process.env.RNET_TARGET) {
     return [process.env.RNET_TARGET];
   }
 
-  const targets = [];
-  if (process.platform === 'darwin') {
-    targets.push('ios');
-  }
-  targets.push('android-arm64-v8a');
+  const targets = ['ios', 'android-arm64-v8a'];
   if (!process.env.RNET_NO_X86_64) {
     targets.push('android-x86_64');
   }
@@ -414,34 +414,59 @@ function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
+// Writes to a temp file beside `dest` and renames it into place once complete.
+// Package managers can run this postinstall for several copies of the package
+// at once (a monorepo whose workspaces resolve it with different peers), all
+// sharing CACHE_DIR. Writing `dest` directly let one copy truncate a checksum
+// or tarball while another was reading it. The rename is atomic, so a reader
+// sees either the previous file or the complete new one.
 function download(url, dest) {
+  const tmp = `${dest}.${process.pid}-${randomBytes(4).toString('hex')}.tmp`;
   return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(dest);
+    const file = fs.createWriteStream(tmp);
+    const fail = (err) => {
+      // Close before removing: on Windows an open handle makes the unlink fail
+      // with EBUSY, which then replaces the real error with the cleanup's. And
+      // `force` covers the case where the file was never created. Rejects only
+      // once the temp file is gone, so a failed download leaves nothing behind.
+      file.close(() => {
+        fs.rmSync(tmp, { force: true });
+        reject(err);
+      });
+    };
     const get = (currentUrl) => {
       const client = currentUrl.startsWith('http://') ? http : https;
       const headers = {};
       if (process.env.GITHUB_TOKEN && currentUrl.includes('github.com')) {
         headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
       }
-      client.get(currentUrl, { headers }, (res) => {
-        if (res.statusCode === 301 || res.statusCode === 302) {
-          return get(res.headers.location);
-        }
-        if (res.statusCode !== 200) {
-          return reject(new Error(`HTTP ${res.statusCode} for ${currentUrl}`));
-        }
-        res.pipe(file);
-        file.on('finish', () => file.close(resolve));
-      });
+      client
+        .get(currentUrl, { headers }, (res) => {
+          if (res.statusCode === 301 || res.statusCode === 302) {
+            res.resume();
+            return get(res.headers.location);
+          }
+          if (res.statusCode !== 200) {
+            res.resume();
+            return fail(new Error(`HTTP ${res.statusCode} for ${currentUrl}`));
+          }
+          res.pipe(file);
+          file.on('finish', () =>
+            file.close((err) => {
+              if (err) return fail(err);
+              try {
+                fs.renameSync(tmp, dest);
+                resolve();
+              } catch (renameErr) {
+                fail(renameErr);
+              }
+            })
+          );
+        })
+        .on('error', fail);
     };
     get(url);
-    file.on('error', (err) => {
-      // Close before removing: on Windows an open handle makes the unlink fail
-      // with EBUSY, which then replaces the real error with the cleanup's. And
-      // `force` covers the case where the file was never created.
-      file.close(() => fs.rmSync(dest, { force: true }));
-      reject(err);
-    });
+    file.on('error', fail);
   });
 }
 
@@ -546,6 +571,17 @@ function expandPattern(root, pattern) {
   return candidates.filter((candidate) => fs.existsSync(candidate));
 }
 
+function removeAppleDoubleFiles(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const entryPath = path.join(dir, entry.name);
+    if (entry.name.startsWith('._')) {
+      fs.rmSync(entryPath, { recursive: true, force: true });
+    } else if (entry.isDirectory()) {
+      removeAppleDoubleFiles(entryPath);
+    }
+  }
+}
+
 function extract(tarball, destDir) {
   ensureDir(destDir);
   // `-m` stamps extracted files with the extraction time instead of the mtime
@@ -639,6 +675,8 @@ async function main() {
     console.log(`  ✓ Done`);
   }
 
+  removeAppleDoubleFiles(THIRD_PARTY_DIR);
+
   // Belt and braces to core no longer carrying backends: this also clears
   // binaries left by an EARLIER install that had the backend enabled.
   pruneDisabledBackends(targets, config);
@@ -658,10 +696,13 @@ module.exports = {
   ALL_BACKENDS,
   ALL_LIBS,
   BACKEND_FILES,
+  detectTargets,
   FEATURE_MAP,
   findUserConfig,
   readUserConfig,
   pruneDisabledBackends,
+  removeAppleDoubleFiles,
   sha256,
   extract,
+  download,
 };
