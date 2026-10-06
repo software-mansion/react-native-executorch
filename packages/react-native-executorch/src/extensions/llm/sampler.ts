@@ -120,6 +120,31 @@ export type SamplingConfig = {
   readonly constraints?: SamplingConstraintsCallback;
 };
 
+// Defaults mirror llama.cpp's `common_params_sampling` and are resolved here so
+// the native sampler receives a fully-specified options object and treats every
+// field as required.
+
+const EMPTY_SEQUENCE_BREAKERS = new Int32Array(0);
+
+const DEFAULT_SAMPLING_OPTIONS = {
+  temperature: 0.8,
+  repetitionPenalty: 1.0,
+  topK: 40,
+  topP: 0.95,
+  minP: 0.05,
+} as const;
+
+const DEFAULT_DRY_OPTIONS = {
+  base: 1.75,
+  allowedLength: 2,
+  penaltyLastN: -1,
+  sequenceBreakers: EMPTY_SEQUENCE_BREAKERS,
+} as const;
+
+const DEFAULT_XTC_OPTIONS = {
+  threshold: 0.1,
+} as const;
+
 /**
  * Samples a token directly from a native logits tensor given generation context and config.
  *
@@ -136,27 +161,17 @@ export type SamplingConfig = {
  */
 export function sample(logits: Tensor, ctx: SamplingContext, config: SamplingConfig = {}): number {
   'worklet';
-  // Defaults mirror llama.cpp's `common_params_sampling` and are resolved here
-  // so the native sampler receives a fully-specified options object and treats
-  // every field as required.
   const options = {
-    temperature: config.temperature ?? 0.8,
-    repetitionPenalty: config.repetitionPenalty ?? 1.0,
-    topK: config.topK ?? 40,
-    topP: config.topP ?? 0.95,
-    minP: config.minP ?? 0.05,
+    ...DEFAULT_SAMPLING_OPTIONS,
+    ...config,
     dry: config.dry && {
-      multiplier: config.dry.multiplier,
-      base: config.dry.base ?? 1.75,
-      penaltyLastN: config.dry.penaltyLastN ?? -1,
-      allowedLength: config.dry.allowedLength ?? 2,
-      sequenceBreakers: config.dry.sequenceBreakers ?? new Int32Array(0),
+      ...DEFAULT_DRY_OPTIONS,
+      ...config.dry,
     },
     xtc: config.xtc && {
-      threshold: config.xtc.threshold ?? 0.1,
-      probability: config.xtc.probability,
+      ...DEFAULT_XTC_OPTIONS,
+      ...config.xtc,
     },
-    constraints: config.constraints,
   };
   return rnexecutorchJsi.llm.sample(logits, ctx, options);
 }
