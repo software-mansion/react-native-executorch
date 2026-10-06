@@ -65,6 +65,7 @@ export function createLLMTextRunner(
   // Generation methods
   // ======================================================
   const isCancelled = createSynchronizable(false);
+
   const stop = (): void => {
     'worklet';
     isCancelled.setBlocking(true);
@@ -83,6 +84,7 @@ export function createLLMTextRunner(
 
     const startMs = Date.now();
     const startPos = pos.getBlocking();
+
     const tokens = tokenizer.encode(prompt);
 
     let offset = 0;
@@ -143,52 +145,33 @@ export function createLLMTextRunner(
     const generatedTokens: number[] = [];
     const maxNewTokens = config?.maxNewTokens ?? Infinity;
 
-    let numTokens = 0;
-    // TO-REMOVE: Timing breakdown for benchmarking
-    let totalModelExecuteMs = 0;
-    let totalSampleMs = 0;
-    let totalOnTokenMs = 0;
-
     const tToken = tensor('int64', [1, 1]);
     const tCurPos = tensor('int64', [1]);
 
+    let numTokens = 0;
     let curPos = pos.getBlocking();
 
     try {
       while (numTokens < maxNewTokens && !isCancelled.getBlocking()) {
         if (curPos >= maxContextLen) break;
 
-        // TO-REMOVE: Sample timing
-        const tSample0 = Date.now();
-        const nextToken = sample(
-          tLogits,
-          { generatedTokens: Int32Array.from(generatedTokens) },
-          config
-        );
-        totalSampleMs += Date.now() - tSample0;
+        const genTokArray = Int32Array.from(generatedTokens);
+        const nextToken = sample(tLogits, { generatedTokens: genTokArray }, config);
 
-        // TO-REMOVE: onToken timing
-        const tOnToken0 = Date.now();
         onToken?.(tokenizer.decode(Int32Array.of(nextToken)));
-        totalOnTokenMs += Date.now() - tOnToken0;
-
         generatedTokens.push(nextToken);
 
-        if (!config?.ignoreEos && eosIds.includes(nextToken)) {
-          break;
-        }
+        if (!config?.ignoreEos && eosIds.includes(nextToken)) break;
 
         tToken.setData(BigInt64Array.of(BigInt(nextToken)));
         tCurPos.setData(BigInt64Array.of(BigInt(curPos)));
 
-        // TO-REMOVE: model.execute timing
-        const tExec0 = Date.now();
         model.execute('forward', [tToken, tCurPos], [tLogits]);
-        totalModelExecuteMs += Date.now() - tExec0;
 
-        curPos += 1;
-        pos.setBlocking(curPos);
         numTokens += 1;
+        curPos += 1;
+
+        pos.setBlocking(curPos);
       }
     } finally {
       tToken.dispose();
@@ -197,15 +180,6 @@ export function createLLMTextRunner(
 
     const durationMs = Date.now() - generateStartMs;
     const tokensPerSecond = durationMs > 0 ? (numTokens / durationMs) * 1000 : 0;
-
-    // TO-REMOVE: Console log breakdown
-    // eslint-disable-next-line no-console
-    console.log(
-      `[llmTextRunner] Generated ${numTokens} tokens in ${durationMs}ms (${tokensPerSecond.toFixed(1)} tok/s) | ` +
-        `model.execute: ${totalModelExecuteMs}ms (${durationMs > 0 ? ((totalModelExecuteMs / durationMs) * 100).toFixed(1) : 0}%) | ` +
-        `sample: ${totalSampleMs}ms (${durationMs > 0 ? ((totalSampleMs / durationMs) * 100).toFixed(1) : 0}%) | ` +
-        `onToken: ${totalOnTokenMs}ms (${durationMs > 0 ? ((totalOnTokenMs / durationMs) * 100).toFixed(1) : 0}%)`
-    );
 
     return { numTokens, durationMs, tokensPerSecond, prefill: prefillStats };
   };
