@@ -14,7 +14,7 @@ const { removeAppleDoubleFiles } = require('../../scripts/download-libs.js');
 let workDir: string;
 
 beforeEach(() => {
-  workDir = mkdtempSync(join(tmpdir(), 'rnet-appledouble-'));
+  workDir = mkdtempSync(join(tmpdir(), 'rnet-apple-double-'));
 });
 
 afterEach(() => {
