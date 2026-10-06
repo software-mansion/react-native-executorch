@@ -23,17 +23,31 @@
  *   yarn bench --platform android --suite full --repeats 3   # with an error bar
  *   yarn bench --platform android --resume         # continue an interrupted run
  *   yarn bench --platform android --tasks llm --order size   # smallest model first
+ *   yarn bench --platform android --only <id> --url-map '{"model.pte":"http://host/model.pte"}'
  *   yarn bench --platform ios --no-launch          # app started by hand
  */
 
 import { createServer } from 'node:http';
 import { spawn, spawnSync } from 'node:child_process';
-import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  appendFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { networkInterfaces, tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { headerMismatches, parseJsonl } from './results.mjs';
+
 const APP_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+/** Android application id, from `app.json`. */
+const APP_ID = 'com.anonymous.benchmarks';
+/** Relaunches after a crash before the run is declared broken. */
+const MAX_RELAUNCHES = 20;
 
 const DEFAULTS = {
   platform: 'android',
@@ -45,6 +59,7 @@ const DEFAULTS = {
   iterations: '20',
   warmup: '3',
   memoryIterations: '5',
+  loadIterations: '3',
   repeats: '1',
   maxTempC: '37',
   gateTimeoutS: '1800',
@@ -53,8 +68,7 @@ const DEFAULTS = {
   devPort: '8081',
   host: '',
   out: '',
-  cooldown: 'auto',
-  cooldownMax: '900',
+  urlMap: '',
   pinClocks: 'off',
   buildType: 'release',
 };
@@ -85,8 +99,14 @@ function parseArgs(argv) {
     } else throw new Error(`Unexpected argument ${arg}`);
   }
 
-  if (options.cooldown !== 'auto' && !Number.isFinite(Number(options.cooldown))) {
-    throw new Error(`--cooldown must be a number of seconds or "auto", got ${options.cooldown}`);
+  if (options.urlMap) {
+    // Inline JSON or a path to a JSON file, normalised to compact JSON for the app.
+    const raw = existsSync(options.urlMap) ? readFileSync(options.urlMap, 'utf8') : options.urlMap;
+    try {
+      options.urlMap = JSON.stringify(JSON.parse(raw));
+    } catch {
+      throw new Error(`--url-map must be a JSON object or a path to one, got ${options.urlMap}`);
+    }
   }
   if (!['auto', 'on', 'off'].includes(options.pinClocks)) {
     throw new Error(`--pin-clocks must be auto, on or off, got ${options.pinClocks}`);
@@ -97,9 +117,7 @@ function parseArgs(argv) {
   // Two runs on one host need two of each. Catching the overlap here beats a
   // bind failure halfway through a build.
   if (options.port === options.devPort) {
-    throw new Error(
-      `--port and --dev-port must differ, both are ${options.port}`
-    );
+    throw new Error(`--port and --dev-port must differ, both are ${options.port}`);
   }
   if (!['registry', 'size'].includes(options.order)) {
     throw new Error(`--order must be registry or size, got ${options.order}`);
@@ -195,7 +213,13 @@ async function holdUntilCool(maxTempC, timeoutS, onWait) {
   const first = await readDeviceHeat();
   if (first.temperatureC === null) {
     // Nothing to poll. The device falls back to its own coarse thermal state.
-    return { kind: 'none', waitedS: 0, temperatureC: null, thermalStatus: first.status, timedOut: false };
+    return {
+      kind: 'none',
+      waitedS: 0,
+      temperatureC: null,
+      thermalStatus: first.status,
+      timedOut: false,
+    };
   }
 
   for (;;) {
@@ -227,7 +251,6 @@ async function holdUntilCool(maxTempC, timeoutS, onWait) {
     await sleep(POLL_MS);
   }
 }
-
 
 /**
  * Stops the device charging for the duration of the run, and reads the level.
@@ -416,28 +439,23 @@ function outputPaths(options, device) {
 }
 
 /**
- * Reads the measurement keys an existing JSONL already holds.
+ * Reads an existing JSONL, or nothing when there is none yet.
  * @param path The JSONL file.
- * @returns Keys of the form `<caseId>#<repeat>`.
+ * @returns Its first run header and its measurements.
  */
-function readCompleted(path) {
-  if (!existsSync(path)) return [];
-  const done = [];
-  for (const line of readFileSync(path, 'utf8').split('\n')) {
-    if (!line.trim()) continue;
-    try {
-      const entry = JSON.parse(line);
-      // Only an `ok` measurement counts as done: re-running a case that errored
-      // is usually the point of resuming.
-      if (entry.status === 'ok' && entry.id && entry.progress?.repeat) {
-        done.push(`${entry.id}#${entry.progress.repeat}`);
-      }
-    } catch {
-      // A half-written final line after a kill. Everything before it stands.
-    }
-  }
-  return done;
-}
+const readJsonl = (path) =>
+  existsSync(path) ? parseJsonl(readFileSync(path, 'utf8')) : { header: null, cases: [] };
+
+/**
+ * The key a measurement is deduplicated by. Successes are keyed without their
+ * status so a re-measurement of a failed case is still recognised as new.
+ * @param entry One measurement.
+ * @returns `<caseId>#<repeat>`, with `#<status>` appended unless it is `ok`.
+ */
+const writeKeyOf = (entry) => {
+  const key = `${entry.id}#${entry.progress?.repeat ?? 1}`;
+  return entry.status === 'ok' ? key : `${key}#${entry.status}`;
+};
 
 const pad = (value, width) => String(value).padStart(width);
 
@@ -481,10 +499,8 @@ async function main() {
   });
 
   // Output paths are only final once the app has announced its device, so a
-  // provisional pair is used until `/begin` arrives. With --resume the caller
-  // has usually passed --out, or the device is the one already in results/.
+  // provisional pair is used until `/begin` arrives.
   let paths = outputPaths(options, null);
-  let completed = options.resume ? readCompleted(paths.jsonl) : [];
   // Every key the output file already holds, whatever the app believes.
   //
   // `--resume` works by the app asking which measurements exist and skipping
@@ -493,9 +509,22 @@ async function main() {
   // a second copy of each row. The writer is the only place that can actually
   // promise otherwise, so it refuses a key it already has rather than trusting
   // the handshake.
-  let onDisk = new Set(readCompleted(paths.jsonl));
+  let onDisk = new Set();
+  // Measurements the app crashed during. Reported as done so a relaunched app
+  // moves past them instead of crashing on the same case forever.
+  const crashed = new Set();
+  // What the app last said it was doing, for attributing a crash.
+  let inFlight = null;
+  let header = null;
+  let relaunches = 0;
   let measurements = 0;
   let plannedMeasurements = null;
+  let clocksPinned = false;
+
+  const append = (entry) => {
+    appendFileSync(paths.jsonl, `${JSON.stringify(entry)}\n`);
+    onDisk.add(writeKeyOf(entry));
+  };
 
   const server = createServer(async (request, response) => {
     let body = null;
@@ -507,8 +536,11 @@ async function main() {
     }
 
     if (request.url === '/completed') {
+      // Successes on disk (from a resume or earlier in this run, before a
+      // relaunch) plus whatever the app crashed on in this run.
+      const done = [...onDisk].filter((key) => key.split('#').length === 2);
       response.writeHead(200, { 'Content-Type': 'application/json' });
-      response.end(JSON.stringify({ done: completed }));
+      response.end(JSON.stringify({ done: [...done, ...crashed] }));
       return;
     }
 
@@ -516,20 +548,10 @@ async function main() {
       // Long-poll: the device stays parked here while the host watches the
       // temperature, so it is not generating heat polling for its own cooldown.
       if (options.platform !== 'android') {
-        // iOS exposes no battery temperature, so the device-side fallback is a
-        // flat 90s sleep per iteration (BLIND_SETTLE_MS) that no env knob turns
-        // off. Answering as a host gate skips it. There is nothing to poll on
-        // iOS either way, so this loses no thermal control that existed.
+        // Nothing to read over the wire on iOS; the device gates on its own
+        // thermal state instead.
         response.writeHead(200, { 'Content-Type': 'application/json' });
-        response.end(
-          JSON.stringify({
-            kind: 'host',
-            waitedS: 0,
-            temperatureC: null,
-            thermalStatus: null,
-            timedOut: false,
-          })
-        );
+        response.end(JSON.stringify({ kind: 'none' }));
         return;
       }
       const label = `${body?.caseId ?? '?'} run ${body?.repeat ?? '?'}/${body?.repeats ?? '?'}`;
@@ -567,20 +589,58 @@ async function main() {
         stale.push(`repeats ${body.repeats} != ${options.repeats}`);
       }
       if (stale.length > 0) {
-        console.error(
-          `\n[bench] FATAL: the app is running a stale bundle (${stale.join(', ')}).\n` +
+        fatal(
+          `the app is running a stale bundle (${stale.join(', ')}).\n` +
             'Metro inlines EXPO_PUBLIC_BENCH_* at bundle time and served a cached build.\n' +
-            'The cache is cleared automatically now; if this persists, stop Metro and rerun.'
+            'The cache is cleared automatically now; if this persists, stop Metro and rerun.',
+          3
         );
-        server.close();
-        process.exit(3);
+      }
+
+      const runHeader = {
+        type: 'run',
+        label: body.label,
+        platform: options.platform,
+        device: body.device,
+        inputSpecVersion: body.inputSpecVersion,
+        buildType: options.buildType,
+        clocksPinned,
+        settings: body.settings,
+        startedAt: new Date().toISOString(),
+      };
+
+      // A relaunch after a crash announces itself again; it is the same run.
+      if (header) {
+        console.log('[bench] app relaunched; continuing the run');
+        return;
       }
 
       paths = outputPaths(options, body.device);
-      // The device is only known now, so the path may have changed under us.
-      completed = options.resume ? readCompleted(paths.jsonl) : [];
-      onDisk = new Set(readCompleted(paths.jsonl));
+      const existing = readJsonl(paths.jsonl);
+      if (existing.cases.length > 0 && !options.resume) {
+        // Writing into it would mix two runs, and the dedup below would keep the
+        // old rows and drop every new one.
+        fatal(
+          `${paths.jsonl} already holds ${existing.cases.length} measurements.\n` +
+            'Pass --resume to continue that run, or a new --label or --out.',
+          3
+        );
+      }
+      if (existing.header) {
+        const mismatches = headerMismatches(existing.header, runHeader);
+        if (mismatches.length > 0) {
+          fatal(
+            `--resume would mix incomparable measurements into ${paths.jsonl}:\n  ` +
+              `${mismatches.join('\n  ')}\nResume with the original settings, or start a new --label.`,
+            3
+          );
+        }
+      }
+      onDisk = new Set(existing.cases.map(writeKeyOf));
+      header = runHeader;
       mkdirSync(dirname(paths.jsonl), { recursive: true });
+      append(runHeader);
+
       plannedMeasurements = body.cases.length * body.repeats;
       console.log(
         `\n[bench] run "${body.label}" on ${deviceSlug(body.device)} — ` +
@@ -590,8 +650,9 @@ async function main() {
         console.log(`[bench] ${body.skipped.length} variants skipped:`);
         for (const entry of body.skipped) console.log(`         ${entry.id} — ${entry.reason}`);
       }
-      if (completed.length > 0) {
-        console.log(`[bench] resuming: ${completed.length} measurements already on disk`);
+      const resumed = existing.cases.filter((entry) => entry.status === 'ok').length;
+      if (resumed > 0) {
+        console.log(`[bench] resuming: ${resumed} measurements already on disk`);
       } else if (options.resume) {
         // --resume resolves its file from --label and --out, so a run that
         // changes either of them resumes from a file that does not exist yet and
@@ -604,21 +665,20 @@ async function main() {
         );
       }
       console.log(`[bench] appending to ${paths.jsonl}\n`);
+    } else if (request.url === '/phase') {
+      inFlight = body;
     } else if (request.url === '/case') {
       // Keyed by outcome as well as identity: a failure re-posted by a retrying
       // app used to slip past a guard that only tracked successes, and land in
-      // the file twice. Successes stay keyed without the status so a later
-      // re-measurement of a failed case is still recognised as new.
-      const key = `${body.id}#${body.progress?.repeat ?? 1}`;
-      const writeKey = body.status === 'ok' ? key : `${key}#${body.status}`;
-      if (onDisk.has(writeKey)) {
-        console.log(`[bench] ${key} is already recorded; keeping the first and dropping this one`);
+      // the file twice.
+      if (onDisk.has(writeKeyOf(body))) {
+        console.log(`[bench] ${writeKeyOf(body)} is already recorded; keeping the first`);
         return;
       }
       // Appended before anything else touches it: a kill between the POST and
       // the write is the one gap this file exists to close.
-      appendFileSync(paths.jsonl, `${JSON.stringify(body)}\n`);
-      onDisk.add(writeKey);
+      append(body);
+      inFlight = null;
       measurements += 1;
       const total = plannedMeasurements ? `/${plannedMeasurements}` : '';
       console.log(`[bench] [${measurements}${total}] ${progressLine(body)}`);
@@ -626,6 +686,12 @@ async function main() {
       settle(body);
     }
   });
+
+  function fatal(message, code) {
+    console.error(`\n[bench] FATAL: ${message}`);
+    server.close();
+    process.exit(code);
+  }
 
   await new Promise((ready, fail) => {
     server.on('error', (error) => {
@@ -671,7 +737,6 @@ async function main() {
 
   // Pin the clock BEFORE the cooldown so the device settles at the frequency it
   // will actually run at, rather than cooling at 3.4 GHz and being capped after.
-  let clocksPinned = false;
   if (options.platform === 'android' && options.pinClocks !== 'off') {
     const before = await readMaxFrequencies();
     await setClockPin(true);
@@ -692,9 +757,6 @@ async function main() {
     }
   }
 
-  // Always hand the phone back at its normal clocks, including on Ctrl-C or a
-  // crash. Leaving a device capped at 2 GHz would silently poison every later
-  // measurement taken on it, benchmark or not.
   // Always hand the phone back as it was found, including on Ctrl-C or a crash.
   // Leaving it capped at 2 GHz would poison every later measurement taken on it,
   // and leaving it refusing to charge is worse: the owner has no reason to
@@ -737,6 +799,8 @@ async function main() {
     EXPO_PUBLIC_BENCH_ITERATIONS: options.iterations,
     EXPO_PUBLIC_BENCH_WARMUP: options.warmup,
     EXPO_PUBLIC_BENCH_MEMORY_ITERATIONS: options.memoryIterations,
+    EXPO_PUBLIC_BENCH_LOAD_ITERATIONS: options.loadIterations,
+    EXPO_PUBLIC_BENCH_URL_MAP: options.urlMap,
     EXPO_PUBLIC_BENCH_REPEATS: options.repeats,
     EXPO_PUBLIC_BENCH_MAX_TEMP_C: options.maxTempC,
     EXPO_PUBLIC_BENCH_GATE_TIMEOUT_S: options.gateTimeoutS,
@@ -755,7 +819,7 @@ async function main() {
     // as though it were the new one. Observed as a "from scratch" run whose
     // first measurement was case 3 repeat 3.
     if (options.platform === 'android') {
-      await adbCapture('am force-stop com.anonymous.benchmarks');
+      await adbCapture(`am force-stop ${APP_ID}`);
     }
     // A release build is the point of a published benchmark. A debug build
     // compiles the library's own C++ without optimisation and serves JS as a
@@ -783,9 +847,13 @@ async function main() {
     // e.g. SM-S948B is "SM_S948B", not by its adb serial.
     const serial = process.env.ANDROID_SERIAL
       ? (
-          spawnSync('adb', ['-s', process.env.ANDROID_SERIAL, 'shell', 'getprop', 'ro.product.model'], {
-            encoding: 'utf8',
-          }).stdout ?? ''
+          spawnSync(
+            'adb',
+            ['-s', process.env.ANDROID_SERIAL, 'shell', 'getprop', 'ro.product.model'],
+            {
+              encoding: 'utf8',
+            }
+          ).stdout ?? ''
         )
           .trim()
           .replace(/[^\w.]+/g, '_')
@@ -823,6 +891,8 @@ async function main() {
         process.exit(2);
       }
     });
+
+    if (options.platform === 'android') watchApp();
   } else {
     console.log('[bench] waiting for a run. Start the app with:');
     for (const [key, value] of Object.entries(env)) {
@@ -831,22 +901,88 @@ async function main() {
   }
 
   const report = await finished;
-  report.clocksPinned = clocksPinned;
-  report.buildType = options.buildType;
-  writeJson(paths.json, report);
 
-  const measured = report.cases.filter((entry) => entry.status !== 'skipped');
-  const failures = measured.filter((entry) => entry.status !== 'ok');
+  // The app's report holds only what its last process measured. The JSONL holds
+  // the whole run: earlier sessions, measurements from before a relaunch, and
+  // anything this report re-sends that a dropped tunnel kept off the disk. So
+  // the final report is rebuilt from the file rather than taken as sent.
+  for (const entry of report.cases) {
+    if (entry.status !== 'skipped' && !onDisk.has(writeKeyOf(entry))) append(entry);
+  }
+  const measured = readJsonl(paths.jsonl).cases;
+  writeJson(paths.json, {
+    ...report,
+    clocksPinned,
+    buildType: options.buildType,
+    relaunches,
+    cases: [...measured, ...report.cases.filter((entry) => entry.status === 'skipped')],
+  });
+
+  const ok = new Set(measured.filter((entry) => entry.status === 'ok').map(writeKeyOf));
+  const failed = new Set(
+    measured
+      .filter((entry) => entry.status !== 'ok')
+      .map((entry) => `${entry.id}#${entry.progress?.repeat ?? 1}`)
+      .filter((key) => !ok.has(key))
+  );
   console.log(`\n[bench] wrote ${paths.json}`);
   console.log(`[bench] measurements kept in ${paths.jsonl}`);
   console.log(
-    `[bench] ${measured.length - failures.length} ok, ${failures.length} failed, ` +
-      `${report.skipped.length} skipped`
+    `[bench] ${ok.size} ok, ${failed.size} failed, ${report.skipped.length} skipped` +
+      (relaunches > 0 ? `, ${relaunches} crash relaunches` : '')
   );
 
   child?.kill('SIGTERM');
   server.close();
-  process.exit(failures.length > 0 ? 1 : 0);
+  process.exit(failed.size > 0 ? 1 : 0);
+
+  /**
+   * Relaunches the app when it dies mid-run.
+   *
+   * A native crash (an allocation the phone cannot serve, a delegate fault)
+   * kills the app without a word, and the collector would wait for it forever.
+   * The case it died on is recorded as an error and reported as done, so the
+   * relaunched app resumes from the next one instead of crashing on it again.
+   * Android only: an iPhone offers no liveness probe over the wire.
+   */
+  function watchApp() {
+    let misses = 0;
+    const timer = setInterval(async () => {
+      if (!header) return; // still building or starting
+      // `|| echo DEAD` tells a dead app apart from adb being unreachable, which
+      // returns nothing and is no evidence either way.
+      const out = await adbCapture(`pidof ${APP_ID} || echo DEAD`);
+      if (out !== 'DEAD') {
+        misses = 0;
+        return;
+      }
+      if (++misses < 2) return;
+      misses = 0;
+
+      const where = inFlight;
+      inFlight = null;
+      if (where?.caseId) {
+        const key = `${where.caseId}#${where.repeat}`;
+        crashed.add(key);
+        if (!onDisk.has(key)) {
+          const entry = {
+            id: where.caseId,
+            status: 'error',
+            error: `app process died during ${where.phase}`,
+            progress: { repeat: where.repeat },
+          };
+          append(entry);
+          console.log(`[bench] ${progressLine(entry)}`);
+        }
+      }
+      if (++relaunches > MAX_RELAUNCHES) {
+        fatal(`the app died ${MAX_RELAUNCHES} times; giving up. Results so far: ${paths.jsonl}`, 2);
+      }
+      console.warn(`[bench] the app died; relaunching (${relaunches}/${MAX_RELAUNCHES})`);
+      await adbCapture(`monkey -p ${APP_ID} -c android.intent.category.LAUNCHER 1`);
+    }, 15_000);
+    timer.unref();
+  }
 }
 
 main().catch((error) => {

@@ -10,16 +10,14 @@
  *
  * Within one repeat the passes run in this order, for these reasons:
  *
- * 1. **Raw execute.** Loads the `.pte` on its own and times `model.execute` per
- *    method. Runs before the pipeline pass so it holds the only model in memory
- *    while it runs, and is disposed before the pipeline loads its own copy.
- * 2. **Task load.** Times the pipeline's `create` call — model load, schema
+ * 1. **Task load.** Times the pipeline's `create` call — model load, schema
  *    validation and tensor pre-allocation, the thing a user waits through.
- * 3. **Pipeline timing.** Warmup, then timed iterations, with the memory sampler
- *    off so the sampler's cost stays out of the numbers.
- * 4. **Memory.** A few more iterations with the sampler on, for the peak. Split
- *    from pass 3 because reading total PSS on Android is milliseconds of work.
- * 5. **Dispose.** Footprint is read once more, so a leak shows up as a case that
+ * 2. **Pipeline timing.** Warmup, then timed iterations, with the memory sampler
+ *    off so the sampler's cost stays out of the numbers. ExecuTorch's share is
+ *    tallied in-band over the same iterations (`getExecutionProfile`).
+ * 3. **Memory.** A few more iterations with the sampler on, for the peak. Split
+ *    from pass 2 because reading total PSS on Android is milliseconds of work.
+ * 4. **Dispose.** Footprint is read once more, so a leak shows up as a case that
  *    never returns to its baseline.
  */
 
@@ -42,7 +40,9 @@ import {
   fetchCompleted,
   reportCase,
   reportEnd,
+  reportPhase,
   reportStart,
+  runSettings,
   type CaseResult,
   type Progress,
   type RunReport,
@@ -297,10 +297,17 @@ async function measureOnce(
 
 /**
  * Runs the configured suite and emits a report.
- * @param events Progress callbacks for the on-device UI.
+ * @param callbacks Progress callbacks for the on-device UI.
  * @returns The completed report, also sent to the console and the collector.
  */
-export async function runSuite(events: RunnerEvents = {}): Promise<RunReport> {
+export async function runSuite(callbacks: RunnerEvents = {}): Promise<RunReport> {
+  const events: RunnerEvents = {
+    ...callbacks,
+    onPhase: (caseId, phase, progress) => {
+      reportPhase(caseId, phase, progress);
+      callbacks.onPhase?.(caseId, phase, progress);
+    },
+  };
   const { cases, skipped } = selectCases({
     suite: config.suite,
     only: config.only,
@@ -442,16 +449,7 @@ export async function runSuite(events: RunnerEvents = {}): Promise<RunReport> {
     device,
     inputSpecVersion: INPUT_SPEC_VERSION,
     thermal: { start: thermalStart, end: BenchProbe.thermalState() },
-    settings: {
-      suite: config.only.length > 0 ? config.only.join(',') : config.suite,
-      iterations: config.iterations,
-      warmup: config.warmup,
-      memoryIterations: config.memoryIterations,
-      loadIterations: config.loadIterations,
-      repeats,
-      maxTempC: config.maxTempC,
-      maxBytes: config.maxBytes,
-    },
+    settings: runSettings(),
     skipped: skipped.map((entry) => ({ id: entry.id, reason: entry.reason })),
     cases: results,
   };

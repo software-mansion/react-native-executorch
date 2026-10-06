@@ -17,15 +17,14 @@
  * measured to within 40%, and printing only the median would hide that.
  */
 
-import { readFileSync } from 'node:fs';
+import { loadRun, median, startedWarm } from './results.mjs';
 
 function parseArgs(argv) {
   const files = [];
-  const options = { format: 'markdown', sort: 'registry' };
+  const options = { format: 'markdown' };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--format') options.format = argv[++i];
-    else if (arg === '--sort') options.sort = argv[++i];
     else if (arg.startsWith('--')) throw new Error(`Unknown option ${arg}`);
     else files.push(arg);
   }
@@ -35,36 +34,6 @@ function parseArgs(argv) {
   }
   return { files, options };
 }
-
-/**
- * Loads a run from either output format.
- * @param path A `.json` report or a `.jsonl` measurement log.
- * @returns The measurements and whatever run metadata is available.
- */
-function loadRun(path) {
-  const raw = readFileSync(path, 'utf8');
-  if (path.endsWith('.jsonl')) {
-    const cases = [];
-    for (const line of raw.split('\n')) {
-      if (!line.trim()) continue;
-      try {
-        cases.push(JSON.parse(line));
-      } catch {
-        // A half-written last line after a kill; everything before it stands.
-      }
-    }
-    return { path, label: null, device: null, cases };
-  }
-  const report = JSON.parse(raw);
-  return { path, label: report.label, device: report.device, platform: report.platform, cases: report.cases };
-}
-
-const median = (values) => {
-  if (values.length === 0) return undefined;
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = sorted.length >> 1;
-  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-};
 
 /** Range between the fastest and slowest repeat, as a percentage of the median. */
 const spreadPercent = (values) => {
@@ -105,6 +74,7 @@ function rowsFor(run) {
       continue;
     }
 
+    const warm = ok.filter(startedWarm).length;
     const pipeline = ok.map((entry) => entry.pipeline?.median).filter((v) => typeof v === 'number');
     const load = ok.map((entry) => entry.taskLoadMs).filter((v) => typeof v === 'number');
     const peak = ok.map((entry) => entry.memory?.peakMb).filter((v) => typeof v === 'number');
@@ -118,9 +88,7 @@ function rowsFor(run) {
     // the model's own cost, and it is markedly steadier: 108.1 / 108.2 / 108.3
     // MB across three repeats where the absolute figure moved with the run.
     const modelPeak = ok
-      .map((entry) =>
-        entry.memory ? entry.memory.peakMb - entry.memory.baselineMb : undefined
-      )
+      .map((entry) => (entry.memory ? entry.memory.peakMb - entry.memory.baselineMb : undefined))
       .filter((v) => typeof v === 'number');
     // A dispose that does not return to the baseline is a leak, and it is the
     // one memory number worth failing on rather than merely reporting.
@@ -132,11 +100,12 @@ function rowsFor(run) {
 
     // ExecuTorch time measured inside the pipeline pass, so it covers exactly
     // the work the pipeline did.
-    //
     const executeTotal = ok
       .map((entry) => entry.execution?.totalMs)
       .filter((value) => typeof value === 'number' && value > 0);
-    const pipelineMean = ok.map((entry) => entry.pipeline?.mean).filter((v) => typeof v === 'number');
+    const pipelineMean = ok
+      .map((entry) => entry.pipeline?.mean)
+      .filter((v) => typeof v === 'number');
 
     // Where the time actually goes, which is the question that decides what to
     // optimise: a model that is 90% ExecuTorch wants a better export, one that
@@ -154,8 +123,7 @@ function rowsFor(run) {
     const pipelineMs = median(pipeline);
     const pipelineMeanMs = median(pipelineMean);
     const executeMs = median(executeTotal);
-    const comparable =
-      typeof pipelineMeanMs === 'number' && typeof executeMs === 'number';
+    const comparable = typeof pipelineMeanMs === 'number' && typeof executeMs === 'number';
 
     rows.push({
       id,
@@ -164,7 +132,11 @@ function rowsFor(run) {
       backend: first.backend,
       precision: first.precision,
       sizeMb: first.bytes ? first.bytes / 1e6 : undefined,
-      status: ok.length === entries.length ? 'ok' : `ok ${ok.length}/${entries.length}`,
+      status: [
+        ok.length === entries.length ? 'ok' : `ok ${ok.length}/${entries.length}`,
+        // Started above the ceiling: a hot phone's number, not this model's.
+        ...(warm > 0 ? [`warm ${warm}/${ok.length}`] : []),
+      ].join(', '),
       runs: entries.length,
       pipelineMs,
       pipelineSpread: spreadPercent(pipeline),

@@ -14,8 +14,8 @@
  * the real figure on one of them.
  *
  * When there is no host — the app started by hand, or an iOS device with no
- * readable temperature — the gate degrades to the on-device thermal state plus
- * a fixed settle, and says so in the result rather than pretending it waited.
+ * readable temperature — the gate degrades to the on-device thermal state, and
+ * says so in the result rather than pretending it held to a temperature.
  */
 
 import BenchProbe from '../modules/bench-probe';
@@ -37,16 +37,6 @@ export interface GateResult {
 
 const sleep = (ms: number): Promise<void> => new Promise((wake) => setTimeout(wake, ms));
 
-/**
- * Fixed settle used when no temperature can be read.
- *
- * Long enough for the heat of one measurement to leave the SoC, short enough
- * that a suite of hundreds of cases still finishes. It is a fallback, not a
- * substitute: a run gated this way records `kind: 'device'` so its spread is
- * read with that in mind.
- */
-const BLIND_SETTLE_MS = 90_000;
-
 /** Polling period of the device-side thermal check. */
 const DEVICE_POLL_MS = 10_000;
 
@@ -60,9 +50,9 @@ const DEVICE_POLL_MS = 10_000;
  * the reading was in the result all along, and nothing consulted it.
  *
  * iOS reports -1 for the temperature, since nothing in the public API exposes
- * one. There the enum is all there is, so the gate waits for it to report no
- * throttling and then settles for a fixed period. That settle is what does the
- * real work; the status check only avoids starting while the OS is throttling.
+ * one. There the enum is all there is, so the gate waits for it to report
+ * `nominal`. A fixed settle on top was tried and dropped: it cost 90 s per
+ * iteration on the async pipelines and bought no reading to show for it.
  * @param timeoutS Seconds to wait before measuring anyway.
  * @param maxTempC Ceiling to hold to, where a temperature can be read.
  * @returns What the gate observed.
@@ -83,12 +73,7 @@ async function waitOnDevice(timeoutS: number, maxTempC: number): Promise<GateRes
     const state = BenchProbe.thermalState();
     const readable = state.batteryTemperatureC >= 0;
     const coolEnough = !readable || state.batteryTemperatureC <= maxTempC;
-    if (state.status <= 0 && coolEnough) {
-      // A device with no readable temperature has only the enum to go on, so it
-      // still owes the fixed settle. One that met the ceiling has met it.
-      if (!readable) await sleep(BLIND_SETTLE_MS);
-      return report(BenchProbe.thermalState(), false);
-    }
+    if (state.status <= 0 && coolEnough) return report(state, false);
     if (Date.now() >= deadline) return report(state, true);
     await sleep(DEVICE_POLL_MS);
   }
@@ -130,7 +115,7 @@ export async function waitUntilCool(
     // The host answers `none` when it cannot read a temperature at all, which is
     // every iOS device and any Android one adb cannot reach. Falling back to the
     // device-side wait is better than measuring immediately, and it is recorded
-    // as a device gate so nobody reads it as a 35C guarantee.
+    // as a device gate so nobody reads it as a temperature guarantee.
     if (body.kind === 'none') return waitOnDevice(config.gateTimeoutS, config.maxTempC);
 
     return {

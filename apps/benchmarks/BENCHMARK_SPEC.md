@@ -23,20 +23,20 @@ run is interrupted.
 Every variant in `models.ts` that the device's platform can link, without
 exception, taken from a generated list rather than a hand-written one
 (`src/registry.ts` walks it at runtime). At
-the time of writing that is **163 variants on Android** and **234 on iOS**;
+the time of writing that is **208 variants on Android** and **255 on iOS**;
 `DEFAULT` aliases are excluded because each resolves to a variant already in the
 list under its own name.
 
 Per variant, per repeat:
 
-| Metric | What it covers |
-| --- | --- |
-| `taskLoadMs` | The pipeline's `create` — load, schema validation, tensor pre-allocation |
-| `pipeline.median` | The task's entry point end to end: preprocessing, execute, post-processing |
-| `native.methods[].stats` | Raw `model.execute`, per exported method, with no pipeline around it |
-| `memory.loaded` | Process footprint once the pipeline is ready |
-| `memory.peak` | Peak footprint during inference |
-| `memory.disposed` | Footprint after `dispose` — a leak is a case that never returns to baseline |
+| Metric                   | What it covers                                                              |
+| ------------------------ | --------------------------------------------------------------------------- |
+| `taskLoadMs`             | The pipeline's `create` — load, schema validation, tensor pre-allocation    |
+| `pipeline.median`        | The task's entry point end to end: preprocessing, execute, post-processing  |
+| `execution.perIteration` | Time inside `model.execute` during those same iterations, per method        |
+| `memory.loaded`          | Process footprint once the pipeline is ready                                |
+| `memory.peak`            | Peak footprint during inference                                             |
+| `memory.disposed`        | Footprint after `dispose` — a leak is a case that never returns to baseline |
 
 `memory.*` is process footprint, not native heap: `phys_footprint` on iOS (what
 jetsam measures an app against) and total PSS on Android. Both count the
@@ -56,7 +56,7 @@ Android walks `/proc/self/smaps` and costs milliseconds; polling that during a
 
 Repeating the whole measurement was the original design and it turned out not to
 earn its cost. Measured across the quick tier on a Galaxy S26 Ultra, the spread
-*within* one 20-iteration measurement and the spread *across* three cold repeats
+_within_ one 20-iteration measurement and the spread _across_ three cold repeats
 came out comparable: 16.8% against 12.1% on EfficientNet int8, 21.7% against
 19.6% on fp32. Twenty back-to-back calls already show what repeating shows, at
 roughly a third of the wall clock, because every repeat waits at the thermal gate
@@ -64,8 +64,7 @@ again.
 
 What is left is intrinsic to the metric rather than to how often it is sampled.
 `pipeline` includes garbage collection in its TypeScript post-processing and
-sits at 7-22% spread; `native.methods[].stats` is ExecuTorch alone and sits near
-2.5%. No repeat count changes that. It is the reason to read the execute column
+sits at 7-22% spread; `execution` is ExecuTorch alone and sits near 2.5%. No repeat count changes that. It is the reason to read the execute column
 when a pipeline number looks unstable.
 
 Pass `--repeats 3` when you want an explicit error bar on a specific model and
@@ -98,10 +97,9 @@ a warm room, a phone on charge — the measurement proceeds and is flagged
 if you can: charging holds it warm and will stall the gate.
 
 **iOS has no equivalent.** Nothing in the public API exposes a temperature, and
-`adb` has no counterpart. There, the gate falls back to waiting for
-`thermalState` to report no throttling plus a fixed 90-second settle, and every
-result records `gate.kind: "device"` so nobody reads an iOS number as gated to
-37 °C. Give the phone a cool room and do not hold it.
+`adb` has no counterpart. There, the gate waits for `thermalState` to report
+`nominal`, and every result records `gate.kind: "device"` so nobody reads an
+iOS number as gated to 37 °C. Give the phone a cool room and do not hold it.
 
 ## Build type
 
@@ -109,12 +107,12 @@ result records `gate.kind: "device"` so nobody reads an iOS number as gated to
 loudly in debug; every report records `buildType`.
 
 This is not a detail. ExecuTorch ships as a prebuilt release library so
-`execute` is unaffected, but the library's own C++ compiles unoptimised in a
+`execute` is unaffected, but the library's own C++ compiles unoptimized in a
 debug build and JS is served as a dev bundle with dev-mode checks, so everything
 around the model runs roughly an order of magnitude slow. It inverts conclusions
 rather than just adding noise: EfficientNet measured 29 percent ExecuTorch in
-debug and 91 percent in release, which is the difference between "optimise the
-TypeScript" and "optimise the export".
+debug and 91 percent in release, which is the difference between "optimize the
+TypeScript" and "optimize the export".
 
 ## Clocks
 
@@ -150,20 +148,20 @@ would move for reasons unrelated to the device.
 `src/inputs.ts` is the definition; `INPUT_SPEC_VERSION` is recorded in every
 report and the comparator refuses to diff across a change to it.
 
-| Task | Input |
-| --- | --- |
-| Vision (classification, detection, segmentation, style transfer, OCR, keypoints, image embeddings) | A fixed 512x512 or 640x640 scene: a vertical gradient, three solid ellipses, and a seeded dither |
-| Text embeddings, privacy filter | Fixed prose, with the PII text seeded with the entity types a detector should find |
-| VAD, speech-to-text | 10 s of a voice-shaped waveform: a 130 Hz pulse train through three formant resonators, 0.7 s bursts alternating with 0.3 s of near-silence |
-| Text-to-speech | Fixed text; the voice is the alphabetically first the config publishes, so the choice is a property of the voice set rather than of declaration order |
-| Text-to-image | Fixed prompt, fixed seed |
-| LLM | Fixed short prompt, **64 tokens decoded with EOS ignored and temperature 0** |
+| Task                                                                                               | Input                                                                                                                                                 |
+| -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vision (classification, detection, segmentation, style transfer, OCR, keypoints, image embeddings) | A fixed 512x512 or 640x640 scene: a vertical gradient, three solid ellipses, and a seeded dither                                                      |
+| Text embeddings, privacy filter                                                                    | Fixed prose, with the PII text seeded with the entity types a detector should find                                                                    |
+| VAD, speech-to-text                                                                                | 10 s of a voice-shaped waveform: a 130 Hz pulse train through three formant resonators, 0.7 s bursts alternating with 0.3 s of near-silence           |
+| Text-to-speech                                                                                     | Fixed text; the voice is the alphabetically first the config publishes, so the choice is a property of the voice set rather than of declaration order |
+| Text-to-image                                                                                      | Fixed prompt, fixed seed                                                                                                                              |
+| LLM                                                                                                | Fixed short prompt, **64 tokens decoded with EOS ignored and temperature 0**                                                                          |
 
 Two caveats worth knowing before reading the output:
 
 - **Speech-to-text.** The waveform is voice-shaped but is not speech, so
   Whisper's decoder emits far fewer tokens than a real clip would and the
-  pipeline figure is dominated by the encoder. Compare its `native.methods`
+  pipeline figure is dominated by the encoder. Compare its `execution`
   numbers, not its pipeline number.
 - **LLMs.** Decode is pinned to a fixed token count because generation length is
   otherwise a property of the model and its quantisation, and a wall-clock
@@ -174,14 +172,14 @@ Two caveats worth knowing before reading the output:
 
 ## Tiers
 
-| Tier | Contents | Android scale |
-| --- | --- | --- |
-| `quick` | Small vision and text models | minutes |
-| `full` | Everything except LLMs | ~28 GB, hours |
-| `everything` | Including LLMs | ~119 GB |
+| Tier         | Contents                     | Android scale |
+| ------------ | ---------------------------- | ------------- |
+| `quick`      | Small vision and text models | minutes       |
+| `full`       | Everything except LLMs       | ~30 GB, hours |
+| `everything` | Including LLMs               | ~121 GB       |
 
-LLMs are their own tier because they are 39 of the 163 Android variants and
-around 90 GB of the 119 GB. Run `--suite everything` overnight and expect the
+LLMs are their own tier because they are 39 of the 208 Android variants and
+around 91 GB of the 121 GB. Run `--suite everything` overnight and expect the
 gate to be the slowest part of it.
 
 Leave the phone unplugged if its battery will survive the run: charging holds a
@@ -210,7 +208,8 @@ yarn bench --platform android --suite full --label v0.10.0 --resume
 
 `--resume` reads the JSONL, and the device skips every `(variant, repeat)` it
 already holds. Only successful measurements count as done, so a variant that
-errored is retried.
+errored is retried. On Android a crashed app is relaunched automatically, with
+the case it died on recorded as an error.
 
 ## Reading the output
 
@@ -221,7 +220,7 @@ yarn bench:summary results/*.jsonl --format csv > benchmarks.csv       # every d
 
 `Inference ms` is the median of the 20 iterations (and, with `--repeats N`, the
 median across repeats). `Execute %` is the share of it spent inside ExecuTorch,
-which is the column that says what to optimise: EfficientNet runs at 28% and
+which is the column that says what to optimize: EfficientNet runs at 28% and
 wants better pre- and post-processing, style transfer at 90% and wants a better
 export or backend.
 

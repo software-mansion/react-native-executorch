@@ -126,6 +126,38 @@ export interface CaseResult {
   };
 }
 
+/** The settings a run was taken under. Two runs are compared against these. */
+export interface RunSettings {
+  readonly suite: string;
+  readonly iterations: number;
+  readonly warmup: number;
+  readonly memoryIterations: number;
+  readonly loadIterations: number;
+  readonly repeats: number;
+  readonly maxTempC: number;
+  readonly maxBytes: number;
+  /** Published URLs swapped for local builds. Empty for a registry run. */
+  readonly urlMap: Readonly<Record<string, string>>;
+}
+
+/**
+ * The settings of this run, as configured.
+ * @returns The settings recorded with the plan and with the final report.
+ */
+export function runSettings(): RunSettings {
+  return {
+    suite: config.only.length > 0 ? config.only.join(',') : config.suite,
+    iterations: config.iterations,
+    warmup: config.warmup,
+    memoryIterations: config.memoryIterations,
+    loadIterations: config.loadIterations,
+    repeats: config.repeats,
+    maxTempC: config.maxTempC,
+    maxBytes: config.maxBytes,
+    urlMap: config.urlMap,
+  };
+}
+
 export interface RunReport {
   /**
    * Report schema version. Bumped when a field's meaning changes.
@@ -156,16 +188,7 @@ export interface RunReport {
    * different frequencies, so their timings are not comparable.
    */
   readonly clocksPinned?: boolean;
-  readonly settings: {
-    readonly suite: string;
-    readonly iterations: number;
-    readonly warmup: number;
-    readonly memoryIterations: number;
-    readonly loadIterations: number;
-    readonly repeats: number;
-    readonly maxTempC: number;
-    readonly maxBytes: number;
-  };
+  readonly settings: RunSettings;
   /** Variants deliberately not run, with the reason. */
   readonly skipped: readonly { readonly id: string; readonly reason: string }[];
   readonly cases: readonly CaseResult[];
@@ -231,9 +254,30 @@ export async function reportStart(plan: {
   readonly device: BenchDeviceInfo;
   readonly platform: string;
 }): Promise<void> {
-  const body = { label: config.label, inputSpecVersion: INPUT_SPEC_VERSION, ...plan };
+  const body = {
+    label: config.label,
+    inputSpecVersion: INPUT_SPEC_VERSION,
+    settings: runSettings(),
+    ...plan,
+  };
   console.log(`${LOG_PREFIX}_BEGIN ${JSON.stringify(body)}`);
   await post('/begin', body);
+}
+
+/**
+ * Tells the collector what is running, so it can attribute a crash to the
+ * case that caused it. Best effort: a lost phase costs only that attribution.
+ * @param caseId The case being worked on.
+ * @param phase What it is doing, e.g. `download` or `inference`.
+ * @param progress Where the case sits in the run.
+ */
+export function reportPhase(caseId: string, phase: string, progress: Progress): void {
+  if (!config.sink) return;
+  fetch(`${config.sink}/phase`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ caseId, phase, repeat: progress.repeat }),
+  }).catch(() => {});
 }
 
 /**

@@ -49,16 +49,29 @@ The console prints one line per measurement, carrying its position:
 
 `--resume` reads the JSONL back and skips every `(variant, repeat)` already
 recorded, so an interrupted run continues rather than restarting. Only
-successful measurements count as done.
+successful measurements count as done. Without `--resume` the collector refuses
+to write into a file that already holds measurements, and with it, refuses one
+recorded under different comparability settings (device, build type, clock
+pinning, iterations, input spec, URL map).
+
+On Android the collector also watches the app process. If it dies mid-run (a
+native crash, an allocation the phone cannot serve), the case it died on is
+recorded as an error and the app is relaunched to carry on from the next one.
 
 To drive the app yourself, pass `--no-launch` and the script prints the
 environment to start it with.
 
 Options: `--suite quick|full|everything`, `--only <ids>`, `--tasks <names>`,
-`--backends <tags>`, `--repeats N`, `--max-temp-c C`, `--gate-timeout-s N`,
-`--max-bytes N`, `--keep-models`, `--iterations N`, `--warmup N`, `--no-memory`,
-`--no-native`, `--resume`, `--port N`, `--dev-port N`, `--out <path>`,
-`--pin-clocks off|auto|on` (off by default; see Clocks).
+`--backends <tags>`, `--order registry|size`, `--repeats N`, `--max-temp-c C`,
+`--gate-timeout-s N`, `--max-bytes N`, `--keep-models`, `--iterations N`,
+`--warmup N`, `--load-iterations N`, `--memory-iterations N`, `--no-memory`,
+`--resume`, `--port N`, `--dev-port N`, `--host <ip>`, `--out <path>`,
+`--build-type release|debug`, `--unplug`, `--pin-clocks off|auto|on` (off by
+default; see Clocks), `--url-map <json|file>`.
+
+`--url-map` measures a local `.pte` on the published one's code path: a JSON
+object of `{"<substring of the published URL>": "<replacement URL>"}`. It is
+recorded with the run, so such a run is never mistaken for a registry one.
 
 ## Several devices at once
 
@@ -98,7 +111,7 @@ flight.
 what thermal and clock conditions. Read it before comparing two devices, and
 point anyone benchmarking on their own hardware at it.
 
-## Summarising a run
+## Summarizing a run
 
 ```bash
 yarn bench:summary results/v0.10.0-android-SM-S948B.jsonl
@@ -107,13 +120,17 @@ yarn bench:summary results/*.jsonl --format csv > benchmarks.csv
 
 One row per variant: size, load time, inference time, peak memory, and the
 spread between repeats. It reads the in-progress `.jsonl` as happily as the
-final `.json`, so a running suite can be summarised without stopping it.
+final `.json`, so a running suite can be summarized without stopping it. A
+measurement that started above the thermal ceiling is flagged `warm`.
 
 ## Comparing two runs
 
 ```bash
-yarn bench:compare results/before-ios-iPhone17,1.json results/after-ios-iPhone17,1.json
+yarn bench:compare results/before-ios-iPhone17,1.jsonl results/after-ios-iPhone17,1.jsonl
 ```
+
+Either format works: the `.jsonl` starts with a run header carrying the device,
+build type, clock pinning and settings.
 
 Prints a per-metric table and exits 1 if anything regressed past tolerance
 (execute 10%, pipeline 30%, load 35%, memory 10% - override with `--execute N`,
@@ -125,15 +142,18 @@ within-run one. That second term is why repeats are taken at all - the spread
 between three cold measurements is routinely larger than the spread between
 twenty back-to-back iterations inside one of them.
 
-Four guards keep the output honest:
+These guards keep the output honest:
 
 - **Device mismatch is fatal.** Comparing an iPhone run against a Pixel run is
   meaningless; pass `--allow-device-mismatch` if you know what you are doing.
-- **An input-spec change is fatal.** Two runs built from different inputs
-  measured different work, whatever else they agree on.
-- **A metric whose workload changed is reported as `INCOMPARABLE`, not as a
-  delta.** If a pipeline decoded 14 tokens in one run and 19 in the other, it did
-  different work, and the ratio of the two timings measures nothing.
+- **An input-spec, build-type or clock-pinning change is fatal.** Those runs
+  measured different work, or the same work at a different speed.
+- **A case whose workload changed is reported as `INCOMPARABLE`, not as a
+  delta.** If a pipeline decoded 14 tokens in one run and 19 in the other, or
+  OCR recognized a different number of regions, it did different work, and the
+  ratio of the two timings measures nothing.
+- **A case that started above the thermal ceiling is reported as `WARM`.** Its
+  timings are not compared; its memory still is.
 - **A metric whose own spread is wider than the tolerance is reported as
   `NOISY`.** It cannot resolve a regression of the size being asked about, and
   calling it "same" would overstate what the run knows.
@@ -155,32 +175,21 @@ post-processing in it.
 
 Per variant, per repeat:
 
-| Metric             | What it covers                                                                         |
-| ------------------ | -------------------------------------------------------------------------------------- |
-| `load.native`      | `loadModel` on the `.pte` alone                                                        |
-| `load.task`        | The pipeline's `create` - load, schema validation, tensor pre-allocation               |
-| `execute.<method>` | Raw `model.execute`, per exported method, no pipeline around it                        |
-| `pipeline.median`  | The task's synchronous entry point end to end: preprocessing, execute, post-processing |
-| `memory.loaded`    | Process footprint once the pipeline is ready                                            |
-| `memory.peak`      | Peak footprint during inference                                                        |
-| `memory.disposed`  | Footprint after `dispose` - a leak shows up as a case that never returns to baseline   |
+| Metric             | What it covers                                                                          |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| `load.task`        | The pipeline's `create` - load, schema validation, tensor pre-allocation                |
+| `pipeline.median`  | The task's entry point end to end: preprocessing, execute, post-processing              |
+| `execute.<method>` | Time inside `model.execute` during those same iterations, per method, per iteration     |
+| `memory.loaded`    | Process footprint once the pipeline is ready                                             |
+| `memory.peak`      | Peak footprint during inference                                                         |
+| `memory.disposed`  | Footprint after `dispose` - a leak shows up as a case that never returns to baseline    |
 
 The execute figure is the one to watch for an ExecuTorch bump. A pipeline
 timing folds `model.execute` together with preprocessing and post-processing,
 which are TypeScript and did not change; `execute.<method>` is ExecuTorch and
-nothing else. Its input and output tensors are derived from `model.schema`, so
-it works for any `.pte` in the registry, including every method a multi-method
-program exports. Methods whose schema cannot be pinned to concrete shapes are
-reported as skipped, with the reason.
-
-**`execute.<method>` and `pipeline.median` are not comparable to each other.**
-Where a model declares a dynamic dimension, the raw pass takes it at the top of
-its declared domain, so it measures the worst case the model can be asked for.
-The pipeline feeds whatever the input actually needs. On all-MiniLM-L6-v2 that
-is the difference between a 254-token forward and a 20-token one, and the raw
-number comes out several times the pipeline's. Each is comparable against itself
-across runs, which is all the comparator asks of them. The resolved shapes are
-recorded per method in the report, so it is always visible what was run.
+nothing else. It is tallied in-band by the library (`getExecutionProfile`), so
+it covers the shapes and call counts the pipeline actually used, and
+`Execute %` in the summary is a true share of the pipeline time.
 
 Memory is sampled in a separate pass from the timings. Reading total PSS on
 Android walks `/proc/self/smaps` and costs milliseconds; polling that during a
@@ -221,8 +230,8 @@ temperature it actually began at, rather than silently pretending. Charging keep
 a device warm and is called out when detected.
 
 iOS exposes no temperature at all, on the device or over the wire. There the gate
-falls back to waiting for `thermalState` to clear plus a fixed 90-second settle,
-and records `gate.kind: "device"` so no iOS number is read as gated to 37C.
+waits for `thermalState` to report `nominal` and records `gate.kind: "device"`,
+so no iOS number is read as gated to 37C.
 
 ## Clocks
 
@@ -251,11 +260,11 @@ clock - so iOS runs depend on the thermal gate alone.
 | Tier | Contents | Android scale |
 | --- | --- | --- |
 | `quick` | Small vision and text models | minutes |
-| `full` | Everything except LLMs | ~28 GB |
-| `everything` | Including LLMs | ~119 GB |
+| `full` | Everything except LLMs | ~30 GB |
+| `everything` | Including LLMs | ~121 GB |
 
-LLMs are their own tier because they are 39 of the 163 Android variants and
-around 90 GB of the 119 GB: a `full` run that pulled them in would be a multi-day
+LLMs are their own tier because they are 39 of the 208 Android variants and
+around 91 GB of the 121 GB: a `full` run that pulled them in would be a multi-day
 download before a single vision model was measured.
 
 Models are deleted after a variant's last repeat, so peak disk is one model
@@ -276,8 +285,8 @@ each variant to the driver for its task in `src/drivers.ts`.
 That split is what keeps the suite honest at this scale. A variant added to the
 registry is benchmarked without touching the harness; a variant removed stops
 being benchmarked the same way; and a task added with no driver is reported as
-`skipped` with that reason rather than silently disappearing. Hand-listing 261
-variants would guarantee the list went stale, and a model that is quietly never
+`skipped` with that reason rather than silently disappearing. Hand-listing
+hundreds of variants would guarantee the list went stale, and a model that is quietly never
 measured is the exact failure this harness exists to prevent.
 
 Only the download sizes are cached, since measuring them needs the network:
@@ -286,9 +295,8 @@ Only the download sizes are cached, since measuring them needs the network:
 yarn bench:sizes    # re-measure download sizes into scripts/variant-sizes.json
 ```
 
-Adding a **task** means adding a driver: a factory, the call to time, and the
-config key holding the `.pte`. Adding a **model or
-variant** means nothing here at all - regenerate and it is covered.
+Adding a **task** means adding a driver: a factory and the call to time. Adding
+a **model or variant** means nothing here beyond `yarn bench:sizes`.
 
 ## The native probe
 

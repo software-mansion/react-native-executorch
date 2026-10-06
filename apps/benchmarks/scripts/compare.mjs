@@ -3,8 +3,8 @@
  * Diffs two benchmark reports and fails on regressions.
  *
  * Usage:
- *   yarn bench:compare results/before-ios-iPhone17,1.json results/after-ios-iPhone17,1.json
- *   yarn bench:compare baseline.json current.json --inference 8 --memory 5
+ *   yarn bench:compare results/before-ios-iPhone17,1.jsonl results/after-ios-iPhone17,1.jsonl
+ *   yarn bench:compare baseline.json current.json --execute 8 --memory 5
  *
  * Exits 1 when any metric regresses past its tolerance, 0 otherwise.
  *
@@ -16,7 +16,7 @@
  * where a regression is worth a human look rather than where it is certain.
  */
 
-import { readFileSync } from 'node:fs';
+import { headerMismatches, loadRun, median, startedWarm } from './results.mjs';
 
 // Calibrated against two full-suite runs of identical code on a Galaxy S26
 // Ultra, rather than guessed. Measured worst-case drift between those runs, per
@@ -63,12 +63,10 @@ function parseArgs(argv) {
   }
 
   if (files.length !== 2) {
-    throw new Error('Usage: compare.mjs <baseline.json> <current.json> [--inference N] ...');
+    throw new Error('Usage: compare.mjs <baseline.json[l]> <current.json[l]> [--execute N] ...');
   }
   return { files, tolerance, allowDeviceMismatch };
 }
-
-const load = (path) => JSON.parse(readFileSync(path, 'utf8'));
 
 const percentDelta = (baseline, current) =>
   baseline === 0 ? 0 : ((current - baseline) / baseline) * 100;
@@ -127,53 +125,86 @@ function compareCase(baseline, current, tolerance) {
 
   // Two runs that produced different amounts of work did not run the same
   // benchmark, so their timings are not comparable at all — reporting a delta
-  // would be worse than reporting nothing.
-  if (baseline.units !== current.units) {
+  // would be worse than reporting nothing. The per-method call counts catch what
+  // the pipeline's own unit count can miss: OCR recognising one more region,
+  // Whisper decoding one more token.
+  const calls = (entry) =>
+    JSON.stringify(
+      Object.entries(entry.execution?.perIteration ?? {})
+        .map(([method, { count }]) => [method, Math.round(count * 100) / 100])
+        .sort()
+    );
+  const callsDiffer = baseline.execution && current.execution && calls(baseline) !== calls(current);
+  if (baseline.units !== current.units || callsDiffer) {
     return [
       {
         metric: 'workload',
-        before: baseline.units,
-        after: current.units,
+        before: baseline.units === current.units ? calls(baseline) : baseline.units,
+        after: baseline.units === current.units ? calls(current) : current.units,
         delta: 0,
         verdict: 'INCOMPARABLE',
       },
     ];
   }
 
-  // Execute first: it is the number to read, so it belongs at the top of each
-  // case's block rather than below the pipeline figure it explains. Measured
-  // in-band, so it covers the same work the pipeline row does.
-  add('execute.total', baseline.execution?.totalMs, current.execution?.totalMs, tolerance.execute);
+  // A measurement that started above the ceiling describes a hot phone, and
+  // diffing it against a cool one measures the temperature. Timings are
+  // withheld; memory does not depend on the clock and is still compared.
+  const warm = startedWarm(baseline) || startedWarm(current);
+  if (warm) {
+    rows.push({ metric: 'timings', before: '', after: '', delta: 0, verdict: 'WARM' });
+  } else {
+    // Execute first: it is the number to read, so it belongs at the top of each
+    // case's block rather than below the pipeline figure it explains. Measured
+    // in-band, so it covers the same work the pipeline row does. It is a mean
+    // with no spread of its own; across repeats the range between them is.
+    const executeNoise = (entry) =>
+      entry.execution?.rangeMs && baseline.execution?.totalMs
+        ? (entry.execution.rangeMs / baseline.execution.totalMs) * 100
+        : 0;
+    add(
+      'execute.total',
+      baseline.execution?.totalMs,
+      current.execution?.totalMs,
+      tolerance.execute,
+      Math.max(executeNoise(baseline), executeNoise(current))
+    );
+    // Per method only where there is more than one: a single method's row would
+    // repeat the total.
+    const methods = Object.keys(baseline.execution?.perIteration ?? {});
+    if (methods.length > 1) {
+      for (const method of methods.sort()) {
+        add(
+          `execute.${method}`,
+          baseline.execution.perIteration[method]?.ms,
+          current.execution?.perIteration?.[method]?.ms,
+          tolerance.execute
+        );
+      }
+    }
 
-  add(
-    'pipeline.median',
-    baseline.pipeline?.median,
-    current.pipeline?.median,
-    tolerance.pipeline,
-    noiseFloor(baseline.pipeline, current.pipeline)
-  );
-  // `taskLoad` arrived in schema 2. A version 1 baseline has only the
-  // single-sample number, so there is no spread to fall back on.
-  add(
-    'load.task',
-    baseline.taskLoadMs,
-    current.taskLoadMs,
-    tolerance.load,
-    noiseFloor(baseline.taskLoad, current.taskLoad)
-  );
+    add(
+      'pipeline.median',
+      baseline.pipeline?.median,
+      current.pipeline?.median,
+      tolerance.pipeline,
+      noiseFloor(baseline.pipeline, current.pipeline)
+    );
+    // `taskLoad` arrived in schema 2. A version 1 baseline has only the
+    // single-sample number, so there is no spread to fall back on.
+    add(
+      'load.task',
+      baseline.taskLoadMs,
+      current.taskLoadMs,
+      tolerance.load,
+      noiseFloor(baseline.taskLoad, current.taskLoad)
+    );
+  }
   add('memory.peak', baseline.memory?.peakMb, current.memory?.peakMb, tolerance.memory);
   add('memory.loaded', baseline.memory?.loadedMb, current.memory?.loadedMb, tolerance.memory);
 
   return rows;
 }
-
-
-const median = (values) => {
-  if (values.length === 0) return undefined;
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = sorted.length >> 1;
-  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-};
 
 /**
  * Collapses a schema-3 report's repeats into one entry per case.
@@ -212,7 +243,10 @@ function foldRepeats(report) {
 
     const across = (pick) => {
       const values = ok.map(pick).filter((value) => typeof value === 'number');
-      return { median: median(values), range: values.length > 1 ? Math.max(...values) - Math.min(...values) : 0 };
+      return {
+        median: median(values),
+        range: values.length > 1 ? Math.max(...values) - Math.min(...values) : 0,
+      };
     };
 
     const widen = (stats, spread) =>
@@ -220,7 +254,13 @@ function foldRepeats(report) {
 
     const pipeline = across((entry) => entry.pipeline?.median);
     const taskLoad = across((entry) => entry.taskLoadMs);
-
+    const execute = across((entry) => entry.execution?.totalMs);
+    const perIteration = Object.fromEntries(
+      Object.entries(ok[0].execution?.perIteration ?? {}).map(([method, first]) => [
+        method,
+        { ...first, ms: across((entry) => entry.execution?.perIteration?.[method]?.ms).median },
+      ])
+    );
 
     folded.push({
       ...ok[0],
@@ -229,6 +269,14 @@ function foldRepeats(report) {
       pipeline: widen({ ...ok[0].pipeline, median: pipeline.median }, pipeline.range),
       taskLoadMs: taskLoad.median,
       taskLoad: widen({ ...ok[0].taskLoad, median: taskLoad.median }, taskLoad.range),
+      execution: ok[0].execution && {
+        perIteration,
+        totalMs: execute.median,
+        rangeMs: execute.range,
+      },
+      // One warm repeat taints the median it feeds.
+      thermalValid: ok.every((entry) => !startedWarm(entry)),
+      gate: undefined,
       memory: ok[0].memory && {
         ...ok[0].memory,
         peakMb: across((entry) => entry.memory?.peakMb).median ?? ok[0].memory.peakMb,
@@ -245,7 +293,7 @@ const padStart = (value, width) => String(value).padStart(width);
 
 function main() {
   const { files, tolerance, allowDeviceMismatch } = parseArgs(process.argv.slice(2));
-  const [baseline, current] = files.map((file) => foldRepeats(load(file)));
+  const [baseline, current] = files.map((file) => foldRepeats(loadRun(file)));
 
   // Two reports built from different inputs measured different work, whatever
   // else they agree on.
@@ -280,48 +328,29 @@ function main() {
     console.warn(`\nWARNING: ${message}`);
   }
 
-  // A throttling device is the single largest source of false regressions here.
-  // Two full suites run fifteen seconds apart made every execute metric 9%
-  // to 51% slower (median 22%) with no code change at all. Nothing downstream
-  // can correct for that, so the comparison is refused rather than reported.
-  const worstThermal = (report) =>
-    report.cases.reduce((worst, entry) => Math.max(worst, entry.thermal?.status ?? -1), -1);
-
-  const baselineHeat = worstThermal(baseline);
-  const currentHeat = worstThermal(current);
-
-  if (baselineHeat > 0 || currentHeat > 0) {
-    const name = (report) =>
-      report.cases.find((entry) => (entry.thermal?.status ?? -1) === worstThermal(report))?.thermal
-        ?.statusName ?? 'unknown';
-    console.error(
-      `\nERROR: a device was throttling during these runs (baseline peaked at ` +
-        `"${name(baseline)}", current at "${name(current)}").\n` +
-        'Timings taken while throttling are not comparable. Let the device cool and re-run;\n' +
-        '`yarn bench --cooldown 600` waits before starting.'
-    );
-    process.exit(2);
-  }
-
   // A pinned run executes at roughly 2 GHz and an unpinned one boosts past 3.4,
-  // so diffing across the two measures the clock rather than the change. This is
-  // a hard stop for the same reason throttling is.
-  if (Boolean(baseline.clocksPinned) !== Boolean(current.clocksPinned)) {
-    const which = (report) => (report.clocksPinned ? 'pinned' : 'unpinned');
-    console.error(
-      `\nERROR: CPU clock pinning differs between runs (baseline ${which(baseline)}, ` +
-        `current ${which(current)}).\n` +
-        'Those run at different frequencies and are not comparable. Re-run both the same way;\n' +
-        '`yarn bench --pin-clocks on` pins, `--pin-clocks off` disables it.'
-    );
-    process.exit(2);
+  // so diffing across the two measures the clock rather than the change. A
+  // debug build runs everything outside `execute` an order of magnitude slow.
+  // Both are hard stops.
+  for (const [name, pick] of [
+    ['CPU clock pinning', (report) => (report.clocksPinned ? 'pinned' : 'unpinned')],
+    ['build type', (report) => report.buildType ?? 'unknown'],
+  ]) {
+    if (pick(baseline) !== pick(current)) {
+      console.error(
+        `\nERROR: ${name} differs between runs (baseline ${pick(baseline)}, ` +
+          `current ${pick(current)}). Re-run both the same way.`
+      );
+      process.exit(2);
+    }
   }
 
-  if (baselineHeat !== currentHeat) {
-    console.warn(
-      `\nWARNING: thermal states differ between runs (${baselineHeat} vs ${currentHeat}).`
-    );
-  }
+  // Anything else that differs is reported, not refused: a URL map differing is
+  // usually the point of the comparison.
+  const other = headerMismatches(baseline, current).filter(
+    (line) => !/^(platform|device|os|input spec|build type|clock pinning|iterations):/.test(line)
+  );
+  for (const line of other) console.warn(`\nNOTE: ${line}`);
 
   if (baseline.settings?.iterations !== current.settings?.iterations) {
     console.warn(
@@ -339,11 +368,13 @@ function main() {
   const regressions = [];
   const incomparable = [];
   const noisy = [];
+  const warm = [];
+  const missing = [];
 
   for (const baselineCase of baseline.cases) {
     const currentCase = currentById.get(baselineCase.id);
     if (!currentCase) {
-      console.log(`${baselineCase.id}\n  missing from the current run\n`);
+      missing.push(baselineCase.id);
       continue;
     }
 
@@ -351,7 +382,7 @@ function main() {
     console.log(baselineCase.id);
     for (const row of rows) {
       const delta =
-        row.verdict === 'INCOMPARABLE'
+        row.verdict === 'INCOMPARABLE' || row.verdict === 'WARM'
           ? ''
           : `${row.delta >= 0 ? '+' : ''}${row.delta.toFixed(1)}%`;
       console.log(
@@ -361,12 +392,23 @@ function main() {
       if (row.verdict === 'REGRESSED') regressions.push(`${baselineCase.id} ${row.metric}`);
       if (row.verdict === 'INCOMPARABLE') incomparable.push(`${baselineCase.id} ${row.metric}`);
       if (row.verdict === 'NOISY') noisy.push(`${baselineCase.id} ${row.metric}`);
+      if (row.verdict === 'WARM') warm.push(baselineCase.id);
     }
     console.log('');
   }
 
   const added = current.cases.filter((entry) => !baseline.cases.some((e) => e.id === entry.id));
   if (added.length > 0) console.log(`new cases: ${added.map((e) => e.id).join(', ')}\n`);
+  if (missing.length > 0) console.log(`missing from the current run: ${missing.join(', ')}\n`);
+
+  if (warm.length > 0) {
+    console.log(
+      `${warm.length} case(s) started above the thermal ceiling in one of the runs; ` +
+        'their timings were not compared:'
+    );
+    for (const entry of warm) console.log(`  ${entry}`);
+    console.log('');
+  }
 
   if (incomparable.length > 0) {
     console.log(`${incomparable.length} metric(s) could not be compared:`);
