@@ -23,11 +23,14 @@ export interface AudioPlayerState {
    * @param chunks Async iterable stream of audio chunks.
    * @param onChunk Optional callback invoked for every chunk as it is enqueued.
    * @param onFirstAudio Optional callback invoked when the first buffer starts playing.
+   * @param onPosition Optional callback invoked every ~50 ms with the playback
+   * position, in seconds since the start of the first chunk.
    */
   playStream: <T extends AudioChunk>(
     chunks: AsyncIterable<T>,
     onChunk?: (chunk: T) => void,
-    onFirstAudio?: () => void
+    onFirstAudio?: () => void,
+    onPosition?: (seconds: number) => void
   ) => Promise<void>;
   /** Immediately stops audio playback, clears remaining buffers, and resets state. */
   stop: () => void;
@@ -86,12 +89,18 @@ export function useAudioPlayer(sampleRate: number): AudioPlayerState {
     async <T extends AudioChunk>(
       chunks: AsyncIterable<T>,
       onChunk?: (chunk: T) => void,
-      onFirstAudio?: () => void
+      onFirstAudio?: () => void,
+      onPosition?: (seconds: number) => void
     ) => {
       stop();
       const ctx = await getAudioContext();
       const source = ctx.createBufferQueueSource();
       source.connect(ctx.destination);
+      if (onPosition) {
+        // The queue reports its position across all buffers played so far.
+        source.onPositionChangedInterval = 50;
+        source.onPositionChanged = (event) => onPosition(event.value);
+      }
       queueSourceRef.current = source;
       lastEnqueuedBufferIdRef.current = null;
       lastBufferEndedRef.current = false;
