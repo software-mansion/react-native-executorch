@@ -76,7 +76,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const { createHash } = require('crypto');
+const { createHash, randomBytes } = require('crypto');
 const { Buffer } = require('buffer');
 
 // ---- Config ----------------------------------------------------------------
@@ -420,34 +420,59 @@ function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
+// Writes to a temp file beside `dest` and renames it into place once complete.
+// Package managers can run this postinstall for several copies of the package
+// at once (a monorepo whose workspaces resolve it with different peers), all
+// sharing CACHE_DIR. Writing `dest` directly let one copy truncate a checksum
+// or tarball while another was reading it. The rename is atomic, so a reader
+// sees either the previous file or the complete new one.
 function download(url, dest) {
+  const tmp = `${dest}.${process.pid}-${randomBytes(4).toString('hex')}.tmp`;
   return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(dest);
+    const file = fs.createWriteStream(tmp);
+    const fail = (err) => {
+      // Close before removing: on Windows an open handle makes the unlink fail
+      // with EBUSY, which then replaces the real error with the cleanup's. And
+      // `force` covers the case where the file was never created. Rejects only
+      // once the temp file is gone, so a failed download leaves nothing behind.
+      file.close(() => {
+        fs.rmSync(tmp, { force: true });
+        reject(err);
+      });
+    };
     const get = (currentUrl) => {
       const client = currentUrl.startsWith('http://') ? http : https;
       const headers = {};
       if (process.env.GITHUB_TOKEN && currentUrl.includes('github.com')) {
         headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
       }
-      client.get(currentUrl, { headers }, (res) => {
-        if (res.statusCode === 301 || res.statusCode === 302) {
-          return get(res.headers.location);
-        }
-        if (res.statusCode !== 200) {
-          return reject(new Error(`HTTP ${res.statusCode} for ${currentUrl}`));
-        }
-        res.pipe(file);
-        file.on('finish', () => file.close(resolve));
-      });
+      client
+        .get(currentUrl, { headers }, (res) => {
+          if (res.statusCode === 301 || res.statusCode === 302) {
+            res.resume();
+            return get(res.headers.location);
+          }
+          if (res.statusCode !== 200) {
+            res.resume();
+            return fail(new Error(`HTTP ${res.statusCode} for ${currentUrl}`));
+          }
+          res.pipe(file);
+          file.on('finish', () =>
+            file.close((err) => {
+              if (err) return fail(err);
+              try {
+                fs.renameSync(tmp, dest);
+                resolve();
+              } catch (renameErr) {
+                fail(renameErr);
+              }
+            })
+          );
+        })
+        .on('error', fail);
     };
     get(url);
-    file.on('error', (err) => {
-      // Close before removing: on Windows an open handle makes the unlink fail
-      // with EBUSY, which then replaces the real error with the cleanup's. And
-      // `force` covers the case where the file was never created.
-      file.close(() => fs.rmSync(dest, { force: true }));
-      reject(err);
-    });
+    file.on('error', fail);
   });
 }
 
@@ -671,4 +696,5 @@ module.exports = {
   pruneDisabledBackends,
   sha256,
   extract,
+  download,
 };
