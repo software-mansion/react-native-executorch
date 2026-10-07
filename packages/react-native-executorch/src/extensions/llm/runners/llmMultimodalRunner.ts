@@ -49,17 +49,17 @@ const METADATA_SPEC = {
 
 export const LLM_MULTIMODAL_RUNNER_SPEC = {
   ...method(
-    'text_decoder', //
+    'text_decoder', // prettier-ignore
     [f32(1, 'seqLen', 'hiddenDim'), i64('seqLen')],
     [f32(1, 'vocabSize')]
   ),
   ...method(
-    'vision_encoder', //
+    'vision_encoder', // prettier-ignore
     [f32(1, 3, 'imgH', 'imgW')],
     [f32(1, 'visualTokens', 'hiddenDim')]
   ),
   ...method(
-    'token_embedding', //
+    'token_embedding', // prettier-ignore
     [i64(1, 'seqLen')],
     [f32(1, 'seqLen', 'hiddenDim')]
   ),
