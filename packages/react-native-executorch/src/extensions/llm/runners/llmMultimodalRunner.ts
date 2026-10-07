@@ -222,7 +222,9 @@ export function createLLMMultimodalRunner(
       model.execute('vision_encoder', [prompt.image], [tVisionEmbed]);
 
       const embedding = tVisionEmbed.getData(new Float32Array(tVisionEmbed.numel));
+
       let offset = 0;
+
       while (offset < numVisualTokens && !isCancelled.getBlocking()) {
         const seqLen = Math.min(numVisualTokens - offset, maxSeqLen);
         const chunk = embedding.subarray(offset * hiddenDim, (offset + seqLen) * hiddenDim);
@@ -293,8 +295,13 @@ export function createLLMMultimodalRunner(
           totStats = combine(stats, totStats);
           break;
         }
-        default:
-          throw RnExecuTorchError('INVALID_ARGUMENT', '');
+        default: {
+          const kind = (segment as { readonly kind?: string }).kind;
+          throw RnExecuTorchError(
+            'INVALID_ARGUMENT',
+            `prefill: Unsupported media input kind '${kind}'.`
+          );
+        }
       }
     }
 
