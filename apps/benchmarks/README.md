@@ -171,6 +171,26 @@ post-processing in it.
 
 `results/` is gitignored; keep a run you care about outside the repo.
 
+## Publishing to the docs
+
+The docs benchmarks page is built from raw runs stored beside it, so each docs
+version keeps the runs its numbers came from:
+
+```bash
+mkdir -p ../../docs/docs/04-benchmarks/runs/s26ultra
+cp results/v0.11.0-android-SM-S948B.jsonl ../../docs/docs/04-benchmarks/runs/s26ultra/
+yarn bench:docs   # regenerates docs/docs/04-benchmarks/measured.json
+```
+
+The directory name is the device id the docs list it under (`DEVICES` in
+`docs/src/data/benchmarks.ts`). A device with runs replaces its rows in
+`imported.json`, which holds published numbers that have no raw runs behind
+them. To check a build against a release, compare against its archived runs:
+
+```bash
+yarn bench:compare ../../docs/versioned_docs/version-0.11.0/04-benchmarks/runs/s26ultra/<run>.jsonl results/<new>.jsonl
+```
+
 ## What gets measured
 
 Per variant, per repeat:

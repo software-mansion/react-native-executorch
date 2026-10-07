@@ -23,7 +23,8 @@
     "bench": "node scripts/run-benchmarks.mjs",
     "bench:compare": "node scripts/compare.mjs",
     "bench:summary": "node scripts/summarize.mjs",
-    "bench:sizes": "node scripts/fetch-variant-sizes.mjs"
+    "bench:sizes": "node scripts/fetch-variant-sizes.mjs",
+    "bench:docs": "node scripts/docs-data.mjs"
   },
   "dependencies": {
     "expo": "~56.0.9",
