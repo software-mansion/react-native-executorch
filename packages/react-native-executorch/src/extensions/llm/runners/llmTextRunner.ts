@@ -26,8 +26,8 @@ export function createLLMTextRunner(
   }
 ): LLMRunner {
   const { maxSeqLen, maxContextLen, vocabSize, eosIds } = meta;
-  // Reused as the `forward` output buffer and clobbered in place by `sample()`;
-  // always refilled by `model.execute` before the next `sample()` call.
+
+  // Output buffer for `forward` logits: shape [1, vocabSize]
   const tLogits = tensor('float32', [1, vocabSize]);
 
   const dispose = () => {
