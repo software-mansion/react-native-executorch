@@ -117,11 +117,7 @@ export function createLLMTextRunner(
     const numTokens = offset;
     const tokensPerSecond = durationMs > 0 ? (numTokens / durationMs) * 1000 : 0;
 
-    return {
-      numTokens,
-      durationMs,
-      tokensPerSecond,
-    };
+    return { numTokens, durationMs, tokensPerSecond };
   };
 
   const generate = (
@@ -170,7 +166,6 @@ export function createLLMTextRunner(
 
         numTokens += 1;
         curPos += 1;
-
         pos.setBlocking(curPos);
       }
     } finally {
