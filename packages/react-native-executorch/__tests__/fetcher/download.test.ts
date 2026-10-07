@@ -1,4 +1,5 @@
 import { isRnExecuTorchError } from '../../src/core/error';
+import { registerDeprecation } from '../../src/deprecation';
 import { download } from '../../src/fetcher/fetcher';
 import { setTelemetryEnabled } from '../../src/fetcher/telemetry';
 import { until } from '../support/async';
@@ -105,6 +106,22 @@ describe('download — resolution', () => {
   it('leaves non-http strings alone', async () => {
     const resolved = await download({ scheme: 'ftp://example.com/model.pte', name: 'whisper' });
     expect(resolved).toEqual({ scheme: 'ftp://example.com/model.pte', name: 'whisper' });
+  });
+});
+
+describe('download — deprecated models', () => {
+  it('warns once per deprecated model, however often it is downloaded', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const deprecatedUrl = 'https://huggingface.co/software-mansion/model/resolve/v1/old.pte';
+    registerDeprecation(deprecatedUrl, 'old.pte is deprecated.');
+    fakeNet.serve(deprecatedUrl);
+    fakeNet.serve(URL_B);
+
+    await download({ modelPath: deprecatedUrl, tokenizerPath: URL_B });
+    await download({ modelPath: deprecatedUrl });
+
+    expect(warn.mock.calls).toEqual([['[React Native ExecuTorch] old.pte is deprecated.']]);
+    warn.mockRestore();
   });
 });
 
