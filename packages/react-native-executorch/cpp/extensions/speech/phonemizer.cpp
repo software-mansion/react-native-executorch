@@ -33,7 +33,7 @@ std::vector<size_t> utf16Offsets(std::u32string_view text) {
     return offsets;
 }
 
-jsi::Object toJs(jsi::Runtime &rt, std::u32string_view text, const phonemis::PhonemizedText &result) {
+jsi::Object wordsToJs(jsi::Runtime &rt, std::u32string_view text, const phonemis::PhonemizedText &result) {
     const auto textOffsets = utf16Offsets(text);
     const auto phonemeOffsets = utf16Offsets(result.phonemes);
 
@@ -101,9 +101,7 @@ jsi::Value PhonemizerHostObject::get(jsi::Runtime &rt,
             bool words = false;
             if (count == 2 && !args[1].isUndefined()) {
                 auto options = conversions::asType<jsi::Object>(rt, "phonemize: options", args[1]);
-                if (options.hasProperty(rt, "words")) {
-                    words = conversions::getRequiredProperty<bool>(rt, "phonemize: options", options, "words");
-                }
+                words = conversions::getOptionalProperty<bool>(rt, "phonemize: options", options, "words").value_or(false);
             }
 
             auto text = utf8_to_u32(conversions::asType<std::string>(rt, "phonemize: text", args[0]));
@@ -111,7 +109,7 @@ jsi::Value PhonemizerHostObject::get(jsi::Runtime &rt,
             auto lock = self->tryLockUnique("phonemize: Phonemizer");
 
             if (words) {
-                return toJs(rt, text, self->pipeline_->phonemize_words(std::u32string_view{text}));
+                return wordsToJs(rt, text, self->pipeline_->phonemize_words(std::u32string_view{text}));
             }
             return jsi::String::createFromUtf8(rt, u32_to_utf8((*self->pipeline_)(std::u32string_view{text})));
         };
