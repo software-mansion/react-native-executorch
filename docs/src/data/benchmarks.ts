@@ -1,5 +1,3 @@
-import rawData from './benchmarks.json';
-
 export type BenchmarkRow = {
   task: string;
   model: string;
@@ -16,8 +14,6 @@ export type BenchmarkRow = {
   loadMs: number;
   sizeMb: number;
 };
-
-export const benchmarkRows: BenchmarkRow[] = rawData as BenchmarkRow[];
 
 export type MetricId =
   | 'tokensPerSecond'
