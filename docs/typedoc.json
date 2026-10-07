@@ -35,6 +35,8 @@
     "Speech / Constants",
     "Math / Functions",
     "Math / Types",
+    "Vector Store / Functions",
+    "Vector Store / Types",
     "Utils / Functions",
     "Utils / Types",
     "*"

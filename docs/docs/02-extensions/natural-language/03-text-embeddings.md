@@ -128,6 +128,24 @@ console.log('Similarity (related):', cosineSimilarity(v1, v2)); // ~0.85
 console.log('Similarity (unrelated):', cosineSimilarity(v1, v3)); // ~0.15
 ```
 
+### Vector Search
+
+For more than a handful of vectors, keep them in a [`createVectorStore`](../../06-api-reference/functions/createVectorStore.md) store, which ranks them for you. It takes plain vectors, so it works with any embedder, including [Image Embeddings](../computer-vision/09-image-embeddings.md):
+
+```typescript
+import { createVectorStore } from 'react-native-executorch';
+
+const store = createVectorStore<{ text: string }>({ metric: 'cosine' });
+for (const [id, text] of Object.entries(passages)) {
+  store.add(id, await embedder.embed(text), { text });
+}
+
+const matches = store.query(await embedder.embed('How do I change my password?'), 3);
+// [{ id, score, metadata: { text } }, ...] — most similar first
+```
+
+The store is in memory and searches exhaustively, which takes a few milliseconds for tens of thousands of vectors. `remove`, `get`, `has` and per-query `filter`/`minScore` are also available. Nothing is persisted.
+
 ## Asymmetric Retrieval & Prompt Prefixes
 
 Some embedding models (like [`LFM2_5_EMBEDDING_350M`](../../06-api-reference/variables/models.md#textembeddingslfm2_5_embedding_350m)) are trained asymmetrically where search queries and indexed passages use different prompt prefixes:
@@ -209,6 +227,7 @@ The pipeline automatically verifies that the model's exported input and output s
 
 - [`TextEmbedder`](../../06-api-reference/type-aliases/TextEmbedder.md) — Text embedder runner interface ([`embed`](../../06-api-reference/type-aliases/TextEmbedder.md#embed), [`embedWorklet`](../../06-api-reference/type-aliases/TextEmbedder.md#embedworklet)).
 - [`TextEmbedderModel`](../../06-api-reference/type-aliases/TextEmbedderModel.md) — Model configuration spec with `modelPath`, `tokenizerPath`, and `defaultPrompt`.
+- [`createVectorStore()`](../../06-api-reference/functions/createVectorStore.md) — In-memory vector store with nearest-neighbor search.
 
 ### Model Presets
 
