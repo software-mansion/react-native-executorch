@@ -80,13 +80,12 @@ export function createLLMMultimodalRunner(
 
   const { dims } = validateSpec(model.schema, { default: LLM_MULTIMODAL_RUNNER_SPEC });
 
-  const [H, W] = dims.constant('imgH', 'imgW');
+  const [imgH, imgW, vocabSize] = dims.constant('imgH', 'imgW', 'vocabSize');
   const [hiddenDim, numVisualTokens] = dims.constant('hiddenDim', 'visualTokens');
-  const [vocabSize] = dims.constant('vocabSize');
   const [maxSeqLen] = model.execute('get_max_seq_len', [], []) as [number]; // TODO: change to dims
   const [maxContextLen] = model.execute('get_max_context_len', [], []) as [number];
 
-  const imgShape = [1, 3, H, W] as const;
+  const imgShape = [1, 3, imgH, imgW] as const;
   const eosIds = model.execute('get_eos_ids', [], []) as number[];
 
   if (maxContextLen < maxSeqLen || !Number.isInteger(maxContextLen)) {
