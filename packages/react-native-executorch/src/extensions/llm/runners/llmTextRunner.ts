@@ -2,9 +2,8 @@ import { createSynchronizable } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import type { Model } from '../../../core/model';
-import type { SpecMatch } from '../../../core/schema';
 import { RnExecuTorchError } from '../../../core/error';
-import { f32, i64, method, DynamicDim as Dyn } from '../../../core/schema';
+import { f32, i64, method, DynamicDim as Dyn, validateSpec } from '../../../core/schema';
 
 import type { Tokenizer } from '../../nlp';
 import { sample } from '../sampler';
@@ -35,7 +34,6 @@ export const LLM_TEXT_RUNNER_SPEC = {
 export function createLLMTextRunner(
   model: Model,
   tokenizer: Tokenizer,
-  dims: SpecMatch['dims'],
   modalities?: readonly Modality[]
 ): LLMRunner {
   if (modalities && modalities.length > 0) {
@@ -44,6 +42,8 @@ export function createLLMTextRunner(
       `Text-only model does not support modalities: ${modalities.join(', ')}.`
     );
   }
+
+  const { dims } = validateSpec(model.schema, { default: LLM_TEXT_RUNNER_SPEC });
 
   const [vocabSize] = dims.constant('vocabSize');
   const [seqLenRange] = dims.range('seqLen');

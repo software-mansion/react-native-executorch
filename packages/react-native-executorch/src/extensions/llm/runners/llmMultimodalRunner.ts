@@ -2,9 +2,8 @@ import { createSynchronizable } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import type { Model } from '../../../core/model';
-import type { SpecMatch } from '../../../core/schema';
 import { RnExecuTorchError } from '../../../core/error';
-import { f32, i64, method } from '../../../core/schema';
+import { f32, i64, method, validateSpec } from '../../../core/schema';
 
 import type { Tokenizer } from '../../nlp';
 import { sample } from '../sampler';
@@ -70,7 +69,6 @@ export const LLM_MULTIMODAL_RUNNER_SPEC = {
 export function createLLMMultimodalRunner(
   model: Model,
   tokenizer: Tokenizer,
-  dims: SpecMatch['dims'],
   modalities?: readonly Modality[]
 ): LLMRunner {
   if (!modalities?.includes('image')) {
@@ -79,6 +77,8 @@ export function createLLMMultimodalRunner(
       `Multimodal vision-language model requires 'image' in modalities.`
     );
   }
+
+  const { dims } = validateSpec(model.schema, { default: LLM_MULTIMODAL_RUNNER_SPEC });
 
   const [H, W] = dims.constant('imgH', 'imgW');
   const [hiddenDim, numVisualTokens] = dims.constant('hiddenDim', 'visualTokens');
