@@ -25,6 +25,7 @@ import type { InstanceSegmenterModel } from './extensions/cv/tasks/instanceSegme
 import type { ImageEmbedderModel } from './extensions/cv/tasks/imageEmbedding';
 import type { SdxsTextToImageModel } from './extensions/cv/tasks/sdxsTextToImage';
 import type { TextEmbedderModel } from './extensions/nlp/tasks/textEmbedding';
+import type { ColbertEmbedderModel } from './extensions/nlp/tasks/colbertEmbedding';
 import type { PrivacyFilterModel } from './extensions/nlp/tasks/privacyFilter';
 import type { FsmnVadModel } from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 import type { SupertonicTtsModel } from './extensions/speech/tasks/supertonicTextToSpeech';
@@ -1131,6 +1132,29 @@ const LFM2_5_EMBEDDING_350M_MLX_INT4: TextEmbedderModel = {
   modelPath: `${BASE_URL}-lfm2.5-embedding-350m/${VERSION_TAG}/mlx/lfm_2_5_embedding_350m_mlx_int4.pte`,
   tokenizerPath: `${BASE_URL}-lfm2.5-embedding-350m/${VERSION_TAG}/tokenizer.json`,
   defaultPrompt: 'query: ',
+};
+
+// =============================================================================
+// ColBERT Embeddings
+// =============================================================================
+// Mirrors the model's PyLate config (`config_sentence_transformers.json`).
+const LFM2_5_COLBERT_350M_OPTS = {
+  queryPrefixToken: '[Q] ',
+  documentPrefixToken: '[D] ',
+  queryLength: 32,
+  queryExpansionToken: '<|im_end|>',
+  bosToken: '<|startoftext|>',
+  skiplistTokens: [...'!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'],
+};
+const LFM2_5_COLBERT_350M_XNNPACK_8DA4W: ColbertEmbedderModel = {
+  modelPath: `${BASE_URL}-lfm2.5-colbert-350m/${NEXT_VERSION_TAG}/xnnpack/lfm_2_5_colbert_350m_xnnpack_8da4w.pte`,
+  tokenizerPath: `${BASE_URL}-lfm2.5-colbert-350m/${NEXT_VERSION_TAG}/tokenizer.json`,
+  modelOpts: LFM2_5_COLBERT_350M_OPTS,
+};
+const LFM2_5_COLBERT_350M_MLX_INT4: ColbertEmbedderModel = {
+  modelPath: `${BASE_URL}-lfm2.5-colbert-350m/${NEXT_VERSION_TAG}/mlx/lfm_2_5_colbert_350m_mlx_int4.pte`,
+  tokenizerPath: `${BASE_URL}-lfm2.5-colbert-350m/${NEXT_VERSION_TAG}/tokenizer.json`,
+  modelOpts: LFM2_5_COLBERT_350M_OPTS,
 };
 
 // =============================================================================
@@ -3039,6 +3063,23 @@ export const models = {
     LFM2_5_EMBEDDING_350M: variants({
       XNNPACK_8DA4W: LFM2_5_EMBEDDING_350M_EMBEDDINGS,
       MLX_INT4: LFM2_5_EMBEDDING_350M_MLX_INT4,
+    }),
+  },
+
+  /**
+   * Late-interaction (ColBERT) retrieval models, which embed a text as one
+   * vector per token and score relevance with {@link maxSim}. Use with
+   * {@link createColbertEmbedder} or {@link useColbertEmbedder}.
+   */
+  colbertEmbeddings: {
+    /**
+     * Liquid AI LFM 2.5 350M ColBERT model: 128-dimensional token vectors,
+     * multilingual (11 languages), 32-token queries and documents of up to 512
+     * tokens.
+     */
+    LFM2_5_COLBERT_350M: variants({
+      XNNPACK_8DA4W: LFM2_5_COLBERT_350M_XNNPACK_8DA4W,
+      MLX_INT4: LFM2_5_COLBERT_350M_MLX_INT4,
     }),
   },
 
