@@ -47,7 +47,7 @@ const METADATA_SPEC = {
 //     ...METADATA_SPEC,
 // }
 
-export const LLM_MULTIMODAL_RUNNER_SPEC = {
+export const LLM_MULTIMODAL_SPEC = {
   ...method(
     'text_decoder', // prettier-ignore
     [f32(1, 'seqLen', 'hiddenDim'), i64('seqLen')],
@@ -78,7 +78,7 @@ export function createLLMMultimodalRunner(
     );
   }
 
-  const { dims } = validateSpec(model.schema, { default: LLM_MULTIMODAL_RUNNER_SPEC });
+  const { dims } = validateSpec(model.schema, { default: LLM_MULTIMODAL_SPEC });
 
   const [imgH, imgW, vocabSize] = dims.constant('imgH', 'imgW', 'vocabSize');
   const [hiddenDim, numVisualTokens] = dims.constant('hiddenDim', 'visualTokens');

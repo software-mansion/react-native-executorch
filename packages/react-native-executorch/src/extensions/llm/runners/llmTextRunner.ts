@@ -18,7 +18,7 @@ import type {
   Prompt,
 } from '../llmRunner';
 
-export const LLM_TEXT_RUNNER_SPEC = {
+export const LLM_TEXT_SPEC = {
   ...method(
     'forward', // prettier-ignore
     [i64(1, Dyn('seqLen')), i64(1)],
@@ -43,7 +43,7 @@ export function createLLMTextRunner(
     );
   }
 
-  const { dims } = validateSpec(model.schema, { default: LLM_TEXT_RUNNER_SPEC });
+  const { dims } = validateSpec(model.schema, { default: LLM_TEXT_SPEC });
 
   const [vocabSize] = dims.constant('vocabSize');
   const [seqLenRange] = dims.range('seqLen');
