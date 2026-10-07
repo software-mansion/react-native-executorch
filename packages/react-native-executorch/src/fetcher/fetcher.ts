@@ -755,7 +755,7 @@ function substituteRemoteSources<T>(node: T, resolved: ReadonlyMap<string, strin
  * and type as the input and can be handed straight to a `create<Task>` factory:
  *
  * ```ts
- * const model = await download(models.classification.EFFICIENTNET_V2_S.XNNPACK_FP32);
+ * const model = await download(models.classification.EFFICIENTNET_V2_S.XNNPACK_INT8);
  * const { classify, dispose } = await createClassifier(model);
  * ```
  *

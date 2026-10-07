@@ -210,7 +210,7 @@ const EFFICIENTNET_V2_S_OPTS = {
   labels: IMAGENET1K_LABELS,
 };
 const EFFICIENTNET_V2_S_XNNPACK_INT8: ClassifierModel<ImageNet1KLabel> = {
-  modelPath: `${BASE_URL}-efficientnet-v2-s/${VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_int8.pte`,
+  modelPath: `${BASE_URL}-efficientnet-v2-s/${NEXT_VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_int8.pte`,
   modelOpts: EFFICIENTNET_V2_S_OPTS,
 };
 const EFFICIENTNET_V2_S_XNNPACK_FP32: ClassifierModel<ImageNet1KLabel> = {
@@ -380,7 +380,7 @@ const DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_FP32: SemanticSegmenterModel<PascalV
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-deeplab-v3/${VERSION_TAG}/xnnpack/deeplab_v3_mobilenet_v3_large_xnnpack_int8.pte`,
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/xnnpack/deeplab_v3_mobilenet_v3_large_xnnpack_int8.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_MOBILENET_V3_LARGE_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
@@ -1083,8 +1083,8 @@ const MULTI_QA_MPNET_BASE_DOT_V1_VULKAN_FP16: TextEmbedderModel = {
   tokenizerPath: `${BASE_URL}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/tokenizer.json`,
 };
 const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_EMBEDDINGS: TextEmbedderModel = {
-  modelPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${VERSION_TAG}/xnnpack/paraphrase_multilingual_minilm_l12_v2_xnnpack_8da4w.pte`,
-  tokenizerPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${VERSION_TAG}/tokenizer.json`,
+  modelPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${NEXT_VERSION_TAG}/xnnpack/paraphrase_multilingual_minilm_l12_v2_xnnpack_8da4w.pte`,
+  tokenizerPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
 const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_XNNPACK_FP32: TextEmbedderModel = {
   modelPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${VERSION_TAG}/xnnpack/paraphrase_multilingual_minilm_l12_v2_xnnpack_fp32.pte`,
@@ -1103,8 +1103,8 @@ const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_VULKAN_FP16: TextEmbedderModel = {
   tokenizerPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${VERSION_TAG}/tokenizer.json`,
 };
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS: TextEmbedderModel = {
-  modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${VERSION_TAG}/xnnpack/distiluse_base_multilingual_cased_v2_xnnpack_8da4w.pte`,
-  tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${VERSION_TAG}/tokenizer.json`,
+  modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/xnnpack/distiluse_base_multilingual_cased_v2_xnnpack_8da4w.pte`,
+  tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_XNNPACK_FP32: TextEmbedderModel = {
   modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${VERSION_TAG}/xnnpack/distiluse_base_multilingual_cased_v2_xnnpack_fp32.pte`,
@@ -2099,11 +2099,12 @@ export const models = {
      * architecture providing high accuracy for general-purpose image
      * classification.
      */
-    // fp32 stays: int8 costs 3.7 points of top-1 (75.8% -> 72.1% on 1000
-    // ImageNetV2 images) for its 1.38x speedup.
+    // int8 keeps its squeeze-excitation blocks fp32: 75.0% top-1 on 1000
+    // ImageNetV2 images against fp32's 75.8%, still 2.2x faster than fp32.
     EFFICIENTNET_V2_S: variants({
       XNNPACK_INT8: EFFICIENTNET_V2_S_XNNPACK_INT8,
-      XNNPACK_FP32: EFFICIENTNET_V2_S_XNNPACK_FP32,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(EFFICIENTNET_V2_S_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: EFFICIENTNET_V2_S_COREML_FP16,
     }),
   },
@@ -2219,11 +2220,12 @@ export const models = {
      * classes, see {@link PASCAL_VOC_LABELS}). Combines DeepLabV3 feature
      * extraction quality with a lightweight mobile backbone.
      */
-    // fp32 stays: int8 costs 1.70 mIoU points (69.13 -> 67.43 on 300 VOC2012
-    // val images), where the ResNet backbones lose under 0.4.
+    // int8 keeps the stem and the classifier convolution fp32: 68.88 mIoU on
+    // 300 VOC2012 val images against fp32's 69.13.
     DEEPLAB_V3_MOBILENET_V3_LARGE: variants({
       XNNPACK_INT8: DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_INT8,
-      XNNPACK_FP32: DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_FP32,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: DEEPLAB_V3_MOBILENET_V3_LARGE_COREML_FP16,
     }),
     /**
