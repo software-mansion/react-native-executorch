@@ -33,7 +33,7 @@ const MODELS = [
   },
   {
     name: 'Base English (CPU)',
-    config: models.speechToText.WHISPER.EN.BASE.XNNPACK_FP32,
+    config: models.speechToText.WHISPER.EN.BASE.XNNPACK_INT8,
   },
   {
     name: 'Base English (CoreML)',
@@ -47,7 +47,7 @@ const MODELS = [
   },
   {
     name: 'Small English (CPU)',
-    config: models.speechToText.WHISPER.EN.SMALL.XNNPACK_FP32,
+    config: models.speechToText.WHISPER.EN.SMALL.XNNPACK_INT8,
   },
   {
     name: 'Small English (CoreML)',

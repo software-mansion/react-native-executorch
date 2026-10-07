@@ -8,6 +8,7 @@ import {
   type BackgroundDownloadTask,
 } from './backgroundDownloader';
 import { RnExecuTorchError } from '../core/error';
+import { warnIfDeprecated } from '../deprecation';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -778,6 +779,7 @@ function substituteRemoteSources<T>(node: T, resolved: ReadonlyMap<string, strin
  */
 export async function download<T>(source: T, options: DownloadOptions = {}): Promise<T> {
   const urls = [...collectRemoteSources(source)];
+  warnIfDeprecated(urls);
 
   // Nothing to fetch — every source is already a local path.
   if (urls.length === 0) {

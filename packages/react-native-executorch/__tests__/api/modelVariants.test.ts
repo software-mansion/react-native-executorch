@@ -326,6 +326,77 @@ describe('variant selection rules', () => {
   });
 });
 
+describe('deprecated variants', () => {
+  /** The devices a `DEFAULT` can resolve differently on. */
+  const devices = [
+    { os: 'ios' as const },
+    { os: 'android' as const },
+    { os: 'ios' as const, isEmulator: true },
+    { os: 'ios' as const, backends: ['XnnpackBackend'] },
+    { os: 'android' as const, backends: ['XnnpackBackend'] },
+  ];
+
+  /**
+   * Every group of the registry as resolved on `device`, with the notices of
+   * the variants it deprecates. Read from the deprecation module the reloaded
+   * registry registered them in.
+   */
+  function deprecationsFor(device: Parameters<typeof registryFor>[0]) {
+    const registry = registryFor(device);
+    const { deprecationOf } = require('../../src/deprecation') as {
+      deprecationOf: (modelPath: string) => string | undefined;
+    };
+    return variantGroups(registry).map(({ label, group }) => ({
+      label,
+      group,
+      notices: new Map(
+        namedVariants(group).flatMap(([key, config]) => {
+          const notice = deprecationOf(modelPathsOf(config));
+          return notice === undefined ? [] : [[key, notice] as const];
+        })
+      ),
+    }));
+  }
+
+  it('finds deprecated variants to check', () => {
+    const count = deprecationsFor({ os: 'android' }).reduce(
+      (n, { notices }) => n + notices.size,
+      0
+    );
+    expect(count).toBeGreaterThan(0);
+  });
+
+  it('never defaults to a deprecated variant, on any device', () => {
+    const offenders = devices.flatMap((device) =>
+      deprecationsFor(device)
+        .filter(({ group, notices }) => notices.has(defaultKeyOf(group) ?? ''))
+        .map(({ label, group }) => `${JSON.stringify(device)} ${label}: ${defaultKeyOf(group)}`)
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('points every deprecated variant at a supported sibling', () => {
+    const offenders = deprecationsFor({ os: 'android' }).flatMap(({ label, group, notices }) =>
+      [...notices].flatMap(([key, notice]) => {
+        const prefix = `models.${label}.`;
+        const named = notice.match(/^(\S+) is deprecated.* Use (\S+), which/);
+        const replacement = named?.[2]?.startsWith(prefix)
+          ? named[2].slice(prefix.length)
+          : undefined;
+        const ok =
+          named?.[1] === `${prefix}${key}` &&
+          replacement !== undefined &&
+          isConfig(group[replacement]) &&
+          !notices.has(replacement);
+        return ok ? [] : [`${label}.${key}: ${notice}`];
+      })
+    );
+
+    expect(offenders).toEqual([]);
+  });
+});
+
 describe('feature map', () => {
   // `models.<task>.<MODEL>.DEFAULT` only reaches the accelerated export when
   // the app downloaded that backend, and `features` is the documented way to
