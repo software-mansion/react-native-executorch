@@ -295,13 +295,11 @@ export function createLLMMultimodalRunner(
           totStats = combine(stats, totStats);
           break;
         }
-        default: {
-          const kind = (segment as { readonly kind?: string }).kind;
+        default:
           throw RnExecuTorchError(
             'INVALID_ARGUMENT',
-            `prefill: Unsupported media input kind '${kind}'.`
+            `prefill: Unsupported media input kind '${segment.kind}'.`
           );
-        }
       }
     }
 
