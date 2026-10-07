@@ -2,10 +2,13 @@ import { createSynchronizable } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import type { Model } from '../../../core/model';
+import type { SpecMatch } from '../../../core/schema';
 import { RnExecuTorchError } from '../../../core/error';
+import { f32, i64, method, DynamicDim as Dyn } from '../../../core/schema';
 
 import type { Tokenizer } from '../../nlp';
 import { sample } from '../sampler';
+
 import type {
   LLMGenerationConfig,
   LLMGenerationStats,
@@ -13,26 +16,90 @@ import type {
   LLMPrefillStats,
   LLMRunner,
   MediaInput,
+  Modality,
   Prompt,
 } from '../llmRunner';
 
-export type LLMMultimodalMeta = {
-  readonly maxSeqLen: number;
-  readonly maxContextLen: number;
-  readonly vocabSize: number;
-  readonly hiddenDim: number;
-  readonly eosIds: readonly number[];
-  readonly imgShape: readonly [number, number, number, number];
-  readonly numVisualTokens: number;
+const METADATA_SPEC = {
+  ...method('get_max_seq_len', [], [{ kind: 'Int' }]),
+  ...method('get_max_context_len', [], [{ kind: 'Int' }]),
+  ...method('get_vocab_size', [], [{ kind: 'Int' }]),
+  ...method('use_kv_cache', [], [{ kind: 'Bool' }]),
+  ...method('enable_dynamic_shape', [], [{ kind: 'Bool' }]),
 };
+
+export const LLM_MULTIMODAL_RUNNER_SPEC = {
+  vision: {
+    ...method(
+      'text_decoder',
+      [f32(1, Dyn('seqLen'), 'hiddenDim'), i64(Dyn('seqLen'))],
+      [f32(1, 'vocabSize')]
+    ),
+    ...method(
+      'vision_encoder', //
+      [f32(1, 3, 'imgH', 'imgW')],
+      [f32(1, 'visualTokens', 'hiddenDim')]
+    ),
+    ...method(
+      'token_embedding', //
+      [i64(1, Dyn('seqLen'))],
+      [f32(1, Dyn('seqLen'), 'hiddenDim')]
+    ),
+    ...METADATA_SPEC,
+  },
+  // TO-REMOVE
+  visionS: {
+    ...method(
+      'text_decoder',
+      [f32(1, 'seqLen', 'hiddenDim'), i64('seqLen')],
+      [f32(1, 'vocabSize')]
+    ),
+    ...method(
+      'vision_encoder', //
+      [f32(1, 3, 'imgH', 'imgW')],
+      [f32(1, 'visualTokens', 'hiddenDim')]
+    ),
+    ...method(
+      'token_embedding', //
+      [i64(1, 'seqLen')],
+      [f32(1, 'seqLen', 'hiddenDim')]
+    ),
+    ...METADATA_SPEC,
+  },
+} as const;
 
 export function createLLMMultimodalRunner(
   model: Model,
   tokenizer: Tokenizer,
-  meta: LLMMultimodalMeta
+  dims: SpecMatch['dims'],
+  modalities?: readonly Modality[]
 ): LLMRunner {
-  const { maxSeqLen, maxContextLen, vocabSize, hiddenDim, numVisualTokens, eosIds, imgShape } =
-    meta;
+  if (!modalities?.includes('image')) {
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `Multimodal vision-language model requires 'image' in modalities.`
+    );
+  }
+
+  const [H, W] = dims.constant('imgH', 'imgW');
+  const [hiddenDim, numVisualTokens] = dims.constant('hiddenDim', 'visualTokens');
+  const [vocabSize] = dims.constant('vocabSize');
+  const [maxSeqLen] = model.execute('get_max_seq_len', [], []) as [number]; // TODO: change to dims
+  const [maxContextLen] = model.execute('get_max_context_len', [], []) as [number];
+
+  const imgShape = [1, 3, H, W] as const;
+  const eosIds = model.execute('get_eos_ids', [], []) as number[];
+
+  if (maxContextLen < maxSeqLen || !Number.isInteger(maxContextLen)) {
+    throw RnExecuTorchError(
+      'SCHEMA_MISMATCH',
+      `maxContextLen (${maxContextLen}) must be an integer >= maxSeqLen (${maxSeqLen}).`
+    );
+  }
+
+  if (model.execute('use_kv_cache', [], [])[0] !== true) {
+    throw RnExecuTorchError('SCHEMA_MISMATCH', 'Model must enable use_kv_cache.');
+  }
 
   // Output buffer for text_decoder logits: shape [1, vocabSize]
   const tLogits = tensor('float32', [1, vocabSize]);
