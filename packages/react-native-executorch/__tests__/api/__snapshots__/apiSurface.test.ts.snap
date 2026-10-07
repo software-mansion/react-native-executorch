@@ -147,6 +147,7 @@ exports[`public API surface matches the recorded export list 1`] = `
   "createSupertonicTextToSpeech",
   "createTextEmbedder",
   "createTokenizer",
+  "createVectorStore",
   "createWhisperSpeechToText",
   "cv",
   "defaultWorkletRuntime",

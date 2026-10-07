@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,12 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useTextEmbedder, models, type TextEmbedderModel } from 'react-native-executorch';
+import {
+  createVectorStore,
+  useTextEmbedder,
+  models,
+  type TextEmbedderModel,
+} from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
@@ -58,18 +63,11 @@ const STARTER_SENTENCES = [
   'The cat sleeps on the warm windowsill.',
 ];
 
-// These models output L2-normalized embeddings, so cosine similarity is the dot
-// product.
-const cosine = (a: Float32Array, b: Float32Array) => {
-  let dot = 0;
-  for (let i = 0; i < a.length; i++) {
-    dot += a[i]! * b[i]!;
-  }
-  return dot;
-};
-
-type Entry = { sentence: string; embedding: Float32Array };
+type Entry = { id: string; sentence: string };
 type Match = { sentence: string; similarity: number };
+
+let nextId = 0;
+const newId = () => `s${nextId++}`;
 
 const isDisposedError = (msg: string) => /disposed/i.test(msg);
 
@@ -80,6 +78,9 @@ function TextEmbeddingsContent() {
   const docPrompt = MODELS[selected]!.docPrompt;
 
   const [library, setLibrary] = useState<Entry[]>([]);
+  // The embeddings live in the store, keyed by entry id; a fresh store per
+  // model, since models differ in vector length.
+  const store = useRef(createVectorStore<string>());
   const [input, setInput] = useState('');
   const [matches, setMatches] = useState<Match[] | null>(null);
   const [queryText, setQueryText] = useState('');
@@ -97,12 +98,16 @@ function TextEmbeddingsContent() {
       setBusy(true);
       setRunError(null);
       try {
+        const seeded = createVectorStore<string>();
         const entries: Entry[] = [];
         for (const sentence of STARTER_SENTENCES) {
           const embedding = await embed(sentence, docPrompt);
           if (cancelled) return;
-          entries.push({ sentence, embedding });
+          const id = newId();
+          seeded.add(id, embedding, sentence);
+          entries.push({ id, sentence });
         }
+        store.current = seeded;
         setLibrary(entries);
       } catch (e: any) {
         if (!cancelled) setRunError(e?.message ?? String(e));
@@ -118,6 +123,7 @@ function TextEmbeddingsContent() {
   const selectModel = (i: number) => {
     if (i === selected) return;
     setSelected(i);
+    store.current = createVectorStore<string>();
     setLibrary([]);
     setMatches(null);
     setQueryText('');
@@ -132,9 +138,9 @@ function TextEmbeddingsContent() {
       const start = Date.now();
       const q = await embed(input.trim());
       setEmbedMs(Date.now() - start);
-      const ranked = library
-        .map(({ sentence, embedding }) => ({ sentence, similarity: cosine(q, embedding) }))
-        .sort((a, b) => b.similarity - a.similarity);
+      const ranked = store.current
+        .query(q, store.current.size)
+        .map(({ score, metadata }) => ({ sentence: metadata, similarity: score }));
       setQueryText(input.trim());
       setMatches(ranked);
     } catch (e: any) {
@@ -151,9 +157,12 @@ function TextEmbeddingsContent() {
     setRunError(null);
     try {
       const start = Date.now();
-      const embedding = await embed(input.trim(), docPrompt);
+      const sentence = input.trim();
+      const embedding = await embed(sentence, docPrompt);
       setEmbedMs(Date.now() - start);
-      setLibrary((prev) => [...prev, { sentence: input.trim(), embedding }]);
+      const id = newId();
+      store.current.add(id, embedding, sentence);
+      setLibrary((prev) => [...prev, { id, sentence }]);
       setInput('');
       setMatches(null);
     } catch (e: any) {
@@ -164,12 +173,14 @@ function TextEmbeddingsContent() {
     }
   };
 
-  const removeAt = (i: number) => {
-    setLibrary((prev) => prev.filter((_, idx) => idx !== i));
+  const remove = (id: string) => {
+    store.current.remove(id);
+    setLibrary((prev) => prev.filter((entry) => entry.id !== id));
     setMatches(null);
   };
 
   const clearLibrary = () => {
+    store.current.clear();
     setLibrary([]);
     setMatches(null);
     setQueryText('');
@@ -185,7 +196,7 @@ function TextEmbeddingsContent() {
           <Text style={styles.cardTitle}>Text Embeddings</Text>
           <Text style={styles.cardDescription}>
             Semantic search playground. Build a library of sentences, then find the ones closest in
-            meaning to your query using cosine similarity over the embeddings.
+            meaning to your query with a vector store ranking by cosine similarity.
           </Text>
 
           <Text style={styles.fieldLabel}>Model</Text>
@@ -244,10 +255,10 @@ function TextEmbeddingsContent() {
               {ready ? 'Library is empty — add a sentence below.' : 'Waiting for the model…'}
             </Text>
           ) : (
-            library.map((item, i) => (
-              <View key={`${item.sentence}-${i}`} style={styles.libraryRow}>
+            library.map((item) => (
+              <View key={item.id} style={styles.libraryRow}>
                 <Text style={styles.librarySentence}>{item.sentence}</Text>
-                <TouchableOpacity onPress={() => removeAt(i)} hitSlop={8}>
+                <TouchableOpacity onPress={() => remove(item.id)} hitSlop={8}>
                   <Text style={styles.removeBtn}>✕</Text>
                 </TouchableOpacity>
               </View>
