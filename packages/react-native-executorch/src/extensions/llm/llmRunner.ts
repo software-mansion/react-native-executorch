@@ -14,11 +14,8 @@ import { validateSpec } from '../../core/schema';
 import { loadTokenizer } from '../nlp';
 
 import type { SamplingConfig } from './sampler';
-import { createLLMTextRunner, LLM_TEXT_RUNNER_SPEC } from './runners/llmTextRunner';
-import {
-  createLLMMultimodalRunner,
-  LLM_MULTIMODAL_RUNNER_SPEC,
-} from './runners/llmMultimodalRunner';
+import { createLLMTextRunner, LLM_TEXT_SPEC } from './runners/llmTextRunner';
+import { createLLMMultimodalRunner, LLM_MULTIMODAL_SPEC } from './runners/llmMultimodalRunner';
 
 declare const llmRunnerBrand: unique symbol;
 
@@ -192,8 +189,8 @@ export async function createLLMRunner(
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
     const { variant } = validateSpec(model.schema, {
-      text: LLM_TEXT_RUNNER_SPEC,
-      vision: LLM_MULTIMODAL_RUNNER_SPEC,
+      text: LLM_TEXT_SPEC,
+      vision: LLM_MULTIMODAL_SPEC,
     });
 
     switch (variant) {
