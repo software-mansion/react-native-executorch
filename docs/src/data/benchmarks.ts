@@ -15,6 +15,22 @@ export type BenchmarkRow = {
   sizeMb: number;
 };
 
+/**
+ * Joins rows generated from raw runs (`measured.json`) with published rows
+ * that have no raw runs behind them (`imported.json`). A device present in
+ * the measured rows replaces all of its imported ones.
+ * @param measured Rows built by `yarn bench:docs` in `apps/benchmarks`.
+ * @param imported Rows with no raw runs.
+ * @returns The rows to chart.
+ */
+export function mergeBenchmarkRows(
+  measured: readonly BenchmarkRow[],
+  imported: readonly BenchmarkRow[]
+): BenchmarkRow[] {
+  const measuredDevices = new Set(measured.map((row) => row.device));
+  return [...measured, ...imported.filter((row) => !measuredDevices.has(row.device))];
+}
+
 export type MetricId =
   | 'tokensPerSecond'
   | 'ttftMs'

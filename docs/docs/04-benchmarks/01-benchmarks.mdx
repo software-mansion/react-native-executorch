@@ -18,7 +18,11 @@ keywords:
 ---
 
 import BenchmarkChart from '@site/src/components/Benchmarks';
-import benchmarks from './benchmarks.json';
+import { mergeBenchmarkRows } from '@site/src/data/benchmarks';
+import measured from './measured.json';
+import imported from './imported.json';
+
+export const benchmarks = mergeBenchmarkRows(measured, imported);
 
 # Benchmarks
 
