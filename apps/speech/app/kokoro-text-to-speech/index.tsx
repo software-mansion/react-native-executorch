@@ -5,6 +5,7 @@ import {
   models,
   KOKORO_SAMPLE_RATE,
   type KokoroTtsModel,
+  type KokoroTtsWord,
 } from 'react-native-executorch';
 
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -66,6 +67,32 @@ const SPEED_OPTIONS = [
   { label: '1.25x', value: 1.25 },
 ];
 
+// The synthesized text, with the word being spoken at `position` highlighted.
+function ReadAlong({
+  text,
+  words,
+  position,
+}: {
+  text: string;
+  words: readonly KokoroTtsWord[];
+  position: number | null;
+}) {
+  const parts: React.ReactNode[] = [];
+  let cursor = 0;
+  words.forEach((word, i) => {
+    parts.push(text.slice(cursor, word.offset));
+    const isSpoken = position !== null && position >= word.start && position < word.end;
+    parts.push(
+      <Text key={i} style={isSpoken ? styles.spokenWord : undefined}>
+        {word.text}
+      </Text>
+    );
+    cursor = word.offset + word.text.length;
+  });
+  parts.push(text.slice(cursor));
+  return <Text style={styles.readAlongText}>{parts}</Text>;
+}
+
 function KokoroContent() {
   const [language, setLanguage] = useState<KokoroLanguage>('EN_US');
   const [text, setText] = useState(SAMPLE_TEXTS.EN_US);
@@ -74,6 +101,9 @@ function KokoroContent() {
   const [chunkProgress, setChunkProgress] = useState<string | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
   const [totalDuration, setTotalDuration] = useState<number | null>(null);
+  const [spokenText, setSpokenText] = useState<string | null>(null);
+  const [words, setWords] = useState<KokoroTtsWord[]>([]);
+  const [position, setPosition] = useState<number | null>(null);
 
   const [backend, setBackend] = useState<KokoroBackend>('XNNPACK_FP32');
 
@@ -103,6 +133,9 @@ function KokoroContent() {
     setRunError(null);
     setChunkProgress(null);
     setTotalDuration(null);
+    setSpokenText(text);
+    setWords([]);
+    setPosition(null);
     setIsSynthesizing(true);
 
     let durationSum = 0;
@@ -119,10 +152,12 @@ function KokoroContent() {
             `Chunk ${chunk.chunkIndex + 1}/${chunk.totalChunks} (${chunk.duration.toFixed(1)}s)`
           );
           durationSum += chunk.duration;
+          setWords((prev) => [...prev, ...chunk.words]);
         },
         () => {
           ttfa = (performance.now() - t0) / 1000;
-        }
+        },
+        setPosition
       );
 
       const synthMs = performance.now() - t0;
@@ -137,6 +172,7 @@ function KokoroContent() {
       setRunError(err instanceof Error ? err.message : String(err));
     } finally {
       setIsSynthesizing(false);
+      setPosition(null);
     }
   };
 
@@ -144,6 +180,7 @@ function KokoroContent() {
     synthesizeStop?.();
     stop();
     setIsSynthesizing(false);
+    setPosition(null);
   };
 
   const isBusy = isSynthesizing || isPlaying;
@@ -233,6 +270,12 @@ function KokoroContent() {
           </View>
         )}
 
+        {spokenText !== null && words.length > 0 && (
+          <View style={styles.readAlongContainer}>
+            <ReadAlong text={spokenText} words={words} position={position} />
+          </View>
+        )}
+
         {totalDuration !== null && !isSynthesizing && (
           <View style={styles.resultContainer}>
             <Text style={styles.resultText}>
@@ -310,6 +353,22 @@ const styles = StyleSheet.create({
     color: '#1a73e8',
     fontWeight: '500',
     textAlign: 'center',
+  },
+  readAlongContainer: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: theme.radius.small,
+    backgroundColor: theme.colors.background,
+  },
+  readAlongText: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: theme.colors.textSecondary,
+  },
+  spokenWord: {
+    backgroundColor: '#fff3b0',
+    color: '#212529',
+    fontWeight: '700',
   },
   resultContainer: {
     marginTop: 12,

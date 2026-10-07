@@ -324,6 +324,8 @@ Pod::Spec.new do |s|
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/re2\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/abseil-cpp\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/common/phonemis/src\"",
+      # phonemis's vendored xsimd includes itself as `xsimd/...` (its CMakeLists adds this too).
+      "\"$(PODS_TARGET_SRCROOT)/third-party/common/phonemis/src/third-party\"",
     ].join(' '),
     "WARNING_CFLAGS" => "-Wno-documentation",
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',

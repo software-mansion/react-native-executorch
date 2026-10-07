@@ -90,7 +90,42 @@ TEST_F(PhonemizerTest, RejectsWrongArgumentCountsOnPhonemize) {
         const p = __rnexecutorch_jsi__.speech.createPhonemizer({ lang: 'pl' });
         p.phonemize();
     )");
-    EXPECT_TRUE(isCodedError(thrown, "INVALID_ARGUMENT", "Usage: phonemize(text)"));
+    EXPECT_TRUE(isCodedError(thrown, "INVALID_ARGUMENT", "Usage: phonemize(text, options?)"));
+}
+
+TEST_F(PhonemizerTest, RejectsNonObjectOptions) {
+    auto thrown = evalThrowing(R"(
+        const p = __rnexecutorch_jsi__.speech.createPhonemizer({ lang: 'pl' });
+        p.phonemize('kot', false);
+    )");
+    EXPECT_TRUE(isCodedError(thrown, "INVALID_ARGUMENT", "phonemize: options"));
+}
+
+TEST_F(PhonemizerTest, RejectsANonBooleanWordsOption) {
+    auto thrown = evalThrowing(R"(
+        const p = __rnexecutorch_jsi__.speech.createPhonemizer({ lang: 'pl' });
+        p.phonemize('kot', { words: 'yes' });
+    )");
+    EXPECT_TRUE(isCodedError(thrown, "INVALID_ARGUMENT", "phonemize: options"));
+}
+
+TEST_F(PhonemizerTest, ReturnsAStringUnlessWordsAreAsked) {
+    EXPECT_TRUE(evalBool(R"(
+        const p = __rnexecutorch_jsi__.speech.createPhonemizer({ lang: 'pl' });
+        return p.phonemize('kot', undefined) === p.phonemize('kot') &&
+               p.phonemize('kot', {}) === p.phonemize('kot') &&
+               p.phonemize('kot', { words: false }) === p.phonemize('kot');
+    )"));
+}
+
+// The word matching itself is phonemis's and is tested there; what is pinned here
+// is the shape it crosses the bridge in.
+TEST_F(PhonemizerTest, ReturnsThePhonemesAndWordsWhenAsked) {
+    EXPECT_TRUE(evalBool(R"(
+        const p = __rnexecutorch_jsi__.speech.createPhonemizer({ lang: 'en-us' });
+        const r = p.phonemize('I have 25 cats', { words: true });
+        return r.phonemes === p.phonemize('I have 25 cats') && Array.isArray(r.words);
+    )"));
 }
 
 TEST_F(PhonemizerTest, RejectsNonStringText) {

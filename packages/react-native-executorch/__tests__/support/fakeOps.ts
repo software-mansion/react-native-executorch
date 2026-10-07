@@ -564,7 +564,41 @@ export const cv = {
 
 /** What a fake phonemizer returns for a given input. */
 const phonemizations = new Map<string, string>();
+const normalizations = new Map<string, string>();
 const livePhonemizers = new Set<string>();
+
+/** Joins words with single spaces, as both phonemis stages leave them. */
+const collapse = (text: string): string => text.trim().replace(/[ \t\n\v\f\r]+/g, ' ');
+
+/** Normalizes like phonemis does for text without numbers. */
+const normalize = (text: string): string => normalizations.get(text) ?? collapse(text);
+
+const countWords = (text: string): number => text.split(/[ \t\n\v\f\r]+/).filter(Boolean).length;
+
+/**
+ * Locates the words of `text` in `phonemes` by phonemis's `phonemize_words`
+ * rule: one phoneme group per word, except numbers, which take as many groups
+ * as they were spelled out into; on a count mismatch, no words.
+ */
+const locateWords = (text: string, phonemes: string) => {
+  const groups = phonemes.split(' ');
+  const words: { text: string; offset: number; phonemeOffset: number; phonemeLength: number }[] =
+    [];
+  let group = 0;
+  let phonemeOffset = 0;
+  for (const match of text.matchAll(/[^ \t\n\v\f\r]+/g)) {
+    const count = /[0-9]/.test(match[0]) ? countWords(normalize(match[0])) : 1;
+    let phonemeLength = Math.max(0, count - 1);
+    for (let i = group; i < group + count && i < groups.length; i++) {
+      phonemeLength += groups[i]!.length;
+    }
+    words.push({ text: match[0], offset: match.index, phonemeOffset, phonemeLength });
+    if (count > 0) phonemeOffset += phonemeLength + 1;
+    group += count;
+  }
+  const matched = group === countWords(normalize(text)) && group === groups.length;
+  return { phonemes, words: matched ? words : [] };
+};
 
 export const fakePhonemizer = {
   /**
@@ -577,6 +611,16 @@ export const fakePhonemizer = {
   serve(text: string, phonemes: string): void {
     phonemizations.set(text, phonemes);
   },
+  /**
+   * Makes the fake phonemizer normalize `text` into `normalized` before
+   * phonemizing it, e.g. to spell out a number. Anything not registered only has
+   * its whitespace collapsed.
+   * @param text The input to script.
+   * @param normalized What to return for it.
+   */
+  serveNormalization(text: string, normalized: string): void {
+    normalizations.set(text, normalized);
+  },
   /** @returns Languages of phonemizers that were created and not disposed. */
   live(): string[] {
     return [...livePhonemizers].sort();
@@ -584,6 +628,7 @@ export const fakePhonemizer = {
   /** Clears every scripted phonemization. Runs automatically between tests. */
   reset(): void {
     phonemizations.clear();
+    normalizations.clear();
     livePhonemizers.clear();
   },
 };
@@ -598,9 +643,10 @@ export const speech = {
     let disposed = false;
     livePhonemizers.add(config.lang);
     return {
-      phonemize: (text: string): string => {
+      phonemize: (text: string, options?: { words?: boolean }) => {
         if (disposed) throw new Error(`phonemize: phonemizer '${config.lang}' has been disposed`);
-        return phonemizations.get(text) ?? text.toLowerCase();
+        const phonemes = phonemizations.get(text) ?? normalize(text).toLowerCase();
+        return options?.words ? locateWords(text, phonemes) : phonemes;
       },
       dispose: (): void => {
         if (disposed) return;
