@@ -4,7 +4,7 @@ import { tensor } from '../../../core/tensor';
 import type { Model } from '../../../core/model';
 import type { SpecMatch } from '../../../core/schema';
 import { RnExecuTorchError } from '../../../core/error';
-import { f32, i64, method, DynamicDim as Dyn } from '../../../core/schema';
+import { f32, i64, method } from '../../../core/schema';
 
 import type { Tokenizer } from '../../nlp';
 import { sample } from '../sampler';
@@ -28,45 +28,44 @@ const METADATA_SPEC = {
   ...method('enable_dynamic_shape', [], [{ kind: 'Bool' }]),
 };
 
+// REPLACE WITH THIS AFTER REEXPORT
+// {
+//     ...method(
+//       'text_decoder',
+//       [f32(1, Dyn('seqLen'), 'hiddenDim'), i64(Dyn('seqLen'))],
+//       [f32(1, 'vocabSize')]
+//     ),
+//     ...method(
+//       'vision_encoder', //
+//       [f32(1, 3, 'imgH', 'imgW')],
+//       [f32(1, 'visualTokens', 'hiddenDim')]
+//     ),
+//     ...method(
+//       'token_embedding', //
+//       [i64(1, Dyn('seqLen'))],
+//       [f32(1, Dyn('seqLen'), 'hiddenDim')]
+//     ),
+//     ...METADATA_SPEC,
+// }
+
 export const LLM_MULTIMODAL_RUNNER_SPEC = {
-  vision: {
-    ...method(
-      'text_decoder',
-      [f32(1, Dyn('seqLen'), 'hiddenDim'), i64(Dyn('seqLen'))],
-      [f32(1, 'vocabSize')]
-    ),
-    ...method(
-      'vision_encoder', //
-      [f32(1, 3, 'imgH', 'imgW')],
-      [f32(1, 'visualTokens', 'hiddenDim')]
-    ),
-    ...method(
-      'token_embedding', //
-      [i64(1, Dyn('seqLen'))],
-      [f32(1, Dyn('seqLen'), 'hiddenDim')]
-    ),
-    ...METADATA_SPEC,
-  },
-  // TO-REMOVE
-  visionS: {
-    ...method(
-      'text_decoder',
-      [f32(1, 'seqLen', 'hiddenDim'), i64('seqLen')],
-      [f32(1, 'vocabSize')]
-    ),
-    ...method(
-      'vision_encoder', //
-      [f32(1, 3, 'imgH', 'imgW')],
-      [f32(1, 'visualTokens', 'hiddenDim')]
-    ),
-    ...method(
-      'token_embedding', //
-      [i64(1, 'seqLen')],
-      [f32(1, 'seqLen', 'hiddenDim')]
-    ),
-    ...METADATA_SPEC,
-  },
-} as const;
+  ...method(
+    'text_decoder', //
+    [f32(1, 'seqLen', 'hiddenDim'), i64('seqLen')],
+    [f32(1, 'vocabSize')]
+  ),
+  ...method(
+    'vision_encoder', //
+    [f32(1, 3, 'imgH', 'imgW')],
+    [f32(1, 'visualTokens', 'hiddenDim')]
+  ),
+  ...method(
+    'token_embedding', //
+    [i64(1, 'seqLen')],
+    [f32(1, 'seqLen', 'hiddenDim')]
+  ),
+  ...METADATA_SPEC,
+};
 
 export function createLLMMultimodalRunner(
   model: Model,

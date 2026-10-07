@@ -192,15 +192,14 @@ export async function createLLMRunner(
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
     const { variant, dims } = validateSpec(model.schema, {
-      ...LLM_TEXT_RUNNER_SPEC,
-      ...LLM_MULTIMODAL_RUNNER_SPEC,
+      text: LLM_TEXT_RUNNER_SPEC,
+      vision: LLM_MULTIMODAL_RUNNER_SPEC,
     });
 
     switch (variant) {
       case 'text':
         return createLLMTextRunner(model, tokenizer, dims, modalities);
       case 'vision':
-      case 'visionS':
         return createLLMMultimodalRunner(model, tokenizer, dims, modalities);
       default:
         throw RnExecuTorchError('LOAD_FAILED', `llmRunner: unrecognized variant ${variant}`);
