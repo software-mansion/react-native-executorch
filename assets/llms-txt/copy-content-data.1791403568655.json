@@ -23987,6 +23987,30 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/speech/type-aliases/PhonemizedText": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/speech/type-aliases/PhonemizedWord": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/speech/type-aliases/Phonemizer": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -24444,6 +24468,18 @@
     ]
   },
   "/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsOptions": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsWord": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
