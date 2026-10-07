@@ -47,8 +47,8 @@ export type ChatMessage = Readonly<
 export type LLMImagePreprocessorConfig = {
   /** Sentinel token delimiters inserted into Jinja prompts. */
   readonly visionToken: { readonly start: string; readonly end: string };
-  /** Fixed target shape expected by native LLM `[C, H, W]`. */
-  readonly targetShape: readonly [number, number, number];
+  /** Fixed target shape expected by native LLM `[C, H, W]` or `[1, C, H, W]`. */
+  readonly targetShape: readonly [number, number, number] | readonly [1, number, number, number];
   /** Image preprocessing options (normalization, resize mode, interpolation). */
   readonly preprocessorOpts: ImagePreprocessorOptions;
 };
@@ -306,7 +306,7 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig): ChatPrep
   const template = new Template(chatTemplate);
 
   let imgPreprocessor: ReturnType<typeof createImagePreprocessor> | undefined;
-  let imgShape: [number, number, number] | undefined;
+  let imgShape: [number, number, number] | [1, number, number, number] | undefined;
 
   if (preprocessorConfig?.image !== undefined) {
     imgShape = [...preprocessorConfig.image.targetShape];
