@@ -20,18 +20,16 @@ import type {
 } from '../llmRunner';
 
 export const LLM_TEXT_RUNNER_SPEC = {
-  text: {
-    ...method(
-      'forward', // prettier-ignore
-      [i64(1, Dyn('seqLen')), i64(1)],
-      [f32(1, 'vocabSize')]
-    ),
-    ...method('get_max_seq_len', [], [{ kind: 'Int' }]),
-    ...method('get_max_context_len', [], [{ kind: 'Int' }]),
-    ...method('get_vocab_size', [], [{ kind: 'Int' }]),
-    ...method('use_kv_cache', [], [{ kind: 'Bool' }]),
-    ...method('enable_dynamic_shape', [], [{ kind: 'Bool' }]),
-  },
+  ...method(
+    'forward', // prettier-ignore
+    [i64(1, Dyn('seqLen')), i64(1)],
+    [f32(1, 'vocabSize')]
+  ),
+  ...method('get_max_seq_len', [], [{ kind: 'Int' }]),
+  ...method('get_max_context_len', [], [{ kind: 'Int' }]),
+  ...method('get_vocab_size', [], [{ kind: 'Int' }]),
+  ...method('use_kv_cache', [], [{ kind: 'Bool' }]),
+  ...method('enable_dynamic_shape', [], [{ kind: 'Bool' }]),
 } as const;
 
 export function createLLMTextRunner(
