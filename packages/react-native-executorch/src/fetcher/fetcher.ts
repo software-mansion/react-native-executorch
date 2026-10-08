@@ -8,6 +8,7 @@ import {
   type BackgroundDownloadTask,
 } from './backgroundDownloader';
 import { RnExecuTorchError } from '../core/error';
+import { warnIfDeprecated } from '../deprecation';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -754,7 +755,7 @@ function substituteRemoteSources<T>(node: T, resolved: ReadonlyMap<string, strin
  * and type as the input and can be handed straight to a `create<Task>` factory:
  *
  * ```ts
- * const model = await download(models.classification.EFFICIENTNET_V2_S.XNNPACK_FP32);
+ * const model = await download(models.classification.EFFICIENTNET_V2_S.XNNPACK_INT8);
  * const { classify, dispose } = await createClassifier(model);
  * ```
  *
@@ -778,6 +779,7 @@ function substituteRemoteSources<T>(node: T, resolved: ReadonlyMap<string, strin
  */
 export async function download<T>(source: T, options: DownloadOptions = {}): Promise<T> {
   const urls = [...collectRemoteSources(source)];
+  warnIfDeprecated(urls);
 
   // Nothing to fetch — every source is already a local path.
   if (urls.length === 0) {

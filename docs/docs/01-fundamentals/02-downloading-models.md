@@ -53,7 +53,7 @@ import { useResourceDownload, models } from 'react-native-executorch';
 
 function Example() {
   const { resource, downloadProgress, downloadError } = useResourceDownload(
-    models.classification.EFFICIENTNET_V2_S.XNNPACK_FP32
+    models.classification.EFFICIENTNET_V2_S.XNNPACK_INT8
   );
 
   // resource is undefined until the download resolves, then mirrors the config
@@ -83,7 +83,7 @@ paths — ready to pass straight to a `create<Task>` factory:
 ```typescript
 import { download, models } from 'react-native-executorch';
 
-const model = await download(models.classification.EFFICIENTNET_V2_S.XNNPACK_FP32, {
+const model = await download(models.classification.EFFICIENTNET_V2_S.XNNPACK_INT8, {
   onProgress: (p) => console.log(`${Math.round(p * 100)}%`),
 });
 
