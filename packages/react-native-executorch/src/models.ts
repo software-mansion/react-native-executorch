@@ -453,6 +453,10 @@ const YOLO26_DETECTOR_OPTS = {
   defaultIouThreshold: 0.7,
 };
 
+const YOLO26_NANO_384_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/n/xnnpack/yolo26n_384_xnnpack_int8.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_NANO_384_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26/${VERSION_TAG}/n/xnnpack/yolo26n_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -463,6 +467,10 @@ const YOLO26_NANO_384_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = 
 };
 const YOLO26_NANO_384_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/n/vulkan/yolo26n_384_vulkan_fp16.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_NANO_512_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/n/xnnpack/yolo26n_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_NANO_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
@@ -494,6 +502,10 @@ const YOLO26_NANO_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = 
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
+const YOLO26_SMALL_384_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/s/xnnpack/yolo26s_384_xnnpack_int8.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_SMALL_384_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26/${VERSION_TAG}/s/xnnpack/yolo26s_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -504,6 +516,10 @@ const YOLO26_SMALL_384_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> =
 };
 const YOLO26_SMALL_384_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/s/vulkan/yolo26s_384_vulkan_fp16.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_SMALL_512_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/s/xnnpack/yolo26s_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_SMALL_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
@@ -535,6 +551,10 @@ const YOLO26_SMALL_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> =
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
+const YOLO26_MEDIUM_384_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/m/xnnpack/yolo26m_384_xnnpack_int8.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_MEDIUM_384_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26/${VERSION_TAG}/m/xnnpack/yolo26m_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -547,6 +567,10 @@ const YOLO26_MEDIUM_384_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> 
   modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/m/vulkan/yolo26m_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
+const YOLO26_MEDIUM_512_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/m/xnnpack/yolo26m_512_xnnpack_int8.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_MEDIUM_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26/${VERSION_TAG}/m/xnnpack/yolo26m_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -557,6 +581,10 @@ const YOLO26_MEDIUM_512_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> 
 };
 const YOLO26_MEDIUM_512_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/m/vulkan/yolo26m_512_vulkan_fp16.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_MEDIUM_640_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/m/xnnpack/yolo26m_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_MEDIUM_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
@@ -572,6 +600,10 @@ const YOLO26_MEDIUM_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> 
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
+const YOLO26_LARGE_384_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/l/xnnpack/yolo26l_384_xnnpack_int8.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_LARGE_384_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26/${VERSION_TAG}/l/xnnpack/yolo26l_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -584,6 +616,10 @@ const YOLO26_LARGE_384_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> =
   modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/l/vulkan/yolo26l_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
+const YOLO26_LARGE_512_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/l/xnnpack/yolo26l_512_xnnpack_int8.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_LARGE_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26/${VERSION_TAG}/l/xnnpack/yolo26l_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -594,6 +630,10 @@ const YOLO26_LARGE_512_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> =
 };
 const YOLO26_LARGE_512_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/l/vulkan/yolo26l_512_vulkan_fp16.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_LARGE_640_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/l/xnnpack/yolo26l_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_LARGE_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
@@ -609,6 +649,10 @@ const YOLO26_LARGE_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> =
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
+const YOLO26_XLARGE_384_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/x/xnnpack/yolo26x_384_xnnpack_int8.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_XLARGE_384_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26/${VERSION_TAG}/x/xnnpack/yolo26x_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -621,6 +665,10 @@ const YOLO26_XLARGE_384_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> 
   modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/x/vulkan/yolo26x_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
+const YOLO26_XLARGE_512_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/x/xnnpack/yolo26x_512_xnnpack_int8.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_XLARGE_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26/${VERSION_TAG}/x/xnnpack/yolo26x_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -631,6 +679,10 @@ const YOLO26_XLARGE_512_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> 
 };
 const YOLO26_XLARGE_512_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/x/vulkan/yolo26x_512_vulkan_fp16.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_XLARGE_640_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/x/xnnpack/yolo26x_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_XLARGE_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
@@ -2270,9 +2322,9 @@ export const models = {
      * sizes (NANO, SMALL, MEDIUM, LARGE, XLARGE) and resolutions (384x384,
      * 512x512, 640x640).
      */
-    // XNNPACK int8 at 640 for `NANO` and `SMALL`, with the Detect head and the
-    // first convolution kept fp32: COCO mAP50-95 44.58 -> 43.92 and 50.67 ->
-    // 50.06, 1.3x and 1.7x faster than fp32.
+    // XNNPACK int8 keeps the Detect head and the first convolution fp32. COCO
+    // mAP50-95 at 640 moves by -0.66 (n), -0.61 (s), -0.13 (m), +0.14 (l) and
+    // 0.00 (x), at 1.3x (n) to 2.5x (m, l, x) the speed of fp32.
     YOLO26: family({
       /**
        * Nano scale YOLO26 object detection model. High speed, ultra low
@@ -2280,11 +2332,13 @@ export const models = {
        */
       NANO: family({
         SIZE_384: variants({
+          XNNPACK_INT8: YOLO26_NANO_384_XNNPACK_INT8,
           XNNPACK_FP32: YOLO26_NANO_384_XNNPACK_FP32,
           COREML_FP16: YOLO26_NANO_384_COREML_FP16,
           VULKAN_FP16: YOLO26_NANO_384_VULKAN_FP16,
         }),
         SIZE_512: variants({
+          XNNPACK_INT8: YOLO26_NANO_512_XNNPACK_INT8,
           XNNPACK_FP32: YOLO26_NANO_512_XNNPACK_FP32,
           COREML_FP16: YOLO26_NANO_512_COREML_FP16,
           VULKAN_FP16: YOLO26_NANO_512_VULKAN_FP16,
@@ -2302,11 +2356,13 @@ export const models = {
        */
       SMALL: family({
         SIZE_384: variants({
+          XNNPACK_INT8: YOLO26_SMALL_384_XNNPACK_INT8,
           XNNPACK_FP32: YOLO26_SMALL_384_XNNPACK_FP32,
           COREML_FP16: YOLO26_SMALL_384_COREML_FP16,
           VULKAN_FP16: YOLO26_SMALL_384_VULKAN_FP16,
         }),
         SIZE_512: variants({
+          XNNPACK_INT8: YOLO26_SMALL_512_XNNPACK_INT8,
           XNNPACK_FP32: YOLO26_SMALL_512_XNNPACK_FP32,
           COREML_FP16: YOLO26_SMALL_512_COREML_FP16,
           VULKAN_FP16: YOLO26_SMALL_512_VULKAN_FP16,
@@ -2324,16 +2380,19 @@ export const models = {
        */
       MEDIUM: family({
         SIZE_384: variants({
+          XNNPACK_INT8: YOLO26_MEDIUM_384_XNNPACK_INT8,
           XNNPACK_FP32: YOLO26_MEDIUM_384_XNNPACK_FP32,
           COREML_FP16: YOLO26_MEDIUM_384_COREML_FP16,
           VULKAN_FP16: YOLO26_MEDIUM_384_VULKAN_FP16,
         }),
         SIZE_512: variants({
+          XNNPACK_INT8: YOLO26_MEDIUM_512_XNNPACK_INT8,
           XNNPACK_FP32: YOLO26_MEDIUM_512_XNNPACK_FP32,
           COREML_FP16: YOLO26_MEDIUM_512_COREML_FP16,
           VULKAN_FP16: YOLO26_MEDIUM_512_VULKAN_FP16,
         }),
         SIZE_640: variants({
+          XNNPACK_INT8: YOLO26_MEDIUM_640_XNNPACK_INT8,
           XNNPACK_FP32: YOLO26_MEDIUM_640_XNNPACK_FP32,
           COREML_FP16: YOLO26_MEDIUM_640_COREML_FP16,
           VULKAN_FP16: YOLO26_MEDIUM_640_VULKAN_FP16,
@@ -2344,16 +2403,19 @@ export const models = {
        */
       LARGE: family({
         SIZE_384: variants({
+          XNNPACK_INT8: YOLO26_LARGE_384_XNNPACK_INT8,
           XNNPACK_FP32: YOLO26_LARGE_384_XNNPACK_FP32,
           COREML_FP16: YOLO26_LARGE_384_COREML_FP16,
           VULKAN_FP16: YOLO26_LARGE_384_VULKAN_FP16,
         }),
         SIZE_512: variants({
+          XNNPACK_INT8: YOLO26_LARGE_512_XNNPACK_INT8,
           XNNPACK_FP32: YOLO26_LARGE_512_XNNPACK_FP32,
           COREML_FP16: YOLO26_LARGE_512_COREML_FP16,
           VULKAN_FP16: YOLO26_LARGE_512_VULKAN_FP16,
         }),
         SIZE_640: variants({
+          XNNPACK_INT8: YOLO26_LARGE_640_XNNPACK_INT8,
           XNNPACK_FP32: YOLO26_LARGE_640_XNNPACK_FP32,
           COREML_FP16: YOLO26_LARGE_640_COREML_FP16,
           VULKAN_FP16: YOLO26_LARGE_640_VULKAN_FP16,
@@ -2365,16 +2427,19 @@ export const models = {
        */
       XLARGE: family({
         SIZE_384: variants({
+          XNNPACK_INT8: YOLO26_XLARGE_384_XNNPACK_INT8,
           XNNPACK_FP32: YOLO26_XLARGE_384_XNNPACK_FP32,
           COREML_FP16: YOLO26_XLARGE_384_COREML_FP16,
           VULKAN_FP16: YOLO26_XLARGE_384_VULKAN_FP16,
         }),
         SIZE_512: variants({
+          XNNPACK_INT8: YOLO26_XLARGE_512_XNNPACK_INT8,
           XNNPACK_FP32: YOLO26_XLARGE_512_XNNPACK_FP32,
           COREML_FP16: YOLO26_XLARGE_512_COREML_FP16,
           VULKAN_FP16: YOLO26_XLARGE_512_VULKAN_FP16,
         }),
         SIZE_640: variants({
+          XNNPACK_INT8: YOLO26_XLARGE_640_XNNPACK_INT8,
           XNNPACK_FP32: YOLO26_XLARGE_640_XNNPACK_FP32,
           COREML_FP16: YOLO26_XLARGE_640_COREML_FP16,
           VULKAN_FP16: YOLO26_XLARGE_640_VULKAN_FP16,
