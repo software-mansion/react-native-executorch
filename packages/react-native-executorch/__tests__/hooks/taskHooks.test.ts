@@ -5,9 +5,10 @@
  */
 import { renderHook, waitFor } from '@testing-library/react-native';
 
-import { f32, method } from '../../src/core/schema';
+import { RangeDim, constraint, f32, i64, method } from '../../src/core/schema';
 import { setTelemetryEnabled } from '../../src/fetcher/telemetry';
 import { useClassifier } from '../../src/hooks/useClassifier';
+import { useColbertEmbedder } from '../../src/hooks/useColbertEmbedder';
 import { useTokenizer } from '../../src/hooks/useTokenizer';
 import { deferred, fakeNet } from '../support/blobUtilMock';
 import { cachePathFor } from '../support/cachePath';
@@ -177,6 +178,57 @@ describe('useTokenizer', () => {
 
     await unmount();
 
+    expect(fakeJsi.liveTokenizers()).toEqual([]);
+  });
+});
+
+describe('useColbertEmbedder', () => {
+  const seq = RangeDim(2, 16);
+  const colbertConfig = {
+    modelPath: MODEL_URL,
+    tokenizerPath: TOKENIZER_URL,
+    modelOpts: {
+      queryPrefixToken: '[Q]',
+      documentPrefixToken: '[D]',
+      queryLength: 4,
+      queryExpansionToken: '<exp>',
+      skiplistTokens: [],
+    },
+  };
+  const register = () => {
+    fakeJsi.registerModel(cachePathFor(MODEL_URL), {
+      schema: exported(
+        method(
+          'forward',
+          [i64(1, seq), i64(1, seq)],
+          [f32(1, seq, 2)],
+          [
+            constraint.equality(
+              { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
+              { paramSide: 'input', tensorIdx: 1, dimIdx: 1 },
+              { paramSide: 'output', tensorIdx: 0, dimIdx: 1 }
+            ),
+          ]
+        )
+      ),
+    });
+    fakeJsi.registerTokenizer(cachePathFor(TOKENIZER_URL), {
+      tokens: ['<exp>', '[Q]', '[D]', 'hello'],
+    });
+  };
+
+  it('loads the model and tokenizer, embeds, and releases both on unmount', async () => {
+    register();
+    const { result, unmount } = await renderHook(() => useColbertEmbedder(colbertConfig));
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+
+    const query = await result.current.embed!('hello', 'query');
+    expect(query.numTokens).toBe(4);
+    expect(result.current.embedWorklet).toBeInstanceOf(Function);
+
+    await unmount();
+
+    expect(fakeJsi.liveModels()).toEqual([]);
     expect(fakeJsi.liveTokenizers()).toEqual([]);
   });
 });
