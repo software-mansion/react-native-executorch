@@ -167,7 +167,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 switch (tag) {
                 case executorch::runtime::Tag::Tensor: {
                     const auto &tSpec = methodSpec.inputs[i];
-                    auto tensorHostObject = tensor::fromJs(rt, ctx, val, tSpec.dtype, tSpec.shape);
+                    auto tensorHostObject = tensor::fromJs(rt, ctx, val, tSpec.dtype, std::nullopt); // TODO: tSpec.shape);
 
                     if (!lockedTensors.insert(tensorHostObject.get()).second) {
                         throw error::InvalidArgument("execute: Tensor aliasing detected. "
