@@ -27,7 +27,6 @@ const METADATA_SPEC = {
   ...method('enable_dynamic_shape', [], [{ kind: 'Bool' }]),
 };
 
-// REPLACE WITH THIS AFTER REEXPORT
 export const LLM_MULTIMODAL_SPEC = {
   ...method(
     'text_decoder',
