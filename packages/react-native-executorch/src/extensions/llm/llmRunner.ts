@@ -1,5 +1,9 @@
 /**
- * Low-level native ExecuTorch LLM runner types and factory.
+ * Low-level ExecuTorch LLM runner types and factory.
+ *
+ * The runner drives a compiled `.pte` model through its prefill and decode loop
+ * in TypeScript, on top of `loadModel`, `loadTokenizer` and the native `sample`
+ * kernel.
  */
 
 import { type WorkletRuntime } from 'react-native-worklets';
@@ -21,7 +25,6 @@ declare const llmRunnerBrand: unique symbol;
 
 /**
  * Configuration options for LLM text generation.
- * @experimental This API is experimental and might change in future releases.
  * @category LLM / Types
  */
 export type LLMGenerationConfig = SamplingConfig & {
@@ -33,7 +36,6 @@ export type LLMGenerationConfig = SamplingConfig & {
 
 /**
  * Execution and performance statistics for a prefill phase.
- * @experimental This API is experimental and might change in future releases.
  * @category LLM / Types
  */
 export type LLMPrefillStats = {
@@ -47,7 +49,6 @@ export type LLMPrefillStats = {
 
 /**
  * Execution and performance statistics for a generation call.
- * @experimental This API is experimental and might change in future releases.
  * @category LLM / Types
  */
 export type LLMGenerationStats = {
@@ -63,7 +64,6 @@ export type LLMGenerationStats = {
 
 /**
  * Low-level non-text media input tensor payloads.
- * @experimental This API is experimental and might change in future releases.
  * @category LLM / Types
  */
 export type MediaInput =
@@ -72,21 +72,18 @@ export type MediaInput =
 
 /**
  * Supported non-text input modality keys (e.g. `'image'`, `'audio'`).
- * @experimental This API is experimental and might change in future releases.
  * @category LLM / Types
  */
 export type Modality = MediaInput['kind'];
 
 /**
  * Text or interleaved multimodal prompt input for a low-level LLM runner.
- * @experimental This API is experimental and might change in future releases.
  * @category LLM / Types
  */
 export type Prompt = string | readonly (string | MediaInput)[];
 
 /**
  * Current KV cache state and capacity metrics for an LLM runner.
- * @experimental This API is experimental and might change in future releases.
  * @category LLM / Types
  */
 export type LLMKVCacheState = {
@@ -101,10 +98,11 @@ export type LLMKVCacheState = {
 };
 
 /**
- * Handle to a native ExecuTorch LLM runner.
- * @experimental This API is experimental and might change in future releases. It
- * relies on experimental ExecuTorch runtime extensions and injected member-pointer
- * accessors to manage KV cache state that may evolve across releases.
+ * Handle to an ExecuTorch LLM runner.
+ *
+ * A runner owns a loaded model and its tokenizer, and tracks the KV cache
+ * position across calls, so successive `prefill` and `generate` calls continue
+ * the same sequence until it is `reset`. Obtain one via {@link createLLMRunner}.
  * @category LLM / Types
  */
 export type LLMRunner = {
@@ -165,17 +163,18 @@ export type LLMRunner = {
 };
 
 /**
- * Creates a native ExecuTorch LLM runner instance.
- * @experimental This API is experimental and might change in future releases. It
- * relies on experimental ExecuTorch runtime extensions and injected member-pointer
- * accessors to manage KV cache state that may evolve across releases.
+ * Creates an ExecuTorch LLM runner instance.
+ *
+ * Loads the model and its tokenizer, validates the model's exported methods
+ * against the supported runner specs, and returns the matching runner.
  * @category LLM / Functions
  * @param modelPath Path to the local `.pte` model file.
- * @param tokenizerPath Path to the local tokenizer configuration file (e.g. `tokenizer.json`).
+ * @param tokenizerPath Path to the local tokenizer file (e.g. `tokenizer.json`).
  * @param modalities List of supported input non-text modalities (e.g.
  * `['image']`). When omitted, defaults to text-only.
- * @param runtime ...
- * @returns A native {@link LLMRunner} instance.
+ * @param runtime Optional worklet runtime thread on which to load the model and
+ * tokenizer.
+ * @returns A promise resolving to the {@link LLMRunner} instance.
  */
 export async function createLLMRunner(
   modelPath: string,
