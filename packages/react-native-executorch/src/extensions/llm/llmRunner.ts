@@ -198,8 +198,6 @@ export async function createLLMRunner(
       visionDyn: LLM_MULTIMODAL_DYN_SPEC,
     });
 
-    console.log(variant);
-
     switch (variant) {
       case 'text':
         return createLLMTextRunner(model, tokenizer, modalities);
