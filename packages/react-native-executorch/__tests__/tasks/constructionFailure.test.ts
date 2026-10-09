@@ -2,7 +2,7 @@
  * What a `create<Task>` factory leaves behind when it throws.
  *
  * Every factory follows the same shape: load a model (and, depending on the
- * task, a tokenizer, a phonemizer, an LLM runner or a whole nested pipeline),
+ * task, a tokenizer, a phonemizer or a whole nested pipeline),
  * validate the schema, pre-allocate the execution tensors, and only then hand
  * back a `dispose`. A failure anywhere after the first allocation means the
  * caller never receives that `dispose`, so whatever was already allocated is
@@ -132,12 +132,11 @@ const factories: Record<string, () => Promise<unknown>> = {
 const stillAllocated = () => ({
   models: fakeJsi.liveModels(),
   tokenizers: fakeJsi.liveTokenizers(),
-  runners: fakeJsi.liveRunners(),
   phonemizers: fakeJsi.livePhonemizers(),
   tensors: fakeJsi.liveTensorDescriptions(),
 });
 
-const NOTHING = { models: [], tokenizers: [], runners: [], phonemizers: [], tensors: [] };
+const NOTHING = { models: [], tokenizers: [], phonemizers: [], tensors: [] };
 
 describe('create<Task> — schema validation failure', () => {
   beforeEach(() => {
