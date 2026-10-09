@@ -34,12 +34,12 @@ export const LLM_MULTIMODAL_SPEC = {
     [f32(1, 'vocabSize')]
   ),
   ...method(
-    'vision_encoder', //
+    'vision_encoder', // prettier-ignore
     [f32(1, 3, 'imgH', 'imgW')],
     [f32(1, 'visualTokens', 'hiddenDim')]
   ),
   ...method(
-    'token_embedding', //
+    'token_embedding', // prettier-ignore
     [i64(1, Dyn('seqLen'))],
     [f32(1, Dyn('seqLen'), 'hiddenDim')]
   ),
