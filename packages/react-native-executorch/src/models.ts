@@ -1755,20 +1755,22 @@ const LFM2_5_VL_1_6B_XNNPACK_8DA4W: LLMModel = {
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
-// const LFM2_5_VL_450M_VULKAN_8DA4W: LLMModel = {
-//   modelPath: `${LFM2_5_BASE_URL}/vl_450m/vulkan/lfm_2_5_vl_450m_vulkan_8da4w.pte`,
-//   tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
-//   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
-//   modalities: ['image'],
-//   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
-// };
-// const LFM2_5_VL_1_6B_VULKAN_8DA4W: LLMModel = {
-//   modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/vulkan/lfm_2_5_vl_1_6b_vulkan_8da4w.pte`,
-//   tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
-//   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
-//   modalities: ['image'],
-//   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
-// };
+// TODO: re-export for the TypeScript LLM runner; this build fails to load until then.
+const LFM2_5_VL_450M_VULKAN_8DA4W: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/vl_450m/vulkan/lfm_2_5_vl_450m_vulkan_8da4w.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
+  modalities: ['image'],
+  preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
+};
+// TODO: re-export for the TypeScript LLM runner; this build fails to load until then.
+const LFM2_5_VL_1_6B_VULKAN_8DA4W: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/vulkan/lfm_2_5_vl_1_6b_vulkan_8da4w.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
+  modalities: ['image'],
+  preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
+};
 const LFM2_5_VL_1_6B_MLX_INT4: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/lfm_2_5_vl_1_6b_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
@@ -1776,13 +1778,14 @@ const LFM2_5_VL_1_6B_MLX_INT4: LLMModel = {
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
-// const LFM2_5_VL_1_6B_MLX_INT8: LLMModel = {
-//   modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/mlx/lfm_2_5_vl_1_6b_mlx_int8.pte`,
-//   tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
-//   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
-//   modalities: ['image'],
-//   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
-// };
+// TODO: re-export for the TypeScript LLM runner; this build fails to load until then.
+const LFM2_5_VL_1_6B_MLX_INT8: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/mlx/lfm_2_5_vl_1_6b_mlx_int8.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
+  modalities: ['image'],
+  preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
+};
 
 const BIELIK_V3_1_5B_BASE_URL = `${BASE_URL}-bielik-v3.0/${VERSION_TAG}`;
 
@@ -1832,21 +1835,24 @@ const SMOLLM2_1_7B_8DA8W: LLMModel = {
   tokenizerPath: `${SMOLLM2_BASE_URL}/1_7b/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/1_7b/tokenizer_config.json`,
 };
-// const SMOLLM2_135M_MLX_INT8: LLMModel = {
-//   modelPath: `${SMOLLM2_BASE_URL}/135m/mlx/smollm2_135m_mlx_int8.pte`,
-//   tokenizerPath: `${SMOLLM2_BASE_URL}/135m/tokenizer.json`,
-//   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/135m/tokenizer_config.json`,
-// };
-// const SMOLLM2_360M_MLX_INT8: LLMModel = {
-//   modelPath: `${SMOLLM2_BASE_URL}/360m/mlx/smollm2_360m_mlx_int8.pte`,
-//   tokenizerPath: `${SMOLLM2_BASE_URL}/360m/tokenizer.json`,
-//   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/360m/tokenizer_config.json`,
-// };
-// const SMOLLM2_1_7B_MLX_INT8: LLMModel = {
-//   modelPath: `${SMOLLM2_BASE_URL}/1_7b/mlx/smollm2_1_7b_mlx_int8.pte`,
-//   tokenizerPath: `${SMOLLM2_BASE_URL}/1_7b/tokenizer.json`,
-//   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/1_7b/tokenizer_config.json`,
-// };
+// TODO: re-export for the TypeScript LLM runner; this build fails to load until then.
+const SMOLLM2_135M_MLX_INT8: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/135m/mlx/smollm2_135m_mlx_int8.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/135m/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/135m/tokenizer_config.json`,
+};
+// TODO: re-export for the TypeScript LLM runner; this build fails to load until then.
+const SMOLLM2_360M_MLX_INT8: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/360m/mlx/smollm2_360m_mlx_int8.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/360m/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/360m/tokenizer_config.json`,
+};
+// TODO: re-export for the TypeScript LLM runner; this build fails to load until then.
+const SMOLLM2_1_7B_MLX_INT8: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/1_7b/mlx/smollm2_1_7b_mlx_int8.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/1_7b/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/1_7b/tokenizer_config.json`,
+};
 
 const HAMMER2_1_BASE_URL = `${BASE_URL}-hammer-2.1/${VERSION_TAG}`;
 
@@ -1927,23 +1933,26 @@ const QWEN2_5_3B_MLX_INT4: LLMModel = {
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/3b/tokenizer_config.json`,
 };
 
-// const GEMMA4_BASE_URL = `${BASE_URL}-gemma-4/${VERSION_TAG}`;
+const GEMMA4_BASE_URL = `${BASE_URL}-gemma-4/${VERSION_TAG}`;
 
-// const GEMMA4_E2B_XNNPACK_8DA4W: LLMModel = {
-//   modelPath: `${GEMMA4_BASE_URL}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`,
-//   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
-//   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
-// };
-// const GEMMA4_E2B_VULKAN_8DA4W: LLMModel = {
-//   modelPath: `${GEMMA4_BASE_URL}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`,
-//   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
-//   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
-// };
-// const GEMMA4_E2B_MLX_INT4: LLMModel = {
-//   modelPath: `${GEMMA4_BASE_URL}/e2b/mlx/gemma4_e2b_mlx_int4.pte`,
-//   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
-//   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
-// };
+// TODO: re-export for the TypeScript LLM runner; this build fails to load until then.
+const GEMMA4_E2B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${GEMMA4_BASE_URL}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
+  tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
+};
+// TODO: re-export for the TypeScript LLM runner; this build fails to load until then.
+const GEMMA4_E2B_VULKAN_8DA4W: LLMModel = {
+  modelPath: `${GEMMA4_BASE_URL}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`,
+  tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
+  tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
+};
+// TODO: re-export for the TypeScript LLM runner; this build fails to load until then.
+const GEMMA4_E2B_MLX_INT4: LLMModel = {
+  modelPath: `${GEMMA4_BASE_URL}/e2b/mlx/gemma4_e2b_mlx_int4.pte`,
+  tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
+  tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
+};
 
 const QWEN3_BASE_URL = `${BASE_URL}-qwen-3/${VERSION_TAG}`;
 
@@ -2673,7 +2682,7 @@ export const models = {
     LFM2_5_VL_450M: variants({
       XNNPACK_8DA4W: LFM2_5_VL_450M_XNNPACK_8DA4W,
       MLX_INT4: LFM2_5_VL_450M_MLX_INT4,
-      // VULKAN_8DA4W: LFM2_5_VL_450M_VULKAN_8DA4W,
+      VULKAN_8DA4W: LFM2_5_VL_450M_VULKAN_8DA4W,
     }),
     /**
      * Liquid AI LFM 2.5 VL 1.6B high-capacity vision-language model. Provides
@@ -2683,9 +2692,9 @@ export const models = {
      */
     LFM2_5_VL_1_6B: variants({
       XNNPACK_8DA4W: LFM2_5_VL_1_6B_XNNPACK_8DA4W,
-      // VULKAN_8DA4W: LFM2_5_VL_1_6B_VULKAN_8DA4W,
+      VULKAN_8DA4W: LFM2_5_VL_1_6B_VULKAN_8DA4W,
       MLX_INT4: LFM2_5_VL_1_6B_MLX_INT4,
-      // MLX_INT8: LFM2_5_VL_1_6B_MLX_INT8,
+      MLX_INT8: LFM2_5_VL_1_6B_MLX_INT8,
     }),
     /**
      * Bielik v3 1.5B bilingual Polish & English language model, developed by
@@ -2724,7 +2733,7 @@ export const models = {
      */
     SMOLLM2_135M: variants({
       XNNPACK_8DA8W: SMOLLM2_135M_8DA8W,
-      // MLX_INT8: SMOLLM2_135M_MLX_INT8,
+      MLX_INT8: SMOLLM2_135M_MLX_INT8,
     }),
     /**
      * Hugging Face SmolLM2 360M compact instruction-tuned model. Provides a
@@ -2734,7 +2743,7 @@ export const models = {
      */
     SMOLLM2_360M: variants({
       XNNPACK_8DA8W: SMOLLM2_360M_8DA8W,
-      // MLX_INT8: SMOLLM2_360M_MLX_INT8,
+      MLX_INT8: SMOLLM2_360M_MLX_INT8,
     }),
     /**
      * Hugging Face SmolLM2 1.7B language model trained on curated educational,
@@ -2744,7 +2753,7 @@ export const models = {
      */
     SMOLLM2_1_7B: variants({
       XNNPACK_8DA8W: SMOLLM2_1_7B_8DA8W,
-      // MLX_INT8: SMOLLM2_1_7B_MLX_INT8,
+      MLX_INT8: SMOLLM2_1_7B_MLX_INT8,
     }),
     /**
      * Hammer 2.1 0.5B specialized function-calling model. Fine-tuned
@@ -2849,11 +2858,11 @@ export const models = {
      * following, creative text generation, and reasoning efficiency optimized
      * for mobile deployment.
      */
-    // GEMMA4_E2B: variants({
-    //   XNNPACK_8DA4W: GEMMA4_E2B_XNNPACK_8DA4W,
-    //   VULKAN_8DA4W: GEMMA4_E2B_VULKAN_8DA4W,
-    //   MLX_INT4: GEMMA4_E2B_MLX_INT4,
-    // }),
+    GEMMA4_E2B: variants({
+      XNNPACK_8DA4W: GEMMA4_E2B_XNNPACK_8DA4W,
+      VULKAN_8DA4W: GEMMA4_E2B_VULKAN_8DA4W,
+      MLX_INT4: GEMMA4_E2B_MLX_INT4,
+    }),
   },
   /**
    * Text embedding models mapping sentences and documents into dense vector
