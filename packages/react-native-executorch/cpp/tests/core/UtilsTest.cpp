@@ -53,7 +53,7 @@ TEST_F(UtilsTest, InstallsTheModuleUnderItsProductionName) {
     EXPECT_TRUE(evalBool("return __rnexecutorch_jsi__.cv === undefined;"));
 #endif
 
-    for (const auto *name : {"math", "nlp", "speech"}) {
+    for (const auto *name : {"math", "nlp", "speech", "llm"}) {
         EXPECT_TRUE(evalBool(std::string("return typeof __rnexecutorch_jsi__.") + name + " === 'object';"))
             << "missing extension namespace: " << name;
     }

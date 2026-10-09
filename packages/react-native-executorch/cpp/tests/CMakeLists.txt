@@ -351,7 +351,8 @@ set(TEST_SUITES
   core/SchemaTest.cpp
   core/UtilsTest.cpp
   extensions/MathOpsTest.cpp
-  extensions/SpeechOpsTest.cpp)
+  extensions/SpeechOpsTest.cpp
+  extensions/LlmOpsTest.cpp)
 
 if(RNE_TESTS_ENABLE_OPENCV)
   list(APPEND TEST_SUITES extensions/CvOpsTest.cpp extensions/OcrOpsTest.cpp)
