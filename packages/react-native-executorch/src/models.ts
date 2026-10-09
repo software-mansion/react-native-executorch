@@ -1822,69 +1822,69 @@ const SMOLLM2_BASE_URL = `${BASE_URL}-smolLm-2/${VERSION_TAG}`;
 
 const SMOLLM2_135M_8DA8W: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/smollm2_135m_xnnpack_8da8w_16k.pte`,
-  tokenizerPath: `${SMOLLM2_BASE_URL}/135m/tokenizer.json`,
-  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/135m/tokenizer_config.json`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 const SMOLLM2_360M_8DA8W: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/smollm2_360m_xnnpack_8da8w_16k.pte`,
-  tokenizerPath: `${SMOLLM2_BASE_URL}/360m/tokenizer.json`,
-  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/360m/tokenizer_config.json`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 const SMOLLM2_1_7B_8DA8W: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/smollm2_1_7b_xnnpack_8da8w_2k.pte`,
-  tokenizerPath: `${SMOLLM2_BASE_URL}/1_7b/tokenizer.json`,
-  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/1_7b/tokenizer_config.json`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 // TODO: re-export for the TypeScript LLM runner; this build fails to load until then.
 const SMOLLM2_135M_MLX_INT8: LLMModel = {
   modelPath: `${SMOLLM2_BASE_URL}/135m/mlx/smollm2_135m_mlx_int8.pte`,
-  tokenizerPath: `${SMOLLM2_BASE_URL}/135m/tokenizer.json`,
-  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/135m/tokenizer_config.json`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 // TODO: re-export for the TypeScript LLM runner; this build fails to load until then.
 const SMOLLM2_360M_MLX_INT8: LLMModel = {
   modelPath: `${SMOLLM2_BASE_URL}/360m/mlx/smollm2_360m_mlx_int8.pte`,
-  tokenizerPath: `${SMOLLM2_BASE_URL}/360m/tokenizer.json`,
-  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/360m/tokenizer_config.json`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 // TODO: re-export for the TypeScript LLM runner; this build fails to load until then.
 const SMOLLM2_1_7B_MLX_INT8: LLMModel = {
   modelPath: `${SMOLLM2_BASE_URL}/1_7b/mlx/smollm2_1_7b_mlx_int8.pte`,
-  tokenizerPath: `${SMOLLM2_BASE_URL}/1_7b/tokenizer.json`,
-  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/1_7b/tokenizer_config.json`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 
 const HAMMER2_1_BASE_URL = `${BASE_URL}-hammer-2.1/${VERSION_TAG}`;
 
 const HAMMER2_1_0_5B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/hammer_2_1_0_5b_xnnpack_8da4w_16k.pte`,
-  tokenizerPath: `${HAMMER2_1_BASE_URL}/0_5b/tokenizer.json`,
-  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/0_5b/tokenizer_config.json`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_1_5B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/hammer_2_1_1_5b_xnnpack_8da4w_16k.pte`,
-  tokenizerPath: `${HAMMER2_1_BASE_URL}/1_5b/tokenizer.json`,
-  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/1_5b/tokenizer_config.json`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_3B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/hammer_2_1_3b_xnnpack_8da4w_8k.pte`,
-  tokenizerPath: `${HAMMER2_1_BASE_URL}/3b/tokenizer.json`,
-  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/3b/tokenizer_config.json`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_0_5B_MLX_INT4: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/hammer_2_1_0_5b_mlx_4w_16k.pte`,
-  tokenizerPath: `${HAMMER2_1_BASE_URL}/0_5b/tokenizer.json`,
-  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/0_5b/tokenizer_config.json`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_1_5B_MLX_INT4: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/hammer_2_1_1_5b_mlx_4w_16k.pte`,
-  tokenizerPath: `${HAMMER2_1_BASE_URL}/1_5b/tokenizer.json`,
-  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/1_5b/tokenizer_config.json`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_3B_MLX_INT4: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/hammer_2_1_3b_mlx_4w_8k.pte`,
-  tokenizerPath: `${HAMMER2_1_BASE_URL}/3b/tokenizer.json`,
-  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/3b/tokenizer_config.json`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 
 const PHI4_MINI_BASE_URL = `${BASE_URL}-phi-4-mini/${VERSION_TAG}`;
@@ -1904,33 +1904,33 @@ const QWEN2_5_BASE_URL = `${BASE_URL}-qwen-2.5/${VERSION_TAG}`;
 
 const QWEN2_5_0_5B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_2_5_0_5b_xnnpack_8da4w_16k.pte`,
-  tokenizerPath: `${QWEN2_5_BASE_URL}/0_5b/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/0_5b/tokenizer_config.json`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_1_5B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_2_5_1_5b_xnnpack_8da4w_16k.pte`,
-  tokenizerPath: `${QWEN2_5_BASE_URL}/1_5b/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/1_5b/tokenizer_config.json`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_3B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_2_5_3b_xnnpack_8da4w_8k.pte`,
-  tokenizerPath: `${QWEN2_5_BASE_URL}/3b/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/3b/tokenizer_config.json`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_0_5B_MLX_INT4: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_2_5_0_5b_mlx_4w_16k.pte`,
-  tokenizerPath: `${QWEN2_5_BASE_URL}/0_5b/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/0_5b/tokenizer_config.json`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_1_5B_MLX_INT4: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_2_5_1_5b_mlx_4w_16k.pte`,
-  tokenizerPath: `${QWEN2_5_BASE_URL}/1_5b/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/1_5b/tokenizer_config.json`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_3B_MLX_INT4: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_2_5_3b_mlx_4w_8k.pte`,
-  tokenizerPath: `${QWEN2_5_BASE_URL}/3b/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/3b/tokenizer_config.json`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 
 const GEMMA4_BASE_URL = `${BASE_URL}-gemma-4/${VERSION_TAG}`;
@@ -1958,33 +1958,33 @@ const QWEN3_BASE_URL = `${BASE_URL}-qwen-3/${VERSION_TAG}`;
 
 const QWEN3_0_6B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen3_0_6b_xnnpack_8da4w_8k.pte`,
-  tokenizerPath: `${QWEN3_BASE_URL}/0_6b/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN3_BASE_URL}/0_6b/tokenizer_config.json`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_1_7B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen3_1_7b_xnnpack_8da4w_4k.pte`,
-  tokenizerPath: `${QWEN3_BASE_URL}/1_7b/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN3_BASE_URL}/1_7b/tokenizer_config.json`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_4B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen3_4b_xnnpack_8da4w_4k.pte`,
-  tokenizerPath: `${QWEN3_BASE_URL}/4b/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN3_BASE_URL}/4b/tokenizer_config.json`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_0_6B_MLX_INT4: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_3_0_6b_mlx_4w_8k.pte`,
-  tokenizerPath: `${QWEN3_BASE_URL}/0_6b/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN3_BASE_URL}/0_6b/tokenizer_config.json`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_1_7B_MLX_INT4: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_3_1_7b_mlx_4w_4k.pte`,
-  tokenizerPath: `${QWEN3_BASE_URL}/1_7b/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN3_BASE_URL}/1_7b/tokenizer_config.json`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_4B_MLX_INT4: LLMModel = {
   modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_3_4b_mlx_4w_4k.pte`,
-  tokenizerPath: `${QWEN3_BASE_URL}/4b/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN3_BASE_URL}/4b/tokenizer_config.json`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 
 /**
