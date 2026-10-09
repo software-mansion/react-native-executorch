@@ -190,7 +190,7 @@ export function createLLMTextRunner(
         const genTokArray = Int32Array.from(generatedTokens);
         const nextToken = sample(tLogits, { generatedTokens: genTokArray }, config);
 
-        onToken?.(tokenizer.decode(Int32Array.of(nextToken)));
+        onToken?.(tokenizer.decode(Int32Array.of(nextToken), /* skipSpecialTokens= */ false));
         generatedTokens.push(nextToken);
 
         if (!config?.ignoreEos && eosIds.includes(nextToken)) break;
