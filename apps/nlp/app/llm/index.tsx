@@ -49,9 +49,9 @@ function LLMContent() {
     if (Platform.OS === 'ios') {
       list.push({ label: 'MLX (Apple GPU)', value: 'mlx' });
     }
-    // if (Platform.OS === 'android') {
-    //   list.push({ label: 'Vulkan', value: 'vulkan' });
-    // }
+    if (Platform.OS === 'android') {
+      list.push({ label: 'Vulkan (Android GPU)', value: 'vulkan' });
+    }
     return list;
   }, []);
 
