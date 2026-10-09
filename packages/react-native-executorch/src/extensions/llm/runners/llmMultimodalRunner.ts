@@ -28,7 +28,7 @@ const METADATA_SPEC = {
 };
 
 // REPLACE WITH THIS AFTER REEXPORT
-export const LLM_MULTIMODAL_DYN_SPEC = {
+export const LLM_MULTIMODAL_SPEC = {
   ...method(
     'text_decoder',
     [f32(1, Dyn('seqLen'), 'hiddenDim'), i64(Dyn('seqLen'))],
@@ -47,25 +47,6 @@ export const LLM_MULTIMODAL_DYN_SPEC = {
   ...METADATA_SPEC,
 };
 
-export const LLM_MULTIMODAL_SPEC = {
-  ...method(
-    'text_decoder', // prettier-ignore
-    [f32(1, 'seqLen', 'hiddenDim'), i64('seqLen')],
-    [f32(1, 'vocabSize')]
-  ),
-  ...method(
-    'vision_encoder', // prettier-ignore
-    [f32(1, 3, 'imgH', 'imgW')],
-    [f32(1, 'visualTokens', 'hiddenDim')]
-  ),
-  ...method(
-    'token_embedding', // prettier-ignore
-    [i64(1, 'seqLen')],
-    [f32(1, 'seqLen', 'hiddenDim')]
-  ),
-  ...METADATA_SPEC,
-};
-
 export function createLLMMultimodalRunner(
   model: Model,
   tokenizer: Tokenizer,
@@ -78,17 +59,14 @@ export function createLLMMultimodalRunner(
     );
   }
 
-  const { dims } = validateSpec(model.schema, {
-    static: LLM_MULTIMODAL_SPEC,
-    dynamic: LLM_MULTIMODAL_DYN_SPEC,
-  });
+  const { dims, dim } = validateSpec(model.schema, { default: LLM_MULTIMODAL_SPEC });
 
   const [imgH, imgW, vocabSize] = dims.constant('imgH', 'imgW', 'vocabSize');
   const [hiddenDim, numVisualTokens] = dims.constant('hiddenDim', 'visualTokens');
-  const [maxSeqLen] = model.execute('get_max_seq_len', [], []) as [number]; // TODO: change to dims
-  const [maxContextLen] = model.execute('get_max_context_len', [], []) as [number];
-
+  const maxSeqLen = dim('seqLen', 'range').max;
   const imgShape = [1, 3, imgH, imgW] as const;
+
+  const [maxContextLen] = model.execute('get_max_context_len', [], []) as [number];
   const eosIds = model.execute('get_eos_ids', [], []) as number[];
 
   if (maxContextLen < maxSeqLen || !Number.isInteger(maxContextLen)) {
