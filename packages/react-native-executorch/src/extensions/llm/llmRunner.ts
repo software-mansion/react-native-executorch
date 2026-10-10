@@ -1,53 +1,70 @@
 /**
- * Low-level native ExecuTorch LLM runner types and factory.
+ * Low-level ExecuTorch LLM runner types and factory.
+ *
+ * The runner drives a compiled `.pte` model through its prefill and decode loop
+ * in TypeScript, on top of `loadModel`, `loadTokenizer` and the native `sample`
+ * kernel.
  */
 
+import { type WorkletRuntime } from 'react-native-worklets';
+
 import type { Tensor } from '../../core/tensor';
-import { rnexecutorchJsi } from '../../native/bridge';
+import { wrapAsync } from '../../core/runtime';
+import { loadModel } from '../../core/model';
+import { RnExecuTorchError } from '../../core/error';
+import { createResourceScope } from '../../core/lifetime';
+import { validateSpec } from '../../core/schema';
+
+import { loadTokenizer } from '../nlp';
+
+import type { SamplingConfig } from './sampler';
+import { createLLMTextRunner, LLM_TEXT_SPEC } from './runners/llmTextRunner';
+import { createLLMMultimodalRunner, LLM_MULTIMODAL_SPEC } from './runners/llmMultimodalRunner';
+import { createLLMGemmaRunner, LLM_GEMMA_SPEC } from './runners/llmGemmaRunner';
 
 declare const llmRunnerBrand: unique symbol;
 
 /**
  * Configuration options for LLM text generation.
- * @experimental This API is experimental and might change in future releases.
  * @category LLM / Types
  */
-export type LLMGenerationConfig = {
+export type LLMGenerationConfig = SamplingConfig & {
   /** Whether to ignore EOS tokens during generation. */
   readonly ignoreEos?: boolean;
   /** Maximum number of new tokens to generate. */
   readonly maxNewTokens?: number;
-  /** Sampling temperature for token selection. */
-  readonly temperature?: number;
+};
+
+/**
+ * Execution and performance statistics for a prefill phase.
+ * @category LLM / Types
+ */
+export type LLMPrefillStats = {
+  /** Number of tokens processed during prefill. */
+  readonly numTokens: number;
+  /** Duration in milliseconds spent in prefill. */
+  readonly durationMs: number;
+  /** Prefill throughput in tokens per second. */
+  readonly tokensPerSecond: number;
 };
 
 /**
  * Execution and performance statistics for a generation call.
- * @experimental This API is experimental and might change in future releases.
  * @category LLM / Types
  */
 export type LLMGenerationStats = {
-  /** Number of tokens in the input prompt. */
-  readonly numPromptTokens: number;
   /** Number of newly generated tokens. */
-  readonly numGeneratedTokens: number;
-  /** Timestamp in milliseconds when the first token was generated. */
-  readonly firstTokenMs: number;
-  /** Duration in milliseconds spent in the separate prefill phase (if any). */
-  readonly prefillDurationMs?: number;
-  /** Timestamp in milliseconds when inference started. */
-  readonly inferenceStartMs: number;
-  /** Timestamp in milliseconds when inference completed. */
-  readonly inferenceEndMs: number;
-  /** Timestamp in milliseconds when model loading started. */
-  readonly modelLoadStartMs: number;
-  /** Timestamp in milliseconds when model loading completed. */
-  readonly modelLoadEndMs: number;
+  readonly numTokens: number;
+  /** Duration in milliseconds spent in decode generation. */
+  readonly durationMs: number;
+  /** Generation throughput in tokens per second. */
+  readonly tokensPerSecond: number;
+  /** Performance statistics of the prefill phase. */
+  readonly prefill: LLMPrefillStats;
 };
 
 /**
  * Low-level non-text media input tensor payloads.
- * @experimental This API is experimental and might change in future releases.
  * @category LLM / Types
  */
 export type MediaInput =
@@ -56,28 +73,25 @@ export type MediaInput =
 
 /**
  * Supported non-text input modality keys (e.g. `'image'`, `'audio'`).
- * @experimental This API is experimental and might change in future releases.
  * @category LLM / Types
  */
 export type Modality = MediaInput['kind'];
 
 /**
  * Text or interleaved multimodal prompt input for a low-level LLM runner.
- * @experimental This API is experimental and might change in future releases.
  * @category LLM / Types
  */
 export type Prompt = string | readonly (string | MediaInput)[];
 
 /**
  * Current KV cache state and capacity metrics for an LLM runner.
- * @experimental This API is experimental and might change in future releases.
  * @category LLM / Types
  */
 export type LLMKVCacheState = {
   /** Current token position index / number of occupied tokens in the KV cache. */
   readonly pos: number;
   /** Maximum token capacity (context window) supported by the model. */
-  readonly maxSeqLen: number;
+  readonly maxContextLen: number;
   /** Remaining token capacity before the context window is full. */
   readonly remainingTokens: number;
   /** Fraction of the context window currently occupied (0.0 to 1.0). */
@@ -85,10 +99,11 @@ export type LLMKVCacheState = {
 };
 
 /**
- * Handle to a native ExecuTorch LLM runner.
- * @experimental This API is experimental and might change in future releases. It
- * relies on experimental ExecuTorch runtime extensions and injected member-pointer
- * accessors to manage KV cache state that may evolve across releases.
+ * Handle to an ExecuTorch LLM runner.
+ *
+ * A runner owns a loaded model and its tokenizer, and tracks the KV cache
+ * position across calls, so successive `prefill` and `generate` calls continue
+ * the same sequence until it is `reset`. Obtain one via {@link createLLMRunner}.
  * @category LLM / Types
  */
 export type LLMRunner = {
@@ -124,8 +139,9 @@ export type LLMRunner = {
   /**
    * Prefills the runner with a prompt to build up the KV cache.
    * @param prompt The prefill text or multimodal prompt.
+   * @returns Prefill performance statistics.
    */
-  prefill(prompt: Prompt): void;
+  prefill(prompt: Prompt): LLMPrefillStats;
 
   /**
    * Generates text continuation from a prompt.
@@ -148,22 +164,48 @@ export type LLMRunner = {
 };
 
 /**
- * Creates a native ExecuTorch LLM runner instance.
- * @experimental This API is experimental and might change in future releases. It
- * relies on experimental ExecuTorch runtime extensions and injected member-pointer
- * accessors to manage KV cache state that may evolve across releases.
+ * Creates an ExecuTorch LLM runner instance.
+ *
+ * Loads the model and its tokenizer, validates the model's exported methods
+ * against the supported runner specs, and returns the matching runner.
  * @category LLM / Functions
  * @param modelPath Path to the local `.pte` model file.
- * @param tokenizerPath Path to the local tokenizer configuration file (e.g. `tokenizer.json`).
+ * @param tokenizerPath Path to the local tokenizer file (e.g. `tokenizer.json`).
  * @param modalities List of supported input non-text modalities (e.g.
  * `['image']`). When omitted, defaults to text-only.
- * @returns A native {@link LLMRunner} instance.
+ * @param runtime Optional worklet runtime thread on which to load the model and
+ * tokenizer.
+ * @returns A promise resolving to the {@link LLMRunner} instance.
  */
-export function createLLMRunner(
+export async function createLLMRunner(
   modelPath: string,
   tokenizerPath: string,
-  modalities?: readonly Modality[]
-): LLMRunner {
-  'worklet';
-  return rnexecutorchJsi.llm.createLLMRunner(modelPath, tokenizerPath, modalities ?? []);
+  modalities?: readonly Modality[],
+  runtime?: WorkletRuntime
+): Promise<LLMRunner> {
+  const scope = createResourceScope();
+  try {
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
+    const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
+
+    const { variant } = validateSpec(model.schema, {
+      text: LLM_TEXT_SPEC,
+      vision: LLM_MULTIMODAL_SPEC,
+      gemma: LLM_GEMMA_SPEC,
+    });
+
+    switch (variant) {
+      case 'text':
+        return createLLMTextRunner(model, tokenizer, modalities);
+      case 'vision':
+        return createLLMMultimodalRunner(model, tokenizer, modalities);
+      case 'gemma':
+        return createLLMGemmaRunner(model, tokenizer, modalities);
+      default:
+        throw RnExecuTorchError('LOAD_FAILED', `llmRunner: unrecognized variant ${variant}`);
+    }
+  } catch (e) {
+    scope.dispose();
+    throw e;
+  }
 }

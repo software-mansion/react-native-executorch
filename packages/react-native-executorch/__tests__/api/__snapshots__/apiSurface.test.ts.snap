@@ -53,6 +53,7 @@ exports[`public API surface matches the recorded contents of each namespace 1`] 
     "createChatPreprocessor",
     "createLLMRunner",
     "parseTokenizerConfig",
+    "sample",
   ],
   "math": [
     "argmax",

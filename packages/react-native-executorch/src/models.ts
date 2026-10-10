@@ -1700,34 +1700,25 @@ const PPOCRV6_SMALL_VULKAN_FP16: PaddleOcrModel = {
 // LLMs
 // =============================================================================
 const LFM2_5_BASE_URL = `${BASE_URL}-lfm-2.5/${VERSION_TAG}`;
+const SCRATCH_LLMS_BASE_URL = 'https://huggingface.co/bhanc/scratch/resolve/main/llms';
 
 const LFM2_5_1_2B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_8da4w.pte`,
-  tokenizerPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer.json`,
-  tokenizerConfigPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer_config.json`,
-};
-const LFM2_5_1_2B_XNNPACK_FP16: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_fp16.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/lfm_2_5_1_2b_xnnpack_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer_config.json`,
 };
 const LFM2_5_1_2B_MLX_INT4: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/1_2b/mlx/lfm_2_5_1_2b_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/lfm_2_5_1_2b_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer_config.json`,
 };
 const LFM2_5_350M_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/350m/xnnpack/lfm_2_5_350m_xnnpack_8da4w.pte`,
-  tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
-  tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
-};
-const LFM2_5_350M_XNNPACK_FP16: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/350m/xnnpack/lfm_2_5_350m_xnnpack_fp16.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/lfm_2_5_350m_xnnpack_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
 };
 const LFM2_5_350M_MLX_INT4: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/350m/mlx/lfm_2_5_350m_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/lfm_2_5_350m_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
 };
@@ -1735,7 +1726,7 @@ const LFM2_5_350M_MLX_INT4: LLMModel = {
 const LFM2_5_VL_PREPROCESSOR_CONFIG = {
   image: {
     visionToken: { start: '<|image_start|>', end: '<|image_end|>' },
-    targetShape: [3, 512, 512] as const,
+    targetShape: [1, 3, 512, 512] as const,
     preprocessorOpts: {
       resizeMode: 'letterbox' as const,
       interpolation: 'linear' as const,
@@ -1744,49 +1735,49 @@ const LFM2_5_VL_PREPROCESSOR_CONFIG = {
   },
 };
 const LFM2_5_VL_450M_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_450m/xnnpack/lfm_2_5_vl_450m_xnnpack_8da4w.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/lfm_2_5_vl_450m_xnnpack_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_450M_MLX_INT4: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_450m/mlx/lfm_2_5_vl_450m_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/lfm_2_5_vl_450m_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_1_6B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/xnnpack/lfm_2_5_vl_1_6b_xnnpack_8da4w.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/lfm_2_5_vl_1_6b_xnnpack_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_450M_VULKAN_8DA4W: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_450m/vulkan/lfm_2_5_vl_450m_vulkan_8da4w.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/lfm_2_5_vl_450m_vulkan_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_1_6B_VULKAN_8DA4W: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/vulkan/lfm_2_5_vl_1_6b_vulkan_8da4w.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/lfm_2_5_vl_1_6b_vulkan_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_1_6B_MLX_INT4: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/mlx/lfm_2_5_vl_1_6b_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/lfm_2_5_vl_1_6b_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_1_6B_MLX_INT8: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/mlx/lfm_2_5_vl_1_6b_mlx_int8.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/lfm_2_5_vl_1_6b_mlx_int8.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
   modalities: ['image'],
@@ -1796,12 +1787,7 @@ const LFM2_5_VL_1_6B_MLX_INT8: LLMModel = {
 const BIELIK_V3_1_5B_BASE_URL = `${BASE_URL}-bielik-v3.0/${VERSION_TAG}`;
 
 const BIELIK_V3_1_5B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${BIELIK_V3_1_5B_BASE_URL}/xnnpack/bielik_v3_0_1_5b_xnnpack_8da4w.pte`,
-  tokenizerPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer_config.json`,
-};
-const BIELIK_V3_1_5B_XNNPACK_FP16: LLMModel = {
-  modelPath: `${BIELIK_V3_1_5B_BASE_URL}/xnnpack/bielik_v3_0_1_5b_xnnpack_fp16.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/bielik_v3_0_1_5b_xnnpack_8da4w.pte`,
   tokenizerPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer_config.json`,
 };
@@ -1809,32 +1795,22 @@ const BIELIK_V3_1_5B_XNNPACK_FP16: LLMModel = {
 const LLAMA3_2_BASE_URL = `${BASE_URL}-llama-3.2/${VERSION_TAG}`;
 
 const LLAMA3_2_3B_SPINQUANT: LLMModel = {
-  modelPath: `${LLAMA3_2_BASE_URL}/3b/xnnpack/llama_3_2_3b_xnnpack_spinquant.pte`,
-  tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
-};
-const LLAMA3_2_3B_BF16: LLMModel = {
-  modelPath: `${LLAMA3_2_BASE_URL}/3b/xnnpack/llama_3_2_3b_xnnpack_bf16.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/llama_3_2_3b_xnnpack_spinquant.pte`,
   tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
 };
 const LLAMA3_2_1B_SPINQUANT: LLMModel = {
-  modelPath: `${LLAMA3_2_BASE_URL}/1b/xnnpack/llama_3_2_1b_xnnpack_spinquant.pte`,
-  tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
-};
-const LLAMA3_2_1B_BF16: LLMModel = {
-  modelPath: `${LLAMA3_2_BASE_URL}/1b/xnnpack/llama_3_2_1b_xnnpack_bf16.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/llama_3_2_1b_xnnpack_spinquant.pte`,
   tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
 };
 const LLAMA3_2_1B_MLX_INT4: LLMModel = {
-  modelPath: `${LLAMA3_2_BASE_URL}/1b/mlx/llama_3_2_1b_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/llama_3_2_1b_mlx_int4.pte`,
   tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
 };
 const LLAMA3_2_3B_MLX_INT4: LLMModel = {
-  modelPath: `${LLAMA3_2_BASE_URL}/3b/mlx/llama_3_2_3b_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/llama_3_2_3b_mlx_int4.pte`,
   tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
 };
@@ -1842,32 +1818,32 @@ const LLAMA3_2_3B_MLX_INT4: LLMModel = {
 const SMOLLM2_BASE_URL = `${BASE_URL}-smolLm-2/${VERSION_TAG}`;
 
 const SMOLLM2_135M_8DA8W: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/135m/xnnpack/smollm2_135m_xnnpack_8da8w.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/smollm2_135m_xnnpack_8da8w.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 const SMOLLM2_360M_8DA8W: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/360m/xnnpack/smollm2_360m_xnnpack_8da8w.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/smollm2_360m_xnnpack_8da8w.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 const SMOLLM2_1_7B_8DA8W: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/1_7b/xnnpack/smollm2_1_7b_xnnpack_8da8w.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/smollm2_1_7b_xnnpack_8da8w.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 const SMOLLM2_135M_MLX_INT8: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/135m/mlx/smollm2_135m_mlx_int8.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/smollm2_135m_mlx_int8.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 const SMOLLM2_360M_MLX_INT8: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/360m/mlx/smollm2_360m_mlx_int8.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/smollm2_360m_mlx_int8.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 const SMOLLM2_1_7B_MLX_INT8: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/1_7b/mlx/smollm2_1_7b_mlx_int8.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/smollm2_1_7b_mlx_int8.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
@@ -1875,47 +1851,32 @@ const SMOLLM2_1_7B_MLX_INT8: LLMModel = {
 const HAMMER2_1_BASE_URL = `${BASE_URL}-hammer-2.1/${VERSION_TAG}`;
 
 const HAMMER2_1_0_5B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/0_5b/xnnpack/hammer_2_1_0_5b_xnnpack_8da4w.pte`,
-  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
-};
-const HAMMER2_1_0_5B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/0_5b/xnnpack/hammer_2_1_0_5b_xnnpack_bf16.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/hammer_2_1_0_5b_xnnpack_8da4w.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_1_5B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/1_5b/xnnpack/hammer_2_1_1_5b_xnnpack_8da4w.pte`,
-  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
-};
-const HAMMER2_1_1_5B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/1_5b/xnnpack/hammer_2_1_1_5b_xnnpack_bf16.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/hammer_2_1_1_5b_xnnpack_8da4w.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_3B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/3b/xnnpack/hammer_2_1_3b_xnnpack_8da4w.pte`,
-  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
-};
-const HAMMER2_1_3B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/3b/xnnpack/hammer_2_1_3b_xnnpack_bf16.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/hammer_2_1_3b_xnnpack_8da4w.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_0_5B_MLX_INT4: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/0_5b/mlx/hammer_2_1_0_5b_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/hammer_2_1_0_5b_mlx_int4.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_1_5B_MLX_INT4: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/1_5b/mlx/hammer_2_1_1_5b_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/hammer_2_1_1_5b_mlx_int4.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_3B_MLX_INT4: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/3b/mlx/hammer_2_1_3b_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/hammer_2_1_3b_mlx_int4.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
@@ -1923,17 +1884,12 @@ const HAMMER2_1_3B_MLX_INT4: LLMModel = {
 const PHI4_MINI_BASE_URL = `${BASE_URL}-phi-4-mini/${VERSION_TAG}`;
 
 const PHI4_MINI_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${PHI4_MINI_BASE_URL}/xnnpack/phi_4_mini_xnnpack_8da4w.pte`,
-  tokenizerPath: `${PHI4_MINI_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${PHI4_MINI_BASE_URL}/tokenizer_config.json`,
-};
-const PHI4_MINI_XNNPACK_BF16: LLMModel = {
-  modelPath: `${PHI4_MINI_BASE_URL}/xnnpack/phi_4_mini_xnnpack_bf16.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/phi_4_mini_xnnpack_8da4w.pte`,
   tokenizerPath: `${PHI4_MINI_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${PHI4_MINI_BASE_URL}/tokenizer_config.json`,
 };
 const PHI4_MINI_MLX_INT4: LLMModel = {
-  modelPath: `${PHI4_MINI_BASE_URL}/mlx/phi_4_mini_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/phi_4_mini_mlx_int4.pte`,
   tokenizerPath: `${PHI4_MINI_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${PHI4_MINI_BASE_URL}/tokenizer_config.json`,
 };
@@ -1941,47 +1897,32 @@ const PHI4_MINI_MLX_INT4: LLMModel = {
 const QWEN2_5_BASE_URL = `${BASE_URL}-qwen-2.5/${VERSION_TAG}`;
 
 const QWEN2_5_0_5B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/0_5b/xnnpack/qwen_2_5_0_5b_xnnpack_8da4w.pte`,
-  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
-};
-const QWEN2_5_0_5B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/0_5b/xnnpack/qwen_2_5_0_5b_xnnpack_bf16.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_2_5_0_5b_xnnpack_8da4w.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_1_5B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/1_5b/xnnpack/qwen_2_5_1_5b_xnnpack_8da4w.pte`,
-  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
-};
-const QWEN2_5_1_5B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/1_5b/xnnpack/qwen_2_5_1_5b_xnnpack_bf16.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_2_5_1_5b_xnnpack_8da4w.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_3B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/3b/xnnpack/qwen_2_5_3b_xnnpack_8da4w.pte`,
-  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
-};
-const QWEN2_5_3B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/3b/xnnpack/qwen_2_5_3b_xnnpack_bf16.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_2_5_3b_xnnpack_8da4w.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_0_5B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/0_5b/mlx/qwen_2_5_0_5b_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_2_5_0_5b_mlx_int4.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_1_5B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/1_5b/mlx/qwen_2_5_1_5b_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_2_5_1_5b_mlx_int4.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_3B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/3b/mlx/qwen_2_5_3b_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_2_5_3b_mlx_int4.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
@@ -1989,17 +1930,17 @@ const QWEN2_5_3B_MLX_INT4: LLMModel = {
 const GEMMA4_BASE_URL = `${BASE_URL}-gemma-4/${VERSION_TAG}`;
 
 const GEMMA4_E2B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${GEMMA4_BASE_URL}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/gemma_4_e2b_xnnpack_8da4w.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
 };
 const GEMMA4_E2B_VULKAN_8DA4W: LLMModel = {
-  modelPath: `${GEMMA4_BASE_URL}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/gemma_4_e2b_vulkan_8da4w.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
 };
 const GEMMA4_E2B_MLX_INT4: LLMModel = {
-  modelPath: `${GEMMA4_BASE_URL}/e2b/mlx/gemma4_e2b_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/gemma4_e2b_mlx_int4.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
 };
@@ -2007,47 +1948,32 @@ const GEMMA4_E2B_MLX_INT4: LLMModel = {
 const QWEN3_BASE_URL = `${BASE_URL}-qwen-3/${VERSION_TAG}`;
 
 const QWEN3_0_6B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/0_6b/xnnpack/qwen_3_0_6b_xnnpack_8da4w.pte`,
-  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
-};
-const QWEN3_0_6B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/0_6b/xnnpack/qwen_3_0_6b_xnnpack_bf16.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_3_0_6b_xnnpack_8da4w.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_1_7B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/1_7b/xnnpack/qwen_3_1_7b_xnnpack_8da4w.pte`,
-  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
-};
-const QWEN3_1_7B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/1_7b/xnnpack/qwen_3_1_7b_xnnpack_bf16.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_3_1_7b_xnnpack_8da4w.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_4B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/4b/xnnpack/qwen_3_4b_xnnpack_8da4w.pte`,
-  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
-};
-const QWEN3_4B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/4b/xnnpack/qwen_3_4b_xnnpack_bf16.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_3_4b_xnnpack_8da4w.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_0_6B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/0_6b/mlx/qwen_3_0_6b_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_3_0_6b_mlx_int4.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_1_7B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/1_7b/mlx/qwen_3_1_7b_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_3_1_7b_mlx_int4.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_4B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/4b/mlx/qwen_3_4b_mlx_int4.pte`,
+  modelPath: `${SCRATCH_LLMS_BASE_URL}/qwen_3_4b_mlx_int4.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
@@ -2726,7 +2652,6 @@ export const models = {
      */
     LFM2_5_1_2B: variants({
       XNNPACK_8DA4W: LFM2_5_1_2B_XNNPACK_8DA4W,
-      XNNPACK_FP16: LFM2_5_1_2B_XNNPACK_FP16,
       MLX_INT4: LFM2_5_1_2B_MLX_INT4,
     }),
     /**
@@ -2737,7 +2662,6 @@ export const models = {
      */
     LFM2_5_350M: variants({
       XNNPACK_8DA4W: LFM2_5_350M_XNNPACK_8DA4W,
-      XNNPACK_FP16: LFM2_5_350M_XNNPACK_FP16,
       MLX_INT4: LFM2_5_350M_MLX_INT4,
     }),
     /**
@@ -2771,7 +2695,6 @@ export const models = {
      */
     BIELIK_V3_1_5B: variants({
       XNNPACK_8DA4W: BIELIK_V3_1_5B_XNNPACK_8DA4W,
-      XNNPACK_FP16: BIELIK_V3_1_5B_XNNPACK_FP16,
     }),
     /**
      * Meta Llama 3.2 1B lightweight instruction-tuned multilingual model.
@@ -2782,7 +2705,6 @@ export const models = {
      */
     LLAMA3_2_1B: variants({
       XNNPACK_SPINQUANT: LLAMA3_2_1B_SPINQUANT,
-      XNNPACK_BF16: LLAMA3_2_1B_BF16,
       MLX_INT4: LLAMA3_2_1B_MLX_INT4,
     }),
     /**
@@ -2793,7 +2715,6 @@ export const models = {
      */
     LLAMA3_2_3B: variants({
       XNNPACK_SPINQUANT: LLAMA3_2_3B_SPINQUANT,
-      XNNPACK_BF16: LLAMA3_2_3B_BF16,
       MLX_INT4: LLAMA3_2_3B_MLX_INT4,
     }),
     /**
@@ -2833,7 +2754,6 @@ export const models = {
      */
     HAMMER2_1_0_5B: variants({
       XNNPACK_8DA4W: HAMMER2_1_0_5B_XNNPACK_8DA4W,
-      XNNPACK_BF16: HAMMER2_1_0_5B_XNNPACK_BF16,
       MLX_INT4: HAMMER2_1_0_5B_MLX_INT4,
     }),
     /**
@@ -2843,7 +2763,6 @@ export const models = {
      */
     HAMMER2_1_1_5B: variants({
       XNNPACK_8DA4W: HAMMER2_1_1_5B_XNNPACK_8DA4W,
-      XNNPACK_BF16: HAMMER2_1_1_5B_XNNPACK_BF16,
       MLX_INT4: HAMMER2_1_1_5B_MLX_INT4,
     }),
     /**
@@ -2854,7 +2773,6 @@ export const models = {
      */
     HAMMER2_1_3B: variants({
       XNNPACK_8DA4W: HAMMER2_1_3B_XNNPACK_8DA4W,
-      XNNPACK_BF16: HAMMER2_1_3B_XNNPACK_BF16,
       MLX_INT4: HAMMER2_1_3B_MLX_INT4,
     }),
     /**
@@ -2865,7 +2783,6 @@ export const models = {
      */
     PHI4_MINI: variants({
       XNNPACK_8DA4W: PHI4_MINI_XNNPACK_8DA4W,
-      XNNPACK_BF16: PHI4_MINI_XNNPACK_BF16,
       MLX_INT4: PHI4_MINI_MLX_INT4,
     }),
     /**
@@ -2876,7 +2793,6 @@ export const models = {
      */
     QWEN2_5_0_5B: variants({
       XNNPACK_8DA4W: QWEN2_5_0_5B_XNNPACK_8DA4W,
-      XNNPACK_BF16: QWEN2_5_0_5B_XNNPACK_BF16,
       MLX_INT4: QWEN2_5_0_5B_MLX_INT4,
     }),
     /**
@@ -2887,7 +2803,6 @@ export const models = {
      */
     QWEN2_5_1_5B: variants({
       XNNPACK_8DA4W: QWEN2_5_1_5B_XNNPACK_8DA4W,
-      XNNPACK_BF16: QWEN2_5_1_5B_XNNPACK_BF16,
       MLX_INT4: QWEN2_5_1_5B_MLX_INT4,
     }),
     /**
@@ -2897,7 +2812,6 @@ export const models = {
      */
     QWEN2_5_3B: variants({
       XNNPACK_8DA4W: QWEN2_5_3B_XNNPACK_8DA4W,
-      XNNPACK_BF16: QWEN2_5_3B_XNNPACK_BF16,
       MLX_INT4: QWEN2_5_3B_MLX_INT4,
     }),
     /**
@@ -2908,7 +2822,6 @@ export const models = {
      */
     QWEN3_0_6B: variants({
       XNNPACK_8DA4W: QWEN3_0_6B_XNNPACK_8DA4W,
-      XNNPACK_BF16: QWEN3_0_6B_XNNPACK_BF16,
       MLX_INT4: QWEN3_0_6B_MLX_INT4,
     }),
     /**
@@ -2918,7 +2831,6 @@ export const models = {
      */
     QWEN3_1_7B: variants({
       XNNPACK_8DA4W: QWEN3_1_7B_XNNPACK_8DA4W,
-      XNNPACK_BF16: QWEN3_1_7B_XNNPACK_BF16,
       MLX_INT4: QWEN3_1_7B_MLX_INT4,
     }),
     /**
@@ -2929,7 +2841,6 @@ export const models = {
      */
     QWEN3_4B: variants({
       XNNPACK_8DA4W: QWEN3_4B_XNNPACK_8DA4W,
-      XNNPACK_BF16: QWEN3_4B_XNNPACK_BF16,
       MLX_INT4: QWEN3_4B_MLX_INT4,
     }),
     /**
@@ -2944,7 +2855,6 @@ export const models = {
       MLX_INT4: GEMMA4_E2B_MLX_INT4,
     }),
   },
-
   /**
    * Text embedding models mapping sentences and documents into dense vector
    * representations for semantic search and RAG.

@@ -20,7 +20,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
 import { Button } from '../../components/Button';
 import { getImage, skImageToBuffer } from '../../utils';
-import { LLM_MODELS, type LLMModelConfig } from '../../constants/llm';
+import { LLM_MODELS, type LLMModelConfig, type LLMBackend } from '../../constants/llm';
 
 type Turn = {
   role: 'user' | 'assistant' | 'tool';
@@ -31,36 +31,58 @@ type Turn = {
 };
 
 function formatStats(stats: llm.LLMGenerationStats): string {
-  const decodeMs = stats.inferenceEndMs - stats.firstTokenMs;
-  const tokensPerSec = decodeMs > 0 ? (stats.numGeneratedTokens / decodeMs) * 1000 : 0;
-  const decodeTtftMs = stats.firstTokenMs - stats.inferenceStartMs;
-  const totalTtftMs = decodeTtftMs + (stats.prefillDurationMs ?? 0);
-  const totalMs = stats.inferenceEndMs - stats.inferenceStartMs + (stats.prefillDurationMs ?? 0);
+  const totalMs = stats.durationMs + stats.prefill.durationMs;
   return (
-    `${stats.numGeneratedTokens} tokens · ` +
-    `${tokensPerSec.toFixed(1)} tok/s · ` +
-    `${totalTtftMs.toFixed(0)}ms ttft · ` +
+    `${stats.numTokens} tokens · ` +
+    `${stats.tokensPerSecond.toFixed(1)} tok/s · ` +
+    `${stats.prefill.durationMs.toFixed(0)}ms prefill · ` +
     `${(totalMs / 1000).toFixed(2)}s`
   );
 }
 
 function LLMContent() {
   const insets = useSafeAreaInsets();
-  const [selectedModelId, setSelectedModelId] = useState<string>(LLM_MODELS[0]!.id);
+  const [selectedBackend, setSelectedBackend] = useState<LLMBackend>('xnnpack');
+
+  const availableBackends: ModelOption[] = useMemo(() => {
+    const list: { label: string; value: LLMBackend }[] = [{ label: 'XNNPACK', value: 'xnnpack' }];
+    if (Platform.OS === 'ios') {
+      list.push({ label: 'MLX (Apple GPU)', value: 'mlx' });
+    }
+    if (Platform.OS === 'android') {
+      list.push({ label: 'Vulkan (Android GPU)', value: 'vulkan' });
+    }
+    return list;
+  }, []);
+
+  const modelsForBackend = useMemo(
+    () =>
+      LLM_MODELS.filter(
+        (m) => m.backend === selectedBackend && (!m.iosOnly || Platform.OS === 'ios')
+      ),
+    [selectedBackend]
+  );
+
+  const [selectedModelId, setSelectedModelId] = useState<string>(
+    () => modelsForBackend[0]?.id ?? LLM_MODELS[0]!.id
+  );
   const [isDownloadStarted, setIsDownloadStarted] = useState(false);
 
   const activeModel: LLMModelConfig = useMemo(
-    () => LLM_MODELS.find((m) => m.id === selectedModelId) ?? LLM_MODELS[0]!,
-    [selectedModelId]
+    () =>
+      modelsForBackend.find((m) => m.id === selectedModelId) ??
+      modelsForBackend[0] ??
+      LLM_MODELS[0]!,
+    [modelsForBackend, selectedModelId]
   );
 
   const modelOptions: ModelOption[] = useMemo(
     () =>
-      LLM_MODELS.filter((m) => !m.iosOnly || Platform.OS === 'ios').map((m) => ({
+      modelsForBackend.map((m) => ({
         label: m.name,
         value: m.id,
       })),
-    []
+    [modelsForBackend]
   );
 
   const initialMessages: llm.ChatMessage[] = useMemo(
@@ -100,6 +122,22 @@ function LLMContent() {
   } | null>(null);
 
   const supportsImages = Boolean(activeModel.model.modalities?.includes('image'));
+
+  const handleBackendChange = (newBackend: LLMBackend) => {
+    if (newBackend === selectedBackend) return;
+    setSelectedBackend(newBackend);
+    const firstForBackend = LLM_MODELS.find(
+      (m) => m.backend === newBackend && (!m.iosOnly || Platform.OS === 'ios')
+    );
+    if (firstForBackend) {
+      setSelectedModelId(firstForBackend.id);
+    }
+    setIsDownloadStarted(false);
+    setTurns([]);
+    setStreamingResponse(null);
+    setAttachedImage(null);
+    setInput('');
+  };
 
   const handleModelChange = (newModelId: string) => {
     if (newModelId === selectedModelId) return;
@@ -236,6 +274,14 @@ function LLMContent() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       <View style={styles.header}>
+        {availableBackends.length > 1 && (
+          <ModelPicker
+            label="Backend"
+            options={availableBackends}
+            selectedValue={selectedBackend}
+            onValueChange={handleBackendChange}
+          />
+        )}
         <ModelPicker
           label="Model"
           options={modelOptions}
@@ -302,7 +348,7 @@ function LLMContent() {
               <View style={styles.contextBarHeader}>
                 <Text style={styles.contextLabel}>Context Window</Text>
                 <Text style={styles.contextTokens}>
-                  {kvCacheState.pos} / {kvCacheState.maxSeqLen} tokens (
+                  {kvCacheState.pos} / {kvCacheState.maxContextLen} tokens (
                   {(kvCacheState.usageRatio * 100).toFixed(1)}%)
                 </Text>
               </View>
