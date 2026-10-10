@@ -22,7 +22,7 @@ import type { ToolDefinition, ToolCall } from './toolCalling';
  */
 export type ChatMediaInput =
   | { readonly kind: 'image'; readonly image: ImageBuffer }
-  | { readonly kind: 'audio'; readonly audio: unknown };
+  | { readonly kind: 'audio'; readonly audio: Float32Array };
 
 /**
  * Interleaved text and media content for a chat turn.
@@ -356,7 +356,9 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig): ChatPrep
       }
 
       if (media?.kind === 'audio') {
-        throw RnExecuTorchError('INVALID_ARGUMENT', 'Audio input not yet supported');
+        const tAudio = tensor('float32', [1, media.audio.length], media.audio);
+        prompt.push({ kind: 'audio', audio: tAudio });
+        tensors.push(tAudio);
       }
 
       lastIndex = regex.lastIndex;
