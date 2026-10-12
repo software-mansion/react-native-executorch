@@ -50,19 +50,27 @@ export const LLM_GEMMA_SPEC = {
   ),
   ...method(
     'audio_encoder',
-    [f32(1, Dyn('audioSamples')), i64()],
+    [f32(1, Dyn('audioSamples')), i64(1)],
     [f32(1, Dyn('audioTokens'), 'hiddenDim'), f32(1, Dyn('audioTokens'))]
   ),
   ...METADATA_SPEC,
 };
 
 const AUDIO_SAMPLES_PER_BLOCK = 7680;
+const TOKENS_PER_AUDIO_BLOCK = 12;
 
 export function createLLMGemmaRunner(
   model: Model,
   tokenizer: Tokenizer,
   modalities?: readonly Modality[]
 ): LLMRunner {
+  if (!modalities?.includes('image') || !modalities?.includes('audio')) {
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `Gemma runner requires both 'image' and 'audio' in modalities.`
+    );
+  }
+
   const { dims, dim } = validateSpec(model.schema, { default: LLM_GEMMA_SPEC });
 
   const [imgH, imgW, vocabSize] = dims.constant('imgH', 'imgW', 'vocabSize');
@@ -73,8 +81,6 @@ export function createLLMGemmaRunner(
 
   const [maxContextLen] = model.execute('get_max_context_len', [], []) as [number];
   const eosIds = model.execute('get_eos_ids', [], []) as number[];
-
-  // TODO(bh): validate modalities
 
   if (maxContextLen < maxSeqLen || !Number.isInteger(maxContextLen)) {
     throw RnExecuTorchError(
@@ -102,11 +108,11 @@ export function createLLMGemmaRunner(
   const pos = createSynchronizable(0);
 
   const reset = (targetPos?: number): void => {
-    // TODO(bh): should be curPos not max ctx len
-    if (targetPos !== undefined && (targetPos < 0 || targetPos >= maxContextLen)) {
+    const curPos = pos.getBlocking();
+    if (targetPos !== undefined && (targetPos < 0 || targetPos > curPos)) {
       throw RnExecuTorchError(
         'INVALID_ARGUMENT',
-        `targetPos (${targetPos}) must be in range [0, ${maxContextLen}).`
+        `targetPos (${targetPos}) must be in range [0, ${curPos}].`
       );
     }
     pos.setBlocking(targetPos ?? 0);
@@ -158,7 +164,6 @@ export function createLLMGemmaRunner(
         (_, i) => BigInt(startPos + offset + i)
       );
 
-      // TODO(bh): this pattern always when >= 3 tensors
       const tensors = [
         // prettier-ignore
         tensor('int64', [1, seqLen], BigInt64Array.from(chunk, (v) => BigInt(v))),
@@ -284,26 +289,27 @@ export function createLLMGemmaRunner(
     // Pad waveform to multiple of AUDIO_SAMPLES_PER_BLOCK
     const numBlocks = Math.ceil(numSamples / AUDIO_SAMPLES_PER_BLOCK);
     const paddedSamples = numBlocks * AUDIO_SAMPLES_PER_BLOCK;
-    const numAudioTokens = numBlocks * 12; // TODO: magic number
+    const numAudioTokens = numBlocks * TOKENS_PER_AUDIO_BLOCK;
 
     const rawData = prompt.audio.getData(new Float32Array(numSamples));
     const paddedWav = new Float32Array(paddedSamples);
     paddedWav.set(rawData);
 
-    const tWaveform = tensor('float32', [1, paddedSamples], paddedWav);
-    const tNumValid = tensor('int64', [], BigInt64Array.of(BigInt(numSamples))); // TODO: empty shape!!!
-    const tAudioEmbeds = tensor('float32', [1, numAudioTokens, hiddenDim]);
-    const tAudioMask = tensor('float32', [1, numAudioTokens]);
+    const tensors = [
+      tensor('float32', [1, paddedSamples], paddedWav),
+      tensor('int64', [1], BigInt64Array.of(BigInt(numSamples))),
+      tensor('float32', [1, numAudioTokens, hiddenDim]),
+      tensor('float32', [1, numAudioTokens]),
+    ] as const;
+
+    const [tWaveform, tNumValid, tAudioEmbeds, tAudioMask] = tensors;
 
     try {
       model.execute('audio_encoder', [tWaveform, tNumValid], [tAudioEmbeds, tAudioMask]);
       const embedding = tAudioEmbeds.getData(new Float32Array(tAudioEmbeds.numel));
       return prefillEmbeddings(embedding, numAudioTokens);
     } finally {
-      tWaveform.dispose();
-      tNumValid.dispose();
-      tAudioEmbeds.dispose();
-      tAudioMask.dispose();
+      tensors.forEach((t) => t.dispose());
     }
   };
 
@@ -346,7 +352,7 @@ export function createLLMGemmaRunner(
         default:
           throw RnExecuTorchError(
             'INVALID_ARGUMENT',
-            `prefill: Unsupported media input kind '${(segment as { kind: string }).kind}'.` // TODO: no need for as
+            `prefill: Unsupported media input kind '${(segment as MediaInput).kind}'.`
           );
       }
     }
@@ -368,10 +374,14 @@ export function createLLMGemmaRunner(
     const generatedTokens: number[] = [];
     const maxNewTokens = config?.maxNewTokens ?? Infinity;
 
-    const tCurPos = tensor('int64', [1]);
-    const tTokenId = tensor('int64', [1, 1]);
-    const tTokenEmbed = tensor('float32', [1, 1, hiddenDim]);
-    const tPleTok = tensor('float32', [1, 1, numLayers, pleDim]);
+    const tensors = [
+      tensor('int64', [1]),
+      tensor('int64', [1, 1]),
+      tensor('float32', [1, 1, hiddenDim]),
+      tensor('float32', [1, 1, numLayers, pleDim]),
+    ] as const;
+
+    const [tCurPos, tTokenId, tTokenEmbed, tPleTok] = tensors;
 
     let numTokens = 0;
     let curPos = pos.getBlocking();
@@ -401,10 +411,7 @@ export function createLLMGemmaRunner(
         pos.setBlocking(curPos);
       }
     } finally {
-      tTokenId.dispose();
-      tTokenEmbed.dispose();
-      tPleTok.dispose();
-      tCurPos.dispose();
+      tensors.forEach((t) => t.dispose());
     }
 
     const durationMs = Date.now() - generateStartMs;
