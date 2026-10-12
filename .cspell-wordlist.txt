@@ -396,4 +396,3 @@ Adreno
 Exynos
 iphonese
 upsamples
-FLEURS

@@ -2322,9 +2322,6 @@ export const models = {
      * sizes (NANO, SMALL, MEDIUM, LARGE, XLARGE) and resolutions (384x384,
      * 512x512, 640x640).
      */
-    // XNNPACK int8 keeps the Detect head and the first convolution fp32. COCO
-    // mAP50-95 at 640 moves by -0.66 (n), -0.61 (s), -0.13 (m), +0.14 (l) and
-    // 0.00 (x), at 1.3x (n) to 2.5x (m, l, x) the speed of fp32.
     YOLO26: family({
       /**
        * Nano scale YOLO26 object detection model. High speed, ultra low
@@ -2690,11 +2687,6 @@ export const models = {
     // end on an iPhone 16, a third of the peak memory (MLX bf16 at `SMALL` does
     // not load at all), and more accurate on the same clip. Reach for MLX_INT8
     // explicitly if you want the GPU path.
-    //
-    // XNNPACK int8 leads fp32 at every multilingual size. Greedy WER/CER on
-    // LibriSpeech and FLEURS (en, de, es, pl, fr, zh) stays within +0.3 of fp32
-    // for `TINY` and `BASE` (8da8w) and +2.7 for `SMALL` (8da4w), at 0.79x,
-    // 0.67x and 0.39x the download.
     WHISPER: {
       /**
        * Multilingual Whisper Tiny model. Supporting 99+ languages. High speed
