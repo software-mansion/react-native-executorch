@@ -283,11 +283,144 @@ export function parseLlamaToolCalls(text: string): llm.ToolParserResult | undefi
   return undefined;
 }
 
-// --- Common Configurations ---
+// --- Model Family Generation Configurations ---
 
-export const DEFAULT_GENERATION_CONFIG: llm.LLMGenerationConfig = {
-  temperature: 0.7,
+/**
+ * Liquid AI LFM 2.5 recommended generation parameters.
+ * Sampling parameters are specified in the official Liquid AI GGUF model cards
+ * (under the llama-cli Quickstart: `--temp 0.1 --top-k 50 --repeat-penalty 1.05`).
+ * @see https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct-GGUF
+ * @see https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF
+ */
+export const LFM2_5_GENERATION_CONFIG: llm.LLMGenerationConfig = {
+  temperature: 0.1,
+  topP: 0.1,
+  topK: 50,
+  repetitionPenalty: 1.05,
   maxNewTokens: 512,
+};
+
+/**
+ * Google Gemma 4 E2B generation configuration.
+ * Published directly in the upstream `generation_config.json`.
+ * @see https://huggingface.co/google/gemma-4-e2b
+ * @see https://huggingface.co/google/gemma-4-e2b/raw/main/generation_config.json
+ */
+export const GEMMA4_GENERATION_CONFIG: llm.LLMGenerationConfig = {
+  temperature: 1.0,
+  topP: 0.95,
+  topK: 64,
+  maxNewTokens: 512,
+};
+
+/**
+ * MadeAgents Hammer 2.1 tool-calling model generation configuration.
+ * Published in upstream `generation_config.json`.
+ * @see https://huggingface.co/MadeAgents/Hammer2.1-0.5b
+ * @see https://huggingface.co/MadeAgents/Hammer2.1-0.5b/raw/main/generation_config.json
+ * @see https://huggingface.co/MadeAgents/Hammer2.1-3b/raw/main/generation_config.json
+ */
+export const HAMMER2_1_GENERATION_CONFIG: llm.LLMGenerationConfig = {
+  temperature: 0.7,
+  topP: 0.8,
+  topK: 20,
+  repetitionPenalty: 1.05,
+  maxNewTokens: 512,
+};
+
+/**
+ * Meta Llama 3.2 1B & 3B generation configuration.
+ * Published in `generation_config.json` (mirrored from gated meta-llama upstream).
+ * @see https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct
+ * @see https://huggingface.co/unsloth/Llama-3.2-1B-Instruct/raw/main/generation_config.json
+ * @see https://huggingface.co/unsloth/Llama-3.2-3B-Instruct/raw/main/generation_config.json
+ */
+export const LLAMA3_2_GENERATION_CONFIG: llm.LLMGenerationConfig = {
+  temperature: 0.6,
+  topP: 0.9,
+  maxNewTokens: 512,
+};
+
+/**
+ * Hugging Face SmolLM2 135M, 360M & 1.7B generation configuration.
+ * Documented in the official Hugging Face model cards generation snippet
+ * (`model.generate(..., temperature=0.2, top_p=0.9, do_sample=True)`).
+ * @see https://huggingface.co/HuggingFaceTB/SmolLM2-1.7B-Instruct
+ * @see https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct
+ * @see https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct
+ */
+export const SMOLLM2_GENERATION_CONFIG: llm.LLMGenerationConfig = {
+  temperature: 0.2,
+  topP: 0.9,
+  maxNewTokens: 512,
+};
+
+/**
+ * Alibaba Qwen 2.5 0.5B & 1.5B generation configuration.
+ * Published in upstream `generation_config.json`.
+ * @see https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/raw/main/generation_config.json
+ * @see https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/raw/main/generation_config.json
+ */
+export const QWEN2_5_0_5B_1_5B_GENERATION_CONFIG: llm.LLMGenerationConfig = {
+  temperature: 0.7,
+  topP: 0.8,
+  topK: 20,
+  repetitionPenalty: 1.1,
+  maxNewTokens: 512,
+};
+
+/**
+ * Alibaba Qwen 2.5 3B generation configuration.
+ * Published in upstream `generation_config.json`.
+ * @see https://huggingface.co/Qwen/Qwen2.5-3B-Instruct
+ * @see https://huggingface.co/Qwen/Qwen2.5-3B-Instruct/raw/main/generation_config.json
+ */
+export const QWEN2_5_3B_GENERATION_CONFIG: llm.LLMGenerationConfig = {
+  temperature: 0.7,
+  topP: 0.8,
+  topK: 20,
+  repetitionPenalty: 1.05,
+  maxNewTokens: 512,
+};
+
+/**
+ * Alibaba Qwen 3 (0.6B, 1.7B, 4B) generation configuration.
+ * Published in upstream `generation_config.json`.
+ * @see https://huggingface.co/Qwen/Qwen3-0.6B/raw/main/generation_config.json
+ * @see https://huggingface.co/Qwen/Qwen3-1.7B/raw/main/generation_config.json
+ * @see https://huggingface.co/Qwen/Qwen3-4B/raw/main/generation_config.json
+ */
+export const QWEN3_GENERATION_CONFIG: llm.LLMGenerationConfig = {
+  temperature: 0.6,
+  topP: 0.95,
+  topK: 20,
+  maxNewTokens: 512,
+};
+
+/**
+ * Microsoft Phi-4 Mini 3.8B generation configuration.
+ * Microsoft specifies greedy generation (`temperature: 0.0, do_sample: False`)
+ * in the official model card Python and vLLM inference snippets.
+ * @see https://huggingface.co/microsoft/Phi-4-mini-instruct
+ * @see https://huggingface.co/microsoft/Phi-4-mini-instruct/raw/main/README.md
+ */
+export const PHI4_MINI_GENERATION_CONFIG: llm.LLMGenerationConfig = {
+  temperature: 0.0,
+  maxNewTokens: 512,
+};
+
+/**
+ * SpeakLeash Bielik v3 1.5B generation configuration.
+ * Bielik 1.5B is fine-tuned from Qwen2.5-1.5B; SpeakLeash recommends a lower temperature
+ * (0.1–0.2 with top_p 0.95) to prevent hallucinations and maintain coherence in Polish.
+ * @see https://huggingface.co/speakleash/Bielik-1.5B-v3.0-Instruct
+ * @see https://huggingface.co/speakleash/Bielik-1.5B-v3.0-Instruct-GGUF
+ */
+export const BIELIK_V3_GENERATION_CONFIG: llm.LLMGenerationConfig = {
+  temperature: 0.2,
+  topP: 0.95,
+  maxNewTokens: 512,
+  repetitionPenalty: 1.1,
 };
 
 export const DEFAULT_SYSTEM_PROMPT = 'You are a helpful assistant. Your name is HAL-9000';
@@ -337,7 +470,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'LFM 2.5 1.2B',
     backend: 'xnnpack',
     model: models.llm.LFM2_5_1_2B.XNNPACK_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: LFM2_5_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -347,7 +480,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'LFM 2.5 1.2B',
     backend: 'mlx',
     model: models.llm.LFM2_5_1_2B.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: LFM2_5_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -358,7 +491,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'LFM 2.5 350M',
     backend: 'xnnpack',
     model: models.llm.LFM2_5_350M.XNNPACK_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: LFM2_5_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -368,7 +501,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'LFM 2.5 350M',
     backend: 'mlx',
     model: models.llm.LFM2_5_350M.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: LFM2_5_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -379,7 +512,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'LFM 2.5 VL 450M',
     backend: 'xnnpack',
     model: models.llm.LFM2_5_VL_450M.XNNPACK_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: LFM2_5_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -389,7 +522,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'LFM 2.5 VL 450M',
     backend: 'mlx',
     model: models.llm.LFM2_5_VL_450M.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: LFM2_5_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -400,7 +533,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'LFM 2.5 VL 1.6B',
     backend: 'xnnpack',
     model: models.llm.LFM2_5_VL_1_6B.XNNPACK_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: LFM2_5_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -410,7 +543,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'LFM 2.5 VL 1.6B',
     backend: 'mlx',
     model: models.llm.LFM2_5_VL_1_6B.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: LFM2_5_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -421,7 +554,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'LFM 2.5 VL 1.6B (int8)',
     backend: 'mlx',
     model: models.llm.LFM2_5_VL_1_6B.MLX_INT8,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: LFM2_5_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -432,7 +565,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'LFM 2.5 VL 450M',
     backend: 'vulkan',
     model: models.llm.LFM2_5_VL_450M.VULKAN_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: LFM2_5_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -442,7 +575,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'LFM 2.5 VL 1.6B',
     backend: 'vulkan',
     model: models.llm.LFM2_5_VL_1_6B.VULKAN_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: LFM2_5_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -454,7 +587,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Gemma 4 E2B',
     backend: 'xnnpack',
     model: models.llm.GEMMA4_E2B.XNNPACK_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: GEMMA4_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: GEMMA_TOOL_STOP_REGEX,
     toolOpts: GEMMA_TOOL_OPTS,
@@ -464,7 +597,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Gemma 4 E2B',
     backend: 'mlx',
     model: models.llm.GEMMA4_E2B.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: GEMMA4_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: GEMMA_TOOL_STOP_REGEX,
     toolOpts: GEMMA_TOOL_OPTS,
@@ -475,7 +608,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Gemma 4 E2B',
     backend: 'vulkan',
     model: models.llm.GEMMA4_E2B.VULKAN_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: GEMMA4_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: GEMMA_TOOL_STOP_REGEX,
     toolOpts: GEMMA_TOOL_OPTS,
@@ -487,7 +620,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Hammer 2.1 0.5B',
     backend: 'xnnpack',
     model: models.llm.HAMMER2_1_0_5B.XNNPACK_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: HAMMER2_1_GENERATION_CONFIG,
     systemPrompt: undefined,
     stopRegex: HAMMER_TOOL_STOP_REGEX,
     toolOpts: HAMMER_TOOL_OPTS,
@@ -497,7 +630,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Hammer 2.1 0.5B',
     backend: 'mlx',
     model: models.llm.HAMMER2_1_0_5B.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: HAMMER2_1_GENERATION_CONFIG,
     systemPrompt: undefined,
     stopRegex: HAMMER_TOOL_STOP_REGEX,
     toolOpts: HAMMER_TOOL_OPTS,
@@ -508,7 +641,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Hammer 2.1 1.5B',
     backend: 'xnnpack',
     model: models.llm.HAMMER2_1_1_5B.XNNPACK_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: HAMMER2_1_GENERATION_CONFIG,
     systemPrompt: undefined,
     stopRegex: HAMMER_TOOL_STOP_REGEX,
     toolOpts: HAMMER_TOOL_OPTS,
@@ -518,7 +651,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Hammer 2.1 1.5B',
     backend: 'mlx',
     model: models.llm.HAMMER2_1_1_5B.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: HAMMER2_1_GENERATION_CONFIG,
     systemPrompt: undefined,
     stopRegex: HAMMER_TOOL_STOP_REGEX,
     toolOpts: HAMMER_TOOL_OPTS,
@@ -529,7 +662,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Hammer 2.1 3B',
     backend: 'xnnpack',
     model: models.llm.HAMMER2_1_3B.XNNPACK_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: HAMMER2_1_GENERATION_CONFIG,
     systemPrompt: undefined,
     stopRegex: HAMMER_TOOL_STOP_REGEX,
     toolOpts: HAMMER_TOOL_OPTS,
@@ -539,7 +672,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Hammer 2.1 3B',
     backend: 'mlx',
     model: models.llm.HAMMER2_1_3B.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: HAMMER2_1_GENERATION_CONFIG,
     systemPrompt: undefined,
     stopRegex: HAMMER_TOOL_STOP_REGEX,
     toolOpts: HAMMER_TOOL_OPTS,
@@ -552,7 +685,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Llama 3.2 1B',
     backend: 'xnnpack',
     model: models.llm.LLAMA3_2_1B.XNNPACK_SPINQUANT,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: LLAMA3_2_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: LLAMA_TOOL_STOP_REGEX,
     toolOpts: LLAMA_TOOL_OPTS,
@@ -562,7 +695,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Llama 3.2 1B',
     backend: 'mlx',
     model: models.llm.LLAMA3_2_1B.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: LLAMA3_2_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: LLAMA_TOOL_STOP_REGEX,
     toolOpts: LLAMA_TOOL_OPTS,
@@ -573,7 +706,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Llama 3.2 3B',
     backend: 'xnnpack',
     model: models.llm.LLAMA3_2_3B.XNNPACK_SPINQUANT,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: LLAMA3_2_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: LLAMA_TOOL_STOP_REGEX,
     toolOpts: LLAMA_TOOL_OPTS,
@@ -583,7 +716,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Llama 3.2 3B',
     backend: 'mlx',
     model: models.llm.LLAMA3_2_3B.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: LLAMA3_2_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: LLAMA_TOOL_STOP_REGEX,
     toolOpts: LLAMA_TOOL_OPTS,
@@ -596,7 +729,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'SmolLM2 135M',
     backend: 'xnnpack',
     model: models.llm.SMOLLM2_135M.XNNPACK_8DA8W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: SMOLLM2_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -606,7 +739,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'SmolLM2 135M',
     backend: 'mlx',
     model: models.llm.SMOLLM2_135M.MLX_INT8,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: SMOLLM2_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -617,7 +750,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'SmolLM2 360M',
     backend: 'xnnpack',
     model: models.llm.SMOLLM2_360M.XNNPACK_8DA8W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: SMOLLM2_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -627,7 +760,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'SmolLM2 360M',
     backend: 'mlx',
     model: models.llm.SMOLLM2_360M.MLX_INT8,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: SMOLLM2_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -638,7 +771,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'SmolLM2 1.7B',
     backend: 'xnnpack',
     model: models.llm.SMOLLM2_1_7B.XNNPACK_8DA8W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: SMOLLM2_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -648,7 +781,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'SmolLM2 1.7B',
     backend: 'mlx',
     model: models.llm.SMOLLM2_1_7B.MLX_INT8,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: SMOLLM2_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -661,7 +794,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Qwen 2.5 0.5B',
     backend: 'xnnpack',
     model: models.llm.QWEN2_5_0_5B.XNNPACK_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: QWEN2_5_0_5B_1_5B_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: QWEN_TOOL_STOP_REGEX,
     toolOpts: QWEN_TOOL_OPTS,
@@ -671,7 +804,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Qwen 2.5 0.5B',
     backend: 'mlx',
     model: models.llm.QWEN2_5_0_5B.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: QWEN2_5_0_5B_1_5B_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: QWEN_TOOL_STOP_REGEX,
     toolOpts: QWEN_TOOL_OPTS,
@@ -682,7 +815,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Qwen 2.5 1.5B',
     backend: 'xnnpack',
     model: models.llm.QWEN2_5_1_5B.XNNPACK_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: QWEN2_5_0_5B_1_5B_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: QWEN_TOOL_STOP_REGEX,
     toolOpts: QWEN_TOOL_OPTS,
@@ -692,7 +825,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Qwen 2.5 1.5B',
     backend: 'mlx',
     model: models.llm.QWEN2_5_1_5B.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: QWEN2_5_0_5B_1_5B_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: QWEN_TOOL_STOP_REGEX,
     toolOpts: QWEN_TOOL_OPTS,
@@ -703,7 +836,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Qwen 2.5 3B',
     backend: 'xnnpack',
     model: models.llm.QWEN2_5_3B.XNNPACK_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: QWEN2_5_3B_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: QWEN_TOOL_STOP_REGEX,
     toolOpts: QWEN_TOOL_OPTS,
@@ -713,7 +846,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Qwen 2.5 3B',
     backend: 'mlx',
     model: models.llm.QWEN2_5_3B.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: QWEN2_5_3B_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: QWEN_TOOL_STOP_REGEX,
     toolOpts: QWEN_TOOL_OPTS,
@@ -726,7 +859,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Qwen 3 0.6B',
     backend: 'xnnpack',
     model: models.llm.QWEN3_0_6B.XNNPACK_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: QWEN3_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: QWEN_TOOL_STOP_REGEX,
     toolOpts: QWEN_TOOL_OPTS,
@@ -736,7 +869,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Qwen 3 0.6B',
     backend: 'mlx',
     model: models.llm.QWEN3_0_6B.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: QWEN3_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: QWEN_TOOL_STOP_REGEX,
     toolOpts: QWEN_TOOL_OPTS,
@@ -747,7 +880,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Qwen 3 1.7B',
     backend: 'xnnpack',
     model: models.llm.QWEN3_1_7B.XNNPACK_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: QWEN3_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: QWEN_TOOL_STOP_REGEX,
     toolOpts: QWEN_TOOL_OPTS,
@@ -757,7 +890,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Qwen 3 1.7B',
     backend: 'mlx',
     model: models.llm.QWEN3_1_7B.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: QWEN3_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: QWEN_TOOL_STOP_REGEX,
     toolOpts: QWEN_TOOL_OPTS,
@@ -768,7 +901,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Qwen 3 4B',
     backend: 'xnnpack',
     model: models.llm.QWEN3_4B.XNNPACK_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: QWEN3_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: QWEN_TOOL_STOP_REGEX,
     toolOpts: QWEN_TOOL_OPTS,
@@ -778,7 +911,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Qwen 3 4B',
     backend: 'mlx',
     model: models.llm.QWEN3_4B.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: QWEN3_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: QWEN_TOOL_STOP_REGEX,
     toolOpts: QWEN_TOOL_OPTS,
@@ -791,7 +924,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Phi-4 Mini 3.8B',
     backend: 'xnnpack',
     model: models.llm.PHI4_MINI.XNNPACK_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: PHI4_MINI_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -801,7 +934,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Phi-4 Mini 3.8B',
     backend: 'mlx',
     model: models.llm.PHI4_MINI.MLX_INT4,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: PHI4_MINI_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: undefined,
     toolOpts: undefined,
@@ -814,7 +947,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Bielik v3 1.5B',
     backend: 'xnnpack',
     model: models.llm.BIELIK_V3_1_5B.XNNPACK_8DA4W,
-    generationConfig: DEFAULT_GENERATION_CONFIG,
+    generationConfig: BIELIK_V3_GENERATION_CONFIG,
     // eslint-disable-next-line @cspell/spellchecker
     systemPrompt: 'Jesteś pomocnym asystentem AI mówiącym po polsku.',
     stopRegex: undefined,
