@@ -1,8 +1,24 @@
 #pragma once
 
+#include <optional>
+#include <string>
+
 #include <jsi/jsi.h>
 
+#include <executorch/runtime/executor/method_meta.h>
+
 namespace rnexecutorch::core::utils {
+/**
+ * Explains a method load failure caused by its backends, which ExecuTorch
+ * reports only as a bare error code: a backend this binary was not built with,
+ * or Core ML / MLX on a simulator, which cannot run them.
+ *
+ * @param methodMeta Metadata of the method that failed to load.
+ * @return What went wrong and what to do instead, or `std::nullopt` when the
+ * method's backends do not explain the failure.
+ */
+std::optional<std::string> diagnoseBackends(const executorch::runtime::MethodMeta &methodMeta);
+
 /**
  * Installs `getExecuTorchRegisteredBackends()`, returning the names of the
  * ExecuTorch backends compiled into the native binary.

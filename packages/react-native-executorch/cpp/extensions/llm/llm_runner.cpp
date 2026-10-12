@@ -26,6 +26,7 @@
 #include "core/conversions.h"
 #include "core/error.h"
 #include "core/tensor_helpers.h"
+#include "core/utils.h"
 
 namespace rnexecutorch::extensions::llm {
 namespace jsi = facebook::jsi;
@@ -152,6 +153,27 @@ std::optional<int64_t> readPrefillBound(executorch::extension::Module *module, c
         return std::nullopt;
     }
     return bound;
+}
+
+// The runner reports a backend that cannot run here as a bare error code. Its
+// module is private and may not have loaded, so read the methods from a fresh
+// one; this runs only after a failed load.
+std::optional<std::string> diagnoseBackends(const std::string &modelPath) {
+    executorch::extension::Module module(modelPath, executorch::extension::Module::LoadMode::Mmap);
+    auto methodNames = module.method_names();
+    if (!methodNames.ok()) {
+        return std::nullopt;
+    }
+    for (const auto &methodName : methodNames.get()) {
+        auto meta = module.method_meta(methodName);
+        if (!meta.ok()) {
+            continue;
+        }
+        if (auto hint = rnexecutorch::core::utils::diagnoseBackends(meta.get())) {
+            return hint;
+        }
+    }
+    return std::nullopt;
 }
 
 ::tokenizers::Tokenizer *getRunnerTokenizer(executorch::extension::llm::IRunner *runner) {
@@ -370,6 +392,9 @@ LLMRunnerHostObject::LLMRunnerHostObject(const std::string &modelPath,
     auto loadStatus = runner_->load();
     if (loadStatus != executorch::runtime::Error::Ok) {
         std::string errorMsg = executorch::runtime::to_string(loadStatus);
+        if (auto hint = diagnoseBackends(modelPath)) {
+            errorMsg += ". " + *hint;
+        }
         throw error::LoadFailed(std::format("LLMRunner: Failed to load model: {}", errorMsg), loadStatus);
     }
 

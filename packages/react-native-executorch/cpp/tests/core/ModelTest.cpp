@@ -187,6 +187,25 @@ TEST_F(ModelTest, ReportsAMissingFileAsLoadFailed) {
     EXPECT_TRUE(thrown.etRuntimeErrorCode.has_value());
 }
 
+// The host build links no XNNPACK, so the XNNPACK fixture fails to load its
+// methods the way it does in an app built without that backend.
+TEST_F(ModelTest, NamesAnUnregisteredBackendOnEagerLoad) {
+    auto thrown = evalThrowing(std::format("__rnexecutorch_jsi__.loadModel('{}');", kFixture));
+
+    EXPECT_TRUE(isCodedError(thrown, "LOAD_FAILED", "uses XnnpackBackend, which this app was not built with"));
+    EXPECT_TRUE(thrown.etRuntimeErrorCode.has_value());
+}
+
+TEST_F(ModelTest, NamesAnUnregisteredBackendOnLazyExecute) {
+    auto thrown = evalThrowing(std::format(R"({}
+        const input = __rnexecutorch_jsi__.createTensor([1, 3, 256, 256], 'float32');
+        const output = __rnexecutorch_jsi__.createTensor([1, 1, 256, 256], 'float32');
+        model.execute('forward', [input], [output]);)",
+                                           loadFixtureJs()));
+
+    EXPECT_TRUE(isCodedError(thrown, "EXECUTION_FAILED", "uses XnnpackBackend, which this app was not built with"));
+}
+
 TEST_F(ModelTest, RejectsWrongArgumentCount) {
     EXPECT_THAT(evalThrowingMessage("__rnexecutorch_jsi__.loadModel();"),
                 HasSubstr("Usage: loadModel(path, options?)"));

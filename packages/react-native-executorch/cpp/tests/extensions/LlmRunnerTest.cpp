@@ -85,6 +85,17 @@ TEST_F(LlmRunnerTest, ReportsAMissingModelAsLoadFailed) {
     EXPECT_THAT(thrown.message, ::testing::Not(HasSubstr("tokenizer")));
 }
 
+#ifdef RNE_MODEL_FIXTURE
+// Not an LLM, but loading it fails on the same missing XNNPACK delegate, which
+// the runner otherwise reports as a bare error code.
+TEST_F(LlmRunnerTest, NamesAnUnregisteredBackend) {
+    auto thrown = evalThrowing(std::string("__rnexecutorch_jsi__.llm.createLLMRunner('") + RNE_MODEL_FIXTURE +
+                               "', '" + RNE_TOKENIZER_FIXTURE + "');");
+
+    EXPECT_TRUE(isCodedError(thrown, "LOAD_FAILED", "uses XnnpackBackend, which this app was not built with"));
+}
+#endif
+
 TEST_F(LlmRunnerTest, ReportsAMissingMultimodalModelAsLoadFailed) {
     auto thrown = evalThrowing(
         std::string("__rnexecutorch_jsi__.llm.createLLMRunner('/no/model.pte', '") +

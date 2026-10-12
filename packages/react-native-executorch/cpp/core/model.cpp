@@ -13,6 +13,7 @@
 #include "error.h"
 #include "schema.h"
 #include "tensor_helpers.h"
+#include "utils.h"
 
 #include <jsi/jsi.h>
 
@@ -38,6 +39,19 @@ T unwrap(RnExecuTorchErrorCode code, const std::string &ctx, executorch::runtime
 void unwrap(RnExecuTorchErrorCode code, const std::string &ctx, executorch::runtime::Error error) {
     if (error != executorch::runtime::Error::Ok) {
         throw RnExecuTorchException(code, std::format("{}: {}", ctx, executorch::runtime::to_string(error)), error);
+    }
+}
+
+// ExecuTorch reports a backend that cannot run here as a bare error code.
+// Name the backend instead of listing every common cause.
+void throwIfBackendsExplain(RnExecuTorchErrorCode code, executorch::extension::Module &module,
+                            const std::string &methodName, executorch::runtime::Error error) {
+    auto methodMeta = module.method_meta(methodName);
+    if (!methodMeta.ok()) {
+        return;
+    }
+    if (auto hint = rnexecutorch::core::utils::diagnoseBackends(methodMeta.get())) {
+        throw RnExecuTorchException(code, std::format("Method '{}' failed: {}", methodName, *hint), error);
     }
 }
 
@@ -91,7 +105,11 @@ ModelHostObject::ModelHostObject(const std::string &modelPath, const bool eagerL
                                    "\n"
                                    "Error",
                                    methodName);
-            unwrap(RnExecuTorchErrorCode::LoadFailed, ctx, etModule_->load_method(methodName));
+            auto methodError = etModule_->load_method(methodName);
+            if (methodError != executorch::runtime::Error::Ok) {
+                throwIfBackendsExplain(RnExecuTorchErrorCode::LoadFailed, *etModule_, methodName, methodError);
+            }
+            unwrap(RnExecuTorchErrorCode::LoadFailed, ctx, methodError);
         }
 
         auto ctx = std::format("Method '{}'", methodName);
@@ -209,6 +227,11 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             auto info = std::format("Execution of method '{}' took {} ms", methodName, durationMs);
             logFn.callWithThis(rt, consoleObj, {jsi::String::createFromUtf8(rt, info)});
 #endif
+
+            if (!executeResult.ok()) {
+                throwIfBackendsExplain(RnExecuTorchErrorCode::ExecutionFailed, *self->etModule_, methodName,
+                                       executeResult.error());
+            }
 
             auto result = unwrap(RnExecuTorchErrorCode::ExecutionFailed,
                                  std::format("execute: Method '{}' failed.\n"
