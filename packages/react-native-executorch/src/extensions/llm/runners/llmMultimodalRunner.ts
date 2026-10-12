@@ -298,9 +298,13 @@ export function createLLMMultimodalRunner(
     const generatedTokens: number[] = [];
     const maxNewTokens = config?.maxNewTokens ?? Infinity;
 
-    const tCurPos = tensor('int64', [1]);
-    const tTokenId = tensor('int64', [1, 1]);
-    const tTokenEmbed = tensor('float32', [1, 1, hiddenDim]);
+    const tensors = [
+      tensor('int64', [1]),
+      tensor('int64', [1, 1]),
+      tensor('float32', [1, 1, hiddenDim]),
+    ] as const;
+
+    const [tCurPos, tTokenId, tTokenEmbed] = tensors;
 
     let numTokens = 0;
     let curPos = pos.getBlocking();
@@ -330,9 +334,7 @@ export function createLLMMultimodalRunner(
         pos.setBlocking(curPos);
       }
     } finally {
-      tTokenId.dispose();
-      tTokenEmbed.dispose();
-      tCurPos.dispose();
+      tensors.forEach((t) => t.dispose());
     }
 
     const durationMs = Date.now() - generateStartMs;
