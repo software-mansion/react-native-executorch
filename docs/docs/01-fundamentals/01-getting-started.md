@@ -113,6 +113,29 @@ way. **Expo SDK 54 cannot be supported**: it is React Native 0.81, below what
 worklets 0.10 accepts.
 :::
 
+### Babel
+
+The library runs inference on worklet threads, so add the worklets Babel plugin
+to `babel.config.js`. It must be the **last** entry in `plugins`:
+
+```js
+module.exports = {
+  presets: ['module:@react-native/babel-preset'], // or 'babel-preset-expo'
+  plugins: [
+    // ...your other plugins
+    'react-native-worklets/plugin',
+  ],
+};
+```
+
+Restart Metro with `--reset-cache` after changing it.
+
+### Telemetry
+
+Downloading one of our pre-exported models sends an anonymous download event by
+default. To opt out, call `setTelemetryEnabled(false)` once at startup. See
+[Anonymous Telemetry](./02-downloading-models.md#anonymous-telemetry--download-counter).
+
 ### Selecting native libraries
 
 The native binaries — the ExecuTorch hardware backends (XNNPACK, Core ML, MLX,

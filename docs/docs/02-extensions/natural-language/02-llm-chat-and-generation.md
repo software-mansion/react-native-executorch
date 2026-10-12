@@ -292,6 +292,52 @@ try {
 }
 ```
 
+## One-Shot Generation
+
+A chat session keeps every turn in its history and KV cache, so it is the wrong
+tool for independent requests such as "rewrite this sentence" run many times.
+For those, load the model once and drive the [low-level runner](#low-level-runner)
+directly, resetting the KV cache before each call:
+
+```typescript
+import RNBlobUtil from 'react-native-blob-util';
+import { download, llm, models, wrapAsync } from 'react-native-executorch';
+
+const model = await download(models.llm.LFM2_5_1_2B.DEFAULT);
+const { chatTemplate, stopTokens } = llm.parseTokenizerConfig(
+  JSON.parse(await RNBlobUtil.fs.readFile(model.tokenizerConfigPath, 'utf8'))
+);
+const preprocessor = llm.createChatPreprocessor({ chatTemplate });
+const runner = await wrapAsync(llm.createLLMRunner)(model.modelPath, model.tokenizerPath);
+
+// Runs on a background worklet thread; `generate` is synchronous.
+const complete = wrapAsync((r: llm.LLMRunner, prompt: llm.Prompt) => {
+  'worklet';
+  r.reset(); // start from an empty KV cache: no earlier call leaks in
+  let text = '';
+  r.generate(prompt, { maxNewTokens: 256 }, (token) => {
+    if (!stopTokens.includes(token)) text += token;
+  });
+  return text;
+});
+
+export async function generateOnce(system: string, user: string): Promise<string> {
+  const messages: llm.ChatMessage[] = [
+    { role: 'system', content: system },
+    { role: 'user', content: user },
+  ];
+  const prompt = preprocessor.process(messages, messages.length);
+  try {
+    return await complete(runner, prompt);
+  } finally {
+    preprocessor.clear();
+  }
+}
+```
+
+Call `runner.dispose()` and `preprocessor.dispose()` when you no longer need the
+model. Calls on one runner must not overlap; await each before starting the next.
+
 ## Low-Level Runner
 
 While [`useLLMChatSession`](../../06-api-reference/functions/useLLMChatSession.md) and [`createLLMChatSession`](../../06-api-reference/functions/createLLMChatSession.md) handle chat formatting, message histories, and automated tool calling loops, you can drop down directly to the native [`LLMRunner`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md) via [`llm.createLLMRunner()`](../../06-api-reference/react-native-executorch/namespaces/llm/functions/createLLMRunner.md).
