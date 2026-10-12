@@ -78,10 +78,11 @@ export function createLLMTextRunner(
   const pos = createSynchronizable(0);
 
   const reset = (targetPos?: number): void => {
-    if (targetPos !== undefined && (targetPos < 0 || targetPos >= maxContextLen)) {
+    const curPos = pos.getBlocking();
+    if (targetPos !== undefined && (targetPos < 0 || targetPos > curPos)) {
       throw RnExecuTorchError(
         'INVALID_ARGUMENT',
-        `targetPos (${targetPos}) must be in range [0, ${maxContextLen}).`
+        `targetPos (${targetPos}) must be in range [0, ${curPos}].`
       );
     }
     pos.setBlocking(targetPos ?? 0);
