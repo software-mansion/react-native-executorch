@@ -437,5 +437,5 @@ export function createLLMGemmaRunner(
     // Generation
     prefill,
     generate,
-  } as unknown as LLMRunner;
+  };
 }

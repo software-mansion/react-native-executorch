@@ -233,5 +233,5 @@ export function createLLMTextRunner(
     // Generation
     prefill,
     generate,
-  } as unknown as LLMRunner;
+  };
 }
