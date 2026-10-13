@@ -56,10 +56,11 @@ The block is read from the directory the install was run in, then from every
 actually resolved, and the install log names the manifest it read.
 :::
 
-:::caution pnpm
-pnpm 10 and later do not run dependency build scripts unless you allow them, so
-the download never happens and the native build fails later on a missing file.
-Run `pnpm approve-builds react-native-executorch` once. See
+:::caution pnpm and npm 12
+pnpm 10 and later, and npm 12 and later, do not run dependency install scripts
+unless you allow them, so the download never happens and the native build fails
+later on a missing file. Run `pnpm approve-builds react-native-executorch` or
+`npm approve-scripts react-native-executorch` once. See
 [Troubleshooting](../05-other/02-troubleshooting.md).
 :::
 
