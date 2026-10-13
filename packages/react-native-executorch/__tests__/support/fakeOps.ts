@@ -661,6 +661,8 @@ export const speech = {
 
 type FakeSamplingConstraints = { allowedTokens?: Int32Array; bannedTokens?: Int32Array };
 
+let lastSampleOptions: Record<string, unknown> | undefined;
+
 export const llm = {
   /**
    * Greedy stand-in for the native sampler: applies the `constraints` callback
@@ -671,8 +673,12 @@ export const llm = {
   sample(
     logits: FakeTensor,
     ctx: { generatedTokens?: Int32Array },
-    options: { constraints?: (ctx: unknown) => FakeSamplingConstraints | undefined }
+    options: { constraints?: (ctx: unknown) => FakeSamplingConstraints | undefined } & Record<
+      string,
+      unknown
+    >
   ): number {
+    lastSampleOptions = options;
     expectShape(logits, [1, logits.numel], 'sample: logits');
     const { allowedTokens, bannedTokens } = options.constraints?.(ctx) ?? {};
     const allowed = allowedTokens && new Set(allowedTokens);
@@ -690,5 +696,15 @@ export const llm = {
     }
     if (best === -1) throw new Error('sample: constraints left no token to choose');
     return best;
+  },
+
+  /** @returns The options object passed to the most recent `sample` call. */
+  lastSampleOptions(): Record<string, unknown> | undefined {
+    return lastSampleOptions;
+  },
+
+  /** Clears the recorded sample options. */
+  reset(): void {
+    lastSampleOptions = undefined;
   },
 };
