@@ -114,6 +114,16 @@ TEST_F(LlmOpsTest, ValidatesTheRangeOfEachCoreOption) {
         Case{"minP: 1", "'minP' must be in [0, 1)"},
         Case{"temperature: -1", "'temperature' must be non-negative"},
         Case{"repetitionPenalty: 0", "'repetitionPenalty' must be positive"},
+        Case{"penaltyLastN: -2", "'penaltyLastN' must be -1 or non-negative"},
+        Case{"seed: -1", "'seed' must be a non-negative integer"},
+        Case{"seed: 4294967296", "'seed' must be a non-negative 32-bit integer"},
+        Case{"seed: 1.5", "'seed' must be a non-negative integer"},
+        Case{"temperature: NaN", "must be a finite number"},
+        Case{"temperature: Infinity", "must be a finite number"},
+        Case{"repetitionPenalty: NaN", "must be a finite number"},
+        Case{"repetitionPenalty: Infinity", "must be a finite number"},
+        Case{"topP: NaN", "must be a finite number"},
+        Case{"minP: NaN", "must be a finite number"},
     };
     for (const auto &[override, message] : cases) {
         EXPECT_TRUE(isCodedError(
@@ -274,6 +284,47 @@ TEST_F(LlmOpsTest, RepetitionPenaltyIgnoresOutOfRangeHistory) {
         0);
 }
 
+TEST_F(LlmOpsTest, RepetitionPenaltyHonoursWindow) {
+    // History [0, 1, 1]. Token 0 occurred 3 steps ago.
+    // With penaltyLastN: 2, only token 1 is in window:
+    // Token 0 logit remains 2.0 (unpenalised).
+    // Token 1 logit was 2.2, penalised by 1.5 -> 2.2 / 1.5 = 1.467.
+    // Token 0 (2.0) now beats token 1 (1.467).
+    EXPECT_EQ(
+        evalNumber(js("return sample(logits([2, 2.2]), ctx([0, 1, 1]), greedy({ repetitionPenalty: 1.5, penaltyLastN: 2 }));")),
+        0);
+
+    // With penaltyLastN: -1 or 3, token 0 is also penalised: 2.0 / 1.5 = 1.333,
+    // so token 1 (1.467) beats token 0 (1.333).
+    EXPECT_EQ(
+        evalNumber(js("return sample(logits([2, 2.2]), ctx([0, 1, 1]), greedy({ repetitionPenalty: 1.5, penaltyLastN: 3 }));")),
+        1);
+}
+
+TEST_F(LlmOpsTest, SeedProducesDeterministicDraws) {
+    auto draws1 = evalNumberArray(js(R"(
+        const t = logits([1, 1, 1, 1]);
+        const res = [];
+        for (let i = 0; i < 5; i++) {
+            t.setData(new Float32Array([1, 1, 1, 1]));
+            res.push(sample(t, ctx(), neutral({ seed: 42 + i, temperature: 1.0 })));
+        }
+        return res;
+    )"));
+
+    auto draws2 = evalNumberArray(js(R"(
+        const t = logits([1, 1, 1, 1]);
+        const res = [];
+        for (let i = 0; i < 5; i++) {
+            t.setData(new Float32Array([1, 1, 1, 1]));
+            res.push(sample(t, ctx(), neutral({ seed: 42 + i, temperature: 1.0 })));
+        }
+        return res;
+    )"));
+
+    EXPECT_EQ(draws1, draws2);
+}
+
 // --- DRY ---------------------------------------------------------------------
 
 // History 1 2 3 1 2: the suffix "1 2" already occurred, followed by 3, so
@@ -402,6 +453,72 @@ TEST_F(LlmOpsTest, RewritesTheLogitsInPlace) {
     EXPECT_DOUBLE_EQ(result[0], 1);
     EXPECT_DOUBLE_EQ(result[1], 1);
     EXPECT_TRUE(std::isinf(result[2]) && result[2] < 0);
+}
+
+// --- Full pipeline chain -----------------------------------------------------
+
+TEST_F(LlmOpsTest, FullChainAppliesStagesInExactLlamaCppOrder) {
+    // Exercises constraints -> repetition penalty -> DRY -> top-k -> top-p -> min-p -> XTC -> temperature in one call.
+    //
+    // Initial logits: 6 tokens [0..5] with values:
+    // [10.0, 10.0, 8.0, 7.0, 6.0, 5.0]
+    //
+    // 1. Constraints: ban token 0 -> token 0 logit becomes -inf.
+    // Remaining unmasked candidates: tokens 1 (10.0), 2 (8.0), 3 (7.0), 4 (6.0), 5 (5.0).
+    //
+    // 2. Repetition penalty: token 1 was generated in history [1, 2].
+    // With repetitionPenalty: 2.0, token 1 logit becomes 10.0 / 2.0 = 5.0.
+    // Logits: 2 (8.0), 3 (7.0), 4 (6.0), 5 (5.0), 1 (5.0).
+    //
+    // 3. DRY penalty: token 2 would extend suffix [1, 2].
+    // With dry (base 2, multiplier 5, allowedLength 1), match length is 2:
+    // penalty = 5 * (2^(2 - 1)) = 10.0.
+    // Token 2 logit becomes 8.0 - 10.0 = -2.0.
+    // Logits: 3 (7.0), 4 (6.0), 5 (5.0), 1 (5.0), 2 (-2.0).
+    //
+    // 4. Top-K = 3: retains top 3 candidates:
+    // tokens 3 (7.0), 4 (6.0), 5 (5.0).
+    // Softmax over [7.0, 6.0, 5.0]:
+    // max = 7.0 -> exp(0) = 1.0, exp(-1) = 0.3679, exp(-2) = 0.1353. Sum = 1.5032.
+    // Probs: tok 3 ≈ 0.665, tok 4 ≈ 0.245, tok 5 ≈ 0.090.
+    //
+    // 5. Min-P = 0.2: min threshold is 0.2 * max_prob = 0.2 * 0.665 = 0.133.
+    // Tok 5 (0.090) < 0.133 is pruned!
+    // Surviving: tok 3 and tok 4.
+    // Normalized probs: tok 3 ≈ 0.731, tok 4 ≈ 0.269.
+    //
+    // 6. XTC (threshold: 0.1, probability: 1.0):
+    // Both tok 3 and tok 4 have p > 0.1. Multiple candidates meet threshold!
+    // With probability = 1.0, XTC removes the top candidate (tok 3).
+    // Only tok 4 survives -> returned token MUST be 4!
+    EXPECT_EQ(evalNumber(js(R"(
+        const t = logits([10.0, 10.0, 8.0, 7.0, 6.0, 5.0]);
+        const constraints = () => ({ bannedTokens: new Int32Array([0]) });
+        const dry = {
+            multiplier: 5,
+            base: 2.0,
+            allowedLength: 1,
+            penaltyLastN: -1,
+            sequenceBreakers: new Int32Array(0),
+        };
+        const xtc = {
+            threshold: 0.1,
+            probability: 1.0,
+        };
+        return sample(t, ctx([1, 2]), {
+            temperature: 1.0,
+            topK: 3,
+            topP: 1.0,
+            minP: 0.2,
+            repetitionPenalty: 2.0,
+            penaltyLastN: -1,
+            seed: 42,
+            constraints,
+            dry,
+            xtc,
+        });
+    )")),
+              4);
 }
 
 } // namespace

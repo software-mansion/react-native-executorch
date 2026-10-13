@@ -48,18 +48,27 @@ struct Candidate {
  * For each unique token previously generated:
  * - Positive logits are scaled down by dividing by the penalty factor.
  * - Non-positive logits are penalized by multiplying by the penalty factor.
- *
  * @param logits Logits span to modify in place.
  * @param tokens History of previously generated token IDs.
  * @param penalty Multiplicative repetition penalty factor (> 1.0 penalizes repeats).
+ * @param penaltyLastN Maximum recent tokens window to scan (-1 for unlimited).
  */
-void applyRepetitionPenalty(std::span<float> logits, const std::vector<int32_t> &tokens, float penalty) {
+void applyRepetitionPenalty(std::span<float> logits,
+                            const std::vector<int32_t> &tokens,
+                            float penalty,
+                            int32_t penaltyLastN) {
     if (penalty == 1.0f || tokens.empty()) {
         return;
     }
 
+    const size_t totalTokens = tokens.size();
+    const size_t windowStart = (penaltyLastN > 0 && std::cmp_greater(totalTokens, penaltyLastN))
+                                   ? (totalTokens - static_cast<size_t>(penaltyLastN))
+                                   : 0;
+
     std::unordered_set<int32_t> seen;
-    for (int32_t tok : tokens) {
+    for (size_t i = windowStart; i < totalTokens; ++i) {
+        const int32_t tok = tokens[i];
         if (tok < 0 || !std::cmp_less(tok, logits.size()) || !seen.insert(tok).second) {
             continue;
         }
@@ -523,7 +532,9 @@ void install_sample(jsi::Runtime &rt, jsi::Object &module) {
         const auto topP = getRequiredProperty<float>(rt, "sample", opts, "topP");
         const auto minP = getRequiredProperty<float>(rt, "sample", opts, "minP");
 
+        const auto seed = getOptionalProperty<uint64_t>(rt, "sample", opts, "seed");
         const auto temperature = getRequiredProperty<float>(rt, "sample", opts, "temperature");
+        const auto penaltyLastN = getOptionalProperty<int32_t>(rt, "sample", opts, "penaltyLastN").value_or(-1);
         const auto repetitionPenalty = getRequiredProperty<float>(rt, "sample", opts, "repetitionPenalty");
 
         const auto xtcOptions = getOptionalProperty<jsi::Object>(rt, "sample", opts, "xtc");
@@ -544,8 +555,17 @@ void install_sample(jsi::Runtime &rt, jsi::Object &module) {
         if (repetitionPenalty <= 0.0f) {
             throw error::InvalidArgument("sample: option 'repetitionPenalty' must be positive");
         }
+        if (penaltyLastN < -1) {
+            throw error::InvalidArgument("sample: option 'penaltyLastN' must be -1 or non-negative");
+        }
 
         static thread_local std::mt19937 rng(std::random_device{}());
+        if (seed.has_value()) {
+            if (*seed > std::numeric_limits<uint32_t>::max()) {
+                throw error::InvalidArgument("sample: option 'seed' must be a non-negative 32-bit integer");
+            }
+            rng.seed(static_cast<uint32_t>(*seed));
+        }
 
         /**
          * The sampling pipeline follows the llama.cpp execution sequence:
@@ -584,7 +604,7 @@ void install_sample(jsi::Runtime &rt, jsi::Object &module) {
             applyConstraintsCallback(rt, logits, constraintsFn.value(), args[1]);
         }
 
-        applyRepetitionPenalty(logits, genToks, repetitionPenalty);
+        applyRepetitionPenalty(logits, genToks, repetitionPenalty, penaltyLastN);
 
         if (dryOptions.has_value()) {
             const auto dryMultiplier = getRequiredProperty<float>(rt, "sample: dry", *dryOptions, "multiplier");

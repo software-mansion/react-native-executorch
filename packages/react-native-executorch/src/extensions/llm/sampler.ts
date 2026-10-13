@@ -109,6 +109,15 @@ export type SamplingConfig = {
    * discourage repetition. Defaults to 1.0 (disabled).
    */
   readonly repetitionPenalty?: number;
+  /**
+   * Maximum number of recent tokens to consider for repetition penalty.
+   * Defaults to -1 (entire context).
+   */
+  readonly penaltyLastN?: number;
+  /**
+   * Optional RNG seed for deterministic sampling. Must be a non-negative 32-bit integer.
+   */
+  readonly seed?: number;
   /** Configuration for Don't Repeat Yourself (DRY) repetition penalty. */
   readonly dry?: DryConfig;
   /** Configuration for Exclude Top Choices (XTC) sampling. */
@@ -129,6 +138,7 @@ const EMPTY_SEQUENCE_BREAKERS = new Int32Array(0);
 const DEFAULT_SAMPLING_OPTIONS = {
   temperature: 0.8,
   repetitionPenalty: 1.0,
+  penaltyLastN: -1,
   topK: 40,
   topP: 0.95,
   minP: 0.05,
