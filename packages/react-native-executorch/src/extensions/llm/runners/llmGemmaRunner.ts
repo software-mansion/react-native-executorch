@@ -436,7 +436,7 @@ export function createLLMGemmaRunner(
 
         if (!config?.ignoreEos && eosIds.includes(nextToken)) break;
 
-        onToken?.(tokenizer.decode(Int32Array.of(nextToken)));
+        onToken?.(tokenizer.decode(Int32Array.of(nextToken), /* skipSpecialTokens= */ false));
         generatedTokens.push(nextToken);
 
         // Embed single token
