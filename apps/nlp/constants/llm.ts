@@ -167,11 +167,17 @@ export const HAMMER_TOOL_STOP_REGEX = /(?:<\|im_end\|>)/;
 
 export function parseHammerToolCalls(text: string): llm.ToolParserResult | undefined {
   const jsonMatch =
-    text.match(/```(?:json)?\s*([\s\S]*?)\s*```/) ?? text.match(/\[\s*\{[\s\S]*\}\s*\]/);
+    text.match(/```(?:json)?\s*([\s\S]*?)\s*```/) ??
+    text.match(/\[\s*\{[\s\S]*\}\s*\]/) ??
+    text.match(/\[\s*\]/);
   const jsonStr = jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : text.trim();
 
   try {
     const parsed = JSON.parse(jsonStr);
+    if (Array.isArray(parsed) && parsed.length === 0) {
+      const textContent = text.replace(jsonMatch ? jsonMatch[0] : jsonStr, '').trim();
+      return { toolCalls: [], textContent: textContent || undefined };
+    }
     if (!Array.isArray(parsed) || parsed.length === 0) return undefined;
 
     const toolCalls: llm.ToolCall[] = [];
@@ -239,7 +245,8 @@ export const LLAMA_TOOL_STOP_REGEX = /(?:<\|eot_id\|>|<\|eom_id\|>)/;
 
 export function parseLlamaToolCalls(text: string): llm.ToolParserResult | undefined {
   const cleanText = text
-    .replace(/<\|(?:eot_id|eom_id|start_header_id|end_header_id)\|>[\s\S]*?$/g, '')
+    .replace(/<\|(?:eot_id|eom_id|start_header_id|end_header_id|python_tag)\|>[\s\S]*?$/g, '')
+    .replace(/<\|python_tag\|>/g, '')
     .trim();
 
   const jsonMatch =
@@ -273,7 +280,7 @@ export function parseLlamaToolCalls(text: string): llm.ToolParserResult | undefi
       ];
       const textContent = cleanText
         .replace(jsonMatch ? jsonMatch[0] : jsonStr, '')
-        .replace(/<\|(?:eot_id|eom_id)\|>/g, '')
+        .replace(/<\|(?:eot_id|eom_id|python_tag)\|>/g, '')
         .trim();
       return { toolCalls, textContent: textContent || undefined };
     }
