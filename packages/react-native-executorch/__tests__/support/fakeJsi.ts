@@ -303,6 +303,7 @@ export const fakeJsi = {
     registeredBackends = ['XnnpackBackend', 'CoreMLBackend'];
     jsi.isEmulator = false;
     fakePhonemizer.reset();
+    llm.reset();
     tensorTracker.reset();
   },
 };
