@@ -16481,6 +16481,7 @@ __metadata:
   resolution: "react-native-executorch@workspace:packages/react-native-executorch"
   dependencies:
     "@babel/core": "npm:^7.29.7"
+    "@babel/plugin-transform-export-namespace-from": "npm:^7.29.7"
     "@huggingface/jinja": "npm:^0.5.9"
     "@react-native/babel-preset": "npm:0.83.6"
     "@react-native/metro-config": "npm:^0.86.0"
