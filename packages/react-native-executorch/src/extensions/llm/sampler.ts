@@ -161,7 +161,7 @@ const DEFAULT_XTC_OPTIONS = {
  * **Important:** The logits buffer is written to in place (penalties, DRY and constraints are
  * applied directly to it), so its contents are undefined after this call. Copy
  * the tensor first if the original logits are still needed.
- * @param logits 2D float32 logits Tensor of shape `[1, vocabSize]`. Clobbered by the call.
+ * @param logits Float32 logits Tensor. Clobbered by the call.
  * @param ctx Generation context containing emitted token history.
  * @param config Optional sampling configuration (defaults to `{}`).
  * @returns The sampled token id.

@@ -1927,24 +1927,22 @@ const QWEN2_5_3B_MLX_INT4: LLMModel = {
 };
 
 const GEMMA4_BASE_URL = `${BASE_URL}-gemma-4/${NEXT_VERSION_TAG}`;
-// Gemma 4 omni (multimodal) is parked for now: its builds are not part of the
-// v0.11.0 upstream migration, so the model is commented out until they are.
-// const GEMMA4_OMNI_BASE_URL = `${BASE_URL}-gemma-4-multimodal/${NEXT_VERSION_TAG}`;
-//
-// const GEMMA4_OMNI_PREPROCESSOR_CONFIG = {
-//   image: {
-//     visionToken: { start: '<|image>', end: '<image|>' },
-//     targetShape: [1, 3, 448, 640] as const,
-//     preprocessorOpts: {
-//       resizeMode: 'letterbox' as const,
-//       interpolation: 'linear' as const,
-//       normalizeOpts: { alpha: 1.0, beta: 0.0 },
-//     },
-//   },
-//   audio: {
-//     audioToken: { start: '<|audio>', end: '<audio|>' },
-//   },
-// };
+const GEMMA4_OMNI_BASE_URL = `${BASE_URL}-gemma-4-multimodal/${NEXT_VERSION_TAG}`;
+
+const GEMMA4_OMNI_PREPROCESSOR_CONFIG = {
+  image: {
+    visionToken: { start: '<|image>', end: '<image|>' },
+    targetShape: [1, 3, 448, 640] as const,
+    preprocessorOpts: {
+      resizeMode: 'letterbox' as const,
+      interpolation: 'linear' as const,
+      normalizeOpts: { alpha: 1.0, beta: 0.0 },
+    },
+  },
+  audio: {
+    audioToken: { start: '<|audio>', end: '<audio|>' },
+  },
+};
 
 const GEMMA4_E2B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${GEMMA4_BASE_URL}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`,
@@ -1961,20 +1959,13 @@ const GEMMA4_E2B_MLX_INT4: LLMModel = {
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
 };
-// const GEMMA4_OMNI_E2B_MLX_INT4: LLMModel = {
-//   modelPath: `${GEMMA4_OMNI_BASE_URL}/e2b/mlx/gemma_4_omni_e2b_mlx_int4.pte`,
-//   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
-//   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
-//   modalities: ['image', 'audio'],
-//   preprocessorConfig: GEMMA4_OMNI_PREPROCESSOR_CONFIG,
-// };
-// const GEMMA4_OMNI_E2B_XNNPACK_8DA4W: LLMModel = {
-//   modelPath: `${GEMMA4_OMNI_BASE_URL}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`,
-//   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
-//   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
-//   modalities: ['image', 'audio'],
-//   preprocessorConfig: GEMMA4_OMNI_PREPROCESSOR_CONFIG,
-// };
+const GEMMA4_OMNI_E2B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${GEMMA4_OMNI_BASE_URL}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
+  tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
+  modalities: ['image', 'audio'],
+  preprocessorConfig: GEMMA4_OMNI_PREPROCESSOR_CONFIG,
+};
 
 const QWEN3_BASE_URL = `${BASE_URL}-qwen-3/${NEXT_VERSION_TAG}`;
 
@@ -2885,16 +2876,13 @@ export const models = {
       VULKAN_8DA4W: GEMMA4_E2B_VULKAN_8DA4W,
       MLX_INT4: GEMMA4_E2B_MLX_INT4,
     }),
-    // Gemma 4 omni (multimodal) is parked until its builds join the upstream
-    // migration; see the commented-out constants above.
-    // /**
-    //  * Google Gemma 4 E2B multimodal (omni) language model supporting text, image,
-    //  * and audio inputs.
-    //  */
-    // GEMMA4_OMNI_E2B: variants({
-    //   MLX_INT4: GEMMA4_OMNI_E2B_MLX_INT4,
-    //   XNNPACK_8DA4W: GEMMA4_OMNI_E2B_XNNPACK_8DA4W,
-    // }),
+    /**
+     * Google Gemma 4 E2B multimodal (omni) language model supporting text, image,
+     * and audio inputs.
+     */
+    GEMMA4_OMNI_E2B: variants({
+      XNNPACK_8DA4W: GEMMA4_OMNI_E2B_XNNPACK_8DA4W,
+    }),
   },
   /**
    * Text embedding models mapping sentences and documents into dense vector
