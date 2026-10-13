@@ -13,6 +13,7 @@ describe('sample — options merging', () => {
       expect(options).toMatchObject({
         temperature: 0.8,
         repetitionPenalty: 1.0,
+        penaltyLastN: -1,
         topK: 40,
         topP: 0.95,
         minP: 0.05,
@@ -33,6 +34,8 @@ describe('sample — options merging', () => {
         {
           temperature: 0.2,
           topK: 10,
+          penaltyLastN: 64,
+          seed: 12345,
           dry: { multiplier: 0.8, allowedLength: 4 },
           xtc: { probability: 0.5, threshold: 0.3 },
         }
@@ -46,6 +49,8 @@ describe('sample — options merging', () => {
         topP: 0.95,
         minP: 0.05,
         repetitionPenalty: 1.0,
+        penaltyLastN: 64,
+        seed: 12345,
         dry: {
           multiplier: 0.8,
           base: 1.75,
