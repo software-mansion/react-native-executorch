@@ -725,7 +725,16 @@ export const llm = {
     >
   ): number {
     lastSampleOptions = options;
-    expectShape(logits, [1, logits.numel], 'sample: logits');
+    const isAllowedShape =
+      (logits.shape.length === 1 && logits.shape[0] === logits.numel) ||
+      (logits.shape.length === 2 && logits.shape[0] === 1 && logits.shape[1] === logits.numel) ||
+      (logits.shape.length === 3 &&
+        logits.shape[0] === 1 &&
+        logits.shape[1] === 1 &&
+        logits.shape[2] === logits.numel);
+    if (!isAllowedShape) {
+      throw new Error(`sample: logits: invalid shape [${logits.shape}]`);
+    }
     const { allowedTokens, bannedTokens } = options.constraints?.(ctx) ?? {};
     const allowed = allowedTokens && new Set(allowedTokens);
     const banned = new Set(bannedTokens ?? []);

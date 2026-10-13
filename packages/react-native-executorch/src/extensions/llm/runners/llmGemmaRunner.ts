@@ -32,7 +32,6 @@ const METADATA_SPEC = {
   ...method('get_vocab_size', [], [{ kind: 'Int' }]),
   ...method('use_kv_cache', [], [{ kind: 'Bool' }]),
   ...method('enable_dynamic_shape', [], [{ kind: 'Bool' }]),
-  // TODO: add `has_ple` metadata
 };
 
 export const LLM_GEMMA_SPEC = {
