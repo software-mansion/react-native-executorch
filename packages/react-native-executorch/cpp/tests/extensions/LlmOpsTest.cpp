@@ -63,14 +63,14 @@ TEST_F(LlmOpsTest, RejectsAWrongArgumentCount) {
                              "Usage: sample(logits, ctx, options)"));
 }
 
-TEST_F(LlmOpsTest, RejectsABatchOfLogits) {
-    // The runner decodes one sequence; a [2, vocab] tensor is a caller bug.
-    EXPECT_TRUE(isCodedError(evalThrowing(js(R"(
+TEST_F(LlmOpsTest, AcceptsMultiDimensionalLogitsByFlattening) {
+    // Anything goes and is flattened: a multi-dimensional logits tensor like [2, 4] is treated as a flat logits array.
+    EXPECT_EQ(evalNumber(js(R"(
         const t = createTensor([2, 4], 'float32');
-        sample(t, ctx(), greedy());
+        t.setData(new Float32Array([0.1, 0.2, 0.3, 0.4, 0.5, 3.0, 0.7, 0.8]));
+        return sample(t, ctx(), greedy());
     )")),
-                             "INVALID_ARGUMENT",
-                             "sample: logits"));
+              5);
 }
 
 TEST_F(LlmOpsTest, RejectsNonFloatLogits) {
