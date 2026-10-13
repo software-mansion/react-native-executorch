@@ -22,8 +22,6 @@ import { createLLMTextRunner, LLM_TEXT_SPEC } from './runners/llmTextRunner';
 import { createLLMMultimodalRunner, LLM_MULTIMODAL_SPEC } from './runners/llmMultimodalRunner';
 import { createLLMGemmaRunner, LLM_GEMMA_SPEC } from './runners/llmGemmaRunner';
 
-declare const llmRunnerBrand: unique symbol;
-
 /**
  * Configuration options for LLM text generation.
  * @category LLM / Types
@@ -155,12 +153,6 @@ export type LLMRunner = {
     config?: LLMGenerationConfig,
     onToken?: (token: string) => void
   ): LLMGenerationStats;
-
-  /**
-   * Prevents plain JS objects from being cast as LLMRunners.
-   * @internal
-   */
-  readonly [llmRunnerBrand]: never;
 };
 
 /**
