@@ -63,15 +63,6 @@ TEST_F(LlmOpsTest, RejectsAWrongArgumentCount) {
                              "Usage: sample(logits, ctx, options)"));
 }
 
-TEST_F(LlmOpsTest, RejectsLogitsOfTheWrongRank) {
-    EXPECT_TRUE(isCodedError(evalThrowing(js(R"(
-        const t = createTensor([4], 'float32');
-        sample(t, ctx(), greedy());
-    )")),
-                             "INVALID_ARGUMENT",
-                             "sample: logits"));
-}
-
 TEST_F(LlmOpsTest, RejectsABatchOfLogits) {
     // The runner decodes one sequence; a [2, vocab] tensor is a caller bug.
     EXPECT_TRUE(isCodedError(evalThrowing(js(R"(

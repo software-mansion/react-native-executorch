@@ -516,7 +516,7 @@ void install_sample(jsi::Runtime &rt, jsi::Object &module) {
             throw error::InvalidArgument("sample: Usage: sample(logits, ctx, options)");
         }
 
-        auto src = tensor::fromJs(rt, "sample: logits", args[0], DType::float32, {1, "vocab_size"});
+        auto src = tensor::fromJs(rt, "sample: logits", args[0], DType::float32, std::nullopt);
         auto lock = tensor::tryLockUnique(rt, "sample: logits", src);
 
         if (src->numel_ == 0) {

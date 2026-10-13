@@ -3,7 +3,14 @@ import { createSynchronizable } from 'react-native-worklets';
 import { tensor } from '../../../core/tensor';
 import type { Model } from '../../../core/model';
 import { RnExecuTorchError } from '../../../core/error';
-import { f32, i64, method, DynamicDim as Dyn, validateSpec } from '../../../core/schema';
+import {
+  f32,
+  i64,
+  method,
+  DynamicDim as Dyn,
+  validateSpec,
+  constraint,
+} from '../../../core/schema';
 
 import type { Tokenizer } from '../../nlp';
 import { sample } from '../sampler';
@@ -32,7 +39,14 @@ export const LLM_GEMMA_SPEC = {
   ...method(
     'token_embedding',
     [i64(1, Dyn('seqLen'))],
-    [f32(1, Dyn('seqLen'), 'hiddenDim'), f32(1, Dyn('seqLen'), 'numLayers', 'pleDim')]
+    [f32(1, Dyn('seqLen'), 'hiddenDim'), f32(1, Dyn('seqLen'), 'numLayers', 'pleDim')],
+    [
+      constraint.equality(
+        { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
+        { paramSide: 'output', tensorIdx: 0, dimIdx: 1 },
+        { paramSide: 'output', tensorIdx: 1, dimIdx: 1 }
+      ),
+    ]
   ),
   ...method(
     'text_decoder',
@@ -41,7 +55,14 @@ export const LLM_GEMMA_SPEC = {
       f32(1, Dyn('seqLen'), 'numLayers', 'pleDim'),
       i64(Dyn('seqLen')),
     ],
-    [f32(1, 1, 'vocabSize')]
+    [f32(1, 1, 'vocabSize')],
+    [
+      constraint.equality(
+        { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
+        { paramSide: 'input', tensorIdx: 1, dimIdx: 1 },
+        { paramSide: 'input', tensorIdx: 2, dimIdx: 0 }
+      ),
+    ]
   ),
   ...method(
     'vision_encoder', // prettier-ignore
@@ -51,13 +72,29 @@ export const LLM_GEMMA_SPEC = {
   ...method(
     'audio_encoder',
     [f32(1, Dyn('audioSamples')), i64(1)],
-    [f32(1, Dyn('audioTokens'), 'hiddenDim'), f32(1, Dyn('audioTokens'))]
+    [f32(1, Dyn('audioTokens'), 'hiddenDim'), f32(1, Dyn('audioTokens'))],
+    [
+      constraint.equality(
+        { paramSide: 'output', tensorIdx: 0, dimIdx: 1 },
+        { paramSide: 'output', tensorIdx: 1, dimIdx: 1 }
+      ),
+    ]
   ),
   ...METADATA_SPEC,
 };
 
 const AUDIO_SAMPLES_PER_BLOCK = 7680;
 const TOKENS_PER_AUDIO_BLOCK = 12;
+const MAX_AUDIO_BLOCKS = 62;
+const MAX_AUDIO_CHUNK_SAMPLES = MAX_AUDIO_BLOCKS * AUDIO_SAMPLES_PER_BLOCK;
+
+function combineStats(st1: LLMPrefillStats, st2: LLMPrefillStats): LLMPrefillStats {
+  'worklet';
+  const numTokens = st1.numTokens + st2.numTokens;
+  const durationMs = st1.durationMs + st2.durationMs;
+  const tokensPerSecond = durationMs > 0 ? (numTokens / durationMs) * 1000 : 0;
+  return { numTokens, durationMs, tokensPerSecond };
+}
 
 export function createLLMGemmaRunner(
   model: Model,
@@ -286,31 +323,43 @@ export function createLLMGemmaRunner(
       throw RnExecuTorchError('INVALID_ARGUMENT', 'Audio waveform is empty.');
     }
 
-    // Pad waveform to multiple of AUDIO_SAMPLES_PER_BLOCK
-    const numBlocks = Math.ceil(numSamples / AUDIO_SAMPLES_PER_BLOCK);
-    const paddedSamples = numBlocks * AUDIO_SAMPLES_PER_BLOCK;
-    const numAudioTokens = numBlocks * TOKENS_PER_AUDIO_BLOCK;
-
     const rawData = prompt.audio.getData(new Float32Array(numSamples));
-    const paddedWav = new Float32Array(paddedSamples);
-    paddedWav.set(rawData);
 
-    const tensors = [
-      tensor('float32', [1, paddedSamples], paddedWav),
-      tensor('int64', [1], BigInt64Array.of(BigInt(numSamples))),
-      tensor('float32', [1, numAudioTokens, hiddenDim]),
-      tensor('float32', [1, numAudioTokens]),
-    ] as const;
+    let totStats: LLMPrefillStats = { numTokens: 0, durationMs: 0, tokensPerSecond: 0 };
 
-    const [tWaveform, tNumValid, tAudioEmbeds, tAudioMask] = tensors;
+    let offset = 0;
+    while (offset < numSamples && !isCancelled.getBlocking()) {
+      const chunkSamples = Math.min(numSamples - offset, MAX_AUDIO_CHUNK_SAMPLES);
+      const numBlocks = Math.ceil(chunkSamples / AUDIO_SAMPLES_PER_BLOCK);
+      const paddedSamples = numBlocks * AUDIO_SAMPLES_PER_BLOCK;
+      const numAudioTokens = numBlocks * TOKENS_PER_AUDIO_BLOCK;
 
-    try {
-      model.execute('audio_encoder', [tWaveform, tNumValid], [tAudioEmbeds, tAudioMask]);
-      const embedding = tAudioEmbeds.getData(new Float32Array(tAudioEmbeds.numel));
-      return prefillEmbeddings(embedding, numAudioTokens);
-    } finally {
-      tensors.forEach((t) => t.dispose());
+      const chunkData = rawData.subarray(offset, offset + chunkSamples);
+      const paddedWav = new Float32Array(paddedSamples);
+      paddedWav.set(chunkData);
+
+      const tensors = [
+        tensor('float32', [1, paddedSamples], paddedWav),
+        tensor('int64', [1], BigInt64Array.of(BigInt(chunkSamples))),
+        tensor('float32', [1, numAudioTokens, hiddenDim]),
+        tensor('float32', [1, numAudioTokens]),
+      ] as const;
+
+      const [tWaveform, tNumValid, tAudioEmbeds, tAudioMask] = tensors;
+
+      try {
+        model.execute('audio_encoder', [tWaveform, tNumValid], [tAudioEmbeds, tAudioMask]);
+        const embedding = tAudioEmbeds.getData(new Float32Array(tAudioEmbeds.numel));
+        const chunkStats = prefillEmbeddings(embedding, numAudioTokens);
+        totStats = combineStats(totStats, chunkStats);
+      } finally {
+        tensors.forEach((t) => t.dispose());
+      }
+
+      offset += chunkSamples;
     }
+
+    return totStats;
   };
 
   const prefill = (prompt: Prompt): LLMPrefillStats => {
@@ -323,29 +372,23 @@ export function createLLMGemmaRunner(
     }
 
     let totStats: LLMPrefillStats = { numTokens: 0, durationMs: 0, tokensPerSecond: 0 };
-    const combine = (st1: LLMPrefillStats, st2: LLMPrefillStats): LLMPrefillStats => {
-      const numTokens = st1.numTokens + st2.numTokens;
-      const durationMs = st1.durationMs + st2.durationMs;
-      const tokensPerSecond = durationMs > 0 ? (numTokens / durationMs) * 1000 : 0;
-      return { numTokens, durationMs, tokensPerSecond };
-    };
 
     for (const segment of segments) {
       if (typeof segment === 'string') {
         const stats = prefillText(segment);
-        totStats = combine(totStats, stats);
+        totStats = combineStats(totStats, stats);
         continue;
       }
 
       switch (segment.kind) {
         case 'image': {
           const stats = prefillImage(segment);
-          totStats = combine(totStats, stats);
+          totStats = combineStats(totStats, stats);
           break;
         }
         case 'audio': {
           const stats = prefillAudio(segment);
-          totStats = combine(totStats, stats);
+          totStats = combineStats(totStats, stats);
           break;
         }
         default:

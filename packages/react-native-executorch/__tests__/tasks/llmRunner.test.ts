@@ -1,4 +1,4 @@
-import { f32, i64, method, RangeDim } from '../../src/core/schema';
+import { constraint, f32, i64, method, RangeDim } from '../../src/core/schema';
 import { tensor } from '../../src/core/tensor';
 import { createLLMRunner } from '../../src/extensions/llm/llmRunner';
 import { createLLMMultimodalRunner } from '../../src/extensions/llm/runners/llmMultimodalRunner';
@@ -37,18 +37,38 @@ const GEMMA_SPEC = exported({
   ...method(
     'token_embedding',
     [i64(1, RangeDim(1, 128))],
-    [f32(1, RangeDim(1, 128), 64), f32(1, RangeDim(1, 128), 2, 8)]
+    [f32(1, RangeDim(1, 128), 64), f32(1, RangeDim(1, 128), 2, 8)],
+    [
+      constraint.equality(
+        { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
+        { paramSide: 'output', tensorIdx: 0, dimIdx: 1 },
+        { paramSide: 'output', tensorIdx: 1, dimIdx: 1 }
+      ),
+    ]
   ),
   ...method(
     'text_decoder',
     [f32(1, RangeDim(1, 128), 64), f32(1, RangeDim(1, 128), 2, 8), i64(RangeDim(1, 128))],
-    [f32(1, 1, 100)]
+    [f32(1, 1, 100)],
+    [
+      constraint.equality(
+        { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
+        { paramSide: 'input', tensorIdx: 1, dimIdx: 1 },
+        { paramSide: 'input', tensorIdx: 2, dimIdx: 0 }
+      ),
+    ]
   ),
   ...method('vision_encoder', [f32(1, 3, 32, 32)], [f32(1, 4, 64)]),
   ...method(
     'audio_encoder',
     [f32(1, RangeDim(1, 7680)), i64(1)],
-    [f32(1, RangeDim(1, 12), 64), f32(1, RangeDim(1, 12))]
+    [f32(1, RangeDim(1, 12), 64), f32(1, RangeDim(1, 12))],
+    [
+      constraint.equality(
+        { paramSide: 'output', tensorIdx: 0, dimIdx: 1 },
+        { paramSide: 'output', tensorIdx: 1, dimIdx: 1 }
+      ),
+    ]
   ),
   ...method('get_max_seq_len', [], [{ kind: 'Int' }]),
   ...method('get_max_context_len', [], [{ kind: 'Int' }]),
