@@ -292,12 +292,25 @@ try {
 }
 ```
 
-## One-Shot Generation
+## Low-Level Runner
+
+While [`useLLMChatSession`](../../06-api-reference/functions/useLLMChatSession.md) and [`createLLMChatSession`](../../06-api-reference/functions/createLLMChatSession.md) handle chat formatting, message histories, and automated tool calling loops, you can drop down directly to the native [`LLMRunner`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md) via [`llm.createLLMRunner()`](../../06-api-reference/react-native-executorch/namespaces/llm/functions/createLLMRunner.md).
+
+[`LLMRunner`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md) operates synchronously on a worklet runtime thread and provides low-level control:
+
+- **Raw Prompt Ingestion**: Pass raw prompt strings or preprocessed image tensors directly to the runner without role formatting or Jinja chat template rendering.
+- **Manual Prefill**: Execute [`runner.prefill(prompt)`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#prefill) to populate the Key-Value (KV) cache with large background contexts, system prompts, or document chunks before starting interactive generation.
+- **Direct Synchronous Generation**: Call [`runner.generate(prompt, config, onToken)`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#generate) to generate text continuations with zero Promise scheduling overhead, executing the `onToken` callback directly on each generated token.
+- **KV Cache Inspection & Slicing**: Query [`runner.getKVCacheState()`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#getkvcachestate) to check occupied tokens ([`pos`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState.md#pos)), max context length ([`maxSeqLen`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState.md#maxseqlen)), and context capacity ratio ([`usageRatio`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState.md#usageratio)).
+- **KV Cache Rewind & Branching**: Call [`runner.reset(targetPos)`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#reset) to rewind the KV cache back to an exact token position. This enables speculative branching, sampling multiple divergent continuations from a shared prompt prefix without re-encoding, or manual conversation tree management.
+- **Cancellation**: Call [`runner.stop()`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#stop) from any thread to abort active autoregressive generation immediately.
+
+### One-Shot Generation
 
 A chat session keeps every turn in its history and KV cache, so it is the wrong
 tool for independent requests such as "rewrite this sentence" run many times.
-For those, load the model once and drive the [low-level runner](#low-level-runner)
-directly, resetting the KV cache before each call:
+For those, load the model once and drive the runner directly, resetting the KV
+cache before each call:
 
 ```typescript
 import RNBlobUtil from 'react-native-blob-util';
@@ -337,19 +350,6 @@ export async function generateOnce(system: string, user: string): Promise<string
 
 Call `runner.dispose()` and `preprocessor.dispose()` when you no longer need the
 model. Calls on one runner must not overlap; await each before starting the next.
-
-## Low-Level Runner
-
-While [`useLLMChatSession`](../../06-api-reference/functions/useLLMChatSession.md) and [`createLLMChatSession`](../../06-api-reference/functions/createLLMChatSession.md) handle chat formatting, message histories, and automated tool calling loops, you can drop down directly to the native [`LLMRunner`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md) via [`llm.createLLMRunner()`](../../06-api-reference/react-native-executorch/namespaces/llm/functions/createLLMRunner.md).
-
-[`LLMRunner`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md) operates synchronously on a worklet runtime thread and provides low-level control:
-
-- **Raw Prompt Ingestion**: Pass raw prompt strings or preprocessed image tensors directly to the runner without role formatting or Jinja chat template rendering.
-- **Manual Prefill**: Execute [`runner.prefill(prompt)`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#prefill) to populate the Key-Value (KV) cache with large background contexts, system prompts, or document chunks before starting interactive generation.
-- **Direct Synchronous Generation**: Call [`runner.generate(prompt, config, onToken)`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#generate) to generate text continuations with zero Promise scheduling overhead, executing the `onToken` callback directly on each generated token.
-- **KV Cache Inspection & Slicing**: Query [`runner.getKVCacheState()`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#getkvcachestate) to check occupied tokens ([`pos`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState.md#pos)), max context length ([`maxSeqLen`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState.md#maxseqlen)), and context capacity ratio ([`usageRatio`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState.md#usageratio)).
-- **KV Cache Rewind & Branching**: Call [`runner.reset(targetPos)`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#reset) to rewind the KV cache back to an exact token position. This enables speculative branching, sampling multiple divergent continuations from a shared prompt prefix without re-encoding, or manual conversation tree management.
-- **Cancellation**: Call [`runner.stop()`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#stop) from any thread to abort active autoregressive generation immediately.
 
 ## Available Models
 
