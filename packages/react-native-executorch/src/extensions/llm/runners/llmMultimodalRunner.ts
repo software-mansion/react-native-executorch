@@ -316,10 +316,10 @@ export function createLLMMultimodalRunner(
         const genTokArray = Int32Array.from(generatedTokens);
         const nextToken = sample(tLogits, { generatedTokens: genTokArray }, config);
 
+        if (!config?.ignoreEos && eosIds.includes(nextToken)) break;
+
         onToken?.(tokenizer.decode(Int32Array.of(nextToken)));
         generatedTokens.push(nextToken);
-
-        if (!config?.ignoreEos && eosIds.includes(nextToken)) break;
 
         // Embed single token
         tTokenId.setData(BigInt64Array.of(BigInt(nextToken)));
