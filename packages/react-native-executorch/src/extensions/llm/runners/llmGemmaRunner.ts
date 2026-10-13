@@ -322,9 +322,8 @@ export function createLLMGemmaRunner(
       throw RnExecuTorchError('INVALID_ARGUMENT', 'prefill: Empty prompt provided.');
     }
 
-    let totStats: LLMPrefillStats | undefined;
-    const combine = (st1: LLMPrefillStats, st2?: LLMPrefillStats): LLMPrefillStats => {
-      if (st2 === undefined) return st1;
+    let totStats: LLMPrefillStats = { numTokens: 0, durationMs: 0, tokensPerSecond: 0 };
+    const combine = (st1: LLMPrefillStats, st2: LLMPrefillStats): LLMPrefillStats => {
       const numTokens = st1.numTokens + st2.numTokens;
       const durationMs = st1.durationMs + st2.durationMs;
       const tokensPerSecond = durationMs > 0 ? (numTokens / durationMs) * 1000 : 0;
@@ -334,19 +333,19 @@ export function createLLMGemmaRunner(
     for (const segment of segments) {
       if (typeof segment === 'string') {
         const stats = prefillText(segment);
-        totStats = combine(stats, totStats);
+        totStats = combine(totStats, stats);
         continue;
       }
 
       switch (segment.kind) {
         case 'image': {
           const stats = prefillImage(segment);
-          totStats = combine(stats, totStats);
+          totStats = combine(totStats, stats);
           break;
         }
         case 'audio': {
           const stats = prefillAudio(segment);
-          totStats = combine(stats, totStats);
+          totStats = combine(totStats, stats);
           break;
         }
         default:
@@ -357,7 +356,7 @@ export function createLLMGemmaRunner(
       }
     }
 
-    return totStats!;
+    return totStats;
   };
 
   const generate = (
