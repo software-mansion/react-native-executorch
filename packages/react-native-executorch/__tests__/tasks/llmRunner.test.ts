@@ -2,6 +2,7 @@ import { constraint, f32, i64, method, RangeDim } from '../../src/core/schema';
 import { tensor } from '../../src/core/tensor';
 import { createLLMRunner } from '../../src/extensions/llm/llmRunner';
 import { createLLMMultimodalRunner } from '../../src/extensions/llm/runners/llmMultimodalRunner';
+import { createLLMGemmaRunner } from '../../src/extensions/llm/runners/llmGemmaRunner';
 import { loadModel } from '../../src/core/model';
 import { loadTokenizer } from '../../src/extensions/nlp';
 import { fakeJsi } from '../support/fakeJsi';
@@ -307,5 +308,138 @@ describe('createLLMMultimodalRunner — execution & KV cache lifecycle', () => {
     expect(fakeJsi.liveModels()).toEqual([]);
     expect(fakeJsi.liveTokenizers()).toEqual([]);
     expect(fakeJsi.liveTensorDescriptions()).toEqual([]);
+  });
+});
+
+describe('createLLMGemmaRunner — execution & multimodal prefill', () => {
+  beforeEach(() => {
+    registerModelWithSchema(GEMMA_SPEC, { maxContextLen: 512 });
+  });
+
+  it('prefills text and updates KV cache position', async () => {
+    const model = await loadModel(MODEL_PATH);
+    const tokenizer = await loadTokenizer(TOKENIZER_PATH);
+    const runner = tracked(createLLMGemmaRunner(model, tokenizer, ['image', 'audio']));
+
+    expect(runner.getKVCacheState()).toEqual({
+      pos: 0,
+      maxContextLen: 512,
+      remainingTokens: 512,
+      usageRatio: 0,
+    });
+
+    const stats = runner.prefill('hello world');
+    expect(stats.numTokens).toBe(2);
+    expect(runner.getKVCacheState().pos).toBe(2);
+    expect(runner.getKVCacheState().remainingTokens).toBe(510);
+  });
+
+  it('prefills image and updates KV cache position by visual tokens count', async () => {
+    const model = await loadModel(MODEL_PATH);
+    const tokenizer = await loadTokenizer(TOKENIZER_PATH);
+    const runner = tracked(createLLMGemmaRunner(model, tokenizer, ['image', 'audio']));
+
+    const img = tensor('float32', [1, 3, 32, 32]);
+    try {
+      const stats = runner.prefill([{ kind: 'image', image: img }]);
+      expect(stats.numTokens).toBe(4); // visualTokens = 4
+      expect(runner.getKVCacheState().pos).toBe(4);
+    } finally {
+      img.dispose();
+    }
+  });
+
+  it('prefills audio and chunks properly into block tokens', async () => {
+    const model = await loadModel(MODEL_PATH);
+    const tokenizer = await loadTokenizer(TOKENIZER_PATH);
+    const runner = tracked(createLLMGemmaRunner(model, tokenizer, ['image', 'audio']));
+
+    // 7680 samples = 1 block = 12 tokens
+    const wav = tensor('float32', [1, 7680]);
+    try {
+      const stats = runner.prefill([{ kind: 'audio', audio: wav }]);
+      expect(stats.numTokens).toBe(12);
+      expect(runner.getKVCacheState().pos).toBe(12);
+    } finally {
+      wav.dispose();
+    }
+  });
+
+  it('rejects invalid audio tensor dtype or empty audio', async () => {
+    const model = await loadModel(MODEL_PATH);
+    const tokenizer = await loadTokenizer(TOKENIZER_PATH);
+    const runner = tracked(createLLMGemmaRunner(model, tokenizer, ['image', 'audio']));
+
+    const badDtypeWav = tensor('int32', [1, 7680]);
+    try {
+      expect(() => runner.prefill([{ kind: 'audio', audio: badDtypeWav }])).toThrow(
+        /Expected audio tensor of dtype 'float32'/
+      );
+    } finally {
+      badDtypeWav.dispose();
+    }
+
+    const emptyWav = {
+      dtype: 'float32',
+      shape: [0],
+      numel: 0,
+    } as any;
+    expect(() => runner.prefill([{ kind: 'audio', audio: emptyWav }])).toThrow(
+      /Audio waveform is empty/
+    );
+  });
+
+  it('handles interleaved text, image, and audio prompts', async () => {
+    const model = await loadModel(MODEL_PATH);
+    const tokenizer = await loadTokenizer(TOKENIZER_PATH);
+    const runner = tracked(createLLMGemmaRunner(model, tokenizer, ['image', 'audio']));
+
+    const img = tensor('float32', [1, 3, 32, 32]);
+    const wav = tensor('float32', [1, 7680]);
+    try {
+      const stats = runner.prefill([
+        'describe this:',
+        { kind: 'image', image: img },
+        'and listen:',
+        { kind: 'audio', audio: wav },
+      ]);
+      // 2 text + 4 image + 2 text + 12 audio = 20 tokens
+      expect(stats.numTokens).toBe(2 + 4 + 2 + 12);
+      expect(runner.getKVCacheState().pos).toBe(20);
+    } finally {
+      img.dispose();
+      wav.dispose();
+    }
+  });
+
+  it('generates tokens and triggers onToken callback', async () => {
+    const model = await loadModel(MODEL_PATH);
+    const tokenizer = await loadTokenizer(TOKENIZER_PATH);
+    const runner = tracked(createLLMGemmaRunner(model, tokenizer, ['image', 'audio']));
+
+    const tokens: string[] = [];
+    const stats = runner.generate('hello', { maxNewTokens: 3 }, (tok) => tokens.push(tok));
+
+    expect(stats.numTokens).toBe(3);
+    expect(tokens.length).toBe(3);
+    expect(tokens).toEqual(['hello', 'hello', 'hello']);
+  });
+
+  it('resets KV cache and disposes cleanly', async () => {
+    const model = await loadModel(MODEL_PATH);
+    const tokenizer = await loadTokenizer(TOKENIZER_PATH);
+    const runner = createLLMGemmaRunner(model, tokenizer, ['image', 'audio']);
+
+    runner.prefill('hello world');
+    expect(runner.getKVCacheState().pos).toBe(2);
+
+    runner.reset(1);
+    expect(runner.getKVCacheState().pos).toBe(1);
+    runner.reset();
+    expect(runner.getKVCacheState().pos).toBe(0);
+
+    runner.dispose();
+    expect(fakeJsi.liveModels()).toEqual([]);
+    expect(fakeJsi.liveTokenizers()).toEqual([]);
   });
 });
