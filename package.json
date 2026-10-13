@@ -13,7 +13,7 @@
   "scripts": {
     "prepare": "yarn workspaces foreach --all --exclude react-native-executorch-webrtc --topological-dev run prepare",
     "lint": "yarn workspaces foreach --all --exclude react-native-executorch-webrtc --parallel run lint",
-    "typecheck": "yarn workspaces foreach --all --exclude react-native-executorch-webrtc --parallel run typecheck"
+    "typecheck": "yarn prepare && yarn workspaces foreach --all --exclude react-native-executorch-webrtc --parallel run typecheck"
   },
   "private": true,
   "devDependencies": {
