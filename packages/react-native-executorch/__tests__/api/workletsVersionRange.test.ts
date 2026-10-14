@@ -64,10 +64,12 @@ describe('react-native-worklets peer range', () => {
 
   it('matches the React Native floor the docs promise', () => {
     // Worklets declares which React Native versions it accepts; ours cannot be
-    // lower than what the oldest worklets we allow will run on.
+    // lower than what the oldest worklets we allow will run on. That is
+    // worklets 0.10.0, whose peer is `0.83 - 0.86`. The installed copy may be
+    // newer and demand a newer React Native, so it only bounds the floor.
     const oldest = minVersion(range)!.version;
-    const workletsRnRange: string = installed.peerDependencies['react-native'];
-    const rnFloor = minVersion(workletsRnRange)!.version;
+    const rnFloor = '0.83.0';
+    const installedRnFloor = minVersion(installed.peerDependencies['react-native'])!.version;
 
     const gettingStarted = readFileSync(
       join(DOCS, '01-fundamentals', '01-getting-started.md'),
@@ -75,6 +77,7 @@ describe('react-native-worklets peer range', () => {
     );
 
     expect(oldest).toBe('0.10.0');
+    expect(satisfies(installedRnFloor, `>=${rnFloor}`)).toBe(true);
     // e.g. "React Native 0.83+"
     expect(gettingStarted).toContain(`React Native ${rnFloor.split('.').slice(0, 2).join('.')}+`);
   });

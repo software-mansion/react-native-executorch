@@ -70,11 +70,8 @@ export const VoiceActivityDetectionScreen = ({ onBack }: { onBack: () => void })
     );
 
     try {
-      const success = await AudioManager.setAudioSessionActivity(true);
-      if (!success) {
-        setError('Cannot start audio session correctly');
-      }
-      const result = recorder.current.start();
+      await AudioManager.setAudioSessionActivity(true);
+      const result = await recorder.current.start();
       if (result.status === 'error') {
         setError(`Recording problems: ${result.status}`);
       }
