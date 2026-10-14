@@ -2335,6 +2335,13 @@ const GEMMA4_OMNI_E2B_XNNPACK_8DA4W: LLMModel = {
   modalities: ['image', 'audio'],
   preprocessorConfig: GEMMA4_OMNI_PREPROCESSOR_CONFIG,
 };
+const GEMMA4_OMNI_E2B_VULKAN_8DA4W: LLMModel = {
+  modelPath: `${GEMMA4_OMNI_BASE_URL}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`,
+  tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
+  tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
+  modalities: ['image', 'audio'],
+  preprocessorConfig: GEMMA4_OMNI_PREPROCESSOR_CONFIG,
+};
 
 const QWEN3_BASE_URL = `${BASE_URL}-qwen-3/${NEXT_VERSION_TAG}`;
 
@@ -3387,6 +3394,7 @@ export const models = {
      */
     GEMMA4_OMNI_E2B: variants({
       XNNPACK_8DA4W: GEMMA4_OMNI_E2B_XNNPACK_8DA4W,
+      VULKAN_8DA4W: GEMMA4_OMNI_E2B_VULKAN_8DA4W,
     }),
   },
   /**
