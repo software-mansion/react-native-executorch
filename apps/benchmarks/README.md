@@ -207,7 +207,7 @@ Per variant, per repeat:
 The execute figure is the one to watch for an ExecuTorch bump. A pipeline
 timing folds `model.execute` together with preprocessing and post-processing,
 which are TypeScript and did not change; `execute.<method>` is ExecuTorch and
-nothing else. It is tallied in-band by the library (`getExecutionProfile`), so
+nothing else. It is tallied in-band by the library (`profiler`), so
 it covers the shapes and call counts the pipeline actually used, and
 `Execute %` in the summary is a true share of the pipeline time.
 

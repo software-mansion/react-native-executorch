@@ -10,6 +10,6 @@ void install(facebook::jsi::Runtime &rt, facebook::jsi::Object &module) {
     utils::install_isEmulator(rt, module);
     model::install_loadModel(rt, module);
     tensor::install_createTensor(rt, module);
-    profiler::install_executionProfile(rt, module);
+    profiler::install_profiler(rt, module);
 }
 } // namespace rnexecutorch::core

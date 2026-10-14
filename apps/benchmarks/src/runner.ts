@@ -14,20 +14,14 @@
  *    validation and tensor pre-allocation, the thing a user waits through.
  * 2. **Pipeline timing.** Warmup, then timed iterations, with the memory sampler
  *    off so the sampler's cost stays out of the numbers. ExecuTorch's share is
- *    tallied in-band over the same iterations (`getExecutionProfile`).
+ *    tallied in-band over the same iterations (`profiler`).
  * 3. **Memory.** A few more iterations with the sampler on, for the peak. Split
  *    from pass 2 because reading total PSS on Android is milliseconds of work.
  * 4. **Dispose.** Footprint is read once more, so a leak shows up as a case that
  *    never returns to its baseline.
  */
 
-import {
-  download,
-  defaultWorkletRuntime,
-  models,
-  getExecutionProfile,
-  resetExecutionProfile,
-} from 'react-native-executorch';
+import { download, defaultWorkletRuntime, models, profiler } from 'react-native-executorch';
 import { Platform } from 'react-native';
 
 import BenchProbe from '../modules/bench-probe';
@@ -186,7 +180,7 @@ async function measureOnce(
     // mean exceeded the pipeline median on 23 of 52 variants, by up to 1.47x.
     const startTimedWindow = () => {
       'worklet';
-      resetExecutionProfile();
+      profiler.reset();
     };
     const timed =
       driver.mode === 'async'
@@ -215,7 +209,15 @@ async function measureOnce(
     // covers the timed iterations only and is a per-iteration mean directly
     // comparable to `pipeline.mean`.
     const passes = config.iterations;
-    const profile = getExecutionProfile();
+    // Summed across the case's models: the report keys by method name only.
+    const profile: Record<string, { count: number; totalMs: number }> = {};
+    for (const modelProfile of Object.values(profiler.get())) {
+      for (const [method, entry] of Object.entries(modelProfile)) {
+        const sum = (profile[method] ??= { count: 0, totalMs: 0 });
+        sum.count += entry.count;
+        sum.totalMs += entry.totalMs;
+      }
+    }
     const execution = {
       perIteration: Object.fromEntries(
         Object.entries(profile).map(([method, entry]) => [

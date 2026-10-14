@@ -92,10 +92,15 @@ export * from './extensions/speech/tasks/kokoroTextToSpeech';
 // Core primitives — for library builders and power users
 export * from './core/error';
 export * from './core/model';
-export * from './core/profiler';
 export * from './core/tensor';
 export * from './core/runtime';
 export * from './core/lifetime';
+
+/**
+ * Time spent inside ExecuTorch, accumulated per model and method.
+ * @category Modules
+ */
+export * as profiler from './core/profiler';
 
 /**
  * Model schema validation and dimension constraints.

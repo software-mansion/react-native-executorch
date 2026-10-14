@@ -1,52 +1,65 @@
 /**
- * How much of a run was spent inside ExecuTorch.
+ * Time spent inside ExecuTorch, accumulated across `execute` calls.
  *
  * Every `execute` call adds its duration to a process-global tally, keyed by
- * method name. Read it around a piece of work to learn what share of that work
- * was the model, as opposed to the preprocessing and post-processing around it.
+ * model path and method name. Reset it before a piece of work and read it after
+ * to see how much of that work was model execution, as opposed to the
+ * preprocessing and postprocessing around it. This works for pipelines too,
+ * since the tally does not need a handle to the models a pipeline loads.
+ * @example
+ * ```typescript
+ * import { profiler } from 'react-native-executorch';
  *
- * This exists because the alternative does not work. A task pipeline owns its
- * `Model` privately, so there is no handle to time; and re-running the model
- * separately means guessing the shapes the pipeline fed it. For a model with a
- * dynamic dimension the guess is wrong by construction: a text embedder
- * declaring up to 510 tokens gets benchmarked at 510 while the pipeline ran 75,
- * and the resulting "share" is meaningless. Accumulating in place removes the
- * guess entirely, and it works for a pipeline that calls one method many times
- * (OCR runs its recognizer once per detected box) where a single replay would not.
+ * profiler.reset();
+ * await embedder.embed('Hello world');
+ * const stats = profiler.get(); // { '/path/to/model.pte': { forward: { count: 1, totalMs: 4.2 } } }
+ * ```
  */
 
 import { rnexecutorchJsi } from '../native/bridge';
 
-/** What one exported method accumulated since the last reset. */
-export interface MethodProfile {
-  /** How many times the method was executed. */
+/**
+ * Accumulated `execute` totals of one exported method.
+ * @category Core / Profiler / Types
+ */
+export type MethodProfile = {
+  /** Number of `execute` calls. */
   readonly count: number;
-  /** Total time inside `execute`, in milliseconds, as a fractional value. */
+  /** Total time spent in those calls, in milliseconds (fractional). */
   readonly totalMs: number;
-}
-
-/** Per-method totals, keyed by exported method name. */
-export type ExecutionProfile = Readonly<Record<string, MethodProfile>>;
+};
 
 /**
- * Reads the accumulated per-method execution totals.
- * @returns Totals since the last {@link resetExecutionProfile}, keyed by method.
- * @category Core / Functions
+ * Accumulated totals of one model, keyed by exported method name.
+ * @category Core / Profiler / Types
  */
-export function getExecutionProfile(): ExecutionProfile {
+export type ModelProfile = Readonly<Record<string, MethodProfile>>;
+
+/**
+ * Reads the totals accumulated since the last {@link reset}.
+ * @returns Totals of every executed model, keyed by model path.
+ * @category Core / Profiler / Functions
+ */
+export function get(): Readonly<Record<string, ModelProfile>>;
+/**
+ * Reads the totals one model accumulated since the last {@link reset}.
+ * @param modelPath The model's path, as in `model.path`.
+ * @returns Totals keyed by method name; empty if the model was not executed.
+ * @category Core / Profiler / Functions
+ */
+export function get(modelPath: string): ModelProfile;
+export function get(modelPath?: string) {
   'worklet';
-  return rnexecutorchJsi.getExecutionProfile() as ExecutionProfile;
+  return modelPath === undefined
+    ? rnexecutorchJsi.profiler.get()
+    : rnexecutorchJsi.profiler.get(modelPath);
 }
 
 /**
- * Clears the accumulated totals.
- *
- * Call immediately before the work being measured. The tally is global and
- * spans every loaded model, so a stale total from an earlier phase would be
- * counted against the current one.
- * @category Core / Functions
+ * Clears the accumulated totals of every model.
+ * @category Core / Profiler / Functions
  */
-export function resetExecutionProfile(): void {
+export function reset(): void {
   'worklet';
-  rnexecutorchJsi.resetExecutionProfile();
+  rnexecutorchJsi.profiler.reset();
 }
