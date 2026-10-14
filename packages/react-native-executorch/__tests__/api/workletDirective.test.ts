@@ -167,6 +167,52 @@ describe('worklet directive', () => {
 
     expect(missing).toEqual([]);
   });
+
+  it('marks reset and getKVCacheState as worklets in LLM runners', () => {
+    const runnerFiles = [
+      'extensions/llm/runners/llmTextRunner.ts',
+      'extensions/llm/runners/llmMultimodalRunner.ts',
+      'extensions/llm/runners/llmGemmaRunner.ts',
+    ];
+
+    const methodsToCheck = ['reset', 'getKVCacheState'];
+
+    for (const file of runnerFiles) {
+      const source = ts.createSourceFile(
+        file,
+        readFileSync(join(SRC, file), 'utf8'),
+        ts.ScriptTarget.Latest,
+        true
+      );
+
+      const found: Record<string, boolean> = {};
+
+      const visit = (node: ts.Node) => {
+        if (
+          ts.isVariableDeclaration(node) &&
+          ts.isIdentifier(node.name) &&
+          methodsToCheck.includes(node.name.text) &&
+          node.initializer &&
+          (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer)) &&
+          node.initializer.body &&
+          ts.isBlock(node.initializer.body)
+        ) {
+          found[node.name.text] = hasWorkletDirective(node.initializer.body);
+        }
+        ts.forEachChild(node, visit);
+      };
+
+      visit(source);
+
+      for (const method of methodsToCheck) {
+        expect({ file, method, isWorklet: found[method] }).toEqual({
+          file,
+          method,
+          isWorklet: true,
+        });
+      }
+    }
+  });
 });
 
 describe('architecture boundaries', () => {
