@@ -371,6 +371,11 @@ function LLMContent() {
                 <Text style={styles.featureBadgeText}>📷 Vision Multimodal</Text>
               </View>
             )}
+            {supportsAudio && (
+              <View style={styles.featureBadge}>
+                <Text style={styles.featureBadgeText}>🎙️ Audio Multimodal</Text>
+              </View>
+            )}
           </View>
           <View style={styles.downloadButtonContainer}>
             <Button title="Download & Load Model" onPress={() => setIsDownloadStarted(true)} />

@@ -600,6 +600,16 @@ export const LLM_MODELS: LLMModelConfig[] = [
     toolOpts: GEMMA_TOOL_OPTS,
   },
   {
+    id: 'gemma-4-omni-e2b-vulkan',
+    name: 'Gemma 4 Omni E2B',
+    backend: 'vulkan',
+    model: models.llm.GEMMA4_OMNI_E2B.VULKAN_8DA4W,
+    generationConfig: GEMMA4_GENERATION_CONFIG,
+    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    stopRegex: GEMMA_TOOL_STOP_REGEX,
+    toolOpts: GEMMA_TOOL_OPTS,
+  },
+  {
     id: 'gemma-4-e2b-xnnpack',
     name: 'Gemma 4 E2B',
     backend: 'xnnpack',
