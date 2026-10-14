@@ -1521,6 +1521,18 @@ const SUPERTONIC_3_XNNPACK_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> 
   voiceStyles: SUPERTONIC_DEFAULT_VOICE_STYLES,
 };
 
+const SUPERTONIC_3_XNNPACK_INT8: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
+  name: 'supertonic',
+  modelPaths: {
+    durationPredictor: `${BASE_URL}-supertonic/${VERSION_TAG}/xnnpack/duration_predictor_xnnpack_fp32.pte`,
+    vectorEstimator: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/xnnpack/vector_estimator_xnnpack_int8.pte`,
+    textEncoder: `${BASE_URL}-supertonic/${VERSION_TAG}/xnnpack/text_encoder_xnnpack_fp32.pte`,
+    vocoder: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/xnnpack/vocoder_xnnpack_int8.pte`,
+  },
+  unicodeIndexerPath: `${BASE_URL}-supertonic/${VERSION_TAG}/unicode_indexer.json`,
+  voiceStyles: SUPERTONIC_DEFAULT_VOICE_STYLES,
+};
+
 const SUPERTONIC_3_MLX_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
   name: 'supertonic',
   modelPaths: {
@@ -3210,6 +3222,7 @@ export const models = {
      * voice presets (see {@link SUPERTONIC_DEFAULT_VOICE_NAMES}).
      */
     SUPERTONIC: variants({
+      XNNPACK_INT8: SUPERTONIC_3_XNNPACK_INT8,
       XNNPACK_FP32: SUPERTONIC_3_XNNPACK_FP32,
       MLX_FP32: SUPERTONIC_3_MLX_FP32,
       VULKAN_FP16: SUPERTONIC_3_VULKAN_FP16,
