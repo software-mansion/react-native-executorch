@@ -1066,6 +1066,10 @@ const YOLO26_XLARGE_SEG_640_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClas
 // =============================================================================
 // Text Embeddings
 // =============================================================================
+const ALL_MINILM_L6_V2_XNNPACK_INT8: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/xnnpack/all_minilm_l6_v2_xnnpack_int8.pte`,
+  tokenizerPath: `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`,
+};
 const ALL_MINILM_L6_V2_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/xnnpack/all_minilm_l6_v2_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`,
@@ -1093,6 +1097,10 @@ const ALL_MPNET_BASE_V2_VULKAN_INT8: TextEmbedderModel = {
 const ALL_MPNET_BASE_V2_VULKAN_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-all-mpnet-base-v2/${VERSION_TAG}/vulkan/all_mpnet_base_v2_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}-all-mpnet-base-v2/${VERSION_TAG}/tokenizer.json`,
+};
+const MULTI_QA_MINILM_L6_COS_V1_XNNPACK_INT8: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${NEXT_VERSION_TAG}/xnnpack/multi_qa_minilm_l6_cos_v1_xnnpack_int8.pte`,
+  tokenizerPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/tokenizer.json`,
 };
 const MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/xnnpack/multi_qa_minilm_l6_cos_v1_xnnpack_fp32.pte`,
@@ -1166,6 +1174,10 @@ const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_VULKAN_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${VERSION_TAG}/vulkan/distiluse_base_multilingual_cased_v2_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${VERSION_TAG}/tokenizer.json`,
 };
+const CLIP_VIT_BASE_PATCH32_TEXT_XNNPACK_INT8: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_int8.pte`,
+  tokenizerPath: `${BASE_URL}-clip-vit-base-patch32/${VERSION_TAG}/tokenizer.json`,
+};
 const CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-clip-vit-base-patch32/${VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}-clip-vit-base-patch32/${VERSION_TAG}/tokenizer.json`,
@@ -1200,6 +1212,10 @@ const CLIP_IMAGE_EMBEDDINGS_OPTS = {
   resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
   normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
+};
+const CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_INT8: ImageEmbedderModel = {
+  modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_image_xnnpack_int8.pte`,
+  modelOpts: CLIP_IMAGE_EMBEDDINGS_OPTS,
 };
 const CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32: ImageEmbedderModel = {
   modelPath: `${BASE_URL}-clip-vit-base-patch32/${VERSION_TAG}/xnnpack/clip_vit_base_patch32_image_xnnpack_fp32.pte`,
@@ -1242,7 +1258,7 @@ const WHISPER_TINY_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_XNNPACK_INT8: WhisperSttModel<'en'> = {
-  modelPath: `${BASE_URL}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_int8.pte`,
+  modelPath: `${BASE_URL}-whisper-tiny.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}-whisper-tiny.en/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1328,7 +1344,7 @@ const WHISPER_BASE_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_XNNPACK_INT8: WhisperSttModel<'en'> = {
-  modelPath: `${BASE_URL}-whisper-base.en/${VERSION_TAG}/xnnpack/whisper_base_en_xnnpack_int8.pte`,
+  modelPath: `${BASE_URL}-whisper-base.en/${NEXT_VERSION_TAG}/xnnpack/whisper_base_en_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}-whisper-base.en/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -3051,6 +3067,7 @@ export const models = {
      * sentence similarity, and clustering.
      */
     ALL_MINILM_L6_V2: variants({
+      XNNPACK_INT8: ALL_MINILM_L6_V2_XNNPACK_INT8,
       XNNPACK_FP32: ALL_MINILM_L6_V2_EMBEDDINGS,
       COREML_INT8: ALL_MINILM_L6_V2_COREML_INT8,
       COREML_FP16: ALL_MINILM_L6_V2_COREML_FP16,
@@ -3070,6 +3087,7 @@ export const models = {
      * QA matching using cosine similarity.
      */
     MULTI_QA_MINILM_L6_COS_V1: variants({
+      XNNPACK_INT8: MULTI_QA_MINILM_L6_COS_V1_XNNPACK_INT8,
       XNNPACK_FP32: MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS,
       COREML_INT8: MULTI_QA_MINILM_L6_COS_V1_COREML_INT8,
       COREML_FP16: MULTI_QA_MINILM_L6_COS_V1_COREML_FP16,
@@ -3121,6 +3139,7 @@ export const models = {
      * search.
      */
     CLIP_VIT_BASE_PATCH32_TEXT: variants({
+      XNNPACK_INT8: CLIP_VIT_BASE_PATCH32_TEXT_XNNPACK_INT8,
       XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS,
       COREML_INT8: CLIP_VIT_BASE_PATCH32_TEXT_COREML_INT8,
       COREML_FP16: CLIP_VIT_BASE_PATCH32_TEXT_COREML_FP16,
@@ -3172,6 +3191,7 @@ export const models = {
      */
     CLIP_VIT_BASE_PATCH32: variants(
       {
+        XNNPACK_INT8: CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_INT8,
         XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32,
         COREML_FP16: CLIP_VIT_BASE_PATCH32_IMAGE_COREML_FP16,
         MLX_INT8: CLIP_VIT_BASE_PATCH32_IMAGE_MLX_INT8,
