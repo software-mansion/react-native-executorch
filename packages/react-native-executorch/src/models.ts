@@ -1955,7 +1955,7 @@ const GEMMA4_E2B_VULKAN_8DA4W: LLMModel = {
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
 };
 const GEMMA4_E2B_MLX_INT4: LLMModel = {
-  modelPath: `${GEMMA4_BASE_URL}/e2b/mlx/gemma4_e2b_mlx_int4.pte`,
+  modelPath: `${GEMMA4_BASE_URL}/e2b/mlx/gemma_4_e2b_mlx_int4.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
 };
@@ -1974,7 +1974,7 @@ const GEMMA4_OMNI_E2B_VULKAN_8DA4W: LLMModel = {
   preprocessorConfig: GEMMA4_OMNI_PREPROCESSOR_CONFIG,
 };
 const GEMMA4_OMNI_E2B_MLX_INT4: LLMModel = {
-  modelPath: `${GEMMA4_OMNI_BASE_URL}/e2b/mlx/gemma4_e2b_mlx_int4.pte`,
+  modelPath: `${GEMMA4_OMNI_BASE_URL}/e2b/mlx/gemma_4_e2b_mlx_int4.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
   modalities: ['image', 'audio'],
