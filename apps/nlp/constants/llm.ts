@@ -906,7 +906,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     id: 'qwen-3-0.6b-mlx',
     name: 'Qwen 3 0.6B',
     backend: 'mlx',
-    model: models.llm.QWEN3_0_6B.MLX_INT4,
+    model: models.llm.QWEN3_0_6B.MLX_INT8,
     generationConfig: QWEN3_GENERATION_CONFIG,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     stopRegex: QWEN_TOOL_STOP_REGEX,

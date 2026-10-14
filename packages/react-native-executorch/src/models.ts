@@ -2367,8 +2367,8 @@ const QWEN3_4B_XNNPACK_8DA4W: LLMModel = {
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
-const QWEN3_0_6B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/0_6b/mlx/qwen_3_0_6b_mlx_int4.pte`,
+const QWEN3_0_6B_MLX_INT8: LLMModel = {
+  modelPath: `${QWEN3_BASE_URL}/0_6b/mlx/qwen_3_0_6b_mlx_int8.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
@@ -3363,7 +3363,7 @@ export const models = {
      */
     QWEN3_0_6B: variants({
       XNNPACK_8DA4W: QWEN3_0_6B_XNNPACK_8DA4W,
-      MLX_INT4: QWEN3_0_6B_MLX_INT4,
+      MLX_INT8: QWEN3_0_6B_MLX_INT8,
     }),
     /**
      * Alibaba Qwen 3 1.7B next-generation multilingual language model. Balances
