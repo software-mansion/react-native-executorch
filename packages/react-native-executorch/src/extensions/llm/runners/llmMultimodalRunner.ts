@@ -94,6 +94,7 @@ export function createLLMMultimodalRunner(
   const pos = createSynchronizable(0);
 
   const reset = (targetPos?: number): void => {
+    'worklet';
     const curPos = pos.getBlocking();
     if (targetPos !== undefined && (targetPos < 0 || targetPos > curPos)) {
       throw RnExecuTorchError(
@@ -105,6 +106,7 @@ export function createLLMMultimodalRunner(
   };
 
   const getKVCacheState = (): LLMKVCacheState => {
+    'worklet';
     const curPos = pos.getBlocking();
     return {
       pos: curPos,
