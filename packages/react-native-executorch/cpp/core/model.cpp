@@ -47,11 +47,12 @@ namespace rnexecutorch::core::model {
 namespace jsi = facebook::jsi;
 namespace conversions = rnexecutorch::core::conversions;
 
+using executorch::extension::Module;
 using rnexecutorch::core::tensor::TensorHostObject;
 
 ModelHostObject::ModelHostObject(const std::string &modelPath, const bool eagerLoadMethods)
     : modelPath_(modelPath),
-      etModule_(std::make_unique<executorch::extension::Module>(modelPath)) {
+      etModule_(std::make_unique<executorch::extension::Module>(modelPath, Module::LoadMode::Mmap)) {
 
     auto loadError = etModule_->load();
     if (!etModule_->is_loaded()) {

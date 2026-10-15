@@ -188,8 +188,8 @@ export default function BenchmarkChart({ task, data }: Props) {
         );
 
         // Model size is the same file on every device, so any row will do.
-        const bars: BenchmarkRow[] = precisions.map((precision) =>
-          backendRows.find((r) => r.precision === precision)!
+        const bars: BenchmarkRow[] = precisions.map(
+          (precision) => backendRows.find((r) => r.precision === precision)!
         );
 
         return {

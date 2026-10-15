@@ -21,7 +21,11 @@ double asType<double>(jsi::Runtime & /*rt*/, const std::string &ctx, const jsi::
     if (!val.isNumber()) {
         throw error::InvalidArgument(ctx + " must be a number");
     }
-    return val.asNumber();
+    double d = val.asNumber();
+    if (!std::isfinite(d)) {
+        throw error::InvalidArgument(ctx + " must be a finite number");
+    }
+    return d;
 }
 
 template <>

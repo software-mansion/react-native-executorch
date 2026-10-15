@@ -11,56 +11,81 @@ import {
   Platform,
   Alert,
   Image as RNImage,
+  Modal,
 } from 'react-native';
 import { Skia } from '@shopify/react-native-skia';
 import RNBlobUtil from 'react-native-blob-util';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLLMChatSession, type llm, type cv } from 'react-native-executorch';
+import { decodeAudioData } from 'react-native-audio-api';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
 import { Button } from '../../components/Button';
 import { getImage, skImageToBuffer } from '../../utils';
-import { LLM_MODELS, type LLMModelConfig } from '../../constants/llm';
+import { LLM_MODELS, type LLMModelConfig, type LLMBackend } from '../../constants/llm';
 
 type Turn = {
   role: 'user' | 'assistant' | 'tool';
   content: string;
   imageUri?: string;
+  audioName?: string;
   stats?: llm.LLMGenerationStats;
   toolCalls?: readonly llm.ToolCall[];
 };
 
 function formatStats(stats: llm.LLMGenerationStats): string {
-  const decodeMs = stats.inferenceEndMs - stats.firstTokenMs;
-  const tokensPerSec = decodeMs > 0 ? (stats.numGeneratedTokens / decodeMs) * 1000 : 0;
-  const decodeTtftMs = stats.firstTokenMs - stats.inferenceStartMs;
-  const totalTtftMs = decodeTtftMs + (stats.prefillDurationMs ?? 0);
-  const totalMs = stats.inferenceEndMs - stats.inferenceStartMs + (stats.prefillDurationMs ?? 0);
+  const totalMs = stats.durationMs + stats.prefill.durationMs;
   return (
-    `${stats.numGeneratedTokens} tokens · ` +
-    `${tokensPerSec.toFixed(1)} tok/s · ` +
-    `${totalTtftMs.toFixed(0)}ms ttft · ` +
+    `${stats.numTokens} tokens · ` +
+    `${stats.tokensPerSecond.toFixed(1)} tok/s · ` +
+    `${stats.prefill.durationMs.toFixed(0)}ms prefill · ` +
     `${(totalMs / 1000).toFixed(2)}s`
   );
 }
 
 function LLMContent() {
   const insets = useSafeAreaInsets();
-  const [selectedModelId, setSelectedModelId] = useState<string>(LLM_MODELS[0]!.id);
+  const [selectedBackend, setSelectedBackend] = useState<LLMBackend>('xnnpack');
+
+  const availableBackends: ModelOption[] = useMemo(() => {
+    const list: { label: string; value: LLMBackend }[] = [{ label: 'XNNPACK', value: 'xnnpack' }];
+    if (Platform.OS === 'ios') {
+      list.push({ label: 'MLX (Apple GPU)', value: 'mlx' });
+    }
+    if (Platform.OS === 'android') {
+      list.push({ label: 'Vulkan (Android GPU)', value: 'vulkan' });
+    }
+    return list;
+  }, []);
+
+  const modelsForBackend = useMemo(
+    () =>
+      LLM_MODELS.filter(
+        (m) => m.backend === selectedBackend && (!m.iosOnly || Platform.OS === 'ios')
+      ),
+    [selectedBackend]
+  );
+
+  const [selectedModelId, setSelectedModelId] = useState<string>(
+    () => modelsForBackend[0]?.id ?? LLM_MODELS[0]!.id
+  );
   const [isDownloadStarted, setIsDownloadStarted] = useState(false);
 
   const activeModel: LLMModelConfig = useMemo(
-    () => LLM_MODELS.find((m) => m.id === selectedModelId) ?? LLM_MODELS[0]!,
-    [selectedModelId]
+    () =>
+      modelsForBackend.find((m) => m.id === selectedModelId) ??
+      modelsForBackend[0] ??
+      LLM_MODELS[0]!,
+    [modelsForBackend, selectedModelId]
   );
 
   const modelOptions: ModelOption[] = useMemo(
     () =>
-      LLM_MODELS.filter((m) => !m.iosOnly || Platform.OS === 'ios').map((m) => ({
+      modelsForBackend.map((m) => ({
         label: m.name,
         value: m.id,
       })),
-    []
+    [modelsForBackend]
   );
 
   const initialMessages: llm.ChatMessage[] = useMemo(
@@ -99,7 +124,36 @@ function LLMContent() {
     buffer: cv.ImageBuffer;
   } | null>(null);
 
+  const [attachedAudio, setAttachedAudio] = useState<{
+    uri: string;
+    name: string;
+    samples: Float32Array;
+  } | null>(null);
+
+  const [isAudioModalVisible, setIsAudioModalVisible] = useState(false);
+  const [audioUrl, setAudioUrl] = useState('https://models.silero.ai/vad_models/en.wav');
+  const [isDecodingAudio, setIsDecodingAudio] = useState(false);
+
   const supportsImages = Boolean(activeModel.model.modalities?.includes('image'));
+  const supportsAudio = Boolean(activeModel.model.modalities?.includes('audio'));
+
+  const handleBackendChange = (newBackend: LLMBackend) => {
+    if (newBackend === selectedBackend) return;
+    setSelectedBackend(newBackend);
+    const firstForBackend = LLM_MODELS.find(
+      (m) => m.backend === newBackend && (!m.iosOnly || Platform.OS === 'ios')
+    );
+    if (firstForBackend) {
+      setSelectedModelId(firstForBackend.id);
+    }
+    setIsDownloadStarted(false);
+    setTurns([]);
+    setStreamingResponse(null);
+    setAttachedImage(null);
+    setAttachedAudio(null);
+    setIsAudioModalVisible(false);
+    setInput('');
+  };
 
   const handleModelChange = (newModelId: string) => {
     if (newModelId === selectedModelId) return;
@@ -108,6 +162,8 @@ function LLMContent() {
     setTurns([]);
     setStreamingResponse(null);
     setAttachedImage(null);
+    setAttachedAudio(null);
+    setIsAudioModalVisible(false);
     setInput('');
   };
 
@@ -139,6 +195,8 @@ function LLMContent() {
               setTurns([]);
               setStreamingResponse(null);
               setAttachedImage(null);
+              setAttachedAudio(null);
+              setIsAudioModalVisible(false);
               setInput('');
               Alert.alert('Deleted', 'Model files deleted from device storage.');
             } catch (err: any) {
@@ -168,27 +226,62 @@ function LLMContent() {
     }
   };
 
+  const handleAttachAudio = async () => {
+    const trimmed = audioUrl.trim();
+    if (!trimmed) return;
+    setIsDecodingAudio(true);
+    try {
+      const audioBuffer = await decodeAudioData(trimmed, 16000);
+      const samples = audioBuffer.getChannelData(0);
+      const durationSec = (samples.length / 16000).toFixed(1);
+      const filename = trimmed.split('/').pop() || 'audio.wav';
+      setAttachedAudio({
+        uri: trimmed,
+        name: `${filename} (${durationSec}s)`,
+        samples,
+      });
+      setIsAudioModalVisible(false);
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Failed to decode audio URL');
+    } finally {
+      setIsDecodingAudio(false);
+    }
+  };
+
   const handleSend = async () => {
     const textMessage = input.trim();
-    if ((!textMessage && !attachedImage) || !sendMessage || isGenerating) return;
+    if ((!textMessage && !attachedImage && !attachedAudio) || !sendMessage || isGenerating) return;
 
     const currentImage = attachedImage;
+    const currentAudio = attachedAudio;
     setAttachedImage(null);
+    setAttachedAudio(null);
     setInput('');
     setStreamingResponse('');
 
     setTurns((prev) => [
       ...prev,
-      { role: 'user', content: textMessage, imageUri: currentImage?.uri },
+      {
+        role: 'user',
+        content: textMessage,
+        imageUri: currentImage?.uri,
+        audioName: currentAudio?.name,
+      },
     ]);
 
     try {
       let payload;
-      if (currentImage) {
-        payload = [
-          { kind: 'image' as const, image: currentImage.buffer },
-          textMessage || "What's in this image?",
-        ];
+      if (currentImage || currentAudio) {
+        const mediaItems: (string | llm.ChatMediaInput)[] = [];
+        if (currentImage) {
+          mediaItems.push({ kind: 'image' as const, image: currentImage.buffer });
+        }
+        if (currentAudio) {
+          mediaItems.push({ kind: 'audio' as const, audio: currentAudio.samples });
+        }
+        const defaultPrompt = currentAudio ? "What's in this audio?" : "What's in this image?";
+        mediaItems.push(textMessage || defaultPrompt);
+        payload = mediaItems;
       } else {
         payload = textMessage;
       }
@@ -236,6 +329,14 @@ function LLMContent() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       <View style={styles.header}>
+        {availableBackends.length > 1 && (
+          <ModelPicker
+            label="Backend"
+            options={availableBackends}
+            selectedValue={selectedBackend}
+            onValueChange={handleBackendChange}
+          />
+        )}
         <ModelPicker
           label="Model"
           options={modelOptions}
@@ -270,6 +371,11 @@ function LLMContent() {
                 <Text style={styles.featureBadgeText}>📷 Vision Multimodal</Text>
               </View>
             )}
+            {supportsAudio && (
+              <View style={styles.featureBadge}>
+                <Text style={styles.featureBadgeText}>🎙️ Audio Multimodal</Text>
+              </View>
+            )}
           </View>
           <View style={styles.downloadButtonContainer}>
             <Button title="Download & Load Model" onPress={() => setIsDownloadStarted(true)} />
@@ -302,7 +408,7 @@ function LLMContent() {
               <View style={styles.contextBarHeader}>
                 <Text style={styles.contextLabel}>Context Window</Text>
                 <Text style={styles.contextTokens}>
-                  {kvCacheState.pos} / {kvCacheState.maxSeqLen} tokens (
+                  {kvCacheState.pos} / {kvCacheState.maxContextLen} tokens (
                   {(kvCacheState.usageRatio * 100).toFixed(1)}%)
                 </Text>
               </View>
@@ -331,7 +437,14 @@ function LLMContent() {
           >
             {turns.length === 0 && streamingResponse === null && (
               <Text style={styles.placeholder}>
-                Ask {activeModel.name} anything{supportsImages ? ' or attach an image.' : '.'}
+                Ask {activeModel.name} anything
+                {supportsImages && supportsAudio
+                  ? ' or attach an image or audio.'
+                  : supportsImages
+                    ? ' or attach an image.'
+                    : supportsAudio
+                      ? ' or attach audio.'
+                      : '.'}
               </Text>
             )}
             {turns.map((turn, idx) => (
@@ -348,6 +461,14 @@ function LLMContent() {
                 >
                   {turn.imageUri && (
                     <RNImage source={{ uri: turn.imageUri }} style={styles.turnThumbnail} />
+                  )}
+                  {turn.audioName && (
+                    <View style={styles.turnAudioBadge}>
+                      <Text style={styles.turnAudioIcon}>🎙️</Text>
+                      <Text style={styles.turnAudioText} numberOfLines={1}>
+                        {turn.audioName}
+                      </Text>
+                    </View>
                   )}
                   {turn.toolCalls && turn.toolCalls.length > 0 && (
                     <View style={styles.toolCallBlock}>
@@ -400,6 +521,25 @@ function LLMContent() {
             </View>
           )}
 
+          {attachedAudio && (
+            <View style={styles.attachmentBar}>
+              <View style={styles.audioPreviewBadge}>
+                <Text style={styles.audioIconText}>🎙️</Text>
+              </View>
+              <View style={styles.attachmentInfo}>
+                <Text style={styles.attachmentName} numberOfLines={1}>
+                  {attachedAudio.name}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.removeAttachmentButton}
+                onPress={() => setAttachedAudio(null)}
+              >
+                <Text style={styles.removeAttachmentText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <View style={[styles.inputRow, { paddingBottom: Math.max(12, insets.bottom) }]}>
             {supportsImages && (
               <TouchableOpacity
@@ -408,6 +548,15 @@ function LLMContent() {
                 disabled={isGenerating}
               >
                 <Text style={styles.galleryButtonText}>📷</Text>
+              </TouchableOpacity>
+            )}
+            {supportsAudio && (
+              <TouchableOpacity
+                style={styles.galleryButton}
+                onPress={() => setIsAudioModalVisible(true)}
+                disabled={isGenerating}
+              >
+                <Text style={styles.galleryButtonText}>🎙️</Text>
               </TouchableOpacity>
             )}
             <TextInput
@@ -430,15 +579,67 @@ function LLMContent() {
               <TouchableOpacity
                 style={[
                   styles.sendButton,
-                  !input.trim() && !attachedImage && styles.sendButtonDisabled,
+                  !input.trim() && !attachedImage && !attachedAudio && styles.sendButtonDisabled,
                 ]}
                 onPress={handleSend}
-                disabled={!input.trim() && !attachedImage}
+                disabled={!input.trim() && !attachedImage && !attachedAudio}
               >
                 <Text style={styles.sendButtonText}>Send</Text>
               </TouchableOpacity>
             )}
           </View>
+
+          <Modal
+            visible={isAudioModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => {
+              if (!isDecodingAudio) setIsAudioModalVisible(false);
+            }}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Attach Audio URL</Text>
+                <Text style={styles.modalDescription}>
+                  Enter a direct URL to a WAV or audio file (will be decoded at 16kHz):
+                </Text>
+                <TextInput
+                  style={styles.modalInput}
+                  value={audioUrl}
+                  onChangeText={setAudioUrl}
+                  placeholder="https://.../audio.wav"
+                  placeholderTextColor="#999"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!isDecodingAudio}
+                />
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.modalButtonCancel]}
+                    onPress={() => setIsAudioModalVisible(false)}
+                    disabled={isDecodingAudio}
+                  >
+                    <Text style={styles.modalButtonCancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.modalButton,
+                      styles.modalButtonConfirm,
+                      (!audioUrl.trim() || isDecodingAudio) && styles.sendButtonDisabled,
+                    ]}
+                    onPress={handleAttachAudio}
+                    disabled={!audioUrl.trim() || isDecodingAudio}
+                  >
+                    {isDecodingAudio ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={styles.modalButtonConfirmText}>Attach</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
         </>
       )}
     </KeyboardAvoidingView>
@@ -687,4 +888,94 @@ const styles = StyleSheet.create({
   sendButtonDisabled: { backgroundColor: '#a3cdff' },
   stopButton: { backgroundColor: '#e03131' },
   sendButtonText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  turnAudioBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginBottom: 6,
+    gap: 6,
+  },
+  turnAudioIcon: { fontSize: 14 },
+  turnAudioText: { color: '#fff', fontSize: 12, fontWeight: '500' },
+  audioPreviewBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 6,
+    backgroundColor: '#e7f5ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  audioIconText: { fontSize: 20 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#212529',
+    marginBottom: 8,
+  },
+  modalDescription: {
+    fontSize: 13,
+    color: '#6c757d',
+    marginBottom: 14,
+    lineHeight: 18,
+  },
+  modalInput: {
+    backgroundColor: '#f1f3f5',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#212529',
+    marginBottom: 16,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
+  },
+  modalButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    minWidth: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: '#e9ecef',
+  },
+  modalButtonCancelText: {
+    color: '#495057',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  modalButtonConfirm: {
+    backgroundColor: '#0070f3',
+  },
+  modalButtonConfirmText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
 });
