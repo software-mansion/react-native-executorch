@@ -18,6 +18,8 @@
     "Core / Constants",
     "Core / Schema / Functions",
     "Core / Schema / Types",
+    "Core / Profiler / Functions",
+    "Core / Profiler / Types",
     "CV / Tasks",
     "CV / Functions",
     "CV / Types",

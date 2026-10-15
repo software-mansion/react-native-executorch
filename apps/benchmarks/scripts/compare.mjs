@@ -1,0 +1,442 @@
+#!/usr/bin/env node
+/**
+ * Diffs two benchmark reports and fails on regressions.
+ *
+ * Usage:
+ *   yarn bench:compare results/before-ios-iPhone17,1.jsonl results/after-ios-iPhone17,1.jsonl
+ *   yarn bench:compare baseline.json current.json --execute 8 --memory 5
+ *
+ * Exits 1 when any metric regresses past its tolerance, 0 otherwise.
+ *
+ * What the tolerances are for: on-device timings are not reproducible to the
+ * percent. Thermal state, the scheduler, and whatever else the OS decided to do
+ * during the run all move the numbers, which is why the comparator works off
+ * medians and treats a delta as real only once it clears both a fixed tolerance
+ * and the run's own noise floor (its interquartile range). The defaults are set
+ * where a regression is worth a human look rather than where it is certain.
+ */
+
+import { headerMismatches, loadRun, median, startedWarm } from './results.mjs';
+
+// Calibrated against two full-suite runs of identical code on a Galaxy S26
+// Ultra, rather than guessed. Measured worst-case drift between those runs, per
+// family:
+//
+//   execute.*          7.6%   (most cases inside 4%)
+//   pipeline.median    35%
+//   load.*             45%    at one sample per load; less now that loads are
+//                             repeated, but still the loosest of the three
+//   memory.*           2%
+//
+// Hence the spread below. `execute.*` is both the tightest and the one that
+// actually measures ExecuTorch, which is what a version bump changes; a pipeline
+// figure carries TypeScript pre- and post-processing and its garbage collection,
+// and a load carries filesystem cache state. Setting one tolerance across all of
+// them would either drown the execute signal or report a regression on every
+// second run: the first calibration attempt used a flat 10/15% and produced six
+// false regressions between two runs of the same build.
+const DEFAULT_TOLERANCE = {
+  /** Percent regression in raw `model.execute` medians. The primary signal. */
+  execute: 10,
+  /** Percent regression in end-to-end pipeline medians. */
+  pipeline: 30,
+  /** Percent regression in model load time. */
+  load: 35,
+  /** Percent growth in peak footprint. */
+  memory: 10,
+};
+
+function parseArgs(argv) {
+  const files = [];
+  const tolerance = { ...DEFAULT_TOLERANCE };
+  let allowDeviceMismatch = false;
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === '--allow-device-mismatch') allowDeviceMismatch = true;
+    else if (arg.startsWith('--')) {
+      const key = arg.slice(2);
+      if (!(key in tolerance)) throw new Error(`Unknown option ${arg}`);
+      tolerance[key] = Number(argv[++i]);
+      if (!Number.isFinite(tolerance[key])) throw new Error(`${arg} needs a number`);
+    } else files.push(arg);
+  }
+
+  if (files.length !== 2) {
+    throw new Error('Usage: compare.mjs <baseline.json[l]> <current.json[l]> [--execute N] ...');
+  }
+  return { files, tolerance, allowDeviceMismatch };
+}
+
+const percentDelta = (baseline, current) =>
+  baseline === 0 ? 0 : ((current - baseline) / baseline) * 100;
+
+/**
+ * Classifies one metric's movement.
+ *
+ * `noisePercent` is the larger of the two runs' interquartile ranges as a
+ * percentage of the baseline. A delta inside that band is reported but not
+ * failed: the runs simply cannot distinguish it from scheduling jitter.
+ *
+ * When that band is itself wider than the tolerance, the metric cannot resolve a
+ * regression of the size we care about, and calling it "same" would overstate
+ * what the run knows. It is reported as NOISY instead. This is not academic: the
+ * YOLO26 pipeline metric on a Galaxy S26 Ultra has an interquartile range around
+ * 38% of its own median, from garbage collection during post-processing, and it
+ * moved 57% between two runs of identical code. Its `execute.forward` number
+ * over the same runs sits inside 1%.
+ */
+function classify(baseline, current, tolerancePercent, noisePercent = 0) {
+  const delta = percentDelta(baseline, current);
+  const threshold = Math.max(tolerancePercent, noisePercent);
+
+  if (delta > threshold) return { delta, verdict: 'REGRESSED' };
+  if (delta < -threshold) return { delta, verdict: 'improved' };
+  if (noisePercent > tolerancePercent) return { delta, verdict: 'NOISY' };
+  return { delta, verdict: 'same' };
+}
+
+const noiseFloor = (baselineStats, currentStats) => {
+  if (!baselineStats?.median) return 0;
+  const worst = Math.max(baselineStats.iqr ?? 0, currentStats?.iqr ?? 0);
+  return (worst / baselineStats.median) * 100;
+};
+
+/** Builds the comparison rows for a single case present in both reports. */
+function compareCase(baseline, current, tolerance) {
+  const rows = [];
+  const add = (metric, before, after, tolerancePercent, noise) => {
+    if (typeof before !== 'number' || typeof after !== 'number') return;
+    if (before <= 0 || after <= 0) return;
+    rows.push({ metric, before, after, ...classify(before, after, tolerancePercent, noise) });
+  };
+
+  if (baseline.status !== 'ok' || current.status !== 'ok') {
+    return [
+      {
+        metric: 'status',
+        before: baseline.status,
+        after: current.status,
+        delta: 0,
+        verdict: baseline.status === 'ok' && current.status !== 'ok' ? 'REGRESSED' : 'same',
+      },
+    ];
+  }
+
+  // Two runs that produced different amounts of work did not run the same
+  // benchmark, so their timings are not comparable at all — reporting a delta
+  // would be worse than reporting nothing. The per-method call counts catch what
+  // the pipeline's own unit count can miss: OCR recognising one more region,
+  // Whisper decoding one more token.
+  const calls = (entry) =>
+    JSON.stringify(
+      Object.entries(entry.execution?.perIteration ?? {})
+        .map(([method, { count }]) => [method, Math.round(count * 100) / 100])
+        .sort()
+    );
+  const callsDiffer = baseline.execution && current.execution && calls(baseline) !== calls(current);
+  if (baseline.units !== current.units || callsDiffer) {
+    return [
+      {
+        metric: 'workload',
+        before: baseline.units === current.units ? calls(baseline) : baseline.units,
+        after: baseline.units === current.units ? calls(current) : current.units,
+        delta: 0,
+        verdict: 'INCOMPARABLE',
+      },
+    ];
+  }
+
+  // A measurement that started above the ceiling describes a hot phone, and
+  // diffing it against a cool one measures the temperature. Timings are
+  // withheld; memory does not depend on the clock and is still compared.
+  const warm = startedWarm(baseline) || startedWarm(current);
+  if (warm) {
+    rows.push({ metric: 'timings', before: '', after: '', delta: 0, verdict: 'WARM' });
+  } else {
+    // Execute first: it is the number to read, so it belongs at the top of each
+    // case's block rather than below the pipeline figure it explains. Measured
+    // in-band, so it covers the same work the pipeline row does. It is a mean
+    // with no spread of its own; across repeats the range between them is.
+    const executeNoise = (entry) =>
+      entry.execution?.rangeMs && baseline.execution?.totalMs
+        ? (entry.execution.rangeMs / baseline.execution.totalMs) * 100
+        : 0;
+    add(
+      'execute.total',
+      baseline.execution?.totalMs,
+      current.execution?.totalMs,
+      tolerance.execute,
+      Math.max(executeNoise(baseline), executeNoise(current))
+    );
+    // Per method only where there is more than one: a single method's row would
+    // repeat the total.
+    const methods = Object.keys(baseline.execution?.perIteration ?? {});
+    if (methods.length > 1) {
+      for (const method of methods.sort()) {
+        add(
+          `execute.${method}`,
+          baseline.execution.perIteration[method]?.ms,
+          current.execution?.perIteration?.[method]?.ms,
+          tolerance.execute
+        );
+      }
+    }
+
+    add(
+      'pipeline.median',
+      baseline.pipeline?.median,
+      current.pipeline?.median,
+      tolerance.pipeline,
+      noiseFloor(baseline.pipeline, current.pipeline)
+    );
+    // `taskLoad` arrived in schema 2. A version 1 baseline has only the
+    // single-sample number, so there is no spread to fall back on.
+    add(
+      'load.task',
+      baseline.taskLoadMs,
+      current.taskLoadMs,
+      tolerance.load,
+      noiseFloor(baseline.taskLoad, current.taskLoad)
+    );
+  }
+  add('memory.peak', baseline.memory?.peakMb, current.memory?.peakMb, tolerance.memory);
+  add('memory.loaded', baseline.memory?.loadedMb, current.memory?.loadedMb, tolerance.memory);
+
+  return rows;
+}
+
+/**
+ * Collapses a schema-3 report's repeats into one entry per case.
+ *
+ * Every metric becomes the median across the repeats, and each metric's spread
+ * is widened to cover the run-to-run range as well as the within-run one. That
+ * second term is the point of taking repeats at all: on a phone the spread
+ * between three cold measurements is routinely larger than the spread between
+ * twenty back-to-back iterations inside one of them, and a comparator that only
+ * saw the inner spread would call a thermal artefact a regression.
+ *
+ * A schema-2 report has one entry per case already and passes through.
+ * @param report A loaded report.
+ * @returns The report with `cases` collapsed and repeats summarised.
+ */
+function foldRepeats(report) {
+  if ((report.schemaVersion ?? 2) < 3) return report;
+
+  const groups = new Map();
+  for (const entry of report.cases) {
+    if (entry.status === 'skipped') continue;
+    const list = groups.get(entry.id) ?? [];
+    list.push(entry);
+    groups.set(entry.id, list);
+  }
+
+  const folded = [];
+  for (const [id, entries] of groups) {
+    const ok = entries.filter((entry) => entry.status === 'ok');
+    // A case that failed even once is reported as failed: a model that OOMs on
+    // one repeat out of three has not passed, it has been lucky twice.
+    if (ok.length === 0 || ok.length !== entries.length) {
+      folded.push({ ...entries[0], repeats: entries.length, okRepeats: ok.length });
+      continue;
+    }
+
+    const across = (pick) => {
+      const values = ok.map(pick).filter((value) => typeof value === 'number');
+      return {
+        median: median(values),
+        range: values.length > 1 ? Math.max(...values) - Math.min(...values) : 0,
+      };
+    };
+
+    const widen = (stats, spread) =>
+      stats === undefined ? undefined : { ...stats, iqr: Math.max(stats.iqr ?? 0, spread) };
+
+    const pipeline = across((entry) => entry.pipeline?.median);
+    const taskLoad = across((entry) => entry.taskLoadMs);
+    const execute = across((entry) => entry.execution?.totalMs);
+    const perIteration = Object.fromEntries(
+      Object.entries(ok[0].execution?.perIteration ?? {}).map(([method, first]) => [
+        method,
+        { ...first, ms: across((entry) => entry.execution?.perIteration?.[method]?.ms).median },
+      ])
+    );
+
+    folded.push({
+      ...ok[0],
+      repeats: entries.length,
+      okRepeats: ok.length,
+      pipeline: widen({ ...ok[0].pipeline, median: pipeline.median }, pipeline.range),
+      taskLoadMs: taskLoad.median,
+      taskLoad: widen({ ...ok[0].taskLoad, median: taskLoad.median }, taskLoad.range),
+      execution: ok[0].execution && {
+        perIteration,
+        totalMs: execute.median,
+        rangeMs: execute.range,
+      },
+      // One warm repeat taints the median it feeds.
+      thermalValid: ok.every((entry) => !startedWarm(entry)),
+      gate: undefined,
+      memory: ok[0].memory && {
+        ...ok[0].memory,
+        peakMb: across((entry) => entry.memory?.peakMb).median ?? ok[0].memory.peakMb,
+        loadedMb: across((entry) => entry.memory?.loadedMb).median ?? ok[0].memory.loadedMb,
+      },
+    });
+  }
+
+  return { ...report, cases: folded };
+}
+
+const pad = (value, width) => String(value).padEnd(width);
+const padStart = (value, width) => String(value).padStart(width);
+
+function main() {
+  const { files, tolerance, allowDeviceMismatch } = parseArgs(process.argv.slice(2));
+  const [baseline, current] = files.map((file) => foldRepeats(loadRun(file)));
+
+  // Two reports built from different inputs measured different work, whatever
+  // else they agree on.
+  const baselineInputs = baseline.inputSpecVersion ?? 0;
+  const currentInputs = current.inputSpecVersion ?? 0;
+  if (baselineInputs !== currentInputs) {
+    console.error(
+      `\nERROR: input spec versions differ (${baselineInputs} vs ${currentInputs}).\n` +
+        'The two runs fed the models different data, so their timings measure different work.'
+    );
+    process.exit(2);
+  }
+
+  console.log(`baseline: ${baseline.label} (${files[0]})`);
+  console.log(`current:  ${current.label} (${files[1]})`);
+  console.log(
+    `device:   ${baseline.device?.model} / ${baseline.platform} ${baseline.device?.osVersion}`
+  );
+
+  const sameDevice =
+    baseline.device?.model === current.device?.model &&
+    baseline.device?.osVersion === current.device?.osVersion;
+
+  if (!sameDevice) {
+    const message =
+      `device mismatch: ${baseline.device?.model} ${baseline.device?.osVersion} vs ` +
+      `${current.device?.model} ${current.device?.osVersion}`;
+    if (!allowDeviceMismatch) {
+      console.error(`\nERROR: ${message}. Pass --allow-device-mismatch to compare anyway.`);
+      process.exit(2);
+    }
+    console.warn(`\nWARNING: ${message}`);
+  }
+
+  // A pinned run executes at roughly 2 GHz and an unpinned one boosts past 3.4,
+  // so diffing across the two measures the clock rather than the change. A
+  // debug build runs everything outside `execute` an order of magnitude slow.
+  // Both are hard stops.
+  for (const [name, pick] of [
+    ['CPU clock pinning', (report) => (report.clocksPinned ? 'pinned' : 'unpinned')],
+    ['build type', (report) => report.buildType ?? 'unknown'],
+  ]) {
+    if (pick(baseline) !== pick(current)) {
+      console.error(
+        `\nERROR: ${name} differs between runs (baseline ${pick(baseline)}, ` +
+          `current ${pick(current)}). Re-run both the same way.`
+      );
+      process.exit(2);
+    }
+  }
+
+  // Anything else that differs is reported, not refused: a URL map differing is
+  // usually the point of the comparison.
+  const other = headerMismatches(baseline, current).filter(
+    (line) => !/^(platform|device|os|input spec|build type|clock pinning|iterations):/.test(line)
+  );
+  for (const line of other) console.warn(`\nNOTE: ${line}`);
+
+  if (baseline.settings?.iterations !== current.settings?.iterations) {
+    console.warn(
+      `\nWARNING: iteration counts differ (${baseline.settings?.iterations} vs ` +
+        `${current.settings?.iterations}); medians are still comparable but noise is not.`
+    );
+  }
+
+  console.log(
+    `\ntolerances: execute ${tolerance.execute}%, pipeline ${tolerance.pipeline}%, ` +
+      `load ${tolerance.load}%, memory ${tolerance.memory}%\n`
+  );
+
+  const currentById = new Map(current.cases.map((entry) => [entry.id, entry]));
+  const regressions = [];
+  const incomparable = [];
+  const noisy = [];
+  const warm = [];
+  const missing = [];
+
+  for (const baselineCase of baseline.cases) {
+    const currentCase = currentById.get(baselineCase.id);
+    if (!currentCase) {
+      missing.push(baselineCase.id);
+      continue;
+    }
+
+    const rows = compareCase(baselineCase, currentCase, tolerance);
+    console.log(baselineCase.id);
+    for (const row of rows) {
+      const delta =
+        row.verdict === 'INCOMPARABLE' || row.verdict === 'WARM'
+          ? ''
+          : `${row.delta >= 0 ? '+' : ''}${row.delta.toFixed(1)}%`;
+      console.log(
+        `  ${pad(row.metric, 24)} ${padStart(row.before, 10)} -> ${padStart(row.after, 10)}` +
+          `  ${padStart(delta, 8)}  ${row.verdict}`
+      );
+      if (row.verdict === 'REGRESSED') regressions.push(`${baselineCase.id} ${row.metric}`);
+      if (row.verdict === 'INCOMPARABLE') incomparable.push(`${baselineCase.id} ${row.metric}`);
+      if (row.verdict === 'NOISY') noisy.push(`${baselineCase.id} ${row.metric}`);
+      if (row.verdict === 'WARM') warm.push(baselineCase.id);
+    }
+    console.log('');
+  }
+
+  const added = current.cases.filter((entry) => !baseline.cases.some((e) => e.id === entry.id));
+  if (added.length > 0) console.log(`new cases: ${added.map((e) => e.id).join(', ')}\n`);
+  if (missing.length > 0) console.log(`missing from the current run: ${missing.join(', ')}\n`);
+
+  if (warm.length > 0) {
+    console.log(
+      `${warm.length} case(s) started above the thermal ceiling in one of the runs; ` +
+        'their timings were not compared:'
+    );
+    for (const entry of warm) console.log(`  ${entry}`);
+    console.log('');
+  }
+
+  if (incomparable.length > 0) {
+    console.log(`${incomparable.length} metric(s) could not be compared:`);
+    for (const entry of incomparable) console.log(`  ${entry}`);
+    console.log('');
+  }
+
+  if (noisy.length > 0) {
+    console.log(
+      `${noisy.length} metric(s) too noisy to resolve a regression at the given tolerance.\n` +
+        "Their own spread is wider than the threshold, so read the case's execute.* rows instead:"
+    );
+    for (const entry of noisy) console.log(`  ${entry}`);
+    console.log('');
+  }
+
+  if (regressions.length > 0) {
+    console.log(`FAIL — ${regressions.length} regression(s):`);
+    for (const entry of regressions) console.log(`  ${entry}`);
+    process.exit(1);
+  }
+
+  console.log('PASS — no regressions past tolerance.');
+}
+
+try {
+  main();
+} catch (error) {
+  console.error(error.message);
+  process.exit(2);
+}

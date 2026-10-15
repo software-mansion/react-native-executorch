@@ -11,6 +11,7 @@
 
 #include "dtype.h"
 #include "error.h"
+#include "profiler.h"
 #include "schema.h"
 #include "tensor_helpers.h"
 
@@ -203,7 +204,10 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             auto finishTime = std::chrono::high_resolution_clock::now();
 
 #ifdef EXECUTORCH_ENABLE_EXECUTION_PROFILING
-            auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(finishTime - startTime).count();
+            // Recorded in nanoseconds: the millisecond log rounds a sub-millisecond inference to 0.
+            auto durationNs = std::chrono::duration_cast<std::chrono::nanoseconds>(finishTime - startTime).count();
+            profiler::record(self->modelPath_, methodName, durationNs);
+            auto durationMs = durationNs / 1'000'000;
             auto consoleObj = conversions::asType<jsi::Object>(rt, "console", rt.global().getProperty(rt, "console"));
             auto logFn = conversions::asType<jsi::Function>(rt, "console.log", consoleObj.getProperty(rt, "log"));
             auto info = std::format("Execution of method '{}' took {} ms", methodName, durationMs);

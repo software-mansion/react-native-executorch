@@ -97,6 +97,12 @@ export * from './core/runtime';
 export * from './core/lifetime';
 
 /**
+ * Time spent inside ExecuTorch, accumulated per model and method.
+ * @category Modules
+ */
+export * as profiler from './core/profiler';
+
+/**
  * Model schema validation and dimension constraints.
  * @category Modules
  */

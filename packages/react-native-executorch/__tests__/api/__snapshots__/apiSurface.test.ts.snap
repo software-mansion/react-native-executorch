@@ -159,6 +159,7 @@ exports[`public API surface matches the recorded export list 1`] = `
   "math",
   "models",
   "nlp",
+  "profiler",
   "schema",
   "setTelemetryEnabled",
   "speech",
