@@ -125,12 +125,8 @@ function MultimodalLLMScreen() {
       }
     );
     try {
-      const ok = await AudioManager.setAudioSessionActivity(true);
-      if (!ok) {
-        setError('Cannot start audio session');
-        return;
-      }
-      const result = recorder.current.start();
+      await AudioManager.setAudioSessionActivity(true);
+      const result = await recorder.current.start();
       if (result.status === 'error') {
         setError(`Recording problems: ${result.message}`);
         return;
