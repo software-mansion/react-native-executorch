@@ -104,9 +104,17 @@ function registerModelWithSchema(schema: any, options: { maxContextLen?: number 
           }
           return undefined;
         }
+        case 'audio_encoder': {
+          const mask = outputs[1];
+          if (mask) {
+            for (let i = 0; i < mask.numel; i++) {
+              mask.setElement(i, 1);
+            }
+          }
+          return undefined;
+        }
         case 'token_embedding':
         case 'vision_encoder':
-        case 'audio_encoder':
         case 'forward':
         default:
           return undefined;
@@ -362,6 +370,107 @@ describe('createLLMGemmaRunner — execution & multimodal prefill', () => {
       expect(runner.getKVCacheState().pos).toBe(12);
     } finally {
       wav.dispose();
+    }
+  });
+
+  it('drops padded tail tokens when audio_encoder mask indicates partial validity', async () => {
+    // Custom execute that returns 7 valid tokens and 5 padded tokens in the audio mask
+    fakeJsi.registerModel(MODEL_PATH, {
+      schema: GEMMA_SPEC,
+      execute: (methodName, _inputs, outputs) => {
+        switch (methodName) {
+          case 'get_max_seq_len':
+            return [128];
+          case 'get_max_context_len':
+            return [512];
+          case 'get_vocab_size':
+            return [100];
+          case 'use_kv_cache':
+          case 'enable_dynamic_shape':
+            return [true];
+          case 'get_eos_ids':
+            return [1];
+          case 'audio_encoder': {
+            const mask = outputs[1];
+            if (mask) {
+              for (let i = 0; i < 7; i++) mask.setElement(i, 1);
+              for (let i = 7; i < mask.numel; i++) mask.setElement(i, 0);
+            }
+            return undefined;
+          }
+          default:
+            return undefined;
+        }
+      },
+    });
+
+    const model = await loadModel(MODEL_PATH);
+    const tokenizer = await loadTokenizer(TOKENIZER_PATH);
+    const runner = tracked(createLLMGemmaRunner(model, tokenizer, ['image', 'audio']));
+
+    const wav = tensor('float32', [1, 7680]);
+    try {
+      const stats = runner.prefill([{ kind: 'audio', audio: wav }]);
+      // 7 valid tokens, 5 padded tokens dropped
+      expect(stats.numTokens).toBe(7);
+      expect(runner.getKVCacheState().pos).toBe(7);
+    } finally {
+      wav.dispose();
+      registerModelWithSchema(GEMMA_SPEC);
+    }
+  });
+
+  it('evaluates pad token PLE once at load and uses it for media prefill', async () => {
+    let capturedDecoderPle: number[] = [];
+    fakeJsi.registerModel(MODEL_PATH, {
+      schema: GEMMA_SPEC,
+      execute: (methodName, inputs, outputs) => {
+        switch (methodName) {
+          case 'get_max_seq_len':
+            return [128];
+          case 'get_max_context_len':
+            return [512];
+          case 'get_vocab_size':
+            return [100];
+          case 'use_kv_cache':
+          case 'enable_dynamic_shape':
+            return [true];
+          case 'get_eos_ids':
+            return [1];
+          case 'token_embedding': {
+            const ple = outputs[1];
+            if (ple) {
+              // Mark pad token PLE with distinct marker values (42.0)
+              for (let i = 0; i < ple.numel; i++) ple.setElement(i, 42);
+            }
+            return undefined;
+          }
+          case 'text_decoder': {
+            const pleInput = inputs[1] as any;
+            if (pleInput && pleInput.numel > 0) {
+              capturedDecoderPle = [...pleInput.getData(new Float32Array(pleInput.numel))];
+            }
+            return undefined;
+          }
+          default:
+            return undefined;
+        }
+      },
+    });
+
+    const model = await loadModel(MODEL_PATH);
+    const tokenizer = await loadTokenizer(TOKENIZER_PATH);
+    const runner = tracked(createLLMGemmaRunner(model, tokenizer, ['image', 'audio']));
+
+    const img = tensor('float32', [1, 3, 32, 32]);
+    try {
+      runner.prefill([{ kind: 'image', image: img }]);
+      expect(capturedDecoderPle.length).toBeGreaterThan(0);
+      // All values passed to text_decoder PLE should match pad token's marker (42)
+      expect(capturedDecoderPle.every((v) => v === 42)).toBe(true);
+    } finally {
+      img.dispose();
+      registerModelWithSchema(GEMMA_SPEC);
     }
   });
 

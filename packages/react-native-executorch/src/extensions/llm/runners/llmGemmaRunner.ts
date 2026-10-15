@@ -132,6 +132,24 @@ export function createLLMGemmaRunner(
   // Output buffer for text_decoder logits: shape [1, 1, vocabSize]
   const tLogits = tensor('float32', [1, 1, vocabSize]);
 
+  // Gemma models use the pad token's per-layer token embedding (PLE) for media
+  // token positions. Evaluate token_embedding([0]) once at initialization and
+  // reuse its PLE output during media prefilling.
+  const auxTensors = [
+    tensor('int64', [1, 1], BigInt64Array.of(0n)),
+    tensor('float32', [1, 1, hiddenDim]),
+    tensor('float32', [1, 1, numLayers, pleDim]),
+  ] as const;
+
+  const [tPadToken, tPadEmbeds, tPadPle] = auxTensors;
+  let padTokenPle: Float32Array;
+  try {
+    model.execute('token_embedding', [tPadToken], [tPadEmbeds, tPadPle]);
+    padTokenPle = tPadPle.getData(new Float32Array(numLayers * pleDim));
+  } finally {
+    auxTensors.forEach((t) => t.dispose());
+  }
+
   const dispose = () => {
     model.dispose();
     tLogits.dispose();
@@ -252,13 +270,18 @@ export function createLLMGemmaRunner(
         (_, i) => BigInt(startPos + offset + i)
       );
 
-      // Media embeddings (vision / audio) do not carry per-layer token embeddings;
-      // zero tensor is passed for ple_tok.
-      const zeroPle = new Float32Array(1 * seqLen * numLayers * pleDim);
+      // Media embeddings (vision / audio) use the pad token's per-layer token
+      // embeddings (PLE), matching Hugging Face Gemma reference
+      // (embed_tokens_per_layer[0]).
+      const pleData = new Float32Array(seqLen * numLayers * pleDim);
+      const plePerTok = numLayers * pleDim;
+      for (let i = 0; i < seqLen; i++) {
+        pleData.set(padTokenPle, i * plePerTok);
+      }
 
       const tensors = [
         tensor('float32', [1, seqLen, hiddenDim], chunk),
-        tensor('float32', [1, seqLen, numLayers, pleDim], zeroPle),
+        tensor('float32', [1, seqLen, numLayers, pleDim], pleData),
         tensor('int64', [seqLen], positions),
       ] as const;
 
@@ -350,9 +373,16 @@ export function createLLMGemmaRunner(
 
       try {
         model.execute('audio_encoder', [tWaveform, tNumValid], [tAudioEmbeds, tAudioMask]);
-        const embedding = tAudioEmbeds.getData(new Float32Array(tAudioEmbeds.numel));
-        const chunkStats = prefillEmbeddings(embedding, numAudioTokens);
-        totStats = combineStats(totStats, chunkStats);
+        const maskData = tAudioMask.getData(new Float32Array(tAudioMask.numel));
+        let validTokens = 0;
+        for (const val of maskData) {
+          if (val > 0) validTokens++;
+        }
+        if (validTokens > 0) {
+          const embedding = tAudioEmbeds.getData(new Float32Array(tAudioEmbeds.numel));
+          const chunkStats = prefillEmbeddings(embedding, validTokens);
+          totStats = combineStats(totStats, chunkStats);
+        }
       } finally {
         tensors.forEach((t) => t.dispose());
       }
