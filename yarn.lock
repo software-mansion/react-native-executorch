@@ -15232,7 +15232,7 @@ __metadata:
     expo-router: "npm:~57.0.26"
     react: "npm:19.2.3"
     react-native: "npm:0.86.3"
-    react-native-audio-api: "npm:0.13.1"
+    react-native-audio-api: "npm:0.13.6"
     react-native-blob-util: "npm:^0.25.0"
     react-native-drawer-layout: "npm:^4.2.2"
     react-native-executorch: "workspace:*"
@@ -16180,24 +16180,6 @@ __metadata:
   version: 19.2.4
   resolution: "react-is@npm:19.2.4"
   checksum: 10/3360fc50a38c23299c5003a709949f2439b2901e77962eea78d892f526f710d05a7777b600b302f853583d1861979b00d7a0a071c89c6562eac5740ac29b9665
-  languageName: node
-  linkType: hard
-
-"react-native-audio-api@npm:0.13.1":
-  version: 0.13.1
-  resolution: "react-native-audio-api@npm:0.13.1"
-  dependencies:
-    semver: "npm:^7.7.3"
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-    react-native-worklets: ">= 0.6.0"
-  peerDependenciesMeta:
-    react-native-worklets:
-      optional: true
-  bin:
-    setup-rn-audio-api-web: scripts/setup-rn-audio-api-web.js
-  checksum: 10/30675d28706f4cf03beb925120a6745d858f7dead4bc0df2dd734d6d0feaafc14924bbb1dd261c4f158a4501743f8abe72e029aadac8759b442480c01850ca88
   languageName: node
   linkType: hard
 
