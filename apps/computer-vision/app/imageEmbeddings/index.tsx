@@ -22,8 +22,8 @@ import { Button } from '../../components/Button';
 
 const IMAGE_MODEL_OPTIONS: ModelOption[] = [
   {
-    label: 'CLIP ViT-B/32 (XNNPACK FP32)',
-    value: models.imageEmbeddings.CLIP_VIT_BASE_PATCH32.XNNPACK_FP32,
+    label: 'CLIP ViT-B/32 (XNNPACK INT8)',
+    value: models.imageEmbeddings.CLIP_VIT_BASE_PATCH32.XNNPACK_INT8,
   },
   {
     label: 'CLIP ViT-B/32 (CoreML FP16)',

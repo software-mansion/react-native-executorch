@@ -25,12 +25,12 @@ import { BoundingBox } from '../../components/BoundingBox';
 
 const MODEL_OPTIONS: ModelOption[] = [
   {
-    label: 'YOLO26 Nano (XNNPACK FP32)',
-    value: models.instanceSegmentation.YOLO26.NANO.SIZE_384.XNNPACK_FP32,
+    label: 'YOLO26 Nano (XNNPACK INT8)',
+    value: models.instanceSegmentation.YOLO26.NANO.SIZE_384.XNNPACK_INT8,
   },
   {
-    label: 'RFDETR (XNNPACK FP32)',
-    value: models.instanceSegmentation.RFDETR_NANO.XNNPACK_FP32,
+    label: 'RFDETR (XNNPACK INT8)',
+    value: models.instanceSegmentation.RFDETR_NANO.XNNPACK_INT8,
   },
   {
     label: 'RFDETR (CoreML FP16)',
@@ -38,12 +38,12 @@ const MODEL_OPTIONS: ModelOption[] = [
     disabled: Platform.OS !== 'ios',
   },
   {
-    label: 'FastSAM Small (XNNPACK FP32)',
-    value: models.instanceSegmentation.FASTSAM.S.XNNPACK_FP32,
+    label: 'FastSAM Small (XNNPACK INT8)',
+    value: models.instanceSegmentation.FASTSAM.S.XNNPACK_INT8,
   },
   {
-    label: 'FastSAM X-Large (XNNPACK FP32)',
-    value: models.instanceSegmentation.FASTSAM.X.XNNPACK_FP32,
+    label: 'FastSAM X-Large (XNNPACK INT8)',
+    value: models.instanceSegmentation.FASTSAM.X.XNNPACK_INT8,
   },
   {
     label: 'FastSAM Small (CoreML FP16)',
