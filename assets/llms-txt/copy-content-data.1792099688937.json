@@ -23459,6 +23459,66 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/profiler": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/profiler/functions/get": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/profiler/functions/reset": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/profiler/type-aliases/MethodProfile": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/profiler/type-aliases/ModelProfile": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/schema": {
     "shouldDisplay": true,
     "hasMarkdown": false,
