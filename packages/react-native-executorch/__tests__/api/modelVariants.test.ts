@@ -33,6 +33,11 @@ const modelPathsOf = (config: Node): string =>
         .sort()
         .join('|');
 
+const modelUrlsOf = (config: Node): string[] =>
+  typeof config.modelPath === 'string'
+    ? [config.modelPath]
+    : Object.values(config.modelPaths as Node).map(String);
+
 const isUpperKey = (key: string) => /^[A-Z0-9_]+$/.test(key);
 
 /** Every group that names a `DEFAULT`, with the dotted path it sits at. */
@@ -351,7 +356,9 @@ describe('deprecated variants', () => {
       group,
       notices: new Map(
         namedVariants(group).flatMap(([key, config]) => {
-          const notice = deprecationOf(modelPathsOf(config));
+          const notice = modelUrlsOf(config)
+            .map(deprecationOf)
+            .find((n) => n !== undefined);
           return notice === undefined ? [] : [[key, notice] as const];
         })
       ),

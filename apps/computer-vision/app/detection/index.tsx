@@ -23,37 +23,33 @@ const MODEL_OPTIONS: ModelOption[] = [
     value: models.objectDetection.RFDETR_NANO.XNNPACK_INT8,
   },
   {
-    label: 'RF-DETR Nano (XNNPACK FP32)',
-    value: models.objectDetection.RFDETR_NANO.XNNPACK_FP32,
-  },
-  {
     label: 'RF-DETR Nano (CoreML FP16)',
     value: models.objectDetection.RFDETR_NANO.COREML_FP16,
     disabled: Platform.OS !== 'ios',
   },
   {
-    label: 'YOLO26 Nano 384 (XNNPACK FP32)',
-    value: models.objectDetection.YOLO26.NANO.SIZE_384.XNNPACK_FP32,
+    label: 'YOLO26 Nano 384 (XNNPACK INT8)',
+    value: models.objectDetection.YOLO26.NANO.SIZE_384.XNNPACK_INT8,
   },
   {
-    label: 'YOLO26 Nano 640 (XNNPACK FP32)',
-    value: models.objectDetection.YOLO26.NANO.SIZE_640.XNNPACK_FP32,
+    label: 'YOLO26 Nano 640 (XNNPACK INT8)',
+    value: models.objectDetection.YOLO26.NANO.SIZE_640.XNNPACK_INT8,
   },
   {
-    label: 'YOLO26 Small 640 (XNNPACK FP32)',
-    value: models.objectDetection.YOLO26.SMALL.SIZE_640.XNNPACK_FP32,
+    label: 'YOLO26 Small 640 (XNNPACK INT8)',
+    value: models.objectDetection.YOLO26.SMALL.SIZE_640.XNNPACK_INT8,
   },
   {
-    label: 'YOLO26 Medium 640 (XNNPACK FP32)',
-    value: models.objectDetection.YOLO26.MEDIUM.SIZE_640.XNNPACK_FP32,
+    label: 'YOLO26 Medium 640 (XNNPACK INT8)',
+    value: models.objectDetection.YOLO26.MEDIUM.SIZE_640.XNNPACK_INT8,
   },
   {
-    label: 'YOLO26 Large 640 (XNNPACK FP32)',
-    value: models.objectDetection.YOLO26.LARGE.SIZE_640.XNNPACK_FP32,
+    label: 'YOLO26 Large 640 (XNNPACK INT8)',
+    value: models.objectDetection.YOLO26.LARGE.SIZE_640.XNNPACK_INT8,
   },
   {
-    label: 'YOLO26 X-Large 640 (XNNPACK FP32)',
-    value: models.objectDetection.YOLO26.XLARGE.SIZE_640.XNNPACK_FP32,
+    label: 'YOLO26 X-Large 640 (XNNPACK INT8)',
+    value: models.objectDetection.YOLO26.XLARGE.SIZE_640.XNNPACK_INT8,
   },
 ];
 
