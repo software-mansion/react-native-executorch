@@ -29,6 +29,36 @@ export type PhonemizerConfig = {
 };
 
 /**
+ * A word of the input text, located in its phonemization.
+ * @category Speech / Types
+ */
+export type PhonemizedWord = {
+  /** The word as it appears in the input text. */
+  readonly text: string;
+  /** UTF-16 offset of the word in the input text. */
+  readonly offset: number;
+  /** UTF-16 offset of the word's phonemes in {@link PhonemizedText.phonemes}. */
+  readonly phonemeOffset: number;
+  /** UTF-16 length of the word's phonemes. */
+  readonly phonemeLength: number;
+};
+
+/**
+ * Phonemization of a text, together with the position of each of its words.
+ * @category Speech / Types
+ */
+export type PhonemizedText = {
+  /** IPA transcription of the whole text, the same as `phonemize(text)` returns. */
+  readonly phonemes: string;
+  /**
+   * The whitespace-separated words of the input text, in order. Each maps onto
+   * one space-separated phoneme group, except numbers, which map onto as many as
+   * they were spelled out into. Empty if the words could not be matched.
+   */
+  readonly words: readonly PhonemizedWord[];
+};
+
+/**
  * Native Grapheme-to-Phoneme (G2P) conversion interface.
  * @category Speech / Types
  */
@@ -41,6 +71,17 @@ export type Phonemizer = {
    * in use, or `RESOURCE_DISPOSED` if disposed.
    */
   phonemize(text: string): string;
+
+  /**
+   * Converts input text into phonetic IPA transcription and locates each of its
+   * words in it.
+   * @param text Input text string to be phonemized.
+   * @param options Pass `{ words: true }` to locate the words.
+   * @returns The phonemes and the words located in them. See {@link PhonemizedText}.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the phonemizer is
+   * in use, or `RESOURCE_DISPOSED` if disposed.
+   */
+  phonemize(text: string, options: { readonly words: true }): PhonemizedText;
 
   /**
    * Releases the allocated native phonemizer resources. The instance must not

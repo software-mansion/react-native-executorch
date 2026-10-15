@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import {
   DEVICES,
   METRICS,
-  benchmarkRows,
   type BenchmarkRow,
   type Metric,
   type MetricId,
@@ -127,10 +126,16 @@ type TooltipState = {
 
 type Props = {
   task: string;
+  /**
+   * The measurements, imported by the page that renders the chart. They live
+   * beside that page rather than in `src/` so a docs version cut archives them
+   * with it.
+   */
+  data: readonly BenchmarkRow[];
 };
 
-export default function BenchmarkChart({ task }: Props) {
-  const rows = useMemo(() => benchmarkRows.filter((row) => row.task === task), [task]);
+export default function BenchmarkChart({ task, data }: Props) {
+  const rows = useMemo(() => data.filter((row) => row.task === task), [data, task]);
   const models = useMemo<string[]>(() => {
     const names = new Set(rows.map((row) => row.model));
     return [...names].sort();

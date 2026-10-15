@@ -49,13 +49,13 @@ describe('react-native-worklets peer range', () => {
   it('covers the releases published since', () => {
     // A range that stops below the current release leaves anyone installing
     // `react-native-worklets` with an unmet peer warning for no reason.
-    for (const version of ['0.10.4', '0.11.4', '0.12.2']) {
+    for (const version of ['0.10.4', '0.11.4', '0.12.2', '0.13.0']) {
       expect(satisfies(version, range)).toBe(true);
     }
   });
 
   it('is bounded, so an unreleased major cannot be assumed to work', () => {
-    expect(subset(range, '>=0.10.0 <0.13.0')).toBe(true);
+    expect(subset(range, '>=0.10.0 <0.14.0')).toBe(true);
   });
 
   it('is satisfied by the version installed in this repo', () => {
