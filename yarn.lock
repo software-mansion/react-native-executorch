@@ -15479,7 +15479,7 @@ __metadata:
     expo-router: "npm:~57.0.26"
     react: "npm:19.2.3"
     react-native: "npm:0.86.3"
-    react-native-audio-api: "npm:0.13.1"
+    react-native-audio-api: "npm:0.13.6"
     react-native-blob-util: "npm:^0.25.0"
     react-native-drawer-layout: "npm:^4.2.2"
     react-native-executorch: "workspace:*"
