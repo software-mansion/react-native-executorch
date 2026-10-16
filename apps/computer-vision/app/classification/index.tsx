@@ -18,10 +18,6 @@ const MODEL_OPTIONS: ModelOption[] = [
     value: models.classification.EFFICIENTNET_V2_S.XNNPACK_INT8,
   },
   {
-    label: 'EfficientNetV2-S (XNNPACK FP32)',
-    value: models.classification.EFFICIENTNET_V2_S.XNNPACK_FP32,
-  },
-  {
     label: 'EfficientNetV2-S (CoreML FP16)',
     value: models.classification.EFFICIENTNET_V2_S.COREML_FP16,
     disabled: Platform.OS !== 'ios',

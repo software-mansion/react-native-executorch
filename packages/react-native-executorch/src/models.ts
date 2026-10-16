@@ -16,6 +16,7 @@ import { Platform } from 'react-native';
 
 import { rnexecutorchJsi } from './native/bridge';
 import { getRegisteredBackends } from './utils';
+import { registerDeprecation } from './deprecation';
 import type { ClassifierModel } from './extensions/cv/tasks/classification';
 import type { ObjectDetectorModel } from './extensions/cv/tasks/objectDetection';
 import type { StyleTransferModel } from './extensions/cv/tasks/styleTransfer';
@@ -172,6 +173,27 @@ function family<V extends Record<string, { readonly DEFAULT: unknown }>>(
   return { ...map, DEFAULT: map[first]!.DEFAULT as V[keyof V]['DEFAULT'] };
 }
 
+// Deprecated variants, mapped to the key of the sibling that replaces them.
+// The registry is walked once it is built, so that each warning can name both
+// by their full path.
+const REPLACEMENTS = new Map<object, string>();
+
+/**
+ * Marks a variant deprecated in favour of a sibling in the same group. It still
+ * loads, and warns on download, until it is removed in the next minor release.
+ * Never declare it ahead of its replacement, or it can become the `DEFAULT`.
+ * @typeParam T The variant's config.
+ * @param config The deprecated variant.
+ * @param replacement The key of the sibling variant to use instead.
+ * @returns `config`, unchanged.
+ */
+function deprecated<
+  T extends { readonly modelPath: string } | { readonly modelPaths: Record<string, string> },
+>(config: T, replacement: string): T {
+  REPLACEMENTS.set(config, replacement);
+  return config;
+}
+
 const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorch';
 // Models resolve through VERSION_TAG, the latest published stable tag, unless
 // they have been re-exported for the next release, in which case their URL moves
@@ -190,7 +212,7 @@ const EFFICIENTNET_V2_S_OPTS = {
   labels: IMAGENET1K_LABELS,
 };
 const EFFICIENTNET_V2_S_XNNPACK_INT8: ClassifierModel<ImageNet1KLabel> = {
-  modelPath: `${BASE_URL}-efficientnet-v2-s/${VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_int8.pte`,
+  modelPath: `${BASE_URL}-efficientnet-v2-s/${NEXT_VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_int8.pte`,
   modelOpts: EFFICIENTNET_V2_S_OPTS,
 };
 const EFFICIENTNET_V2_S_XNNPACK_FP32: ClassifierModel<ImageNet1KLabel> = {
@@ -360,7 +382,7 @@ const DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_FP32: SemanticSegmenterModel<PascalV
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-deeplab-v3/${VERSION_TAG}/xnnpack/deeplab_v3_mobilenet_v3_large_xnnpack_int8.pte`,
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/xnnpack/deeplab_v3_mobilenet_v3_large_xnnpack_int8.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_MOBILENET_V3_LARGE_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
@@ -429,6 +451,10 @@ const RFDETR_NANO_DETECTOR_OPTS = {
   normalizeOpts: IMAGENET_NORM,
   defaultConfidenceThreshold: 0.5,
   defaultIouThreshold: 0.55,
+};
+const RFDETR_NANO_DETECTOR_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClass> = {
+  modelPath: `${BASE_URL}-rfdetr-nano-detector/${NEXT_VERSION_TAG}/xnnpack/rfdetr_nano_xnnpack_int8.pte`,
+  modelOpts: RFDETR_NANO_DETECTOR_OPTS,
 };
 const RFDETR_NANO_DETECTOR_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClass> = {
   modelPath: `${BASE_URL}-rfdetr-nano-detector/${VERSION_TAG}/xnnpack/rfdetr_nano_xnnpack_fp32.pte`,
@@ -727,6 +753,10 @@ const YOLO26_POSE_OPTS = {
   defaultConfidenceThreshold: 0.25,
   landmarks: COCO_LANDMARKS,
 };
+const YOLO26_POSE_384_XNNPACK_INT8: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/xnnpack/yolo26n_pose_384_xnnpack_int8.pte`,
+  modelOpts: YOLO26_POSE_OPTS,
+};
 const YOLO26_POSE_384_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
   modelPath: `${BASE_URL}-yolo26-pose/${VERSION_TAG}/xnnpack/yolo26n_pose_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_POSE_OPTS,
@@ -739,6 +769,10 @@ const YOLO26_POSE_384_VULKAN_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> =
   modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/384/vulkan/yolo26n_pose_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_POSE_OPTS,
 };
+const YOLO26_POSE_512_XNNPACK_INT8: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/xnnpack/yolo26n_pose_512_xnnpack_int8.pte`,
+  modelOpts: YOLO26_POSE_OPTS,
+};
 const YOLO26_POSE_512_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
   modelPath: `${BASE_URL}-yolo26-pose/${VERSION_TAG}/xnnpack/yolo26n_pose_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_POSE_OPTS,
@@ -749,6 +783,10 @@ const YOLO26_POSE_512_COREML_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> =
 };
 const YOLO26_POSE_512_VULKAN_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
   modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/512/vulkan/yolo26n_pose_512_vulkan_fp16.pte`,
+  modelOpts: YOLO26_POSE_OPTS,
+};
+const YOLO26_POSE_640_XNNPACK_INT8: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/xnnpack/yolo26n_pose_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_POSE_OPTS,
 };
 const YOLO26_POSE_640_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
@@ -772,6 +810,10 @@ const RFDETR_KEYPOINT_OPTS = {
   defaultIouThreshold: 0.55,
   defaultConfidenceThreshold: 0.5,
   landmarks: COCO_LANDMARKS,
+};
+const RFDETR_KEYPOINT_XNNPACK_INT8: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-rfdetr-keypoint/${NEXT_VERSION_TAG}/xnnpack/rfdetr_keypoint_preview_xnnpack_int8.pte`,
+  modelOpts: RFDETR_KEYPOINT_OPTS,
 };
 const RFDETR_KEYPOINT_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
   modelPath: `${BASE_URL}-rfdetr-keypoint/${VERSION_TAG}/xnnpack/rfdetr_keypoint_preview_xnnpack_fp32.pte`,
@@ -819,6 +861,10 @@ const FASTSAM_OPTS = {
   defaultIouThreshold: 0.9,
   defaultMaskThreshold: 0.5,
 };
+const FASTSAM_S_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', 'object'> = {
+  modelPath: `${BASE_URL}-fast-sam/${NEXT_VERSION_TAG}/s/xnnpack/fast_sam_s_xnnpack_int8.pte`,
+  modelOpts: FASTSAM_OPTS,
+};
 const FASTSAM_S_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', 'object'> = {
   modelPath: `${BASE_URL}-fast-sam/${VERSION_TAG}/s/xnnpack/fast_sam_s_xnnpack_fp32.pte`,
   modelOpts: FASTSAM_OPTS,
@@ -829,6 +875,10 @@ const FASTSAM_S_COREML_FP16: InstanceSegmenterModel<'xyxy', 'object'> = {
 };
 const FASTSAM_S_VULKAN_FP16: InstanceSegmenterModel<'xyxy', 'object'> = {
   modelPath: `${BASE_URL}-fast-sam/${NEXT_VERSION_TAG}/s/vulkan/fast_sam_s_vulkan_fp16.pte`,
+  modelOpts: FASTSAM_OPTS,
+};
+const FASTSAM_X_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', 'object'> = {
+  modelPath: `${BASE_URL}-fast-sam/${NEXT_VERSION_TAG}/x/xnnpack/fast_sam_x_xnnpack_int8.pte`,
   modelOpts: FASTSAM_OPTS,
 };
 const FASTSAM_X_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', 'object'> = {
@@ -858,6 +908,10 @@ const RFDETR_NANO_SEG_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClass> = {
   modelPath: `${BASE_URL}-rfdetr-nano-segmentation/${VERSION_TAG}/coreml/rfdetr_nano_coreml_fp16.pte`,
   modelOpts: RFDETR_NANO_SEG_OPTS,
 };
+const RFDETR_NANO_SEG_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClass> = {
+  modelPath: `${BASE_URL}-rfdetr-nano-segmentation/${NEXT_VERSION_TAG}/xnnpack/rfdetr_nano_xnnpack_int8.pte`,
+  modelOpts: RFDETR_NANO_SEG_OPTS,
+};
 const RFDETR_NANO_SEG_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClass> = {
   modelPath: `${BASE_URL}-rfdetr-nano-segmentation/${VERSION_TAG}/xnnpack/rfdetr_nano_xnnpack_fp32.pte`,
   modelOpts: RFDETR_NANO_SEG_OPTS,
@@ -878,6 +932,10 @@ const YOLO26_SEG_OPTS = {
   defaultMaskThreshold: 0.5,
 };
 
+const YOLO26_NANO_SEG_384_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/n/xnnpack/yolo26_seg_n_384_xnnpack_int8.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_NANO_SEG_384_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${VERSION_TAG}/n/xnnpack/yolo26_seg_n_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
@@ -890,6 +948,10 @@ const YOLO26_NANO_SEG_384_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassY
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/n/vulkan/yolo26_seg_n_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
+const YOLO26_NANO_SEG_512_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/n/xnnpack/yolo26_seg_n_512_xnnpack_int8.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_NANO_SEG_512_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${VERSION_TAG}/n/xnnpack/yolo26_seg_n_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
@@ -900,6 +962,10 @@ const YOLO26_NANO_SEG_512_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassY
 };
 const YOLO26_NANO_SEG_512_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/n/vulkan/yolo26_seg_n_512_vulkan_fp16.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
+const YOLO26_NANO_SEG_640_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/n/xnnpack/yolo26_seg_n_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_NANO_SEG_640_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
@@ -915,6 +981,10 @@ const YOLO26_NANO_SEG_640_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassY
   modelOpts: YOLO26_SEG_OPTS,
 };
 
+const YOLO26_SMALL_SEG_384_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/s/xnnpack/yolo26_seg_s_384_xnnpack_int8.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_SMALL_SEG_384_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${VERSION_TAG}/s/xnnpack/yolo26_seg_s_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
@@ -927,6 +997,10 @@ const YOLO26_SMALL_SEG_384_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClass
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/s/vulkan/yolo26_seg_s_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
+const YOLO26_SMALL_SEG_512_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/s/xnnpack/yolo26_seg_s_512_xnnpack_int8.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_SMALL_SEG_512_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${VERSION_TAG}/s/xnnpack/yolo26_seg_s_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
@@ -937,6 +1011,10 @@ const YOLO26_SMALL_SEG_512_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClass
 };
 const YOLO26_SMALL_SEG_512_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/s/vulkan/yolo26_seg_s_512_vulkan_fp16.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
+const YOLO26_SMALL_SEG_640_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/s/xnnpack/yolo26_seg_s_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_SMALL_SEG_640_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
@@ -952,6 +1030,10 @@ const YOLO26_SMALL_SEG_640_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClass
   modelOpts: YOLO26_SEG_OPTS,
 };
 
+const YOLO26_MEDIUM_SEG_384_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/m/xnnpack/yolo26_seg_m_384_xnnpack_int8.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_MEDIUM_SEG_384_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${VERSION_TAG}/m/xnnpack/yolo26_seg_m_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
@@ -964,6 +1046,10 @@ const YOLO26_MEDIUM_SEG_384_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClas
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/m/vulkan/yolo26_seg_m_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
+const YOLO26_MEDIUM_SEG_512_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/m/xnnpack/yolo26_seg_m_512_xnnpack_int8.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_MEDIUM_SEG_512_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${VERSION_TAG}/m/xnnpack/yolo26_seg_m_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
@@ -974,6 +1060,10 @@ const YOLO26_MEDIUM_SEG_512_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClas
 };
 const YOLO26_MEDIUM_SEG_512_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/m/vulkan/yolo26_seg_m_512_vulkan_fp16.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
+const YOLO26_MEDIUM_SEG_640_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/m/xnnpack/yolo26_seg_m_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_MEDIUM_SEG_640_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
@@ -989,6 +1079,10 @@ const YOLO26_MEDIUM_SEG_640_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClas
   modelOpts: YOLO26_SEG_OPTS,
 };
 
+const YOLO26_LARGE_SEG_384_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/l/xnnpack/yolo26_seg_l_384_xnnpack_int8.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_LARGE_SEG_384_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${VERSION_TAG}/l/xnnpack/yolo26_seg_l_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
@@ -1001,6 +1095,10 @@ const YOLO26_LARGE_SEG_384_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClass
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/l/vulkan/yolo26_seg_l_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
+const YOLO26_LARGE_SEG_512_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/l/xnnpack/yolo26_seg_l_512_xnnpack_int8.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_LARGE_SEG_512_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${VERSION_TAG}/l/xnnpack/yolo26_seg_l_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
@@ -1011,6 +1109,10 @@ const YOLO26_LARGE_SEG_512_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClass
 };
 const YOLO26_LARGE_SEG_512_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/l/vulkan/yolo26_seg_l_512_vulkan_fp16.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
+const YOLO26_LARGE_SEG_640_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/l/xnnpack/yolo26_seg_l_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_LARGE_SEG_640_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
@@ -1026,6 +1128,10 @@ const YOLO26_LARGE_SEG_640_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClass
   modelOpts: YOLO26_SEG_OPTS,
 };
 
+const YOLO26_XLARGE_SEG_384_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/x/xnnpack/yolo26_seg_x_384_xnnpack_int8.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_XLARGE_SEG_384_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${VERSION_TAG}/x/xnnpack/yolo26_seg_x_384_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
@@ -1038,6 +1144,10 @@ const YOLO26_XLARGE_SEG_384_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClas
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/x/vulkan/yolo26_seg_x_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
+const YOLO26_XLARGE_SEG_512_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/x/xnnpack/yolo26_seg_x_512_xnnpack_int8.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
 const YOLO26_XLARGE_SEG_512_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${VERSION_TAG}/x/xnnpack/yolo26_seg_x_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_SEG_OPTS,
@@ -1048,6 +1158,10 @@ const YOLO26_XLARGE_SEG_512_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClas
 };
 const YOLO26_XLARGE_SEG_512_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/x/vulkan/yolo26_seg_x_512_vulkan_fp16.pte`,
+  modelOpts: YOLO26_SEG_OPTS,
+};
+const YOLO26_XLARGE_SEG_640_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26-seg/${NEXT_VERSION_TAG}/x/xnnpack/yolo26_seg_x_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_XLARGE_SEG_640_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
@@ -1066,6 +1180,10 @@ const YOLO26_XLARGE_SEG_640_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClas
 // =============================================================================
 // Text Embeddings
 // =============================================================================
+const ALL_MINILM_L6_V2_XNNPACK_INT8: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/xnnpack/all_minilm_l6_v2_xnnpack_int8.pte`,
+  tokenizerPath: `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`,
+};
 const ALL_MINILM_L6_V2_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/xnnpack/all_minilm_l6_v2_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`,
@@ -1082,6 +1200,14 @@ const ALL_MINILM_L6_V2_VULKAN_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/vulkan/all_minilm_l6_v2_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`,
 };
+const ALL_MPNET_BASE_V2_XNNPACK_INT8: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/xnnpack/all_mpnet_base_v2_xnnpack_int8.pte`,
+  tokenizerPath: `${BASE_URL}-all-mpnet-base-v2/${VERSION_TAG}/tokenizer.json`,
+};
+const ALL_MPNET_BASE_V2_XNNPACK_8DA4W: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/xnnpack/all_mpnet_base_v2_xnnpack_8da4w.pte`,
+  tokenizerPath: `${BASE_URL}-all-mpnet-base-v2/${VERSION_TAG}/tokenizer.json`,
+};
 const ALL_MPNET_BASE_V2_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-all-mpnet-base-v2/${VERSION_TAG}/xnnpack/all_mpnet_base_v2_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}-all-mpnet-base-v2/${VERSION_TAG}/tokenizer.json`,
@@ -1093,6 +1219,10 @@ const ALL_MPNET_BASE_V2_VULKAN_INT8: TextEmbedderModel = {
 const ALL_MPNET_BASE_V2_VULKAN_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-all-mpnet-base-v2/${VERSION_TAG}/vulkan/all_mpnet_base_v2_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}-all-mpnet-base-v2/${VERSION_TAG}/tokenizer.json`,
+};
+const MULTI_QA_MINILM_L6_COS_V1_XNNPACK_INT8: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${NEXT_VERSION_TAG}/xnnpack/multi_qa_minilm_l6_cos_v1_xnnpack_int8.pte`,
+  tokenizerPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/tokenizer.json`,
 };
 const MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/xnnpack/multi_qa_minilm_l6_cos_v1_xnnpack_fp32.pte`,
@@ -1110,6 +1240,14 @@ const MULTI_QA_MINILM_L6_COS_V1_VULKAN_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/vulkan/multi_qa_minilm_l6_cos_v1_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/tokenizer.json`,
 };
+const MULTI_QA_MPNET_BASE_DOT_V1_XNNPACK_INT8: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-multi-qa-mpnet-base-dot-v1/${NEXT_VERSION_TAG}/xnnpack/multi_qa_mpnet_base_dot_v1_xnnpack_int8.pte`,
+  tokenizerPath: `${BASE_URL}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/tokenizer.json`,
+};
+const MULTI_QA_MPNET_BASE_DOT_V1_XNNPACK_8DA4W: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-multi-qa-mpnet-base-dot-v1/${NEXT_VERSION_TAG}/xnnpack/multi_qa_mpnet_base_dot_v1_xnnpack_8da4w.pte`,
+  tokenizerPath: `${BASE_URL}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/tokenizer.json`,
+};
 const MULTI_QA_MPNET_BASE_DOT_V1_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/xnnpack/multi_qa_mpnet_base_dot_v1_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/tokenizer.json`,
@@ -1123,8 +1261,8 @@ const MULTI_QA_MPNET_BASE_DOT_V1_VULKAN_FP16: TextEmbedderModel = {
   tokenizerPath: `${BASE_URL}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/tokenizer.json`,
 };
 const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_EMBEDDINGS: TextEmbedderModel = {
-  modelPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${VERSION_TAG}/xnnpack/paraphrase_multilingual_minilm_l12_v2_xnnpack_8da4w.pte`,
-  tokenizerPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${VERSION_TAG}/tokenizer.json`,
+  modelPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${NEXT_VERSION_TAG}/xnnpack/paraphrase_multilingual_minilm_l12_v2_xnnpack_8da4w.pte`,
+  tokenizerPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
 const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_XNNPACK_FP32: TextEmbedderModel = {
   modelPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${VERSION_TAG}/xnnpack/paraphrase_multilingual_minilm_l12_v2_xnnpack_fp32.pte`,
@@ -1143,8 +1281,8 @@ const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_VULKAN_FP16: TextEmbedderModel = {
   tokenizerPath: `${BASE_URL}-paraphrase-multilingual-MiniLM-L12-v2/${VERSION_TAG}/tokenizer.json`,
 };
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS: TextEmbedderModel = {
-  modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${VERSION_TAG}/xnnpack/distiluse_base_multilingual_cased_v2_xnnpack_8da4w.pte`,
-  tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${VERSION_TAG}/tokenizer.json`,
+  modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/xnnpack/distiluse_base_multilingual_cased_v2_xnnpack_8da4w.pte`,
+  tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_XNNPACK_FP32: TextEmbedderModel = {
   modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${VERSION_TAG}/xnnpack/distiluse_base_multilingual_cased_v2_xnnpack_fp32.pte`,
@@ -1165,6 +1303,10 @@ const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8: TextEmbedderModel = {
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_VULKAN_FP16: TextEmbedderModel = {
   modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${VERSION_TAG}/vulkan/distiluse_base_multilingual_cased_v2_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${VERSION_TAG}/tokenizer.json`,
+};
+const CLIP_VIT_BASE_PATCH32_TEXT_XNNPACK_INT8: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_int8.pte`,
+  tokenizerPath: `${BASE_URL}-clip-vit-base-patch32/${VERSION_TAG}/tokenizer.json`,
 };
 const CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-clip-vit-base-patch32/${VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_fp32.pte`,
@@ -1205,6 +1347,10 @@ const CLIP_IMAGE_EMBEDDINGS_OPTS = {
     alpha: [1 / (255.0 * 0.26862954), 1 / (255.0 * 0.26130258), 1 / (255.0 * 0.27577711)],
     beta: [-0.48145466 / 0.26862954, -0.4578275 / 0.26130258, -0.40821073 / 0.27577711],
   },
+};
+const CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_INT8: ImageEmbedderModel = {
+  modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_image_xnnpack_int8.pte`,
+  modelOpts: CLIP_IMAGE_EMBEDDINGS_OPTS,
 };
 const CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32: ImageEmbedderModel = {
   modelPath: `${BASE_URL}-clip-vit-base-patch32/${VERSION_TAG}/xnnpack/clip_vit_base_patch32_image_xnnpack_fp32.pte`,
@@ -1247,7 +1393,7 @@ const WHISPER_TINY_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_XNNPACK_INT8: WhisperSttModel<'en'> = {
-  modelPath: `${BASE_URL}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_int8.pte`,
+  modelPath: `${BASE_URL}-whisper-tiny.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}-whisper-tiny.en/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1333,7 +1479,7 @@ const WHISPER_BASE_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_XNNPACK_INT8: WhisperSttModel<'en'> = {
-  modelPath: `${BASE_URL}-whisper-base.en/${VERSION_TAG}/xnnpack/whisper_base_en_xnnpack_int8.pte`,
+  modelPath: `${BASE_URL}-whisper-base.en/${NEXT_VERSION_TAG}/xnnpack/whisper_base_en_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}-whisper-base.en/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1419,7 +1565,7 @@ const WHISPER_SMALL_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_EN_XNNPACK_INT8: WhisperSttModel<'en'> = {
-  modelPath: `${BASE_URL}-whisper-small.en/${VERSION_TAG}/xnnpack/whisper_small_en_xnnpack_int8.pte`,
+  modelPath: `${BASE_URL}-whisper-small.en/${NEXT_VERSION_TAG}/xnnpack/whisper_small_en_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}-whisper-small.en/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1494,6 +1640,10 @@ const SDXS_512_DREAMSHAPER_XNNPACK_FP32: SdxsTextToImageModel = {
   modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${VERSION_TAG}/xnnpack/sdxs_512_dreamshaper_xnnpack_fp32.pte`,
   tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
 };
+const SDXS_512_DREAMSHAPER_XNNPACK_INT8: SdxsTextToImageModel = {
+  modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/xnnpack/sdxs_512_dreamshaper_xnnpack_int8.pte`,
+  tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
+};
 const SDXS_512_DREAMSHAPER_COREML_FP16: SdxsTextToImageModel = {
   modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${VERSION_TAG}/coreml/sdxs_512_dreamshaper_coreml_fp16.pte`,
   tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
@@ -1521,6 +1671,18 @@ const SUPERTONIC_3_XNNPACK_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> 
     vectorEstimator: `${BASE_URL}-supertonic/${VERSION_TAG}/xnnpack/vector_estimator_xnnpack_fp32.pte`,
     textEncoder: `${BASE_URL}-supertonic/${VERSION_TAG}/xnnpack/text_encoder_xnnpack_fp32.pte`,
     vocoder: `${BASE_URL}-supertonic/${VERSION_TAG}/xnnpack/vocoder_xnnpack_fp32.pte`,
+  },
+  unicodeIndexerPath: `${BASE_URL}-supertonic/${VERSION_TAG}/unicode_indexer.json`,
+  voiceStyles: SUPERTONIC_DEFAULT_VOICE_STYLES,
+};
+
+const SUPERTONIC_3_XNNPACK_INT8: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
+  name: 'supertonic',
+  modelPaths: {
+    durationPredictor: `${BASE_URL}-supertonic/${VERSION_TAG}/xnnpack/duration_predictor_xnnpack_fp32.pte`,
+    vectorEstimator: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/xnnpack/vector_estimator_xnnpack_int8.pte`,
+    textEncoder: `${BASE_URL}-supertonic/${VERSION_TAG}/xnnpack/text_encoder_xnnpack_fp32.pte`,
+    vocoder: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/xnnpack/vocoder_xnnpack_int8.pte`,
   },
   unicodeIndexerPath: `${BASE_URL}-supertonic/${VERSION_TAG}/unicode_indexer.json`,
   voiceStyles: SUPERTONIC_DEFAULT_VOICE_STYLES,
@@ -2162,9 +2324,12 @@ export const models = {
      * architecture providing high accuracy for general-purpose image
      * classification.
      */
+    // int8 keeps its squeeze-excitation blocks fp32: 75.0% top-1 on 1000
+    // ImageNetV2 images against fp32's 75.8%, still 2.2x faster than fp32.
     EFFICIENTNET_V2_S: variants({
       XNNPACK_INT8: EFFICIENTNET_V2_S_XNNPACK_INT8,
-      XNNPACK_FP32: EFFICIENTNET_V2_S_XNNPACK_FP32,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(EFFICIENTNET_V2_S_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: EFFICIENTNET_V2_S_COREML_FP16,
     }),
   },
@@ -2180,7 +2345,8 @@ export const models = {
      */
     CANDY: variants({
       XNNPACK_INT8: STYLE_TRANSFER_CANDY_XNNPACK_INT8,
-      XNNPACK_FP32: STYLE_TRANSFER_CANDY_XNNPACK_FP32,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(STYLE_TRANSFER_CANDY_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: STYLE_TRANSFER_CANDY_COREML_FP16,
       VULKAN_FP16: STYLE_TRANSFER_CANDY_VULKAN_FP16,
     }),
@@ -2190,7 +2356,8 @@ export const models = {
      */
     MOSAIC: variants({
       XNNPACK_INT8: STYLE_TRANSFER_MOSAIC_XNNPACK_INT8,
-      XNNPACK_FP32: STYLE_TRANSFER_MOSAIC_XNNPACK_FP32,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(STYLE_TRANSFER_MOSAIC_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: STYLE_TRANSFER_MOSAIC_COREML_FP16,
       VULKAN_FP16: STYLE_TRANSFER_MOSAIC_VULKAN_FP16,
     }),
@@ -2200,7 +2367,8 @@ export const models = {
      */
     RAIN_PRINCESS: variants({
       XNNPACK_INT8: STYLE_TRANSFER_RAIN_PRINCESS_XNNPACK_INT8,
-      XNNPACK_FP32: STYLE_TRANSFER_RAIN_PRINCESS_XNNPACK_FP32,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(STYLE_TRANSFER_RAIN_PRINCESS_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: STYLE_TRANSFER_RAIN_PRINCESS_COREML_FP16,
       VULKAN_FP16: STYLE_TRANSFER_RAIN_PRINCESS_VULKAN_FP16,
     }),
@@ -2210,7 +2378,8 @@ export const models = {
      */
     UDNIE: variants({
       XNNPACK_INT8: STYLE_TRANSFER_UDNIE_XNNPACK_INT8,
-      XNNPACK_FP32: STYLE_TRANSFER_UDNIE_XNNPACK_FP32,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(STYLE_TRANSFER_UDNIE_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: STYLE_TRANSFER_UDNIE_COREML_FP16,
       VULKAN_FP16: STYLE_TRANSFER_UDNIE_VULKAN_FP16,
     }),
@@ -2245,7 +2414,8 @@ export const models = {
      */
     LRASPP_MOBILENET_V3_LARGE: variants({
       XNNPACK_INT8: LRASPP_MOBILENET_V3_LARGE_XNNPACK_INT8,
-      XNNPACK_FP32: LRASPP_MOBILENET_V3_LARGE_XNNPACK_FP32,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(LRASPP_MOBILENET_V3_LARGE_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: LRASPP_MOBILENET_V3_LARGE_COREML_FP16,
     }),
     /**
@@ -2255,7 +2425,8 @@ export const models = {
      */
     DEEPLAB_V3_RESNET50: variants({
       XNNPACK_INT8: DEEPLAB_V3_RESNET50_XNNPACK_INT8,
-      XNNPACK_FP32: DEEPLAB_V3_RESNET50_XNNPACK_FP32,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(DEEPLAB_V3_RESNET50_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: DEEPLAB_V3_RESNET50_COREML_FP16,
     }),
     /**
@@ -2265,7 +2436,8 @@ export const models = {
      */
     DEEPLAB_V3_RESNET101: variants({
       XNNPACK_INT8: DEEPLAB_V3_RESNET101_XNNPACK_INT8,
-      XNNPACK_FP32: DEEPLAB_V3_RESNET101_XNNPACK_FP32,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(DEEPLAB_V3_RESNET101_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: DEEPLAB_V3_RESNET101_COREML_FP16,
     }),
     /**
@@ -2273,9 +2445,12 @@ export const models = {
      * classes, see {@link PASCAL_VOC_LABELS}). Combines DeepLabV3 feature
      * extraction quality with a lightweight mobile backbone.
      */
+    // int8 keeps the stem and the classifier convolution fp32: 68.88 mIoU on
+    // 300 VOC2012 val images against fp32's 69.13.
     DEEPLAB_V3_MOBILENET_V3_LARGE: variants({
       XNNPACK_INT8: DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_INT8,
-      XNNPACK_FP32: DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_FP32,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: DEEPLAB_V3_MOBILENET_V3_LARGE_COREML_FP16,
     }),
     /**
@@ -2284,7 +2459,8 @@ export const models = {
      */
     FCN_RESNET50: variants({
       XNNPACK_INT8: FCN_RESNET50_XNNPACK_INT8,
-      XNNPACK_FP32: FCN_RESNET50_XNNPACK_FP32,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(FCN_RESNET50_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: FCN_RESNET50_COREML_FP16,
     }),
     /**
@@ -2293,7 +2469,8 @@ export const models = {
      */
     FCN_RESNET101: variants({
       XNNPACK_INT8: FCN_RESNET101_XNNPACK_INT8,
-      XNNPACK_FP32: FCN_RESNET101_XNNPACK_FP32,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(FCN_RESNET101_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: FCN_RESNET101_COREML_FP16,
     }),
   },
@@ -2317,7 +2494,9 @@ export const models = {
      * object detector.
      */
     RFDETR_NANO: variants({
-      XNNPACK_FP32: RFDETR_NANO_DETECTOR_XNNPACK_FP32,
+      XNNPACK_INT8: RFDETR_NANO_DETECTOR_XNNPACK_INT8,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(RFDETR_NANO_DETECTOR_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: RFDETR_NANO_DETECTOR_COREML_FP16,
       VULKAN_FP16: RFDETR_NANO_DETECTOR_VULKAN_FP16,
     }),
@@ -2335,19 +2514,22 @@ export const models = {
       NANO: family({
         SIZE_384: variants({
           XNNPACK_INT8: YOLO26_NANO_384_XNNPACK_INT8,
-          XNNPACK_FP32: YOLO26_NANO_384_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_NANO_384_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_NANO_384_COREML_FP16,
           VULKAN_FP16: YOLO26_NANO_384_VULKAN_FP16,
         }),
         SIZE_512: variants({
           XNNPACK_INT8: YOLO26_NANO_512_XNNPACK_INT8,
-          XNNPACK_FP32: YOLO26_NANO_512_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_NANO_512_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_NANO_512_COREML_FP16,
           VULKAN_FP16: YOLO26_NANO_512_VULKAN_FP16,
         }),
         SIZE_640: variants({
           XNNPACK_INT8: YOLO26_NANO_640_XNNPACK_INT8,
-          XNNPACK_FP32: YOLO26_NANO_640_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_NANO_640_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_NANO_640_COREML_FP16,
           VULKAN_FP16: YOLO26_NANO_640_VULKAN_FP16,
         }),
@@ -2359,19 +2541,22 @@ export const models = {
       SMALL: family({
         SIZE_384: variants({
           XNNPACK_INT8: YOLO26_SMALL_384_XNNPACK_INT8,
-          XNNPACK_FP32: YOLO26_SMALL_384_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_SMALL_384_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_SMALL_384_COREML_FP16,
           VULKAN_FP16: YOLO26_SMALL_384_VULKAN_FP16,
         }),
         SIZE_512: variants({
           XNNPACK_INT8: YOLO26_SMALL_512_XNNPACK_INT8,
-          XNNPACK_FP32: YOLO26_SMALL_512_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_SMALL_512_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_SMALL_512_COREML_FP16,
           VULKAN_FP16: YOLO26_SMALL_512_VULKAN_FP16,
         }),
         SIZE_640: variants({
           XNNPACK_INT8: YOLO26_SMALL_640_XNNPACK_INT8,
-          XNNPACK_FP32: YOLO26_SMALL_640_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_SMALL_640_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_SMALL_640_COREML_FP16,
           VULKAN_FP16: YOLO26_SMALL_640_VULKAN_FP16,
         }),
@@ -2383,19 +2568,22 @@ export const models = {
       MEDIUM: family({
         SIZE_384: variants({
           XNNPACK_INT8: YOLO26_MEDIUM_384_XNNPACK_INT8,
-          XNNPACK_FP32: YOLO26_MEDIUM_384_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_MEDIUM_384_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_MEDIUM_384_COREML_FP16,
           VULKAN_FP16: YOLO26_MEDIUM_384_VULKAN_FP16,
         }),
         SIZE_512: variants({
           XNNPACK_INT8: YOLO26_MEDIUM_512_XNNPACK_INT8,
-          XNNPACK_FP32: YOLO26_MEDIUM_512_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_MEDIUM_512_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_MEDIUM_512_COREML_FP16,
           VULKAN_FP16: YOLO26_MEDIUM_512_VULKAN_FP16,
         }),
         SIZE_640: variants({
           XNNPACK_INT8: YOLO26_MEDIUM_640_XNNPACK_INT8,
-          XNNPACK_FP32: YOLO26_MEDIUM_640_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_MEDIUM_640_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_MEDIUM_640_COREML_FP16,
           VULKAN_FP16: YOLO26_MEDIUM_640_VULKAN_FP16,
         }),
@@ -2406,19 +2594,22 @@ export const models = {
       LARGE: family({
         SIZE_384: variants({
           XNNPACK_INT8: YOLO26_LARGE_384_XNNPACK_INT8,
-          XNNPACK_FP32: YOLO26_LARGE_384_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_LARGE_384_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_LARGE_384_COREML_FP16,
           VULKAN_FP16: YOLO26_LARGE_384_VULKAN_FP16,
         }),
         SIZE_512: variants({
           XNNPACK_INT8: YOLO26_LARGE_512_XNNPACK_INT8,
-          XNNPACK_FP32: YOLO26_LARGE_512_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_LARGE_512_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_LARGE_512_COREML_FP16,
           VULKAN_FP16: YOLO26_LARGE_512_VULKAN_FP16,
         }),
         SIZE_640: variants({
           XNNPACK_INT8: YOLO26_LARGE_640_XNNPACK_INT8,
-          XNNPACK_FP32: YOLO26_LARGE_640_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_LARGE_640_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_LARGE_640_COREML_FP16,
           VULKAN_FP16: YOLO26_LARGE_640_VULKAN_FP16,
         }),
@@ -2430,19 +2621,22 @@ export const models = {
       XLARGE: family({
         SIZE_384: variants({
           XNNPACK_INT8: YOLO26_XLARGE_384_XNNPACK_INT8,
-          XNNPACK_FP32: YOLO26_XLARGE_384_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_XLARGE_384_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_XLARGE_384_COREML_FP16,
           VULKAN_FP16: YOLO26_XLARGE_384_VULKAN_FP16,
         }),
         SIZE_512: variants({
           XNNPACK_INT8: YOLO26_XLARGE_512_XNNPACK_INT8,
-          XNNPACK_FP32: YOLO26_XLARGE_512_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_XLARGE_512_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_XLARGE_512_COREML_FP16,
           VULKAN_FP16: YOLO26_XLARGE_512_VULKAN_FP16,
         }),
         SIZE_640: variants({
           XNNPACK_INT8: YOLO26_XLARGE_640_XNNPACK_INT8,
-          XNNPACK_FP32: YOLO26_XLARGE_640_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_XLARGE_640_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_XLARGE_640_COREML_FP16,
           VULKAN_FP16: YOLO26_XLARGE_640_VULKAN_FP16,
         }),
@@ -2482,17 +2676,23 @@ export const models = {
      */
     YOLO26_POSE: family({
       SIZE_384: variants({
-        XNNPACK_FP32: YOLO26_POSE_384_XNNPACK_FP32,
+        XNNPACK_INT8: YOLO26_POSE_384_XNNPACK_INT8,
+        /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+        XNNPACK_FP32: deprecated(YOLO26_POSE_384_XNNPACK_FP32, 'XNNPACK_INT8'),
         COREML_FP16: YOLO26_POSE_384_COREML_FP16,
         VULKAN_FP16: YOLO26_POSE_384_VULKAN_FP16,
       }),
       SIZE_512: variants({
-        XNNPACK_FP32: YOLO26_POSE_512_XNNPACK_FP32,
+        XNNPACK_INT8: YOLO26_POSE_512_XNNPACK_INT8,
+        /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+        XNNPACK_FP32: deprecated(YOLO26_POSE_512_XNNPACK_FP32, 'XNNPACK_INT8'),
         COREML_FP16: YOLO26_POSE_512_COREML_FP16,
         VULKAN_FP16: YOLO26_POSE_512_VULKAN_FP16,
       }),
       SIZE_640: variants({
-        XNNPACK_FP32: YOLO26_POSE_640_XNNPACK_FP32,
+        XNNPACK_INT8: YOLO26_POSE_640_XNNPACK_INT8,
+        /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+        XNNPACK_FP32: deprecated(YOLO26_POSE_640_XNNPACK_FP32, 'XNNPACK_INT8'),
         COREML_FP16: YOLO26_POSE_640_COREML_FP16,
         VULKAN_FP16: YOLO26_POSE_640_VULKAN_FP16,
       }),
@@ -2503,7 +2703,9 @@ export const models = {
      */
     RFDETR_KEYPOINT: variants(
       {
-        XNNPACK_FP32: RFDETR_KEYPOINT_XNNPACK_FP32,
+        XNNPACK_INT8: RFDETR_KEYPOINT_XNNPACK_INT8,
+        /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+        XNNPACK_FP32: deprecated(RFDETR_KEYPOINT_XNNPACK_FP32, 'XNNPACK_INT8'),
         COREML_FP16: RFDETR_KEYPOINT_COREML_FP16,
         VULKAN_FP16: RFDETR_KEYPOINT_VULKAN_FP16,
       },
@@ -2526,7 +2728,9 @@ export const models = {
        * FastSAM Small - lightweight instance segmenter for mobile.
        */
       S: variants({
-        XNNPACK_FP32: FASTSAM_S_XNNPACK_FP32,
+        XNNPACK_INT8: FASTSAM_S_XNNPACK_INT8,
+        /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+        XNNPACK_FP32: deprecated(FASTSAM_S_XNNPACK_FP32, 'XNNPACK_INT8'),
         COREML_FP16: FASTSAM_S_COREML_FP16,
         VULKAN_FP16: FASTSAM_S_VULKAN_FP16,
       }),
@@ -2534,7 +2738,9 @@ export const models = {
        * FastSAM Extra Large - high-accuracy instance segmenter.
        */
       X: variants({
-        XNNPACK_FP32: FASTSAM_X_XNNPACK_FP32,
+        XNNPACK_INT8: FASTSAM_X_XNNPACK_INT8,
+        /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+        XNNPACK_FP32: deprecated(FASTSAM_X_XNNPACK_FP32, 'XNNPACK_INT8'),
         COREML_FP16: FASTSAM_X_COREML_FP16,
         VULKAN_FP16: FASTSAM_X_VULKAN_FP16,
       }),
@@ -2545,7 +2751,9 @@ export const models = {
      * {@link COCO_CLASSES}).
      */
     RFDETR_NANO: variants({
-      XNNPACK_FP32: RFDETR_NANO_SEG_XNNPACK_FP32,
+      XNNPACK_INT8: RFDETR_NANO_SEG_XNNPACK_INT8,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(RFDETR_NANO_SEG_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: RFDETR_NANO_SEG_COREML_FP16,
       VULKAN_FP16: RFDETR_NANO_SEG_VULKAN_FP16,
     }),
@@ -2562,17 +2770,23 @@ export const models = {
        */
       NANO: family({
         SIZE_384: variants({
-          XNNPACK_FP32: YOLO26_NANO_SEG_384_XNNPACK_FP32,
+          XNNPACK_INT8: YOLO26_NANO_SEG_384_XNNPACK_INT8,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_NANO_SEG_384_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_NANO_SEG_384_COREML_FP16,
           VULKAN_FP16: YOLO26_NANO_SEG_384_VULKAN_FP16,
         }),
         SIZE_512: variants({
-          XNNPACK_FP32: YOLO26_NANO_SEG_512_XNNPACK_FP32,
+          XNNPACK_INT8: YOLO26_NANO_SEG_512_XNNPACK_INT8,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_NANO_SEG_512_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_NANO_SEG_512_COREML_FP16,
           VULKAN_FP16: YOLO26_NANO_SEG_512_VULKAN_FP16,
         }),
         SIZE_640: variants({
-          XNNPACK_FP32: YOLO26_NANO_SEG_640_XNNPACK_FP32,
+          XNNPACK_INT8: YOLO26_NANO_SEG_640_XNNPACK_INT8,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_NANO_SEG_640_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_NANO_SEG_640_COREML_FP16,
           VULKAN_FP16: YOLO26_NANO_SEG_640_VULKAN_FP16,
         }),
@@ -2583,17 +2797,23 @@ export const models = {
        */
       SMALL: family({
         SIZE_384: variants({
-          XNNPACK_FP32: YOLO26_SMALL_SEG_384_XNNPACK_FP32,
+          XNNPACK_INT8: YOLO26_SMALL_SEG_384_XNNPACK_INT8,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_SMALL_SEG_384_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_SMALL_SEG_384_COREML_FP16,
           VULKAN_FP16: YOLO26_SMALL_SEG_384_VULKAN_FP16,
         }),
         SIZE_512: variants({
-          XNNPACK_FP32: YOLO26_SMALL_SEG_512_XNNPACK_FP32,
+          XNNPACK_INT8: YOLO26_SMALL_SEG_512_XNNPACK_INT8,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_SMALL_SEG_512_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_SMALL_SEG_512_COREML_FP16,
           VULKAN_FP16: YOLO26_SMALL_SEG_512_VULKAN_FP16,
         }),
         SIZE_640: variants({
-          XNNPACK_FP32: YOLO26_SMALL_SEG_640_XNNPACK_FP32,
+          XNNPACK_INT8: YOLO26_SMALL_SEG_640_XNNPACK_INT8,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_SMALL_SEG_640_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_SMALL_SEG_640_COREML_FP16,
           VULKAN_FP16: YOLO26_SMALL_SEG_640_VULKAN_FP16,
         }),
@@ -2604,17 +2824,23 @@ export const models = {
        */
       MEDIUM: family({
         SIZE_384: variants({
-          XNNPACK_FP32: YOLO26_MEDIUM_SEG_384_XNNPACK_FP32,
+          XNNPACK_INT8: YOLO26_MEDIUM_SEG_384_XNNPACK_INT8,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_MEDIUM_SEG_384_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_MEDIUM_SEG_384_COREML_FP16,
           VULKAN_FP16: YOLO26_MEDIUM_SEG_384_VULKAN_FP16,
         }),
         SIZE_512: variants({
-          XNNPACK_FP32: YOLO26_MEDIUM_SEG_512_XNNPACK_FP32,
+          XNNPACK_INT8: YOLO26_MEDIUM_SEG_512_XNNPACK_INT8,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_MEDIUM_SEG_512_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_MEDIUM_SEG_512_COREML_FP16,
           VULKAN_FP16: YOLO26_MEDIUM_SEG_512_VULKAN_FP16,
         }),
         SIZE_640: variants({
-          XNNPACK_FP32: YOLO26_MEDIUM_SEG_640_XNNPACK_FP32,
+          XNNPACK_INT8: YOLO26_MEDIUM_SEG_640_XNNPACK_INT8,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_MEDIUM_SEG_640_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_MEDIUM_SEG_640_COREML_FP16,
           VULKAN_FP16: YOLO26_MEDIUM_SEG_640_VULKAN_FP16,
         }),
@@ -2625,17 +2851,23 @@ export const models = {
        */
       LARGE: family({
         SIZE_384: variants({
-          XNNPACK_FP32: YOLO26_LARGE_SEG_384_XNNPACK_FP32,
+          XNNPACK_INT8: YOLO26_LARGE_SEG_384_XNNPACK_INT8,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_LARGE_SEG_384_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_LARGE_SEG_384_COREML_FP16,
           VULKAN_FP16: YOLO26_LARGE_SEG_384_VULKAN_FP16,
         }),
         SIZE_512: variants({
-          XNNPACK_FP32: YOLO26_LARGE_SEG_512_XNNPACK_FP32,
+          XNNPACK_INT8: YOLO26_LARGE_SEG_512_XNNPACK_INT8,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_LARGE_SEG_512_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_LARGE_SEG_512_COREML_FP16,
           VULKAN_FP16: YOLO26_LARGE_SEG_512_VULKAN_FP16,
         }),
         SIZE_640: variants({
-          XNNPACK_FP32: YOLO26_LARGE_SEG_640_XNNPACK_FP32,
+          XNNPACK_INT8: YOLO26_LARGE_SEG_640_XNNPACK_INT8,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_LARGE_SEG_640_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_LARGE_SEG_640_COREML_FP16,
           VULKAN_FP16: YOLO26_LARGE_SEG_640_VULKAN_FP16,
         }),
@@ -2646,17 +2878,23 @@ export const models = {
        */
       XLARGE: family({
         SIZE_384: variants({
-          XNNPACK_FP32: YOLO26_XLARGE_SEG_384_XNNPACK_FP32,
+          XNNPACK_INT8: YOLO26_XLARGE_SEG_384_XNNPACK_INT8,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_XLARGE_SEG_384_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_XLARGE_SEG_384_COREML_FP16,
           VULKAN_FP16: YOLO26_XLARGE_SEG_384_VULKAN_FP16,
         }),
         SIZE_512: variants({
-          XNNPACK_FP32: YOLO26_XLARGE_SEG_512_XNNPACK_FP32,
+          XNNPACK_INT8: YOLO26_XLARGE_SEG_512_XNNPACK_INT8,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_XLARGE_SEG_512_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_XLARGE_SEG_512_COREML_FP16,
           VULKAN_FP16: YOLO26_XLARGE_SEG_512_VULKAN_FP16,
         }),
         SIZE_640: variants({
-          XNNPACK_FP32: YOLO26_XLARGE_SEG_640_XNNPACK_FP32,
+          XNNPACK_INT8: YOLO26_XLARGE_SEG_640_XNNPACK_INT8,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(YOLO26_XLARGE_SEG_640_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_XLARGE_SEG_640_COREML_FP16,
           VULKAN_FP16: YOLO26_XLARGE_SEG_640_VULKAN_FP16,
         }),
@@ -2700,7 +2938,8 @@ export const models = {
       TINY: variants(
         {
           XNNPACK_INT8: WHISPER_TINY_XNNPACK_INT8,
-          XNNPACK_FP32: WHISPER_TINY_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(WHISPER_TINY_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: WHISPER_TINY_COREML_FP16,
           MLX_BF16: WHISPER_TINY_MLX_BF16,
           MLX_INT8: WHISPER_TINY_MLX_INT8,
@@ -2717,7 +2956,8 @@ export const models = {
       BASE: variants(
         {
           XNNPACK_INT8: WHISPER_BASE_XNNPACK_INT8,
-          XNNPACK_FP32: WHISPER_BASE_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(WHISPER_BASE_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: WHISPER_BASE_COREML_FP16,
           MLX_BF16: WHISPER_BASE_MLX_BF16,
           MLX_INT8: WHISPER_BASE_MLX_INT8,
@@ -2734,7 +2974,8 @@ export const models = {
       SMALL: variants(
         {
           XNNPACK_INT8: WHISPER_SMALL_XNNPACK_INT8,
-          XNNPACK_FP32: WHISPER_SMALL_XNNPACK_FP32,
+          /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+          XNNPACK_FP32: deprecated(WHISPER_SMALL_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: WHISPER_SMALL_COREML_FP16,
           MLX_INT8: WHISPER_SMALL_MLX_INT8,
           VULKAN_FP16: WHISPER_SMALL_VULKAN_FP16,
@@ -2749,15 +2990,18 @@ export const models = {
       // WER and small.en 3.42% -> 3.38%: too little to outweigh halving the
       // download (247 MB against 399, 448 against 1129). `TINY` keeps fp32
       // first because there int8 costs 6.08% -> 7.77%, a quarter of the
-      // accuracy the smallest model has left.
+      // accuracy the smallest model has left. The fp32 builds of the other two
+      // are deprecated: int8 is also 1.55x (base.en) and 1.68x (small.en)
+      // faster on an S26 Ultra.
       EN: {
         /**
          * English-only Whisper Tiny model. Fast and compact for English STT.
          */
         TINY: variants(
           {
-            XNNPACK_FP32: WHISPER_TINY_EN_XNNPACK_FP32,
             XNNPACK_INT8: WHISPER_TINY_EN_XNNPACK_INT8,
+            /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+            XNNPACK_FP32: deprecated(WHISPER_TINY_EN_XNNPACK_FP32, 'XNNPACK_INT8'),
             COREML_FP16: WHISPER_TINY_EN_COREML_FP16,
             MLX_BF16: WHISPER_TINY_EN_MLX_BF16,
             MLX_INT8: WHISPER_TINY_EN_MLX_INT8,
@@ -2774,7 +3018,8 @@ export const models = {
         BASE: variants(
           {
             XNNPACK_INT8: WHISPER_BASE_EN_XNNPACK_INT8,
-            XNNPACK_FP32: WHISPER_BASE_EN_XNNPACK_FP32,
+            /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+            XNNPACK_FP32: deprecated(WHISPER_BASE_EN_XNNPACK_FP32, 'XNNPACK_INT8'),
             COREML_FP16: WHISPER_BASE_EN_COREML_FP16,
             MLX_BF16: WHISPER_BASE_EN_MLX_BF16,
             MLX_INT8: WHISPER_BASE_EN_MLX_INT8,
@@ -2791,7 +3036,8 @@ export const models = {
         SMALL: variants(
           {
             XNNPACK_INT8: WHISPER_SMALL_EN_XNNPACK_INT8,
-            XNNPACK_FP32: WHISPER_SMALL_EN_XNNPACK_FP32,
+            /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+            XNNPACK_FP32: deprecated(WHISPER_SMALL_EN_XNNPACK_FP32, 'XNNPACK_INT8'),
             COREML_FP16: WHISPER_SMALL_EN_COREML_FP16,
             MLX_INT8: WHISPER_SMALL_EN_MLX_INT8,
             VULKAN_FP16: WHISPER_SMALL_EN_VULKAN_FP16,
@@ -2816,6 +3062,10 @@ export const models = {
    * Generative Large Language Models (LLMs) for instruction following, chat,
    * text generation, and reasoning.
    */
+  // Every bf16 and fp16 XNNPACK export is deprecated in favour of its 8da4w or
+  // SpinQuant sibling, which is 2-3.5x smaller. bf16 also misses XNNPACK's fast
+  // kernels: Qwen2.5 0.5B decodes at 0.5 tok/s against 27.1 for 8da4w on an S26
+  // Ultra. fp16 decodes LFM2.5 350M 2.2x slower than 8da4w.
   llm: {
     /**
      * Liquid AI LFM 2.5 1.2B general-purpose hybrid language model. Built on
@@ -2826,7 +3076,8 @@ export const models = {
      */
     LFM2_5_1_2B: variants({
       XNNPACK_8DA4W: LFM2_5_1_2B_XNNPACK_8DA4W,
-      XNNPACK_FP16: LFM2_5_1_2B_XNNPACK_FP16,
+      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v0.12.0. */
+      XNNPACK_FP16: deprecated(LFM2_5_1_2B_XNNPACK_FP16, 'XNNPACK_8DA4W'),
       MLX_INT4: LFM2_5_1_2B_MLX_INT4,
     }),
     /**
@@ -2837,7 +3088,8 @@ export const models = {
      */
     LFM2_5_350M: variants({
       XNNPACK_8DA4W: LFM2_5_350M_XNNPACK_8DA4W,
-      XNNPACK_FP16: LFM2_5_350M_XNNPACK_FP16,
+      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v0.12.0. */
+      XNNPACK_FP16: deprecated(LFM2_5_350M_XNNPACK_FP16, 'XNNPACK_8DA4W'),
       MLX_INT4: LFM2_5_350M_MLX_INT4,
     }),
     /**
@@ -2871,7 +3123,8 @@ export const models = {
      */
     BIELIK_V3_1_5B: variants({
       XNNPACK_8DA4W: BIELIK_V3_1_5B_XNNPACK_8DA4W,
-      XNNPACK_FP16: BIELIK_V3_1_5B_XNNPACK_FP16,
+      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v0.12.0. */
+      XNNPACK_FP16: deprecated(BIELIK_V3_1_5B_XNNPACK_FP16, 'XNNPACK_8DA4W'),
     }),
     /**
      * Meta Llama 3.2 1B lightweight instruction-tuned multilingual model.
@@ -2882,7 +3135,8 @@ export const models = {
      */
     LLAMA3_2_1B: variants({
       XNNPACK_SPINQUANT: LLAMA3_2_1B_SPINQUANT,
-      XNNPACK_BF16: LLAMA3_2_1B_BF16,
+      /** @deprecated Use `XNNPACK_SPINQUANT`. Removed in v0.12.0. */
+      XNNPACK_BF16: deprecated(LLAMA3_2_1B_BF16, 'XNNPACK_SPINQUANT'),
       MLX_INT4: LLAMA3_2_1B_MLX_INT4,
     }),
     /**
@@ -2893,7 +3147,8 @@ export const models = {
      */
     LLAMA3_2_3B: variants({
       XNNPACK_SPINQUANT: LLAMA3_2_3B_SPINQUANT,
-      XNNPACK_BF16: LLAMA3_2_3B_BF16,
+      /** @deprecated Use `XNNPACK_SPINQUANT`. Removed in v0.12.0. */
+      XNNPACK_BF16: deprecated(LLAMA3_2_3B_BF16, 'XNNPACK_SPINQUANT'),
       MLX_INT4: LLAMA3_2_3B_MLX_INT4,
     }),
     /**
@@ -2933,7 +3188,8 @@ export const models = {
      */
     HAMMER2_1_0_5B: variants({
       XNNPACK_8DA4W: HAMMER2_1_0_5B_XNNPACK_8DA4W,
-      XNNPACK_BF16: HAMMER2_1_0_5B_XNNPACK_BF16,
+      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v0.12.0. */
+      XNNPACK_BF16: deprecated(HAMMER2_1_0_5B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: HAMMER2_1_0_5B_MLX_INT4,
     }),
     /**
@@ -2943,7 +3199,8 @@ export const models = {
      */
     HAMMER2_1_1_5B: variants({
       XNNPACK_8DA4W: HAMMER2_1_1_5B_XNNPACK_8DA4W,
-      XNNPACK_BF16: HAMMER2_1_1_5B_XNNPACK_BF16,
+      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v0.12.0. */
+      XNNPACK_BF16: deprecated(HAMMER2_1_1_5B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: HAMMER2_1_1_5B_MLX_INT4,
     }),
     /**
@@ -2954,7 +3211,8 @@ export const models = {
      */
     HAMMER2_1_3B: variants({
       XNNPACK_8DA4W: HAMMER2_1_3B_XNNPACK_8DA4W,
-      XNNPACK_BF16: HAMMER2_1_3B_XNNPACK_BF16,
+      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v0.12.0. */
+      XNNPACK_BF16: deprecated(HAMMER2_1_3B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: HAMMER2_1_3B_MLX_INT4,
     }),
     /**
@@ -2965,7 +3223,8 @@ export const models = {
      */
     PHI4_MINI: variants({
       XNNPACK_8DA4W: PHI4_MINI_XNNPACK_8DA4W,
-      XNNPACK_BF16: PHI4_MINI_XNNPACK_BF16,
+      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v0.12.0. */
+      XNNPACK_BF16: deprecated(PHI4_MINI_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: PHI4_MINI_MLX_INT4,
     }),
     /**
@@ -2976,7 +3235,8 @@ export const models = {
      */
     QWEN2_5_0_5B: variants({
       XNNPACK_8DA4W: QWEN2_5_0_5B_XNNPACK_8DA4W,
-      XNNPACK_BF16: QWEN2_5_0_5B_XNNPACK_BF16,
+      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v0.12.0. */
+      XNNPACK_BF16: deprecated(QWEN2_5_0_5B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: QWEN2_5_0_5B_MLX_INT4,
     }),
     /**
@@ -2987,7 +3247,8 @@ export const models = {
      */
     QWEN2_5_1_5B: variants({
       XNNPACK_8DA4W: QWEN2_5_1_5B_XNNPACK_8DA4W,
-      XNNPACK_BF16: QWEN2_5_1_5B_XNNPACK_BF16,
+      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v0.12.0. */
+      XNNPACK_BF16: deprecated(QWEN2_5_1_5B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: QWEN2_5_1_5B_MLX_INT4,
     }),
     /**
@@ -2997,7 +3258,8 @@ export const models = {
      */
     QWEN2_5_3B: variants({
       XNNPACK_8DA4W: QWEN2_5_3B_XNNPACK_8DA4W,
-      XNNPACK_BF16: QWEN2_5_3B_XNNPACK_BF16,
+      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v0.12.0. */
+      XNNPACK_BF16: deprecated(QWEN2_5_3B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: QWEN2_5_3B_MLX_INT4,
     }),
     /**
@@ -3008,7 +3270,8 @@ export const models = {
      */
     QWEN3_0_6B: variants({
       XNNPACK_8DA4W: QWEN3_0_6B_XNNPACK_8DA4W,
-      XNNPACK_BF16: QWEN3_0_6B_XNNPACK_BF16,
+      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v0.12.0. */
+      XNNPACK_BF16: deprecated(QWEN3_0_6B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: QWEN3_0_6B_MLX_INT4,
     }),
     /**
@@ -3018,7 +3281,8 @@ export const models = {
      */
     QWEN3_1_7B: variants({
       XNNPACK_8DA4W: QWEN3_1_7B_XNNPACK_8DA4W,
-      XNNPACK_BF16: QWEN3_1_7B_XNNPACK_BF16,
+      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v0.12.0. */
+      XNNPACK_BF16: deprecated(QWEN3_1_7B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: QWEN3_1_7B_MLX_INT4,
     }),
     /**
@@ -3029,7 +3293,8 @@ export const models = {
      */
     QWEN3_4B: variants({
       XNNPACK_8DA4W: QWEN3_4B_XNNPACK_8DA4W,
-      XNNPACK_BF16: QWEN3_4B_XNNPACK_BF16,
+      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v0.12.0. */
+      XNNPACK_BF16: deprecated(QWEN3_4B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: QWEN3_4B_MLX_INT4,
     }),
     /**
@@ -3056,7 +3321,9 @@ export const models = {
      * sentence similarity, and clustering.
      */
     ALL_MINILM_L6_V2: variants({
-      XNNPACK_FP32: ALL_MINILM_L6_V2_EMBEDDINGS,
+      XNNPACK_INT8: ALL_MINILM_L6_V2_XNNPACK_INT8,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(ALL_MINILM_L6_V2_EMBEDDINGS, 'XNNPACK_INT8'),
       COREML_INT8: ALL_MINILM_L6_V2_COREML_INT8,
       COREML_FP16: ALL_MINILM_L6_V2_COREML_FP16,
       VULKAN_FP16: ALL_MINILM_L6_V2_VULKAN_FP16,
@@ -3066,7 +3333,10 @@ export const models = {
      * Provides higher quality semantic embeddings compared to MiniLM.
      */
     ALL_MPNET_BASE_V2: variants({
-      XNNPACK_FP32: ALL_MPNET_BASE_V2_EMBEDDINGS,
+      XNNPACK_INT8: ALL_MPNET_BASE_V2_XNNPACK_INT8,
+      XNNPACK_8DA4W: ALL_MPNET_BASE_V2_XNNPACK_8DA4W,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(ALL_MPNET_BASE_V2_EMBEDDINGS, 'XNNPACK_INT8'),
       VULKAN_FP16: ALL_MPNET_BASE_V2_VULKAN_FP16,
       VULKAN_INT8: ALL_MPNET_BASE_V2_VULKAN_INT8,
     }),
@@ -3075,7 +3345,9 @@ export const models = {
      * QA matching using cosine similarity.
      */
     MULTI_QA_MINILM_L6_COS_V1: variants({
-      XNNPACK_FP32: MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS,
+      XNNPACK_INT8: MULTI_QA_MINILM_L6_COS_V1_XNNPACK_INT8,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS, 'XNNPACK_INT8'),
       COREML_INT8: MULTI_QA_MINILM_L6_COS_V1_COREML_INT8,
       COREML_FP16: MULTI_QA_MINILM_L6_COS_V1_COREML_FP16,
       VULKAN_FP16: MULTI_QA_MINILM_L6_COS_V1_VULKAN_FP16,
@@ -3085,7 +3357,10 @@ export const models = {
      * question-answering matching using dot product distance.
      */
     MULTI_QA_MPNET_BASE_DOT_V1: variants({
-      XNNPACK_FP32: MULTI_QA_MPNET_BASE_DOT_V1_EMBEDDINGS,
+      XNNPACK_INT8: MULTI_QA_MPNET_BASE_DOT_V1_XNNPACK_INT8,
+      XNNPACK_8DA4W: MULTI_QA_MPNET_BASE_DOT_V1_XNNPACK_8DA4W,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(MULTI_QA_MPNET_BASE_DOT_V1_EMBEDDINGS, 'XNNPACK_INT8'),
       VULKAN_FP16: MULTI_QA_MPNET_BASE_DOT_V1_VULKAN_FP16,
       VULKAN_INT8: MULTI_QA_MPNET_BASE_DOT_V1_VULKAN_INT8,
     }),
@@ -3095,7 +3370,8 @@ export const models = {
      */
     PARAPHRASE_MULTILINGUAL_MINILM_L12_V2: variants({
       XNNPACK_8DA4W: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_EMBEDDINGS,
-      XNNPACK_FP32: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_XNNPACK_FP32,
+      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_XNNPACK_FP32, 'XNNPACK_8DA4W'),
       COREML_INT8: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_COREML_INT8,
       COREML_FP16: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_COREML_FP16,
       VULKAN_FP16: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_VULKAN_FP16,
@@ -3107,7 +3383,11 @@ export const models = {
     DISTILUSE_BASE_MULTILINGUAL_CASED_V2: variants(
       {
         XNNPACK_8DA4W: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS,
-        XNNPACK_FP32: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_XNNPACK_FP32,
+        /** @deprecated Use `XNNPACK_8DA4W`. Removed in v0.12.0. */
+        XNNPACK_FP32: deprecated(
+          DISTILUSE_BASE_MULTILINGUAL_CASED_V2_XNNPACK_FP32,
+          'XNNPACK_8DA4W'
+        ),
         COREML_INT8: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_INT8,
         COREML_FP16: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16,
         MLX_INT8: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8,
@@ -3126,7 +3406,9 @@ export const models = {
      * search.
      */
     CLIP_VIT_BASE_PATCH32_TEXT: variants({
-      XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS,
+      XNNPACK_INT8: CLIP_VIT_BASE_PATCH32_TEXT_XNNPACK_INT8,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS, 'XNNPACK_INT8'),
       COREML_INT8: CLIP_VIT_BASE_PATCH32_TEXT_COREML_INT8,
       COREML_FP16: CLIP_VIT_BASE_PATCH32_TEXT_COREML_FP16,
       VULKAN_FP16: CLIP_VIT_BASE_PATCH32_TEXT_VULKAN_FP16,
@@ -3177,7 +3459,9 @@ export const models = {
      */
     CLIP_VIT_BASE_PATCH32: variants(
       {
-        XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32,
+        XNNPACK_INT8: CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_INT8,
+        /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+        XNNPACK_FP32: deprecated(CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32, 'XNNPACK_INT8'),
         COREML_FP16: CLIP_VIT_BASE_PATCH32_IMAGE_COREML_FP16,
         MLX_INT8: CLIP_VIT_BASE_PATCH32_IMAGE_MLX_INT8,
         VULKAN_FP16: CLIP_VIT_BASE_PATCH32_IMAGE_VULKAN_FP16,
@@ -3198,7 +3482,9 @@ export const models = {
      * text prompts in real time.
      */
     SDXS_512_DREAMSHAPER: variants({
-      XNNPACK_FP32: SDXS_512_DREAMSHAPER_XNNPACK_FP32,
+      XNNPACK_INT8: SDXS_512_DREAMSHAPER_XNNPACK_INT8,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(SDXS_512_DREAMSHAPER_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: SDXS_512_DREAMSHAPER_COREML_FP16,
       VULKAN_FP16: SDXS_512_DREAMSHAPER_VULKAN_FP16,
     }),
@@ -3215,7 +3501,9 @@ export const models = {
      * voice presets (see {@link SUPERTONIC_DEFAULT_VOICE_NAMES}).
      */
     SUPERTONIC: variants({
-      XNNPACK_FP32: SUPERTONIC_3_XNNPACK_FP32,
+      XNNPACK_INT8: SUPERTONIC_3_XNNPACK_INT8,
+      /** @deprecated Use `XNNPACK_INT8`. Removed in v0.12.0. */
+      XNNPACK_FP32: deprecated(SUPERTONIC_3_XNNPACK_FP32, 'XNNPACK_INT8'),
       MLX_FP32: SUPERTONIC_3_MLX_FP32,
       VULKAN_FP16: SUPERTONIC_3_VULKAN_FP16,
     }),
@@ -3287,10 +3575,48 @@ export const models = {
        */
       PPOCRV6_SMALL: variants({
         XNNPACK: PPOCRV6_SMALL_XNNPACK_INT8,
-        XNNPACK_FP32: PPOCRV6_SMALL_XNNPACK_FP32,
+        /** @deprecated Use `XNNPACK`. Removed in v0.12.0. */
+        XNNPACK_FP32: deprecated(PPOCRV6_SMALL_XNNPACK_FP32, 'XNNPACK'),
         COREML: PPOCRV6_SMALL_COREML_INT8,
         VULKAN: PPOCRV6_SMALL_VULKAN_FP16,
       }),
     },
   },
 };
+
+/**
+ * The remote `.pte` URLs of a variant config.
+ * @param config A single-file (`modelPath`) or multi-file (`modelPaths`) config.
+ * @returns Its model URLs.
+ */
+function modelUrls(config: object): string[] {
+  if ('modelPath' in config) return [(config as { modelPath: string }).modelPath];
+  return Object.values((config as { modelPaths: Record<string, string> }).modelPaths);
+}
+
+/**
+ * Registers the download warning of every variant marked {@link deprecated}.
+ * @param node A registry branch.
+ * @param path The branch's dotted path, starting at `models`.
+ */
+function registerDeprecations(node: object, path: string): void {
+  for (const [key, value] of Object.entries(node)) {
+    if (key === 'DEFAULT' || typeof value !== 'object' || value === null) continue;
+    const replacement = REPLACEMENTS.get(value);
+    if (replacement !== undefined) {
+      const notice =
+        `${path}.${key} is deprecated and will be removed in v0.12.0. ` +
+        `Use ${path}.${replacement}, which is faster and smaller.`;
+      // A multi-file variant warns only for the files its replacement does not
+      // reuse (Supertonic int8 keeps the fp32 duration predictor and text encoder).
+      const kept = new Set(modelUrls((node as Record<string, object>)[replacement]!));
+      for (const url of modelUrls(value)) {
+        if (!kept.has(url)) registerDeprecation(url, notice);
+      }
+    } else if (!('modelPath' in value) && !('modelPaths' in value)) {
+      registerDeprecations(value, `${path}.${key}`);
+    }
+  }
+}
+
+registerDeprecations(models, 'models');
