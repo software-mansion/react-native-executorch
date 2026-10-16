@@ -1,2 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application>
+    <!-- The QNN backend reaches the Hexagon DSP through the vendor's FastRPC
+         client, which apps may only load once they declare it (Android 12+).
+         Optional, so devices without it still install. -->
+    <uses-native-library android:name="libcdsprpc.so" android:required="false" />
+  </application>
 </manifest>
