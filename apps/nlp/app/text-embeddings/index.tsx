@@ -26,8 +26,16 @@ const MODELS: {
 }[] = [
   { label: 'MiniLM L6', value: models.textEmbeddings.ALL_MINILM_L6_V2.DEFAULT },
   { label: 'MPNet Base', value: models.textEmbeddings.ALL_MPNET_BASE_V2.DEFAULT },
+  {
+    label: 'MPNet Base (int8)',
+    value: models.textEmbeddings.ALL_MPNET_BASE_V2.XNNPACK_8DA4W,
+  },
   { label: 'MultiQA MiniLM', value: models.textEmbeddings.MULTI_QA_MINILM_L6_COS_V1.DEFAULT },
   { label: 'MultiQA MPNet', value: models.textEmbeddings.MULTI_QA_MPNET_BASE_DOT_V1.DEFAULT },
+  {
+    label: 'MultiQA MPNet (int8)',
+    value: models.textEmbeddings.MULTI_QA_MPNET_BASE_DOT_V1.XNNPACK_8DA4W,
+  },
   {
     label: 'Paraphrase ML',
     value: models.textEmbeddings.PARAPHRASE_MULTILINGUAL_MINILM_L12_V2.DEFAULT,
