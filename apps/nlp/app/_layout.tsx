@@ -55,6 +55,13 @@ export default function Layout() {
           title: 'LLM',
         }}
       />
+      <Drawer.Screen
+        name="constrained-decoding/index"
+        options={{
+          drawerLabel: 'Potion Lab',
+          title: 'Constrained Decoding',
+        }}
+      />
     </Drawer>
   );
 }
