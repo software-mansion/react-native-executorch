@@ -23,6 +23,10 @@ const isPhysicalIos = Platform.OS === 'ios' && Device.isDevice;
 
 const MODEL_OPTIONS: ModelOption[] = [
   {
+    label: 'SDXS-512-DreamShaper (XNNPACK INT8)',
+    value: models.textToImage.SDXS_512_DREAMSHAPER.XNNPACK_INT8,
+  },
+  {
     label: 'SDXS-512-DreamShaper (XNNPACK FP32)',
     value: models.textToImage.SDXS_512_DREAMSHAPER.XNNPACK_FP32,
   },
