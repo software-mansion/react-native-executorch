@@ -26,6 +26,37 @@ const RECIPES = OPTIONS.color.flatMap((color) =>
   OPTIONS.effect.flatMap((effect) => OPTIONS.rarity.map((rarity) => ({ color, effect, rarity })))
 );
 
+function validateOutput(output: string, selected: Record<Field, string[]>): string[] {
+  if (!output.trim()) return ['The model returned no text.'];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(output);
+  } catch (error) {
+    return [`Invalid JSON: ${error instanceof Error ? error.message : String(error)}`];
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return ['Expected a JSON object with color, effect, and rarity fields.'];
+  }
+  const record = parsed as Record<string, unknown>;
+  const issues: string[] = [];
+  const keys = Object.keys(record);
+  for (const field of FIELDS) {
+    if (!Object.prototype.hasOwnProperty.call(record, field)) {
+      issues.push(`Missing field: ${field}.`);
+    } else if (!selected[field].includes(record[field] as string)) {
+      issues.push(
+        `${field}: received ${JSON.stringify(record[field])}; allowed: ${selected[field].join(', ')}.`
+      );
+    }
+  }
+  const extra = keys.filter((key) => !FIELDS.includes(key as Field));
+  if (extra.length) issues.push(`Unexpected fields: ${extra.join(', ')}.`);
+  if (!issues.length && keys.join(',') !== FIELDS.join(',')) {
+    issues.push('Fields must appear in color, effect, rarity order.');
+  }
+  return issues;
+}
+
 function PotionLab() {
   const [loadStarted, setLoadStarted] = useState(false);
   const [selected, setSelected] = useState<Record<Field, string[]>>({
@@ -38,6 +69,7 @@ function PotionLab() {
   const [paths, setPaths] = useState<number[][]>([]);
   const [output, setOutput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<'idle' | 'complete' | 'stopped' | 'failed'>('idle');
   const [runError, setRunError] = useState('');
   const session = useLLMChatSession(MODEL, {
     preventLoad: !loadStarted,
@@ -114,6 +146,7 @@ function PotionLab() {
         : [...values, value],
     });
     setOutput('');
+    setResult('idle');
     setRunError('');
   };
 
@@ -122,6 +155,7 @@ function PotionLab() {
     const recipePaths = allowedPaths;
     setBusy(true);
     setOutput('');
+    setResult('idle');
     setRunError('');
     const constraints: llm.SamplingConstraintsCallback = ({ generatedTokens }) => {
       'worklet';
@@ -156,23 +190,21 @@ function PotionLab() {
           constraints: constrained ? constraints : undefined,
         }
       );
+      setResult((current) => (current === 'stopped' ? current : 'complete'));
     } catch (error) {
+      setResult('failed');
       setRunError(error instanceof Error ? error.message : String(error));
     } finally {
       setBusy(false);
     }
   };
-  let potion: (typeof RECIPES)[number] | undefined;
-  try {
-    const parsed = JSON.parse(output);
-    if (parsed && Object.keys(parsed).length === 3) {
-      potion = permittedRecipes.find((recipe) =>
-        FIELDS.every((field) => recipe[field] === parsed[field])
-      );
-    }
-  } catch {
-    // Streaming JSON is incomplete until the closing brace arrives.
-  }
+  const issues = result === 'complete' ? validateOutput(output, selected) : [];
+  const potion =
+    result === 'complete' && !issues.length
+      ? permittedRecipes.find(
+          (recipe) => JSON.stringify(recipe) === JSON.stringify(JSON.parse(output))
+        )
+      : undefined;
 
   return (
     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
@@ -237,6 +269,7 @@ function PotionLab() {
             disabled={busy}
             onValueChange={(value) => {
               setConstrained(value);
+              setResult('idle');
               setOutput('');
               setRunError('');
             }}
@@ -249,7 +282,16 @@ function PotionLab() {
             loading={busy}
             disabled={!session.isReady || !allowedPaths.length || busy}
           />
-          {busy && <Button title="Stop" variant="secondary" onPress={() => session.stop?.()} />}
+          {busy && (
+            <Button
+              title="Stop"
+              variant="secondary"
+              onPress={() => {
+                setResult('stopped');
+                session.stop?.();
+              }}
+            />
+          )}
         </View>
       </View>
       <View style={styles.card}>
@@ -286,23 +328,49 @@ function PotionLab() {
         <Text style={styles.description}>
           {constrained
             ? 'Token filter ON — only the permitted recipes can be generated.'
-            : 'Token filter OFF — the model is only asked to follow the same options in the prompt.'}
+            : 'Token filter OFF — your selections are prompt instructions only. The model may ignore them; the result is still validated below.'}
         </Text>
         <Text selectable style={styles.code}>
-          {output || 'Your potion’s JSON appears here…'}
+          {output ||
+            (result === 'complete' ? '(No text returned.)' : 'Your potion’s JSON appears here…')}
         </Text>
         {potion && (
           <Text style={[styles.potion, { color: COLORS[potion.color as keyof typeof COLORS] }]}>
             ✦ {potion.color} · {potion.rarity} potion of {potion.effect}
           </Text>
         )}
-        {!busy && output && !potion && (
-          <Text accessibilityRole="alert" style={styles.invalidOutput}>
-            Output does not match your allowed values and three-field recipe.
+        {!busy && result === 'complete' && (
+          <View
+            accessibilityLiveRegion="polite"
+            style={issues.length ? styles.invalidOutput : styles.validOutput}
+          >
+            <Text style={issues.length ? styles.error : styles.success}>
+              {issues.length
+                ? 'Generation completed — output failed validation.'
+                : 'Output passed validation.'}
+            </Text>
+            <Text style={styles.description}>
+              {constrained
+                ? 'The sampler enforced the selected recipe list.'
+                : issues.length
+                  ? 'With the token filter off, the model did not follow the requested grammar. This is an output validation failure, not an inference error.'
+                  : 'The model followed the prompt this time. With the token filter off, this is not guaranteed.'}
+            </Text>
+            {issues.map((issue) => (
+              <Text key={issue} style={styles.error}>
+                {issue}
+              </Text>
+            ))}
+          </View>
+        )}
+        {!busy && result === 'stopped' && (
+          <Text style={styles.description}>
+            Generation was stopped. The partial output has not been validated.
           </Text>
         )}
         {!!runError && (
-          <Text accessibilityRole="alert" style={styles.error}>
+          <Text accessibilityRole="alert" style={styles.invalidOutput}>
+            {result === 'failed' ? 'Generation failed: ' : ''}
             {runError}
           </Text>
         )}
@@ -349,7 +417,10 @@ const styles = StyleSheet.create({
   },
   potion: { fontSize: 20, fontWeight: '700', textTransform: 'capitalize' },
   error: { color: theme.colors.errorText },
+  success: { color: '#257854', fontWeight: '600' },
+  validOutput: { backgroundColor: '#eaf7ef', padding: 12, borderRadius: 8, gap: 8 },
   invalidOutput: {
+    gap: 8,
     color: theme.colors.errorText,
     backgroundColor: theme.colors.errorBackground,
     padding: 12,
