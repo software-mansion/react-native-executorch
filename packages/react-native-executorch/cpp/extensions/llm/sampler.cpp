@@ -269,6 +269,11 @@ std::vector<Candidate> applyTopK(std::span<const float> logits, size_t maxCandid
         return {};
     }
 
+    // Constraints can leave fewer finite logits than topK, so the collection
+    // loop may never have reached make_heap. sort_heap still requires a heap.
+    if (candidates.size() < maxCandidates) {
+        std::ranges::make_heap(candidates, minHeapCmp);
+    }
     std::ranges::sort_heap(candidates, minHeapCmp);
 
     const float maxLogit = candidates.front().logit;

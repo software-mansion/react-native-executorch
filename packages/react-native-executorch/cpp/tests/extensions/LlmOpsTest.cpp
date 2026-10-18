@@ -371,6 +371,28 @@ TEST_F(LlmOpsTest, AllowedTokensRestrictTheChoice) {
               2);
 }
 
+TEST_F(LlmOpsTest, SmallAllowListsAreSortedBeforeNucleusFiltering) {
+    // Fewer finite candidates than topK never fill the bounded heap. They must
+    // still be sorted by score before top-p, including a forced single token.
+    for (const int count : {1, 2, 3, 39, 40, 41}) {
+        EXPECT_EQ(evalNumber(js(std::format(R"(
+            const values = new Array(64).fill(100);
+            const allowed = [];
+            for (let i = 0; i < {}; i++) {{
+                allowed.push(i);
+                values[i] = i === 0 ? 10 : 1;
+            }}
+            const constraints = () => ({{ allowedTokens: new Int32Array(allowed) }});
+            return sample(logits(values), ctx(), neutral({{
+                topK: 40, topP: 0.001, seed: 42, constraints,
+            }}));
+        )",
+                                            count))),
+                  0)
+            << "allowed candidates: " << count;
+    }
+}
+
 TEST_F(LlmOpsTest, BannedTokensAreNeverChosen) {
     EXPECT_EQ(evalNumberArray(js(R"(
         const constraints = () => ({ bannedTokens: new Int32Array([1]) });
