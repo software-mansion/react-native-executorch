@@ -70,6 +70,13 @@ export default function Layout() {
         }}
       />
       <Drawer.Screen
+        name="depthEstimation/index"
+        options={{
+          drawerLabel: 'Depth Estimation',
+          title: 'Depth Estimation',
+        }}
+      />
+      <Drawer.Screen
         name="instanceSegmentation/index"
         options={{
           drawerLabel: 'Instance Segmentation',
