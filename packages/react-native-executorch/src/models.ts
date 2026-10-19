@@ -283,7 +283,7 @@ const STYLE_TRANSFER_UDNIE_VULKAN_FP16: StyleTransferModel = {
 // Depth Estimation
 // =============================================================================
 
-const DEPTH_ANYTHING_V2_OPTS = {
+const DEPTH_ANYTHING_OPTS = {
   resizeMode: 'stretch' as const,
   interpolation: 'cubic' as const,
   normalizeOpts: IMAGENET_NORM,
@@ -291,19 +291,56 @@ const DEPTH_ANYTHING_V2_OPTS = {
 };
 const DEPTH_ANYTHING_V2_SMALL_XNNPACK_INT8: DepthEstimatorModel = {
   modelPath: `${BASE_URL}-depth-anything-v2/${NEXT_VERSION_TAG}/small/xnnpack/depth_anything_v2_small_xnnpack_int8.pte`,
-  modelOpts: DEPTH_ANYTHING_V2_OPTS,
+  modelOpts: DEPTH_ANYTHING_OPTS,
 };
 const DEPTH_ANYTHING_V2_SMALL_XNNPACK_FP32: DepthEstimatorModel = {
   modelPath: `${BASE_URL}-depth-anything-v2/${NEXT_VERSION_TAG}/small/xnnpack/depth_anything_v2_small_xnnpack_fp32.pte`,
-  modelOpts: DEPTH_ANYTHING_V2_OPTS,
+  modelOpts: DEPTH_ANYTHING_OPTS,
 };
 const DEPTH_ANYTHING_V2_SMALL_COREML_FP16: DepthEstimatorModel = {
   modelPath: `${BASE_URL}-depth-anything-v2/${NEXT_VERSION_TAG}/small/coreml/depth_anything_v2_small_coreml_fp16.pte`,
-  modelOpts: DEPTH_ANYTHING_V2_OPTS,
+  modelOpts: DEPTH_ANYTHING_OPTS,
 };
 const DEPTH_ANYTHING_V2_SMALL_VULKAN_FP16: DepthEstimatorModel = {
   modelPath: `${BASE_URL}-depth-anything-v2/${NEXT_VERSION_TAG}/small/vulkan/depth_anything_v2_small_vulkan_fp16.pte`,
-  modelOpts: DEPTH_ANYTHING_V2_OPTS,
+  modelOpts: DEPTH_ANYTHING_OPTS,
+};
+
+const DEPTH_ANYTHING_V3_SMALL_XNNPACK_INT8: DepthEstimatorModel = {
+  modelPath: `${BASE_URL}-depth-anything-v3/${NEXT_VERSION_TAG}/small/xnnpack/depth_anything_v3_small_xnnpack_int8.pte`,
+  modelOpts: DEPTH_ANYTHING_OPTS,
+};
+const DEPTH_ANYTHING_V3_SMALL_XNNPACK_FP32: DepthEstimatorModel = {
+  modelPath: `${BASE_URL}-depth-anything-v3/${NEXT_VERSION_TAG}/small/xnnpack/depth_anything_v3_small_xnnpack_fp32.pte`,
+  modelOpts: DEPTH_ANYTHING_OPTS,
+};
+const DEPTH_ANYTHING_V3_SMALL_COREML_FP16: DepthEstimatorModel = {
+  modelPath: `${BASE_URL}-depth-anything-v3/${NEXT_VERSION_TAG}/small/coreml/depth_anything_v3_small_coreml_fp16.pte`,
+  modelOpts: DEPTH_ANYTHING_OPTS,
+};
+const DEPTH_ANYTHING_V3_SMALL_VULKAN_FP16: DepthEstimatorModel = {
+  modelPath: `${BASE_URL}-depth-anything-v3/${NEXT_VERSION_TAG}/small/vulkan/depth_anything_v3_small_vulkan_fp16.pte`,
+  modelOpts: DEPTH_ANYTHING_OPTS,
+};
+
+const ZIPDEPTH_OPTS = {
+  resizeMode: 'stretch' as const,
+  interpolation: 'linear' as const,
+  // ZipDepth applies ImageNet normalization inside the model.
+  normalizeOpts: { alpha: 1 / 255, beta: 0 },
+  outInterpolation: 'linear' as const,
+};
+const ZIPDEPTH_BASE_XNNPACK_FP32: DepthEstimatorModel = {
+  modelPath: `${BASE_URL}-zipdepth/${NEXT_VERSION_TAG}/base/xnnpack/zipdepth_base_384_xnnpack_fp32.pte`,
+  modelOpts: ZIPDEPTH_OPTS,
+};
+const ZIPDEPTH_BASE_COREML_FP32: DepthEstimatorModel = {
+  modelPath: `${BASE_URL}-zipdepth/${NEXT_VERSION_TAG}/base/coreml/zipdepth_base_384_coreml_fp32.pte`,
+  modelOpts: ZIPDEPTH_OPTS,
+};
+const ZIPDEPTH_BASE_VULKAN_FP16: DepthEstimatorModel = {
+  modelPath: `${BASE_URL}-zipdepth/${NEXT_VERSION_TAG}/base/vulkan/zipdepth_base_384_vulkan_fp16.pte`,
+  modelOpts: ZIPDEPTH_OPTS,
 };
 
 // =============================================================================
@@ -2413,6 +2450,25 @@ export const models = {
       XNNPACK_FP32: DEPTH_ANYTHING_V2_SMALL_XNNPACK_FP32,
       COREML_FP16: DEPTH_ANYTHING_V2_SMALL_COREML_FP16,
       VULKAN_FP16: DEPTH_ANYTHING_V2_SMALL_VULKAN_FP16,
+    }),
+    /**
+     * Depth Anything 3 Small, exported for single-image relative depth.
+     * Larger values indicate farther regions.
+     */
+    DEPTH_ANYTHING_V3_SMALL: variants({
+      XNNPACK_INT8: DEPTH_ANYTHING_V3_SMALL_XNNPACK_INT8,
+      XNNPACK_FP32: DEPTH_ANYTHING_V3_SMALL_XNNPACK_FP32,
+      COREML_FP16: DEPTH_ANYTHING_V3_SMALL_COREML_FP16,
+      VULKAN_FP16: DEPTH_ANYTHING_V3_SMALL_VULKAN_FP16,
+    }),
+    /**
+     * ZipDepth Base NPU with a 384 × 384 input for low-latency depth estimation.
+     * Predicts relative inverse depth; larger values indicate closer regions.
+     */
+    ZIPDEPTH_BASE: variants({
+      XNNPACK_FP32: ZIPDEPTH_BASE_XNNPACK_FP32,
+      COREML_FP32: ZIPDEPTH_BASE_COREML_FP32,
+      VULKAN_FP16: ZIPDEPTH_BASE_VULKAN_FP16,
     }),
   },
 
