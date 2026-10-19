@@ -50,10 +50,12 @@ unless missing.empty?
 
     They are downloaded by this package's postinstall hook, which your package
     manager did not run. pnpm 10 and later block dependency build scripts by
-    default ("Ignored build scripts"), and so do `--ignore-scripts` and
-    `npm ci --ignore-scripts`. Re-run the hook, then `pod install` again:
+    default ("Ignored build scripts"), npm 12 skips install scripts not listed
+    in `allowScripts`, and `--ignore-scripts` does the same. Re-run the hook,
+    then `pod install` again:
 
       pnpm approve-builds react-native-executorch   # pnpm
+      npm approve-scripts react-native-executorch   # npm 12+, then:
       npm rebuild react-native-executorch           # npm
       node node_modules/react-native-executorch/scripts/download-libs.js
 
@@ -324,6 +326,8 @@ Pod::Spec.new do |s|
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/re2\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/abseil-cpp\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/common/phonemis/src\"",
+      # phonemis's vendored xsimd includes itself as `xsimd/...` (its CMakeLists adds this too).
+      "\"$(PODS_TARGET_SRCROOT)/third-party/common/phonemis/src/third-party\"",
     ].join(' '),
     "WARNING_CFLAGS" => "-Wno-documentation",
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
