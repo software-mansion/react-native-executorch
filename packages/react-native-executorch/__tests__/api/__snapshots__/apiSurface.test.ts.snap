@@ -159,7 +159,6 @@ exports[`public API surface matches the recorded export list 1`] = `
   "llm",
   "loadModel",
   "math",
-  "maxSim",
   "models",
   "nlp",
   "schema",

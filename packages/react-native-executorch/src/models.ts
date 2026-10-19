@@ -3068,7 +3068,7 @@ export const models = {
 
   /**
    * Late-interaction (ColBERT) retrieval models, which embed a text as one
-   * vector per token and score relevance with {@link maxSim}. Use with
+   * vector per token and score relevance with {@link ColbertEmbedder.maxSim}. Use with
    * {@link createColbertEmbedder} or {@link useColbertEmbedder}.
    */
   colbertEmbeddings: {

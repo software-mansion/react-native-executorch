@@ -24,22 +24,23 @@ A [Text Embeddings](./03-text-embeddings.md) model pools a whole text into one v
 
 ## Quick Start
 
-The [`useColbertEmbedder`](../../06-api-reference/functions/useColbertEmbedder.md) hook manages model downloading, tokenizer loading, and lifecycle. Embed every document once with `'document'`, embed each search with `'query'`, and rank with [`maxSim`](../../06-api-reference/functions/maxSim.md):
+The [`useColbertEmbedder`](../../06-api-reference/functions/useColbertEmbedder.md) hook manages model downloading, tokenizer loading, and lifecycle. Embed every document once with `'document'`, embed each search with `'query'`, and rank with [`maxSim()`](../../06-api-reference/type-aliases/ColbertEmbedder.md#maxsim):
 
 ```tsx
-import { maxSim, models, useColbertEmbedder, type TokenEmbeddings } from 'react-native-executorch';
+import { models, useColbertEmbedder, type ColbertTokenEmbeddings } from 'react-native-executorch';
 
 function Search({ documents }: { documents: string[] }) {
   const colbert = useColbertEmbedder(models.colbertEmbeddings.LFM2_5_COLBERT_350M.DEFAULT);
 
   const search = async (query: string) => {
-    if (!colbert.embed) return;
+    const { embed, maxSim } = colbert;
+    if (!embed || !maxSim) return;
 
     // Index once and keep the result, e.g. in state or a database.
-    const index: TokenEmbeddings[] = [];
-    for (const doc of documents) index.push(await colbert.embed(doc, 'document'));
+    const index: ColbertTokenEmbeddings[] = [];
+    for (const doc of documents) index.push(await embed(doc, 'document'));
 
-    const q = await colbert.embed(query, 'query');
+    const q = await embed(query, 'query');
     return documents
       .map((text, i) => ({ text, score: maxSim(q, index[i]!) }))
       .sort((a, b) => b.score - a.score);
@@ -51,7 +52,7 @@ function Search({ documents }: { documents: string[] }) {
 
 ## Output Format
 
-[`embed()`](../../06-api-reference/type-aliases/ColbertEmbedder.md#embed) returns a [`TokenEmbeddings`](../../06-api-reference/type-aliases/TokenEmbeddings.md) object: a row-major `[numTokens, dimension]` matrix of L2-normalized vectors in a single `Float32Array`.
+[`embed()`](../../06-api-reference/type-aliases/ColbertEmbedder.md#embed) returns a [`ColbertTokenEmbeddings`](../../06-api-reference/type-aliases/ColbertTokenEmbeddings.md) object: a row-major `[numTokens, dimension]` matrix of L2-normalized vectors in a single `Float32Array`.
 
 - A **query** always yields exactly 32 vectors. Shorter queries are padded with expansion tokens whose vectors take part in scoring (ColBERT's query augmentation).
 - A **document** yields one vector per token, up to 512 tokens, with punctuation vectors dropped.
@@ -63,7 +64,7 @@ MaxSim scores are not bounded to `[0, 1]`: each query vector contributes a cosin
 For batch indexing or manual lifecycle management, use [`createColbertEmbedder`](../../06-api-reference/functions/createColbertEmbedder.md):
 
 ```typescript
-import { createColbertEmbedder, download, maxSim, models } from 'react-native-executorch';
+import { createColbertEmbedder, download, models } from 'react-native-executorch';
 
 const model = await download(models.colbertEmbeddings.LFM2_5_COLBERT_350M.DEFAULT);
 const colbert = await createColbertEmbedder(model);
@@ -71,7 +72,7 @@ const colbert = await createColbertEmbedder(model);
 try {
   const doc = await colbert.embed('Canberra is the capital of Australia.', 'document');
   const query = await colbert.embed('What is the capital of Australia?', 'query');
-  console.log('Relevance:', maxSim(query, doc));
+  console.log('Relevance:', colbert.maxSim(query, doc));
 } finally {
   colbert.dispose();
 }
@@ -86,7 +87,7 @@ A synchronous [`embedWorklet`](../../06-api-reference/type-aliases/ColbertEmbedd
 | **Liquid LFM 2.5 ColBERT 350M** | [See](../../06-api-reference/variables/models.md#colbertembeddingslfm2_5_colbert_350m) | 128        | 11        | 188 MB – 373 MB | XNNPACK (CPU), MLX (Apple) |
 
 :::tip Using Custom Models
-Any ColBERT model exported with a `[1, S]` token-id and attention-mask input and a `[1, S, D]` per-token output can be used, as long as its inputs are `[BOS, prefix, ...tokens]` with no trailing special token. Pass its PyLate settings (`config_sentence_transformers.json`) as [`ColbertEmbedderOptions`](../../06-api-reference/type-aliases/ColbertEmbedderOptions.md):
+Any ColBERT model exported with a `[1, S]` token-id and attention-mask input and a `[1, S, D]` per-token output can be used, as long as its inputs are `[BOS, prefix, ...tokens]` with no trailing special token. Pass the settings from its [PyLate](https://github.com/lightonai/pylate) `config_sentence_transformers.json` as [`ColbertEmbedderOptions`](../../06-api-reference/type-aliases/ColbertEmbedderOptions.md):
 
 ```typescript
 const colbert = await createColbertEmbedder({
@@ -109,8 +110,7 @@ const colbert = await createColbertEmbedder({
 
 - [`useColbertEmbedder()`](../../06-api-reference/functions/useColbertEmbedder.md) — React hook for ColBERT model downloading, state, and lifecycle.
 - [`createColbertEmbedder()`](../../06-api-reference/functions/createColbertEmbedder.md) — Imperative factory for ColBERT pipelines.
-- [`maxSim()`](../../06-api-reference/functions/maxSim.md) — Late-interaction relevance score of a document to a query.
-- [`ColbertEmbedder`](../../06-api-reference/type-aliases/ColbertEmbedder.md), [`ColbertEmbedderModel`](../../06-api-reference/type-aliases/ColbertEmbedderModel.md), [`TokenEmbeddings`](../../06-api-reference/type-aliases/TokenEmbeddings.md) — Types.
+- [`ColbertEmbedder`](../../06-api-reference/type-aliases/ColbertEmbedder.md), [`ColbertEmbedderModel`](../../06-api-reference/type-aliases/ColbertEmbedderModel.md), [`ColbertTokenEmbeddings`](../../06-api-reference/type-aliases/ColbertTokenEmbeddings.md) — Types.
 - [`models.colbertEmbeddings`](../../06-api-reference/variables/models.md#colbertembeddings) — Pre-configured ColBERT models.
 
 :::info Source Code

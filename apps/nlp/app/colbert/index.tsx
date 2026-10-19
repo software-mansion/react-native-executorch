@@ -10,11 +10,10 @@ import {
   Platform,
 } from 'react-native';
 import {
-  maxSim,
   models,
   useColbertEmbedder,
   type ColbertEmbedderModel,
-  type TokenEmbeddings,
+  type ColbertTokenEmbeddings,
 } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelStatus } from '../../components/ModelStatus';
@@ -39,14 +38,16 @@ const STARTER_DOCUMENTS = [
   'Keep basil stems in a glass of water at room temperature, loosely covered with a plastic bag.',
 ];
 
-type Entry = { text: string; embedding: TokenEmbeddings };
+type Entry = { text: string; embedding: ColbertTokenEmbeddings };
 type Match = { text: string; score: number };
 
 const isDisposedError = (msg: string) => /disposed/i.test(msg);
 
 function ColbertContent() {
   const [selected, setSelected] = useState(0);
-  const { isReady, downloadProgress, error, embed } = useColbertEmbedder(MODELS[selected]!.value);
+  const { isReady, downloadProgress, error, embed, maxSim } = useColbertEmbedder(
+    MODELS[selected]!.value
+  );
 
   const [library, setLibrary] = useState<Entry[]>([]);
   const [input, setInput] = useState('');
@@ -94,7 +95,7 @@ function ColbertContent() {
   };
 
   const search = async () => {
-    if (!embed || !input.trim() || library.length === 0) return;
+    if (!embed || !maxSim || !input.trim() || library.length === 0) return;
     setBusy(true);
     setRunError(null);
     try {

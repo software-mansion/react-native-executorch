@@ -33,5 +33,6 @@ export function useColbertEmbedder(config: ColbertEmbedderModel, options?: Resou
     resource,
     embed: model?.embed,
     embedWorklet: model?.embedWorklet,
+    maxSim: model?.maxSim,
   };
 }

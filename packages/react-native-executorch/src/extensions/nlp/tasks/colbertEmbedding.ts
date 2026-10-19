@@ -21,24 +21,26 @@ import { createResourceScope } from '../../../core/lifetime';
 import { loadTokenizer, type Tokenizer } from '../tokenizer';
 
 /**
- * Tokenization settings of a ColBERT model, matching its PyLate configuration
- * (`config_sentence_transformers.json`).
+ * Tokenization settings of a ColBERT model, as found in the
+ * `config_sentence_transformers.json` that
+ * [PyLate](https://github.com/lightonai/pylate), the library ColBERT models
+ * are trained and published with, saves next to the weights.
  * @category NLP / Types
  */
 export type ColbertEmbedderOptions = {
   /**
-   * Token inserted right after the BOS token of every query (PyLate's
-   * `query_prefix`, e.g. `'[Q] '`). Must be a single vocabulary token.
+   * Token inserted right after the BOS token of every query (`query_prefix`,
+   * e.g. `'[Q] '`). Must be a single vocabulary token.
    */
   readonly queryPrefixToken: string;
   /**
-   * Token inserted right after the BOS token of every document (PyLate's
-   * `document_prefix`, e.g. `'[D] '`). Must be a single vocabulary token.
+   * Token inserted right after the BOS token of every document
+   * (`document_prefix`, e.g. `'[D] '`). Must be a single vocabulary token.
    */
   readonly documentPrefixToken: string;
   /**
-   * Length of every query in tokens, special tokens included (PyLate's
-   * `query_length`). Shorter queries are padded to it with
+   * Length of every query in tokens, special tokens included
+   * (`query_length`). Shorter queries are padded to it with
    * {@link ColbertEmbedderOptions.queryExpansionToken}; longer ones are
    * truncated.
    */
@@ -52,8 +54,8 @@ export type ColbertEmbedderOptions = {
   /** Token prepended to every input, e.g. `'<|startoftext|>'`. Omit when the model has none. */
   readonly bosToken?: string;
   /**
-   * Tokens whose vectors are dropped from document embeddings (PyLate's
-   * `skiplist_words`, usually punctuation). Tokens missing from the
+   * Tokens whose vectors are dropped from document embeddings
+   * (`skiplist_words`, usually punctuation). Tokens missing from the
    * vocabulary are ignored.
    */
   readonly skiplistTokens: readonly string[];
@@ -82,7 +84,7 @@ export type ColbertInputKind = 'query' | 'document';
  * A multi-vector embedding: one vector per token.
  * @category NLP / Types
  */
-export type TokenEmbeddings = {
+export type ColbertTokenEmbeddings = {
   /** Row-major `[numTokens, dimension]` matrix of L2-normalized token vectors. */
   readonly data: Float32Array;
   /** The number of token vectors (rows). */
@@ -107,7 +109,7 @@ export type ColbertEmbedder = {
    * A query yields exactly {@link ColbertEmbedderOptions.queryLength} vectors.
    * A document yields one vector per token, minus the skiplisted ones, and is
    * truncated to the model's maximum sequence length. Score a query against a
-   * document with {@link maxSim}.
+   * document with {@link ColbertEmbedder.maxSim}.
    * @param input The text to embed.
    * @param kind Whether `input` is a search query or a document to search.
    * @returns A promise resolving to the token embeddings.
@@ -115,29 +117,37 @@ export type ColbertEmbedder = {
    * tokenizes to zero tokens or `kind` is unknown, `RESOURCE_BUSY` if the model
    * is in use, or `RESOURCE_DISPOSED` if disposed.
    */
-  readonly embed: (input: string, kind: ColbertInputKind) => Promise<TokenEmbeddings>;
+  readonly embed: (input: string, kind: ColbertInputKind) => Promise<ColbertTokenEmbeddings>;
 
   /**
    * Synchronous version of {@link embed} to be executed directly on the
    * caller or worklet thread.
    */
-  readonly embedWorklet: (input: string, kind: ColbertInputKind) => TokenEmbeddings;
+  readonly embedWorklet: (input: string, kind: ColbertInputKind) => ColbertTokenEmbeddings;
+
+  /**
+   * Computes the late-interaction (MaxSim) relevance of a document to a query:
+   * for every query vector, the highest dot product with any document vector,
+   * summed over the query. With L2-normalized vectors each term is a cosine
+   * similarity, so the score lies in `[-numTokens, numTokens]` of the query.
+   * It does not run the model, so it also works on stored embeddings.
+   * @param query The query token embeddings.
+   * @param document The document token embeddings.
+   * @returns The MaxSim score; higher is more relevant. A document with no
+   * vectors scores 0.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the two
+   * embeddings have different vector dimensions.
+   */
+  readonly maxSim: (query: ColbertTokenEmbeddings, document: ColbertTokenEmbeddings) => number;
 };
 
 /**
- * Computes the late-interaction (MaxSim) relevance of a document to a query:
- * for every query vector, the highest dot product with any document vector,
- * summed over the query. With L2-normalized vectors each term is a cosine
- * similarity, so the score lies in `[-numTokens, numTokens]` of the query.
- * @category NLP / Functions
+ * The MaxSim score of `document` against `query`. See {@link ColbertEmbedder.maxSim}.
  * @param query The query token embeddings.
  * @param document The document token embeddings.
- * @returns The MaxSim score; higher is more relevant. A document with no
- * vectors scores 0.
- * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the two
- * embeddings have different vector dimensions.
+ * @returns The MaxSim score.
  */
-export function maxSim(query: TokenEmbeddings, document: TokenEmbeddings): number {
+function maxSim(query: ColbertTokenEmbeddings, document: ColbertTokenEmbeddings): number {
   'worklet';
   if (query.dimension !== document.dimension) {
     throw RnExecuTorchError(
@@ -204,9 +214,10 @@ function runLength(wanted: number, min: number, max: number, step: number): numb
 /**
  * Creates a ColBERT (late-interaction) embedder, which maps a text to one
  * vector per token rather than a single pooled vector. Relevance is then scored
- * with {@link maxSim} instead of a cosine.
+ * with {@link ColbertEmbedder.maxSim} instead of a cosine.
  *
- * Inputs are built the way PyLate builds them: `[BOS, prefix, ...tokens]`,
+ * Inputs are built the way [PyLate](https://github.com/lightonai/pylate)
+ * builds them: `[BOS, prefix, ...tokens]`,
  * with queries padded to a fixed length by expansion tokens and documents fed
  * at their exact length. The per-token projection and L2 normalization are
  * baked into the exported `.pte`.
@@ -293,7 +304,7 @@ export async function createColbertEmbedder(
       );
     }
 
-    const embedWorklet = (input: string, kind: ColbertInputKind): TokenEmbeddings => {
+    const embedWorklet = (input: string, kind: ColbertInputKind): ColbertTokenEmbeddings => {
       'worklet';
       if (kind !== 'query' && kind !== 'document') {
         throw RnExecuTorchError(
@@ -328,21 +339,22 @@ export async function createColbertEmbedder(
       for (let i = 0; i < numText; i++) idsData[pos++] = BigInt(ids[i]!);
       for (let i = 0; i < numReal; i++) maskData[i] = 1n;
 
-      const tTokenIds = tensor('int64', [1, seqLen], idsData);
-      const tAttentionMask = tensor('int64', [1, seqLen], maskData);
-      const tEmbeddings = tensor('float32', [1, seqLen, D]);
-      let all: Float32Array;
+      const tensors = [
+        tensor('int64', [1, seqLen], idsData),
+        tensor('int64', [1, seqLen], maskData),
+        tensor('float32', [1, seqLen, D]),
+      ] as const;
+      const [tTokenIds, tAttentionMask, tEmbeddings] = tensors;
+      const embeddings = new Float32Array(tEmbeddings.numel);
       try {
         model.execute('forward', [tTokenIds, tAttentionMask], [tEmbeddings]);
-        all = tEmbeddings.getData(new Float32Array(tEmbeddings.numel));
+        tEmbeddings.getData(embeddings);
       } finally {
-        tTokenIds.dispose();
-        tAttentionMask.dispose();
-        tEmbeddings.dispose();
+        tensors.forEach((t) => t.dispose());
       }
 
       if (isQuery) {
-        return { data: all.slice(0, numOut * D), numTokens: numOut, dimension: D };
+        return { data: embeddings.slice(0, numOut * D), numTokens: numOut, dimension: D };
       }
 
       // Documents drop skiplisted tokens (punctuation) and any padding.
@@ -352,14 +364,14 @@ export async function createColbertEmbedder(
       }
       const data = new Float32Array(keep.length * D);
       for (let r = 0; r < keep.length; r++) {
-        data.set(all.subarray(keep[r]! * D, (keep[r]! + 1) * D), r * D);
+        data.set(embeddings.subarray(keep[r]! * D, (keep[r]! + 1) * D), r * D);
       }
       return { data, numTokens: keep.length, dimension: D };
     };
 
     const embed = wrapAsync(embedWorklet, runtime);
 
-    return { embed, embedWorklet, dispose };
+    return { embed, embedWorklet, maxSim, dispose };
   } catch (error) {
     dispose();
     throw error;

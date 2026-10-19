@@ -12,7 +12,7 @@
 import { RangeDim, constraint, f32, i64, method } from '../../src/core/schema';
 import {
   createColbertEmbedder,
-  maxSim,
+  type ColbertEmbedder,
   type ColbertEmbedderOptions,
 } from '../../src/extensions/nlp/tasks/colbertEmbedding';
 import { fakeJsi } from '../support/fakeJsi';
@@ -270,6 +270,12 @@ describe('createColbertEmbedder', () => {
 });
 
 describe('maxSim', () => {
+  let maxSim: ColbertEmbedder['maxSim'];
+  beforeEach(async () => {
+    register();
+    ({ maxSim } = tracked(await createColbertEmbedder(config)));
+  });
+
   const embeddings = (vectors: number[][]) => ({
     data: new Float32Array(vectors.flat()),
     numTokens: vectors.length,

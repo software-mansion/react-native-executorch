@@ -225,6 +225,7 @@ describe('useColbertEmbedder', () => {
     const query = await result.current.embed!('hello', 'query');
     expect(query.numTokens).toBe(4);
     expect(result.current.embedWorklet).toBeInstanceOf(Function);
+    expect(result.current.maxSim).toBeInstanceOf(Function);
 
     await unmount();
 
