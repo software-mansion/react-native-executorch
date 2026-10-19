@@ -37,8 +37,8 @@ const SEGMENTATION_OPTIONS: ModelOption[] = [
     value: models.semanticSegmentation.DEEPLAB_V3_RESNET50.XNNPACK_INT8,
   },
   {
-    label: 'DeepLab V3 ResNet50 (QNN A16W8)',
-    value: models.semanticSegmentation.DEEPLAB_V3_RESNET50.QNN_A16W8,
+    label: 'DeepLab V3 ResNet50 (QNN A8W8)',
+    value: models.semanticSegmentation.DEEPLAB_V3_RESNET50.QNN_A8W8,
     disabled: Platform.OS !== 'android',
   },
   {
@@ -46,8 +46,8 @@ const SEGMENTATION_OPTIONS: ModelOption[] = [
     value: models.semanticSegmentation.DEEPLAB_V3_RESNET101.XNNPACK_INT8,
   },
   {
-    label: 'DeepLab V3 ResNet101 (QNN A16W8)',
-    value: models.semanticSegmentation.DEEPLAB_V3_RESNET101.QNN_A16W8,
+    label: 'DeepLab V3 ResNet101 (QNN A8W8)',
+    value: models.semanticSegmentation.DEEPLAB_V3_RESNET101.QNN_A8W8,
     disabled: Platform.OS !== 'android',
   },
   {
@@ -64,8 +64,8 @@ const SEGMENTATION_OPTIONS: ModelOption[] = [
     value: models.semanticSegmentation.FCN_RESNET50.XNNPACK_INT8,
   },
   {
-    label: 'FCN ResNet50 (QNN A16W8)',
-    value: models.semanticSegmentation.FCN_RESNET50.QNN_A16W8,
+    label: 'FCN ResNet50 (QNN A8W8)',
+    value: models.semanticSegmentation.FCN_RESNET50.QNN_A8W8,
     disabled: Platform.OS !== 'android',
   },
   {
@@ -73,8 +73,8 @@ const SEGMENTATION_OPTIONS: ModelOption[] = [
     value: models.semanticSegmentation.FCN_RESNET101.XNNPACK_INT8,
   },
   {
-    label: 'FCN ResNet101 (QNN A16W8)',
-    value: models.semanticSegmentation.FCN_RESNET101.QNN_A16W8,
+    label: 'FCN ResNet101 (QNN A8W8)',
+    value: models.semanticSegmentation.FCN_RESNET101.QNN_A8W8,
     disabled: Platform.OS !== 'android',
   },
 ];

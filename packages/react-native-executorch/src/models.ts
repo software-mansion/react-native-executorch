@@ -374,12 +374,12 @@ const DEEPLAB_V3_RESNET50_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = 
 };
 // Same Hexagon-version resolution and index-map output as the MobileNetV3 QNN
 // variant below.
-const DEEPLAB_V3_RESNET50_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/qnn/deeplab_v3_resnet50_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+const DEEPLAB_V3_RESNET50_QNN_A8W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/qnn/deeplab_v3_resnet50_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
-const DEEPLAB_V3_RESNET101_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/qnn/deeplab_v3_resnet101_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+const DEEPLAB_V3_RESNET101_QNN_A8W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/qnn/deeplab_v3_resnet101_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_RESNET101_XNNPACK_FP32: SemanticSegmenterModel<PascalVocLabel> = {
@@ -447,12 +447,12 @@ const FCN_RESNET101_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
 };
 // Same Hexagon-version resolution and index-map output as the DeepLabV3 QNN
 // variants.
-const FCN_RESNET50_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-fcn/${NEXT_VERSION_TAG}/qnn/fcn_resnet50_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+const FCN_RESNET50_QNN_A8W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-fcn/${NEXT_VERSION_TAG}/qnn/fcn_resnet50_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: FCN_OPTS,
 };
-const FCN_RESNET101_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-fcn/${NEXT_VERSION_TAG}/qnn/fcn_resnet101_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+const FCN_RESNET101_QNN_A8W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-fcn/${NEXT_VERSION_TAG}/qnn/fcn_resnet101_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: FCN_OPTS,
 };
 
@@ -2232,7 +2232,7 @@ export const models = {
       XNNPACK_INT8: DEEPLAB_V3_RESNET50_XNNPACK_INT8,
       XNNPACK_FP32: DEEPLAB_V3_RESNET50_XNNPACK_FP32,
       COREML_FP16: DEEPLAB_V3_RESNET50_COREML_FP16,
-      QNN_A16W8: DEEPLAB_V3_RESNET50_QNN_A16W8,
+      QNN_A8W8: DEEPLAB_V3_RESNET50_QNN_A8W8,
     }),
     /**
      * DeepLabV3 semantic segmentation model with ResNet-101 backbone (21
@@ -2243,7 +2243,7 @@ export const models = {
       XNNPACK_INT8: DEEPLAB_V3_RESNET101_XNNPACK_INT8,
       XNNPACK_FP32: DEEPLAB_V3_RESNET101_XNNPACK_FP32,
       COREML_FP16: DEEPLAB_V3_RESNET101_COREML_FP16,
-      QNN_A16W8: DEEPLAB_V3_RESNET101_QNN_A16W8,
+      QNN_A8W8: DEEPLAB_V3_RESNET101_QNN_A8W8,
     }),
     /**
      * DeepLabV3 semantic segmentation model with MobileNetV3-Large backbone (21
@@ -2264,7 +2264,7 @@ export const models = {
       XNNPACK_INT8: FCN_RESNET50_XNNPACK_INT8,
       XNNPACK_FP32: FCN_RESNET50_XNNPACK_FP32,
       COREML_FP16: FCN_RESNET50_COREML_FP16,
-      QNN_A16W8: FCN_RESNET50_QNN_A16W8,
+      QNN_A8W8: FCN_RESNET50_QNN_A8W8,
     }),
     /**
      * Fully Convolutional Network (FCN) semantic segmentation model with
@@ -2274,7 +2274,7 @@ export const models = {
       XNNPACK_INT8: FCN_RESNET101_XNNPACK_INT8,
       XNNPACK_FP32: FCN_RESNET101_XNNPACK_FP32,
       COREML_FP16: FCN_RESNET101_COREML_FP16,
-      QNN_A16W8: FCN_RESNET101_QNN_A16W8,
+      QNN_A8W8: FCN_RESNET101_QNN_A8W8,
     }),
   },
 
