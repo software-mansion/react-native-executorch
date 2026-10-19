@@ -922,10 +922,15 @@ const LFM2_5_EMBEDDING_350M_MLX_INT4: TextEmbedderModel = {
 // =============================================================================
 // Image Embeddings
 // =============================================================================
+// The exported image towers expect CLIP-normalized pixels (mean
+// [0.48145466, 0.4578275, 0.40821073], std [0.26862954, 0.26130258, 0.27577711]).
 const CLIP_IMAGE_EMBEDDINGS_OPTS = {
   resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
-  normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
+  normalizeOpts: {
+    alpha: [1 / (255.0 * 0.26862954), 1 / (255.0 * 0.26130258), 1 / (255.0 * 0.27577711)],
+    beta: [-0.48145466 / 0.26862954, -0.4578275 / 0.26130258, -0.40821073 / 0.27577711],
+  },
 };
 const CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32: ImageEmbedderModel = {
   modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_image_xnnpack_fp32.pte`,

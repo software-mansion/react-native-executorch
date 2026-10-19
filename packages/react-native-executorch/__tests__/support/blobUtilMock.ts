@@ -210,7 +210,7 @@ type FetchTask = Promise<{ info: () => { status: number } }> & {
   progress: (config: { count?: number }, cb: ProgressCallback) => FetchTask;
   // Undocumented in blob-util's typings, but real: it reports the response
   // state, so `src/` learns the status as soon as the headers land rather than
-  // only once the body is complete. See `downloadUrlViaIosStream`.
+  // only once the body is complete. See `downloadUrlViaStream`.
   stateChange: (cb: StateChangeCallback) => FetchTask;
   cancel: () => void;
 };
@@ -223,14 +223,13 @@ class CancelledError extends Error {
 }
 
 type Config = {
-  /** Destination path for a streamed download (iOS-style). */
+  /** Destination path for a streamed download. */
   path?: string;
   fileCache?: boolean;
-  addAndroidDownloads?: { path?: string; useDownloadManager?: boolean; [key: string]: unknown };
 };
 
 function startFetch(config: Config, method: string, url: string, headers: Record<string, string>) {
-  const dest = config.addAndroidDownloads?.path ?? config.path;
+  const dest = config.path;
   requests.push({ method, url, headers });
 
   let onProgress: ProgressCallback | undefined;

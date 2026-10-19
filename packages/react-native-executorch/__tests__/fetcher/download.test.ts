@@ -356,7 +356,7 @@ describe('download — concurrent callers', () => {
   });
 });
 
-describe('download — iOS resume', () => {
+describe('download — resume', () => {
   /**
    * Stages the aftermath of an interrupted download: the cached file is gone
    * and `partial` bytes are sitting next to it. The cache path is only known

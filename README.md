@@ -67,7 +67,16 @@ pnpm add react-native-executorch react-native-worklets react-native-blob-util
 ```
 
 > [!IMPORTANT]
-> React Native ExecuTorch requires the **New React Native Architecture**, **React Native 0.81+** or **Expo SDK 54+** (using development builds), **iOS 17.0+**, and **Android 13+**.
+> React Native ExecuTorch requires:
+> - **New Architecture** enabled
+> - **React Native 0.83+** or **Expo SDK 55+** with [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/) (**Expo Go is not supported** due to custom C++ native libraries)
+> - **`react-native-worklets` 0.10 or newer** (`>=0.10.0 <0.14.0`)
+> - **iOS 17.0+** / **Android 13+** (`minSdkVersion` >= 26)
+> - **`react-native-worklets/plugin`** as the last entry in your Babel `plugins`
+>
+> Downloads of our pre-exported models send an anonymous download event; call `setTelemetryEnabled(false)` to opt out.
+>
+> See the [Getting Started Guide](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/getting-started) and [Compatibility table](https://docs.swmansion.com/react-native-executorch/docs/other/compatibility) for more details.
 
 ### 2. Run the Model
 
