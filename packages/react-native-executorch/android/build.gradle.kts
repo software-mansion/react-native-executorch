@@ -116,7 +116,6 @@ android {
         // ships a library its linker is not guaranteed to be able to load. The
         // default was 21, which let such a build through to fail on the device.
         minSdk = (getExtOrDefault("minSdkVersion", 26) as Number).toInt()
-        targetSdk = (getExtOrDefault("targetSdkVersion", 34) as Number).toInt()
         consumerProguardFiles("consumer-proguard-rules.pro")
 
         externalNativeBuild {
