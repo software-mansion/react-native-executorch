@@ -98,7 +98,9 @@ common needs:
   isn't reported the same as a small tokenizer.
 - [**`signal`**](../06-api-reference/interfaces/DownloadOptions.md#signal) — an
   `AbortSignal` to cancel. The bytes fetched so far are kept so a later download
-  of the same source resumes instead of restarting.
+  of the same source resumes instead of restarting (except on Android without
+  the optional background downloader, where the system `DownloadManager` discards
+  a cancelled transfer).
 - [**`forceDownload`**](../06-api-reference/interfaces/DownloadOptions.md#forcedownload) —
   re-download even when cached.
 
@@ -109,8 +111,10 @@ launches fast:
 
 - A file that is already cached resolves immediately — no network round trip.
 - Concurrent downloads of the same URL are deduplicated into one transfer.
-- Without extra dependencies, both platforms fall back to the same streaming
-  request, which pauses when the app is suspended and resumes when reopened.
+- Without extra dependencies, fetching falls back to what each platform supports
+  natively: the system `DownloadManager` on Android (which continues in the
+  background), and a streaming request on iOS (which pauses when the app is
+  suspended and resumes when reopened).
 - To keep transfers running in the background across both iOS and Android and survive
   the app being killed, install the optional peer dependency
   [`@kesha-antonov/react-native-background-downloader`](https://github.com/kesha-antonov/react-native-background-downloader)

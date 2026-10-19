@@ -22,8 +22,6 @@ The native artifacts are not in the npm tarball. They are downloaded by a
 
 - **pnpm 10 and later block dependency build scripts by default** and print
   `Ignored build scripts: react-native-executorch` during install.
-- **npm 12 and later** (and npm 11.16+ with `strict-allow-scripts=true`) skip
-  install scripts of packages not listed in `allowScripts`, with only a warning.
 - `--ignore-scripts`, and `npm ci --ignore-scripts`, do the same.
 
 Nothing fails at that point — not even `pod install`, which does not check that
@@ -33,7 +31,6 @@ configure phase) with this fix in the message instead. Re-run the hook:
 
 ```bash
 pnpm approve-builds react-native-executorch   # pnpm
-npm approve-scripts react-native-executorch   # npm 12+, then:
 npm rebuild react-native-executorch           # npm
 node node_modules/react-native-executorch/scripts/download-libs.js
 ```
@@ -140,7 +137,10 @@ later. The library needs iOS 17. In an Expo app, set it explicitly — the defau
 is lower:
 
 ```json
-["expo-build-properties", { "ios": { "deploymentTarget": "17.0" } }]
+[
+  "expo-build-properties",
+  { "ios": { "deploymentTarget": "17.0" } }
+]
 ```
 
 ## The `react-native-executorch` config block is ignored
