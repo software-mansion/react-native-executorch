@@ -21827,6 +21827,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/functions/createColbertEmbedder": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/functions/createFsmnVoiceActivityDetector": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -22140,6 +22152,18 @@
     ]
   },
   "/react-native-executorch/docs/next/api-reference/functions/useClassifier": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/functions/useColbertEmbedder": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
@@ -24299,6 +24323,66 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/ColbertEmbedder": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/ColbertEmbedderModel": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/ColbertEmbedderOptions": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/ColbertInputKind": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/ColbertTokenEmbeddings": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/type-aliases/ColorMap": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -25740,6 +25824,18 @@
     ]
   },
   "/react-native-executorch/docs/next/extensions/camera-integration": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/extensions/colbert-retrieval": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
