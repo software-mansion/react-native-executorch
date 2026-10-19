@@ -173,6 +173,8 @@ describe('createVectorStore', () => {
     expect(() => store.add('a', [1, NaN])).toThrow(/vector\[1\] is not a finite number/);
     expect(() => createVectorStore().add('a', [])).toThrow(/must not be empty/);
     expect(() => store.query([1, 2, 3])).toThrow(/expected a vector of length 2/);
+    expect(() => store.query([Infinity, 0])).toThrow(/vector\[0\] is not a finite number/);
+    expect(() => createVectorStore().query([NaN])).toThrow(/vector\[0\] is not a finite number/);
     expect(store.size).toBe(0);
   });
 

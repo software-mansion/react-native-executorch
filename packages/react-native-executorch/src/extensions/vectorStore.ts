@@ -155,31 +155,36 @@ function inverseNorm(data: ArrayLike<number>, offset: number, length: number): n
 }
 
 /**
- * Checks `vector` against the store's dimension and returns the dimension it
- * implies (its own length while the store has none yet).
+ * Checks that `vector` is finite and matches the store's dimension, and
+ * returns the dimension it implies (its own length while the store has none yet).
  * @param vector The vector to check.
  * @param dimension The store's dimension, if already fixed.
  * @param caller The method name to report in errors.
  * @returns The dimension the store has after accepting `vector`.
  */
-function checkedDimension(
+function checkedVector(
   vector: ArrayLike<number>,
   dimension: number | undefined,
   caller: string
 ): number {
-  if (dimension === undefined) {
-    if (vector.length === 0) {
-      throw RnExecuTorchError('INVALID_ARGUMENT', `${caller}: vector must not be empty.`);
-    }
-    return vector.length;
+  if (dimension === undefined && vector.length === 0) {
+    throw RnExecuTorchError('INVALID_ARGUMENT', `${caller}: vector must not be empty.`);
   }
-  if (vector.length !== dimension) {
+  if (dimension !== undefined && vector.length !== dimension) {
     throw RnExecuTorchError(
       'INVALID_ARGUMENT',
       `${caller}: expected a vector of length ${dimension}, got ${vector.length}.`
     );
   }
-  return dimension;
+  for (let i = 0; i < vector.length; i++) {
+    if (!Number.isFinite(vector[i])) {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `${caller}: vector[${i}] is not a finite number.`
+      );
+    }
+  }
+  return vector.length;
 }
 
 /**
@@ -276,15 +281,7 @@ export function createVectorStore<Metadata = undefined>(
 
     add(id, vector, ...rest) {
       const meta = rest[0] as Metadata;
-      const dim = checkedDimension(vector, dimension, 'VectorStore.add');
-      for (let i = 0; i < vector.length; i++) {
-        if (!Number.isFinite(vector[i])) {
-          throw RnExecuTorchError(
-            'INVALID_ARGUMENT',
-            `VectorStore.add: vector[${i}] is not a finite number.`
-          );
-        }
-      }
+      const dim = checkedVector(vector, dimension, 'VectorStore.add');
       dimension = dim;
 
       let row = rowOf.get(id);
@@ -361,11 +358,8 @@ export function createVectorStore<Metadata = undefined>(
           `VectorStore.query: k must be a non-negative integer, got ${k}.`
         );
       }
-      if (ids.length === 0 || k === 0) {
-        if (dimension !== undefined) checkedDimension(vector, dimension, 'VectorStore.query');
-        return [];
-      }
-      const dim = checkedDimension(vector, dimension, 'VectorStore.query');
+      const dim = checkedVector(vector, dimension, 'VectorStore.query');
+      if (ids.length === 0 || k === 0) return [];
       const queryScale = metric === 'cosine' ? inverseNorm(vector, 0, dim) : 1;
       const minScore = queryOptions?.minScore ?? -Infinity;
       const filter = queryOptions?.filter;

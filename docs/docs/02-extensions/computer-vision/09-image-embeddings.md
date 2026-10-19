@@ -124,6 +124,24 @@ const score = cosineSimilarity(imageVector, textVector);
 console.log('Match similarity score:', score);
 ```
 
+### Vector Search
+
+For more than a handful of vectors, keep them in a [`createVectorStore`](../../06-api-reference/functions/createVectorStore.md) store, which ranks them for you. It takes plain vectors, so image and [Text Embeddings](../natural-language/03-text-embeddings.md) from a shared space (like CLIP) can be queried against each other:
+
+```typescript
+import { createVectorStore } from 'react-native-executorch';
+
+const store = createVectorStore<{ uri: string }>({ metric: 'cosine' });
+for (const photo of photos) {
+  store.add(photo.id, await imageEmbedder.embed(photo.buffer), { uri: photo.uri });
+}
+
+const matches = store.query(await textEmbedder.embed('a dog on the beach'), 3);
+// [{ id, score, metadata: { uri } }, ...] — most similar first
+```
+
+The store is in memory and searches exhaustively, which takes a few milliseconds for tens of thousands of vectors. `remove`, `get`, `has` and per-query `filter`/`minScore` are also available. Nothing is persisted.
+
 ## Imperative API
 
 For background indexing, SQLite vector ingestion, or manual lifecycle management outside React components, create the embedder using [`createImageEmbedder`](../../06-api-reference/functions/createImageEmbedder.md):
@@ -194,6 +212,7 @@ The pipeline automatically verifies that the model's exported input and output s
 - [`ImageEmbedderModel`](../../06-api-reference/type-aliases/ImageEmbedderModel.md) — Model configuration spec for vision embedders.
 - [`ImagePreprocessorOptions`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImagePreprocessorOptions.md) — Options defining normalization, interpolation, and resize modes.
 - [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) — Input image buffer structure.
+- [`createVectorStore()`](../../06-api-reference/functions/createVectorStore.md) — In-memory vector store with nearest-neighbor search.
 
 ### Model Presets
 
