@@ -1,7 +1,7 @@
 ---
 title: Depth Estimation
 slug: /extensions/depth-estimation
-description: 'Estimate pixel-level relative depth from a single image with Depth Anything V2 for portrait effects, scene understanding, and photo animation.'
+description: 'Estimate pixel-level relative depth from a single image for portrait effects, scene understanding, and photo animation.'
 keywords:
   [
     react native,
@@ -122,11 +122,13 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 Ready-to-use models are available in [`models.depthEstimation`](../../06-api-reference/variables/models.md#depthestimation):
 
-| Model Family                | Variants                                                                                 | Size Range        | Supported Backends                               | Notes                                                                       |
-| :-------------------------- | :--------------------------------------------------------------------------------------- | :---------------- | :----------------------------------------------- | :-------------------------------------------------------------------------- |
-| **Depth Anything V2 Small** | [See](../../06-api-reference/variables/models.md#depthestimationdepth_anything_v2_small) | 35.5 MB – 99.0 MB | XNNPACK (CPU), Core ML (Apple), Vulkan (Android) | ViT-S/14 backbone with a 518 × 518 input and relative inverse depth output. |
+| Model Family                | Variants                                                                                 | Size Range         | Supported Backends                               | Notes                                                                       |
+| :-------------------------- | :--------------------------------------------------------------------------------------- | :----------------- | :----------------------------------------------- | :-------------------------------------------------------------------------- |
+| **Depth Anything V2 Small** | [See](../../06-api-reference/variables/models.md#depthestimationdepth_anything_v2_small) | 35.5 MB – 99.0 MB  | XNNPACK (CPU), Core ML (Apple), Vulkan (Android) | ViT-S/14 backbone with a 518 × 518 input and relative inverse depth output. |
+| **Depth Anything 3 Small**  | [See](../../06-api-reference/variables/models.md#depthestimationdepth_anything_v3_small) | 40.7 MB – 106.5 MB | XNNPACK (CPU), Core ML (Apple), Vulkan (Android) | Single-image relative depth with a 518 × 518 input.                         |
+| **ZipDepth Base**           | [See](../../06-api-reference/variables/models.md#depthestimationzipdepth_base)           | 12.8 MB – 24.9 MB  | XNNPACK (CPU), Core ML (Apple), Vulkan (Android) | Fast preset with a 384 × 384 input and relative inverse depth output.       |
 
-Use `DEFAULT` for automatic backend selection, or choose `XNNPACK_INT8`, `XNNPACK_FP32`, `COREML_FP16`, or `VULKAN_FP16` explicitly. The exports are hosted in the [Depth Anything V2 Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-depth-anything-v2).
+Depth Anything V2 and ZipDepth return relative inverse depth (larger means nearer), while Depth Anything 3 returns relative depth (larger means farther). All presets return raw float values through the same `DepthMap` API.
 
 :::tip Using Custom Models
 Pass a [`DepthEstimatorModel`](../../06-api-reference/type-aliases/DepthEstimatorModel.md) configuration to [`useDepthEstimator`](../../06-api-reference/functions/useDepthEstimator.md) or download it before calling [`createDepthEstimator`](../../06-api-reference/functions/createDepthEstimator.md):
