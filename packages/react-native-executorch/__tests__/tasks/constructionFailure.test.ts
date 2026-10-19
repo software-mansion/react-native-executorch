@@ -30,6 +30,7 @@ import { createSemanticSegmenter } from '../../src/extensions/cv/tasks/semanticS
 import { createStyleTransfer } from '../../src/extensions/cv/tasks/styleTransfer';
 import { createPrivacyFilter } from '../../src/extensions/nlp/tasks/privacyFilter';
 import { createTextEmbedder } from '../../src/extensions/nlp/tasks/textEmbedding';
+import { createColbertEmbedder } from '../../src/extensions/nlp/tasks/colbertEmbedding';
 import { createFsmnVoiceActivityDetector } from '../../src/extensions/speech/tasks/fsmnVoiceActivityDetection';
 import { createKokoroTextToSpeech } from '../../src/extensions/speech/tasks/kokoroTextToSpeech';
 import { createSupertonicTextToSpeech } from '../../src/extensions/speech/tasks/supertonicTextToSpeech';
@@ -96,6 +97,17 @@ const factories: Record<string, () => Promise<unknown>> = {
     }),
   sdxsTextToImage: () => createSdxsTextToImage(tokenized),
   textEmbedder: () => createTextEmbedder(tokenized),
+  colbertEmbedder: () =>
+    createColbertEmbedder({
+      ...tokenized,
+      modelOpts: {
+        queryPrefixToken: 'q',
+        documentPrefixToken: 'd',
+        queryLength: 4,
+        queryExpansionToken: 'x',
+        skiplistTokens: [],
+      },
+    }),
   privacyFilter: () =>
     createPrivacyFilter({
       ...tokenized,

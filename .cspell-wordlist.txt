@@ -396,6 +396,10 @@ Adreno
 Exynos
 iphonese
 upsamples
+skiplist
+skiplisted
+startoftext
+maxsim
 adb
 benchmarkable
 benchprobe

@@ -346,6 +346,7 @@ describe('feature map', () => {
     tokenizer: 'tokenizer',
     llm: 'llm',
     textEmbeddings: 'textEmbeddings',
+    colbertEmbeddings: 'textEmbeddings',
     privacyFilter: 'privacyFilter',
     imageEmbeddings: 'imageEmbeddings',
     textToImage: 'textToImage',
@@ -441,13 +442,21 @@ describe('feature map', () => {
     // feature download a library it can never load.
     const offenders: string[] = [];
 
+    // A feature may cover several categories (`colbertEmbeddings` rides on
+    // `textEmbeddings`), so what it has to justify is their union.
+    const publishedByFeature = new Map<string, Set<string>>();
     for (const [category, node] of Object.entries(registry)) {
       const feature = FEATURE_OF_CATEGORY[category]!;
+      const published = publishedByFeature.get(feature) ?? new Set<string>();
+      for (const backend of allPublishedBackends(node)) published.add(backend);
+      publishedByFeature.set(feature, published);
+    }
+
+    for (const [feature, published] of publishedByFeature) {
       // `llm` is the one category two features cover, so neither entry alone has
       // to justify every backend it names.
       if (feature === 'llm') continue;
 
-      const published = allPublishedBackends(node);
       for (const backend of FEATURE_MAP[feature].backends) {
         if (!published.has(backend))
           offenders.push(`${feature} provisions ${backend}, unpublished`);

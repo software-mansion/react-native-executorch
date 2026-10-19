@@ -35,6 +35,13 @@ export default function Layout() {
         }}
       />
       <Drawer.Screen
+        name="colbert/index"
+        options={{
+          drawerLabel: 'ColBERT Retrieval',
+          title: 'ColBERT Retrieval',
+        }}
+      />
+      <Drawer.Screen
         name="privacy-filter/index"
         options={{
           drawerLabel: 'Privacy Filter',
