@@ -11,7 +11,7 @@ import {
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ImageViewport } from '../../components/ImageViewport';
 import { DepthPhoto } from '../../components/DepthPhoto';
-import { ModelPicker } from '../../components/ModelPicker';
+import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
 import { ModelStatus } from '../../components/ModelStatus';
 import { LatencyIndicator } from '../../components/LatencyIndicator';
 import { Button } from '../../components/Button';
@@ -19,26 +19,39 @@ import { commonStyles, theme } from '../../theme';
 import { getImage, skImageToBuffer } from '../../utils';
 
 const DEPTH_MODELS = models.depthEstimation.DEPTH_ANYTHING_V2_SMALL;
-const MODEL_OPTIONS = [
-  { label: 'Depth Anything V2 Small (Default)', value: DEPTH_MODELS.DEFAULT },
-  { label: 'Depth Anything V2 Small (XNNPACK INT8)', value: DEPTH_MODELS.XNNPACK_INT8 },
-  { label: 'Depth Anything V2 Small (XNNPACK FP32)', value: DEPTH_MODELS.XNNPACK_FP32 },
-  {
-    label: 'Depth Anything V2 Small (CoreML FP16)',
-    value: DEPTH_MODELS.COREML_FP16,
-    disabled: Platform.OS !== 'ios',
-  },
-  {
-    label: 'Depth Anything V2 Small (Vulkan FP16)',
-    value: DEPTH_MODELS.VULKAN_FP16,
-    disabled: Platform.OS !== 'android',
-  },
+const DEPTH_V3_MODELS = models.depthEstimation.DEPTH_ANYTHING_V3_SMALL;
+const ZIPDEPTH_MODELS = models.depthEstimation.ZIPDEPTH_BASE;
+type Backend = 'xnnpack' | 'coreml' | 'vulkan';
+type DepthModelOption = ModelOption & { family: 'v2' | 'v3' | 'zipdepth' };
+const BACKEND_OPTIONS: ModelOption[] = [
+  { label: 'XNNPACK', value: 'xnnpack' },
+  { label: 'Core ML', value: 'coreml', disabled: Platform.OS !== 'ios' },
+  { label: 'Vulkan', value: 'vulkan', disabled: Platform.OS !== 'android' },
 ];
+const MODEL_OPTIONS: Record<Backend, DepthModelOption[]> = {
+  xnnpack: [
+    { label: 'Depth Anything V2 Small (INT8)', family: 'v2', value: DEPTH_MODELS.XNNPACK_INT8 },
+    { label: 'Depth Anything V2 Small (FP32)', family: 'v2', value: DEPTH_MODELS.XNNPACK_FP32 },
+    { label: 'Depth Anything V3 Small (INT8)', family: 'v3', value: DEPTH_V3_MODELS.XNNPACK_INT8 },
+    { label: 'Depth Anything V3 Small (FP32)', family: 'v3', value: DEPTH_V3_MODELS.XNNPACK_FP32 },
+    { label: 'ZipDepth Base (FP32)', family: 'zipdepth', value: ZIPDEPTH_MODELS.XNNPACK_FP32 },
+  ],
+  coreml: [
+    { label: 'Depth Anything V2 Small (FP16)', family: 'v2', value: DEPTH_MODELS.COREML_FP16 },
+    { label: 'Depth Anything V3 Small (FP16)', family: 'v3', value: DEPTH_V3_MODELS.COREML_FP16 },
+    { label: 'ZipDepth Base (FP32)', family: 'zipdepth', value: ZIPDEPTH_MODELS.COREML_FP32 },
+  ],
+  vulkan: [
+    { label: 'Depth Anything V2 Small (FP16)', family: 'v2', value: DEPTH_MODELS.VULKAN_FP16 },
+    { label: 'Depth Anything V3 Small (FP16)', family: 'v3', value: DEPTH_V3_MODELS.VULKAN_FP16 },
+    { label: 'ZipDepth Base (FP16)', family: 'zipdepth', value: ZIPDEPTH_MODELS.VULKAN_FP16 },
+  ],
+};
 
 type DepthPreview = { image: SkImage; min: number; max: number };
 
 // Display conversion belongs to the demo; the library retains the raw float map.
-function createDepthPreview(depth: DepthMap): DepthPreview {
+function createDepthPreview(depth: DepthMap, invert: boolean): DepthPreview {
   let min = Infinity;
   let max = -Infinity;
   for (const value of depth.data) {
@@ -51,8 +64,12 @@ function createDepthPreview(depth: DepthMap): DepthPreview {
   const rgba = new Uint8Array(depth.width * depth.height * 4);
   for (let i = 0; i < depth.data.length; i++) {
     const value = depth.data[i]!;
+    const normalized = range > 0 && Number.isFinite(value) ? (value - min) / range : 0;
+    // Effects expect nearer surfaces to be brighter; V3 predicts larger values farther away.
     const gray =
-      range > 0 && Number.isFinite(value) ? Math.round(((value - min) / range) * 255) : 0;
+      range > 0 && Number.isFinite(value)
+        ? Math.round((invert ? 1 - normalized : normalized) * 255)
+        : 0;
     rgba[i * 4] = gray;
     rgba[i * 4 + 1] = gray;
     rgba[i * 4 + 2] = gray;
@@ -72,15 +89,13 @@ function createDepthPreview(depth: DepthMap): DepthPreview {
   return { image, min, max };
 }
 
-function DepthDemo({
-  model,
-  busy,
-  onBusyChange,
-}: {
-  model: DepthEstimatorModel;
-  busy: boolean;
-  onBusyChange: (busy: boolean) => void;
-}) {
+function DepthEstimationContent() {
+  const insets = useSafeAreaInsets();
+  const [selectedBackend, setSelectedBackend] = useState<Backend>('xnnpack');
+  const [selectedModel, setSelectedModel] = useState<DepthEstimatorModel>(
+    MODEL_OPTIONS.xnnpack[0]!.value
+  );
+  const [busy, setBusy] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [preview, setPreview] = useState<DepthPreview | null>(null);
   const [latency, setLatency] = useState<number | null>(null);
@@ -94,10 +109,30 @@ function DepthDemo({
   }, []);
 
   const image = useImage(imageUri, (failure) => setError(failure.message));
-  const estimator = useDepthEstimator(model);
+  const estimator = useDepthEstimator(selectedModel);
+
+  const selectModel = (model: DepthEstimatorModel) => {
+    if (busy || model === selectedModel) return;
+    setSelectedModel(model);
+    setPreview(null);
+    setLatency(null);
+    setError(null);
+  };
+
+  const selectBackend = (backend: Backend) => {
+    if (busy || backend === selectedBackend) return;
+    const family = MODEL_OPTIONS[selectedBackend].find(
+      (option) => option.value === selectedModel
+    )?.family;
+    const nextModel =
+      MODEL_OPTIONS[backend].find((option) => option.family === family) ??
+      MODEL_OPTIONS[backend][0]!;
+    setSelectedBackend(backend);
+    selectModel(nextModel.value);
+  };
 
   const pickImage = async (camera: boolean) => {
-    onBusyChange(true);
+    setBusy(true);
     setError(null);
     try {
       const uri = await getImage(camera);
@@ -109,13 +144,13 @@ function DepthDemo({
     } catch (failure) {
       if (mounted.current) setError(String(failure));
     } finally {
-      if (mounted.current) onBusyChange(false);
+      if (mounted.current) setBusy(false);
     }
   };
 
   const runDepthEstimation = async (sync: boolean) => {
     if (!image || !estimator.estimateDepth || !estimator.estimateDepthWorklet || busy) return;
-    onBusyChange(true);
+    setBusy(true);
     setError(null);
     try {
       const input = skImageToBuffer(image);
@@ -125,17 +160,39 @@ function DepthDemo({
         : await estimator.estimateDepth(input);
       const elapsed = Date.now() - start;
       if (!mounted.current) return;
-      setPreview(createDepthPreview(depth));
+      setPreview(createDepthPreview(depth, Object.values(DEPTH_V3_MODELS).includes(selectedModel)));
       setLatency(elapsed);
     } catch (failure) {
       if (mounted.current) setError(String(failure));
     } finally {
-      if (mounted.current) onBusyChange(false);
+      if (mounted.current) setBusy(false);
     }
   };
 
   return (
-    <>
+    <ScrollView
+      style={commonStyles.container}
+      contentContainerStyle={[
+        commonStyles.contentContainer,
+        { paddingBottom: insets.bottom + theme.spacing.large },
+      ]}
+    >
+      <Text style={commonStyles.description}>
+        Turn a photo into a moving scene. Estimate depth once, then explore perspective, focus, and
+        the space between subjects.
+      </Text>
+      <ModelPicker
+        label="Backend"
+        options={BACKEND_OPTIONS}
+        selectedValue={selectedBackend}
+        onValueChange={selectBackend}
+      />
+      <ModelPicker
+        label="Model"
+        options={MODEL_OPTIONS[selectedBackend]}
+        selectedValue={selectedModel}
+        onValueChange={selectModel}
+      />
       <ModelStatus
         isReady={estimator.isReady}
         downloadProgress={estimator.downloadProgress}
@@ -186,40 +243,6 @@ function DepthDemo({
         </Text>
       )}
       <LatencyIndicator latency={latency} />
-    </>
-  );
-}
-
-function DepthEstimationContent() {
-  const insets = useSafeAreaInsets();
-  const [selectedModel, setSelectedModel] = useState<DepthEstimatorModel>(DEPTH_MODELS.DEFAULT);
-  const [busy, setBusy] = useState(false);
-
-  return (
-    <ScrollView
-      style={commonStyles.container}
-      contentContainerStyle={[
-        commonStyles.contentContainer,
-        { paddingBottom: insets.bottom + theme.spacing.large },
-      ]}
-      keyboardShouldPersistTaps="handled"
-    >
-      <Text style={commonStyles.description}>
-        Turn a photo into a moving scene. Estimate depth once, then explore perspective, focus, and
-        the space between subjects.
-      </Text>
-      <ModelPicker
-        label="Model"
-        options={MODEL_OPTIONS.map((option) => ({ ...option, disabled: option.disabled || busy }))}
-        selectedValue={selectedModel}
-        onValueChange={setSelectedModel}
-      />
-      <DepthDemo
-        key={selectedModel.modelPath}
-        model={selectedModel}
-        busy={busy}
-        onBusyChange={setBusy}
-      />
     </ScrollView>
   );
 }
