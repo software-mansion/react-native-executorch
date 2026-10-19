@@ -22,6 +22,7 @@ import type { StyleTransferModel } from './extensions/cv/tasks/styleTransfer';
 import type { SemanticSegmenterModel } from './extensions/cv/tasks/semanticSegmentation';
 import type { KeypointDetectorModel } from './extensions/cv/tasks/keypointDetection';
 import type { InstanceSegmenterModel } from './extensions/cv/tasks/instanceSegmentation';
+import type { DepthEstimatorModel } from './extensions/cv/tasks/depthEstimation';
 import type { ImageEmbedderModel } from './extensions/cv/tasks/imageEmbedding';
 import type { SdxsTextToImageModel } from './extensions/cv/tasks/sdxsTextToImage';
 import type { TextEmbedderModel } from './extensions/nlp/tasks/textEmbedding';
@@ -276,6 +277,33 @@ const STYLE_TRANSFER_UDNIE_COREML_FP16: StyleTransferModel = {
 const STYLE_TRANSFER_UDNIE_VULKAN_FP16: StyleTransferModel = {
   modelPath: `${BASE_URL}-style-transfer-udnie/${NEXT_VERSION_TAG}/vulkan/style_transfer_udnie_vulkan_fp16.pte`,
   modelOpts: STYLE_TRANSFER_OPTS,
+};
+
+// =============================================================================
+// Depth Estimation
+// =============================================================================
+
+const DEPTH_ANYTHING_V2_OPTS = {
+  resizeMode: 'stretch' as const,
+  interpolation: 'cubic' as const,
+  normalizeOpts: IMAGENET_NORM,
+  outInterpolation: 'linear' as const,
+};
+const DEPTH_ANYTHING_V2_SMALL_XNNPACK_INT8: DepthEstimatorModel = {
+  modelPath: `${BASE_URL}-depth-anything-v2/${NEXT_VERSION_TAG}/small/xnnpack/depth_anything_v2_small_xnnpack_int8.pte`,
+  modelOpts: DEPTH_ANYTHING_V2_OPTS,
+};
+const DEPTH_ANYTHING_V2_SMALL_XNNPACK_FP32: DepthEstimatorModel = {
+  modelPath: `${BASE_URL}-depth-anything-v2/${NEXT_VERSION_TAG}/small/xnnpack/depth_anything_v2_small_xnnpack_fp32.pte`,
+  modelOpts: DEPTH_ANYTHING_V2_OPTS,
+};
+const DEPTH_ANYTHING_V2_SMALL_COREML_FP16: DepthEstimatorModel = {
+  modelPath: `${BASE_URL}-depth-anything-v2/${NEXT_VERSION_TAG}/small/coreml/depth_anything_v2_small_coreml_fp16.pte`,
+  modelOpts: DEPTH_ANYTHING_V2_OPTS,
+};
+const DEPTH_ANYTHING_V2_SMALL_VULKAN_FP16: DepthEstimatorModel = {
+  modelPath: `${BASE_URL}-depth-anything-v2/${NEXT_VERSION_TAG}/small/vulkan/depth_anything_v2_small_vulkan_fp16.pte`,
+  modelOpts: DEPTH_ANYTHING_V2_OPTS,
 };
 
 // =============================================================================
@@ -2369,6 +2397,22 @@ export const models = {
       XNNPACK_FP32: STYLE_TRANSFER_UDNIE_XNNPACK_FP32,
       COREML_FP16: STYLE_TRANSFER_UDNIE_COREML_FP16,
       VULKAN_FP16: STYLE_TRANSFER_UDNIE_VULKAN_FP16,
+    }),
+  },
+
+  /**
+   * Depth estimation models that predict a floating-point depth value per pixel.
+   */
+  depthEstimation: {
+    /**
+     * Depth Anything V2 Small with a ViT-S/14 backbone. Predicts relative inverse
+     * depth from a single image; larger values indicate closer regions.
+     */
+    DEPTH_ANYTHING_V2_SMALL: variants({
+      XNNPACK_INT8: DEPTH_ANYTHING_V2_SMALL_XNNPACK_INT8,
+      XNNPACK_FP32: DEPTH_ANYTHING_V2_SMALL_XNNPACK_FP32,
+      COREML_FP16: DEPTH_ANYTHING_V2_SMALL_COREML_FP16,
+      VULKAN_FP16: DEPTH_ANYTHING_V2_SMALL_VULKAN_FP16,
     }),
   },
 

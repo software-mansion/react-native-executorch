@@ -44,7 +44,7 @@
  *   libs:      opencv, phonemis
  *   features:  llm, multimodalLLM, speechToText, textToSpeech, vad, privacyFilter,
  *              textEmbeddings, imageEmbeddings,
- *              classification, objectDetection, semanticSegmentation, instanceSegmentation,
+ *              classification, objectDetection, depthEstimation, semanticSegmentation, instanceSegmentation,
  *              ocr, verticalOCR, keypointDetection, styleTransfer, textToImage, segmentAnything,
  *              tokenizer
  *
@@ -164,6 +164,8 @@ const FEATURE_MAP = {
     backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'],
     libs: ['opencv'],
   },
+  // Depth Anything V2 ships xnnpack, coreml and vulkan.
+  depthEstimation: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
   // DeepLab/FCN/LR-ASPP/selfie all ship xnnpack + coreml.
   semanticSegmentation: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
   // YOLO-seg xnnpack-only, rf_detr-seg/fastsam add coreml, and all three ship
