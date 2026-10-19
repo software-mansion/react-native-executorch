@@ -105,7 +105,7 @@ const namedVariants = (group: Node): Node[] =>
 const BACKENDS = /^(xnnpack|coreml|mlx|qnn|vulkan)$/;
 // `spinquant` is a quantization recipe rather than a plain precision, but it is
 // what the published Llama builds are named after.
-const PRECISIONS = /^(fp32|fp16|bf16|int8|int4|8da4w|8da8w|4w|a16w8|dynamic|spinquant)$/;
+const PRECISIONS = /^(fp32|fp16|bf16|int8|int4|8da4w|8da8w|4w|a16w8|a8w8|dynamic|spinquant)$/;
 
 // A QNN .pte targets one Hexagon version and carries it as a trailing `_vNN`,
 // after the usual modelname_backend_precision.
