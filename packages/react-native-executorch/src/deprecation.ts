@@ -1,8 +1,8 @@
 /**
  * Registry variants on their way out. A variant is deprecated once a twin on the
  * same backend runs faster from a smaller download without losing accuracy. It
- * keeps working for one minor release, warning whenever it is downloaded, and is
- * then removed.
+ * keeps working until v1.0.0, warning whenever it is downloaded, and is then
+ * removed.
  */
 
 // Keyed by model URL rather than by config object, so a config the app copied
