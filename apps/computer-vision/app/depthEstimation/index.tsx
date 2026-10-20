@@ -51,25 +51,34 @@ const MODEL_OPTIONS: Record<Backend, DepthModelOption[]> = {
 type DepthPreview = { image: SkImage; min: number; max: number };
 
 // Display conversion belongs to the demo; the library retains the raw float map.
-function createDepthPreview(depth: DepthMap, invert: boolean): DepthPreview {
+function createDepthPreview(depth: DepthMap, isDepth: boolean): DepthPreview {
+  // Effects use inverse depth so near surfaces retain contrast across model families.
+  const values = isDepth
+    ? depth.data.map((value) => (Number.isFinite(value) && value > 0 ? 1 / value : NaN))
+    : depth.data;
+  let rawMin = Infinity;
+  let rawMax = -Infinity;
   let min = Infinity;
   let max = -Infinity;
-  for (const value of depth.data) {
+  for (let i = 0; i < values.length; i++) {
+    const raw = depth.data[i]!;
+    if (Number.isFinite(raw)) {
+      rawMin = Math.min(rawMin, raw);
+      rawMax = Math.max(rawMax, raw);
+    }
+    const value = values[i]!;
     if (!Number.isFinite(value)) continue;
     min = Math.min(min, value);
     max = Math.max(max, value);
   }
-  if (!Number.isFinite(min)) throw new Error('The model returned no finite depth values.');
+  if (!Number.isFinite(min))
+    throw new Error('The model returned no valid depth values for the preview.');
   const range = max - min;
   const rgba = new Uint8Array(depth.width * depth.height * 4);
   for (let i = 0; i < depth.data.length; i++) {
-    const value = depth.data[i]!;
+    const value = values[i]!;
     const normalized = range > 0 && Number.isFinite(value) ? (value - min) / range : 0;
-    // Effects expect nearer surfaces to be brighter; V3 predicts larger values farther away.
-    const gray =
-      range > 0 && Number.isFinite(value)
-        ? Math.round((invert ? 1 - normalized : normalized) * 255)
-        : 0;
+    const gray = Math.round(normalized * 255);
     rgba[i * 4] = gray;
     rgba[i * 4 + 1] = gray;
     rgba[i * 4 + 2] = gray;
@@ -86,7 +95,7 @@ function createDepthPreview(depth: DepthMap, invert: boolean): DepthPreview {
     depth.width * 4
   );
   if (!image) throw new Error('Failed to render the depth preview.');
-  return { image, min, max };
+  return { image, min: rawMin, max: rawMax };
 }
 
 function DepthEstimationContent() {
@@ -108,6 +117,9 @@ function DepthEstimationContent() {
     };
   }, []);
 
+  const selectedOption = MODEL_OPTIONS[selectedBackend].find(
+    (option) => option.value === selectedModel
+  )!;
   const image = useImage(imageUri, (failure) => setError(failure.message));
   const estimator = useDepthEstimator(selectedModel);
 
@@ -121,11 +133,8 @@ function DepthEstimationContent() {
 
   const selectBackend = (backend: Backend) => {
     if (busy || backend === selectedBackend) return;
-    const family = MODEL_OPTIONS[selectedBackend].find(
-      (option) => option.value === selectedModel
-    )?.family;
     const nextModel =
-      MODEL_OPTIONS[backend].find((option) => option.family === family) ??
+      MODEL_OPTIONS[backend].find((option) => option.family === selectedOption.family) ??
       MODEL_OPTIONS[backend][0]!;
     setSelectedBackend(backend);
     selectModel(nextModel.value);
@@ -160,7 +169,7 @@ function DepthEstimationContent() {
         : await estimator.estimateDepth(input);
       const elapsed = Date.now() - start;
       if (!mounted.current) return;
-      setPreview(createDepthPreview(depth, Object.values(DEPTH_V3_MODELS).includes(selectedModel)));
+      setPreview(createDepthPreview(depth, selectedOption.family === 'v3'));
       setLatency(elapsed);
     } catch (failure) {
       if (mounted.current) setError(String(failure));
