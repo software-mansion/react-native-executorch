@@ -4,6 +4,7 @@ exports[`public API surface exports one hook per user-facing task 1`] = `
 [
   "useClassifier",
   "useColbertEmbedder",
+  "useDepthEstimator",
   "useImageEmbedder",
   "useInstanceSegmenter",
   "useKeypointDetector",
@@ -133,6 +134,7 @@ exports[`public API surface matches the recorded export list 1`] = `
   "WHISPER_SAMPLE_RATE_HZ",
   "createClassifier",
   "createColbertEmbedder",
+  "createDepthEstimator",
   "createFsmnVoiceActivityDetector",
   "createImageEmbedder",
   "createInstanceSegmenter",
@@ -169,6 +171,7 @@ exports[`public API surface matches the recorded export list 1`] = `
   "tensor",
   "useClassifier",
   "useColbertEmbedder",
+  "useDepthEstimator",
   "useImageEmbedder",
   "useInstanceSegmenter",
   "useKeypointDetector",

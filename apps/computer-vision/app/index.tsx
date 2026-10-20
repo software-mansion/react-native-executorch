@@ -36,6 +36,9 @@ export default function Home() {
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('segmentation/')}>
           <Text style={styles.buttonText}>Semantic Segmentation</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('depthEstimation/')}>
+          <Text style={styles.buttonText}>Depth Estimation</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
           onPress={() => router.navigate('instanceSegmentation/')}

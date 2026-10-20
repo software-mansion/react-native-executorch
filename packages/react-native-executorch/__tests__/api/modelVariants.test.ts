@@ -336,6 +336,7 @@ describe('feature map', () => {
   // added without an entry here fails the coverage case below.
   const FEATURE_OF_CATEGORY: Record<string, string> = {
     classification: 'classification',
+    depthEstimation: 'depthEstimation',
     styleTransfer: 'styleTransfer',
     semanticSegmentation: 'semanticSegmentation',
     objectDetection: 'objectDetection',

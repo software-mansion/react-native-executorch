@@ -423,3 +423,4 @@ xcrun
 denoiser
 imageembeddings
 unparseable
+zipdepth

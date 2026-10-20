@@ -28,6 +28,7 @@ import { createPaddleOcr } from '../../src/extensions/cv/tasks/paddleOcr';
 import { createSdxsTextToImage } from '../../src/extensions/cv/tasks/sdxsTextToImage';
 import { createSemanticSegmenter } from '../../src/extensions/cv/tasks/semanticSegmentation';
 import { createStyleTransfer } from '../../src/extensions/cv/tasks/styleTransfer';
+import { createDepthEstimator } from '../../src/extensions/cv/tasks/depthEstimation';
 import { createPrivacyFilter } from '../../src/extensions/nlp/tasks/privacyFilter';
 import { createTextEmbedder } from '../../src/extensions/nlp/tasks/textEmbedding';
 import { createColbertEmbedder } from '../../src/extensions/nlp/tasks/colbertEmbedding';
@@ -86,6 +87,7 @@ const factories: Record<string, () => Promise<unknown>> = {
   objectDetector: () => createObjectDetector(cv),
   semanticSegmenter: () => createSemanticSegmenter(cv),
   styleTransfer: () => createStyleTransfer(cv),
+  depthEstimator: () => createDepthEstimator(cv),
   imageEmbedder: () => createImageEmbedder(cv),
   instanceSegmenter: () => createInstanceSegmenter(cv),
   keypointDetector: () => createKeypointDetector(cv),
