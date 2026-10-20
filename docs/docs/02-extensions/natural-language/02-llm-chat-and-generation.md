@@ -321,7 +321,7 @@ const { chatTemplate, stopTokens } = llm.parseTokenizerConfig(
   JSON.parse(await RNBlobUtil.fs.readFile(model.tokenizerConfigPath, 'utf8'))
 );
 const preprocessor = llm.createChatPreprocessor({ chatTemplate });
-const runner = await wrapAsync(llm.createLLMRunner)(model.modelPath, model.tokenizerPath);
+const runner = await llm.createLLMRunner(model.modelPath, model.tokenizerPath);
 
 // Runs on a background worklet thread; `generate` is synchronous.
 const complete = wrapAsync((r: llm.LLMRunner, prompt: llm.Prompt) => {
