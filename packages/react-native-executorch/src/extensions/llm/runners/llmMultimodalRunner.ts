@@ -309,6 +309,7 @@ export function createLLMMultimodalRunner(
     const [tCurPos, tTokenId, tTokenEmbed] = tensors;
 
     let numTokens = 0;
+    let decodeOffset = 0;
     let curPos = pos.getBlocking();
 
     try {
@@ -320,8 +321,16 @@ export function createLLMMultimodalRunner(
 
         if (!config?.ignoreEos && eosIds.includes(nextToken)) break;
 
-        onToken?.(tokenizer.decode(Int32Array.of(nextToken)));
         generatedTokens.push(nextToken);
+
+        if (onToken) {
+          const pendingTokens = Int32Array.from(generatedTokens.slice(decodeOffset));
+          const text = tokenizer.tryDecode(pendingTokens, /* skipSpecialTokens= */ true);
+          if (text !== undefined) {
+            decodeOffset = generatedTokens.length;
+            onToken(text);
+          }
+        }
 
         // Embed single token
         tTokenId.setData(BigInt64Array.of(BigInt(nextToken)));

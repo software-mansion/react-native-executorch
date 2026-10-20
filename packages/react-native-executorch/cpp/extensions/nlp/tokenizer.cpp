@@ -1,5 +1,6 @@
 #include "tokenizer.h"
 
+#include <cstddef>
 #include <cstdint>
 #include <format>
 #include <stdexcept>
@@ -24,6 +25,30 @@ namespace {
 // (i.e. special tokens are added exactly as configured in tokenizer.json).
 constexpr uint64_t kNumAddedBosTokens = 0;
 constexpr uint64_t kNumAddedEosTokens = 0;
+
+// Copied from ExecuTorch extension/llm/runner/util.h.
+// Length of the longest prefix that does not end in an incomplete UTF-8
+// sequence. Invalid lead bytes count as length 1 rather than stalling output.
+size_t utf8_complete_prefix_len(const std::string &s) {
+    size_t i = 0;
+    const size_t n = s.size();
+    while (i < n) {
+        const auto c = static_cast<unsigned char>(s[i]);
+        size_t len = 1; // ASCII or an invalid lead byte.
+        if ((c >> 5) == 0x6) {
+            len = 2;
+        } else if ((c >> 4) == 0xE) {
+            len = 3;
+        } else if ((c >> 3) == 0x1E) {
+            len = 4;
+        }
+        if (i + len > n) {
+            break; // Incomplete trailing sequence: hold it for more bytes.
+        }
+        i += len;
+    }
+    return i;
+}
 
 // tokenizers::Error is its own enum (not executorch::runtime::Error), and the
 // tokenizers library ships no to_string for it, so map it to a readable name.
@@ -140,6 +165,40 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
         return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "decode"), 1, error::guarded(fnBody));
     }
 
+    if (nameStr == "tryDecode") {
+        auto self = shared_from_this();
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
+            if (count < 1 || count > 2) {
+                throw error::InvalidArgument("tryDecode: Usage: tryDecode(tokens, skipSpecialTokens?)");
+            }
+
+            bool skipSpecialTokens = true;
+            if (count == 2 && !args[1].isUndefined()) {
+                skipSpecialTokens = conversions::asType<bool>(rt, "tryDecode: skipSpecialTokens", args[1]);
+            }
+
+            auto lock = self->tryLockUnique(rt, "tryDecode: Tokenizer");
+            auto ids = conversions::fromJsiTypedArray<int32_t>(rt, "tryDecode: tokens", args[0]);
+            std::vector<uint64_t> tokens(ids.begin(), ids.end());
+
+            if (tokens.empty()) {
+                return jsi::String::createFromUtf8(rt, "");
+            }
+
+            auto text = unwrap("tryDecode: Failed to decode tokens",
+                               self->tokenizer_->decode(tokens, skipSpecialTokens));
+
+            // Check the original bytes before JSI converts them into a JS string.
+            // The caller retains the token ids and retries when more arrive.
+            if (utf8_complete_prefix_len(text) != text.size()) {
+                return jsi::Value::undefined();
+            }
+
+            return jsi::String::createFromUtf8(rt, text);
+        };
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "tryDecode"), 1, error::guarded(fnBody));
+    }
+
     if (nameStr == "getVocabSize") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
@@ -218,6 +277,7 @@ std::vector<facebook::jsi::PropNameID> TokenizerHostObject::getPropertyNames(jsi
     properties.push_back(jsi::PropNameID::forAscii(rt, "path"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "encode"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "decode"));
+    properties.push_back(jsi::PropNameID::forAscii(rt, "tryDecode"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "getVocabSize"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "idToToken"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "tokenToId"));

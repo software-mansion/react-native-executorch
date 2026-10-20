@@ -29,7 +29,7 @@ std::string load(const std::string &body) {
 TEST_F(TokenizerTest, LoadsAHuggingFaceTokenizer) {
     EXPECT_TRUE(evalBool(load("return typeof t === 'object';")));
     EXPECT_TRUE(evalBool(load(R"(
-        return ['encode', 'decode', 'getVocabSize', 'idToToken', 'tokenToId', 'dispose']
+        return ['encode', 'decode', 'tryDecode', 'getVocabSize', 'idToToken', 'tokenToId', 'dispose']
             .every((name) => typeof t[name] === 'function');
     )")));
 }
@@ -66,6 +66,58 @@ TEST_F(TokenizerTest, ConvertsBetweenIdsAndPieces) {
         const piece = t.idToToken(ids[0]);
         return typeof piece === 'string' && t.tokenToId(piece) === ids[0];
     )")));
+}
+
+TEST_F(TokenizerTest, TryDecodeWaitsForCompleteUtf8BeforeCrossingJsi) {
+    EXPECT_TRUE(evalBool(load(R"(
+        // Whisper's ByteLevel vocabulary maps each byte to a token piece.
+        function byteToken(byte) {
+            const direct = (b) => (b >= 33 && b <= 126) ||
+                (b >= 161 && b <= 172) || (b >= 174 && b <= 255);
+            let codepoint = byte;
+            if (!direct(byte)) {
+                codepoint = 256;
+                for (let b = 0; b < byte; b++) if (!direct(b)) codepoint++;
+            }
+            return t.tokenToId(String.fromCharCode(codepoint));
+        }
+        const cases = [
+            [[0xc3, 0xa9], '\u00e9'],
+            [[0xe0, 0xa4, 0x95], '\u0915'],
+            [[0xf0, 0x9f, 0x98, 0x80], '\ud83d\ude00'],
+        ];
+        for (const [bytes, expected] of cases) {
+            const ids = bytes.map(byteToken);
+            for (let end = 1; end < ids.length; end++) {
+                if (t.tryDecode(Int32Array.from(ids.slice(0, end))) !== undefined) return false;
+                // A complete ASCII prefix must not hide an incomplete tail.
+                if (t.tryDecode(Int32Array.from([byteToken(65), ...ids.slice(0, end)])) !== undefined)
+                    return false;
+            }
+            if (t.tryDecode(Int32Array.from(ids)) !== expected) return false;
+        }
+        return t.tryDecode(new Int32Array(0)) === '' &&
+            t.tryDecode(t.encode(' hello world')) === ' hello world';
+    )")));
+}
+
+TEST_F(TokenizerTest, TryDecodePreservesSpecialTokenOptions) {
+    EXPECT_TRUE(evalBool(load(R"(
+        const ids = Int32Array.of(t.tokenToId('<|endoftext|>'));
+        return t.tryDecode(ids) === '' &&
+            t.tryDecode(ids, false) === '<|endoftext|>';
+    )")));
+}
+
+TEST_F(TokenizerTest, TryDecodeReportsArgumentAndLifecycleErrors) {
+    EXPECT_TRUE(isCodedError(evalThrowing(load("t.tryDecode();")),
+                             "INVALID_ARGUMENT", "Usage: tryDecode(tokens, skipSpecialTokens?)"));
+    EXPECT_TRUE(isCodedError(evalThrowing(load("t.tryDecode(new Int32Array(0), 42);")),
+                             "INVALID_ARGUMENT", "tryDecode: skipSpecialTokens"));
+    EXPECT_TRUE(isCodedError(evalThrowing(load("t.tryDecode(Int32Array.of(t.getVocabSize() + 1000));")),
+                             "EXECUTION_FAILED", "tryDecode:"));
+    EXPECT_TRUE(isCodedError(evalThrowing(load("t.dispose(); t.tryDecode(new Int32Array(0));")),
+                             "RESOURCE_DISPOSED", "tryDecode:"));
 }
 
 TEST_F(TokenizerTest, ReportsUnknownPiecesAsExecutionFailures) {

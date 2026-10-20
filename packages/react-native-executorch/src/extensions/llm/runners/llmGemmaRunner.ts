@@ -457,6 +457,7 @@ export function createLLMGemmaRunner(
     const [tCurPos, tTokenId, tTokenEmbed, tPleTok] = tensors;
 
     let numTokens = 0;
+    let decodeOffset = 0;
     let curPos = pos.getBlocking();
 
     try {
@@ -468,8 +469,16 @@ export function createLLMGemmaRunner(
 
         if (!config?.ignoreEos && eosIds.includes(nextToken)) break;
 
-        onToken?.(tokenizer.decode(Int32Array.of(nextToken), /* skipSpecialTokens= */ false));
         generatedTokens.push(nextToken);
+
+        if (onToken) {
+          const pendingTokens = Int32Array.from(generatedTokens.slice(decodeOffset));
+          const text = tokenizer.tryDecode(pendingTokens, /* skipSpecialTokens= */ false);
+          if (text !== undefined) {
+            decodeOffset = generatedTokens.length;
+            onToken(text);
+          }
+        }
 
         // Embed single token
         tTokenId.setData(BigInt64Array.of(BigInt(nextToken)));

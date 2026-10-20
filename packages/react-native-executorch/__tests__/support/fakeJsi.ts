@@ -12,6 +12,7 @@
  * The C++ side of the same contract is covered by the GoogleTest suites under
  * `cpp/tests/`; what these suites own is the TypeScript above it.
  */
+import { TextDecoder } from 'util';
 import type { ConcreteDim, ModelSpec } from '../../src/core/schema';
 import type { DType } from '../../src/core/tensor';
 import { FakeTensor, tensorTracker } from './fakeTensor';
@@ -88,6 +89,8 @@ class FakeModel {
 export type FakeVocabulary = {
   /** Token strings, indexed by id. */
   tokens: readonly string[];
+  /** Optional raw decoded bytes per id, for testing split UTF-8 tokens. */
+  tokenBytes?: readonly (readonly number[])[];
   /** Ids prepended to every `encode` result (e.g. a BOS token). */
   prefix?: readonly number[];
   /** Ids appended to every `encode` result (e.g. an EOS token). */
@@ -126,6 +129,30 @@ function createFakeTokenizer(path: string, vocabulary: FakeVocabulary) {
     if (disposed) throw new Error(`${op}: tokenizer '${path}' has been disposed`);
   };
 
+  const decode = (
+    tokens: Int32Array,
+    skipSpecialTokens: boolean,
+    streaming: boolean
+  ): string | undefined => {
+    assertLive(streaming ? 'tryDecode' : 'decode');
+    const special = new Set(vocabulary.specialIds ?? []);
+    const ids = [...tokens].filter((id) => !(skipSpecialTokens && special.has(id)));
+    if (vocabulary.tokenBytes) {
+      const bytes = Uint8Array.from(ids.flatMap((id) => [...(vocabulary.tokenBytes![id] ?? [])]));
+      // Valid byte streams are enough for runner tests. The native boundary
+      // tests cover the production UTF-8 completeness check itself.
+      try {
+        return new TextDecoder('utf-8', { fatal: streaming }).decode(bytes);
+      } catch {
+        return undefined;
+      }
+    }
+    return ids
+      .map((id) => vocabulary.tokens[id] ?? '')
+      .filter(Boolean)
+      .join(' ');
+  };
+
   return {
     path,
 
@@ -144,14 +171,11 @@ function createFakeTokenizer(path: string, vocabulary: FakeVocabulary) {
     },
 
     decode: (tokens: Int32Array, skipSpecialTokens = true): string => {
-      assertLive('decode');
-      const special = new Set(vocabulary.specialIds ?? []);
-      return [...tokens]
-        .filter((id) => !(skipSpecialTokens && special.has(id)))
-        .map((id) => vocabulary.tokens[id] ?? '')
-        .filter(Boolean)
-        .join(' ');
+      return decode(tokens, skipSpecialTokens, false)!;
     },
+
+    tryDecode: (tokens: Int32Array, skipSpecialTokens = true): string | undefined =>
+      decode(tokens, skipSpecialTokens, true),
 
     getVocabSize: (): number => {
       assertLive('getVocabSize');

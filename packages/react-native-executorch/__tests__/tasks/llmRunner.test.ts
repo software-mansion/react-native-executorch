@@ -79,8 +79,12 @@ const GEMMA_SPEC = exported({
   ...method('get_eos_ids', [], [{ kind: 'Int' }]),
 });
 
-function registerModelWithSchema(schema: any, options: { maxContextLen?: number } = {}) {
+function registerModelWithSchema(
+  schema: any,
+  options: { maxContextLen?: number; tokenIds?: readonly number[] } = {}
+) {
   const maxContextLen = options.maxContextLen ?? 512;
+  let step = 0;
   fakeJsi.registerModel(MODEL_PATH, {
     schema,
     execute: (methodName, _inputs, outputs) => {
@@ -96,11 +100,12 @@ function registerModelWithSchema(schema: any, options: { maxContextLen?: number 
           return [true];
         case 'get_eos_ids':
           return [1];
+        case 'forward':
         case 'text_decoder': {
           const out = outputs[0];
-          if (out) {
-            // Write a greedy choice to index 2
-            out.setElement(2, 10);
+          if (out && (options.tokenIds || methodName === 'text_decoder')) {
+            for (let i = 0; i < out.numel; i++) out.setElement(i, 0);
+            out.setElement(options.tokenIds ? (options.tokenIds[step++] ?? 1) : 2, 10);
           }
           return undefined;
         }
@@ -115,7 +120,6 @@ function registerModelWithSchema(schema: any, options: { maxContextLen?: number 
         }
         case 'token_embedding':
         case 'vision_encoder':
-        case 'forward':
         default:
           return undefined;
       }
@@ -127,6 +131,87 @@ beforeEach(() => {
   fakeJsi.registerTokenizer(TOKENIZER_PATH, {
     tokens: ['<pad>', '<eos>', 'hello', 'world', 'vision'],
     open: true,
+  });
+});
+
+describe.each([
+  ['text', TEXT_SPEC, []],
+  ['multimodal', MULTIMODAL_SPEC, ['image']],
+  ['gemma', GEMMA_SPEC, ['image', 'audio']],
+] as const)('%s runner — streaming UTF-8', (_name, schema, modalities) => {
+  function registerBytes(pieces: readonly (readonly number[])[]) {
+    fakeJsi.registerTokenizer(TOKENIZER_PATH, {
+      tokens: ['prompt', '<eos>', ...pieces.map((_, i) => `piece${i}`)],
+      tokenBytes: [[112], [...Buffer.from('<eos>')], ...pieces],
+      specialIds: [1],
+    });
+    registerModelWithSchema(schema, { tokenIds: pieces.map((_, i) => i + 2) });
+  }
+
+  it.each(['हिन्दी', 'اردو', 'ไทย', '한국어', '😀', 'żółć', '中文'])(
+    'preserves split bytes in %s',
+    async (reply) => {
+      const bytes = [...Buffer.from(reply, 'utf8')];
+      registerBytes(bytes.map((byte) => [byte]));
+      const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH, modalities));
+      const chunks: string[] = [];
+
+      const stats = runner.generate('prompt', { temperature: 0 }, (text) => chunks.push(text));
+
+      expect(stats.numTokens).toBe(bytes.length);
+      expect(chunks.join('')).toBe(reply);
+      expect(chunks).not.toContain('');
+      expect(chunks.join('')).not.toContain('\ufffd');
+    }
+  );
+
+  it('buffers a complete prefix together with an incomplete tail', async () => {
+    registerBytes([[65, 0xe0], [0xa4], [0x95, 66]]);
+    const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH, modalities));
+    const chunks: string[] = [];
+
+    runner.generate('prompt', { temperature: 0 }, (text) => chunks.push(text));
+
+    expect(chunks).toEqual(['AकB']);
+  });
+
+  it('drops an incomplete tail at EOS', async () => {
+    registerBytes([[65], [0xf0], [0x9f]]);
+    const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH, modalities));
+    const chunks: string[] = [];
+
+    const stats = runner.generate('prompt', { temperature: 0 }, (text) => chunks.push(text));
+
+    expect(stats.numTokens).toBe(3);
+    expect(chunks).toEqual(['A']);
+  });
+
+  it('preserves the runner special-token setting', async () => {
+    registerBytes([[65]]);
+    registerModelWithSchema(schema, { tokenIds: [1, 2] });
+    const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH, modalities));
+    const chunks: string[] = [];
+
+    runner.generate('prompt', { temperature: 0, ignoreEos: true, maxNewTokens: 2 }, (text) =>
+      chunks.push(text)
+    );
+
+    expect(chunks).toEqual(_name === 'multimodal' ? ['', 'A'] : ['<eos>', 'A']);
+  });
+
+  it('does not carry a partial character into the next generation', async () => {
+    // The first prefill samples the lead byte, then its decode step samples
+    // EOS. The next prefill samples ASCII and must start with an empty buffer.
+    registerBytes([[0xc3], [65]]);
+    registerModelWithSchema(schema, { tokenIds: [2, 1, 3, 1] });
+    const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH, modalities));
+    const chunks: string[] = [];
+
+    runner.generate('prompt', { temperature: 0, maxNewTokens: 1 }, (text) => chunks.push(text));
+    expect(chunks).toEqual([]);
+    runner.generate('prompt', { temperature: 0 }, (text) => chunks.push(text));
+
+    expect(chunks).toEqual(['A']);
   });
 });
 
