@@ -21839,6 +21839,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/functions/createDepthEstimator": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/functions/createFsmnVoiceActivityDetector": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -22164,6 +22176,18 @@
     ]
   },
   "/react-native-executorch/docs/next/api-reference/functions/useColbertEmbedder": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/functions/useDepthEstimator": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
@@ -24395,6 +24419,54 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/DepthEstimator": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/DepthEstimatorModel": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/DepthEstimatorOptions": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/DepthMap": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/type-aliases/DetectKeypointsOptions": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -25836,6 +25908,18 @@
     ]
   },
   "/react-native-executorch/docs/next/extensions/colbert-retrieval": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/extensions/depth-estimation": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
