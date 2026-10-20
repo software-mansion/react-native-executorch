@@ -18,8 +18,6 @@ keywords:
 
 Depth estimation predicts a depth value for every pixel in an image. The pipeline returns a floating-point depth map matching the original image dimensions, which can be used for portrait blur, photo animation, and scene understanding.
 
-Depth Anything V2 predicts **relative inverse depth**: larger values indicate closer surfaces. Its values are not distances in meters, and their scale is not calibrated across images.
-
 ## Quick Start
 
 The [`useDepthEstimator`](../../06-api-reference/functions/useDepthEstimator.md) hook manages model downloading, initialization, and lifecycle:
@@ -78,12 +76,14 @@ Values retain the model's original scale. For visualization, normalize a copy of
 
 The [`DepthEstimatorOptions`](../../06-api-reference/type-aliases/DepthEstimatorOptions.md) in `modelOpts` configure input preprocessing and output resizing. Hosted presets include these settings:
 
-| Option             | Depth Anything V2 preset | Description                                                                               |
-| :----------------- | :----------------------- | :---------------------------------------------------------------------------------------- |
-| `resizeMode`       | `'stretch'`              | Resize the full image to the model input dimensions. Currently only stretch is supported. |
-| `interpolation`    | `'cubic'`                | Interpolation used to resize the input image.                                             |
-| `normalizeOpts`    | `IMAGENET_NORM`          | Input channel scaling and normalization.                                                  |
-| `outInterpolation` | `'linear'`               | Interpolation used to resize the float depth map to the source image dimensions.          |
+| Option             | Description                                                                                   |
+| :----------------- | :-------------------------------------------------------------------------------------------- |
+| `resizeMode`       | Resize the full image to the model input dimensions. Currently only `'stretch'` is supported. |
+| `interpolation`    | Interpolation used to resize the input image.                                                 |
+| `normalizeOpts`    | Input channel scaling and normalization.                                                      |
+| `outInterpolation` | Interpolation used to resize the float depth map to the source image dimensions.              |
+
+ZipDepth applies ImageNet normalization inside the model, so its preset only scales input pixel values to `[0, 1]`.
 
 There are no per-inference options. To change preprocessing for a different model, supply a custom model configuration.
 
@@ -171,7 +171,7 @@ The pipeline verifies the exported input and output shapes automatically. See [E
 ### Model Presets & Constants
 
 - [`models.depthEstimation`](../../06-api-reference/variables/models.md#depthestimation) — Pre-configured depth estimation models registry.
-- [`IMAGENET_NORM`](../../06-api-reference/variables/IMAGENET_NORM.md) — Input normalization used by Depth Anything V2 presets.
+- [`IMAGENET_NORM`](../../06-api-reference/variables/IMAGENET_NORM.md) — Input normalization used by Depth Anything V2 and V3 presets.
 
 :::info Source Code
 View the implementation on GitHub:

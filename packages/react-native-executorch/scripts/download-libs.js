@@ -164,7 +164,7 @@ const FEATURE_MAP = {
     backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'],
     libs: ['opencv'],
   },
-  // Depth Anything V2 ships xnnpack, coreml and vulkan.
+  // Depth Anything V2, V3 and ZipDepth ship xnnpack, coreml and vulkan.
   depthEstimation: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
   // DeepLab/FCN/LR-ASPP/selfie all ship xnnpack + coreml.
   semanticSegmentation: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
