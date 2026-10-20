@@ -485,3 +485,18 @@ describe('createLLMChatSession — failure', () => {
     expect(fakeJsi.liveTokenizers()).toEqual([]);
   });
 });
+
+it('rejects an overlapping turn without changing history and releases the busy guard', async () => {
+  const session = tracked(await createLLMChatSession(config));
+  const first = session.sendMessage('first question');
+  const history = session.getHistory();
+
+  await expect(session.sendMessage('overlapping question')).rejects.toMatchObject({
+    code: 'RESOURCE_BUSY',
+  });
+  await first;
+  expect(history).toEqual([{ role: 'user', content: 'first question' }]);
+  expect(session.getHistory().map((message) => message.role)).toEqual(['user', 'assistant']);
+  expect(session.getHistory()[0]!.content).toBe('first question');
+  expect((await session.sendMessage('next question')).messages.length).toBe(2);
+});

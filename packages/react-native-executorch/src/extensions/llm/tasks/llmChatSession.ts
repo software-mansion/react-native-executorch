@@ -7,6 +7,7 @@ import { scheduleOnRN, type WorkletRuntime } from 'react-native-worklets';
 import RNBlobUtil from 'react-native-blob-util';
 
 import { wrapAsync } from '../../../core/runtime';
+import { RnExecuTorchError } from '../../../core/error';
 import { createResourceScope } from '../../../core/lifetime';
 import {
   createLLMRunner,
@@ -125,7 +126,8 @@ export type LLMChatSession = {
    * @param genConfig Generation options overriding session defaults.
    * @returns A promise resolving to the generated messages and turn stats.
    * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the message is
-   * malformed, or `INVALID_STATE` if the chat template is non-monotonic.
+   * malformed, `INVALID_STATE` if the chat template is non-monotonic, or
+   * `RESOURCE_BUSY` if another turn is in progress.
    */
   sendMessage(
     message: ChatMessageContent,
@@ -226,11 +228,17 @@ export async function createLLMChatSession(
 
     const generateChatTurn = wrapAsync(generateChatTurnWorklet, runtime);
 
+    let isGenerating = false;
+
     const sendMessage = async (
       message: ChatMessageContent,
       onToken?: (token: string) => void,
       genConfig?: LLMGenerationConfig
     ): Promise<LLMChatTurnResult> => {
+      if (isGenerating) {
+        throw RnExecuTorchError('RESOURCE_BUSY', 'sendMessage: A turn is already in progress.');
+      }
+
       const turnGenConfig = { ...defaultGenerationConfig, ...genConfig };
       const generationOpts = { genConfig: turnGenConfig, stopTokens, stopRegex, onToken };
 
@@ -240,14 +248,15 @@ export async function createLLMChatSession(
       const turnStartIdx = history.length;
       const generationStatsList: LLMGenerationStats[] = [];
 
-      history.push({ role: 'user', content: message });
-
-      if (resetOnTurn) {
-        runner.reset();
-        committed = 0;
-      }
-
+      isGenerating = true;
       try {
+        history.push({ role: 'user', content: message });
+
+        if (resetOnTurn) {
+          runner.reset();
+          committed = 0;
+        }
+
         // Prefill newly committed messages up to current user message without generation prompt
         const toCommit = history.length - committed;
         const userPrompt = chatPreprocessor.process(history, toCommit, { addGenPrompt: false });
@@ -335,6 +344,8 @@ export async function createLLMChatSession(
         runner.reset(resetOnTurn ? 0 : initialPos);
         chatPreprocessor.clear();
         throw err;
+      } finally {
+        isGenerating = false;
       }
     };
 
