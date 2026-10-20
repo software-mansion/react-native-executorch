@@ -283,6 +283,11 @@ const EFFICIENTNET_V2_S_QNN_A16W8: ClassifierModel<ImageNet1KLabel> = {
   modelPath: `${BASE_URL}/EfficientNetV2-S-ExecuTorch/${VERSION_TAG}/qnn/efficientnet_v2_s_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: EFFICIENTNET_V2_S_OPTS,
 };
+// 1.75x faster than QNN_A16W8 for 1.4 top-1 on an S26 Ultra, so not the default.
+const EFFICIENTNET_V2_S_QNN_A8W8: ClassifierModel<ImageNet1KLabel> = {
+  modelPath: `${BASE_URL}-efficientnet-v2-s/${NEXT_VERSION_TAG}/qnn/efficientnet_v2_s_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: EFFICIENTNET_V2_S_OPTS,
+};
 
 // =============================================================================
 // Style Transfer
@@ -526,8 +531,8 @@ const LRASPP_MOBILENET_V3_LARGE_COREML_FP16: SemanticSegmenterModel<PascalVocLab
 };
 // Same Hexagon-version resolution and index-map output as the DeepLabV3 QNN
 // variants.
-const LRASPP_MOBILENET_V3_LARGE_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-lraspp/${NEXT_VERSION_TAG}/qnn/lraspp_mobilenet_v3_large_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+const LRASPP_MOBILENET_V3_LARGE_QNN_A8W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-lraspp/${NEXT_VERSION_TAG}/qnn/lraspp_mobilenet_v3_large_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: LRASPP_MOBILENET_V3_LARGE_OPTS,
 };
 
@@ -587,8 +592,8 @@ const DEEPLAB_V3_MOBILENET_V3_LARGE_COREML_FP16: SemanticSegmenterModel<PascalVo
 // Resolves to this device's Hexagon version; off Snapdragon the v81 file stands
 // in, and DEFAULT never picks it there. Returns a class index per pixel rather
 // than 21 logit planes, which the segmenter reads as its index-map variant.
-const DEEPLAB_V3_MOBILENET_V3_LARGE_QNN_A16W8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/qnn/deeplab_v3_mobilenet_v3_large_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+const DEEPLAB_V3_MOBILENET_V3_LARGE_QNN_A8W8: SemanticSegmenterModel<PascalVocLabel> = {
+  modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/qnn/deeplab_v3_mobilenet_v3_large_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 
@@ -2583,6 +2588,7 @@ export const models = {
       XNNPACK_FP32: deprecated(EFFICIENTNET_V2_S_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: EFFICIENTNET_V2_S_COREML_FP16,
       QNN_A16W8: EFFICIENTNET_V2_S_QNN_A16W8,
+      QNN_A8W8: EFFICIENTNET_V2_S_QNN_A8W8,
     }),
   },
 
@@ -2740,7 +2746,7 @@ export const models = {
       /** @deprecated Use `XNNPACK_INT8`. Removed in v1.0.0. */
       XNNPACK_FP32: deprecated(LRASPP_MOBILENET_V3_LARGE_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: LRASPP_MOBILENET_V3_LARGE_COREML_FP16,
-      QNN_A16W8: LRASPP_MOBILENET_V3_LARGE_QNN_A16W8,
+      QNN_A8W8: LRASPP_MOBILENET_V3_LARGE_QNN_A8W8,
     }),
     /**
      * DeepLabV3 semantic segmentation model with ResNet-50 backbone (21
@@ -2778,7 +2784,7 @@ export const models = {
       /** @deprecated Use `XNNPACK_INT8`. Removed in v1.0.0. */
       XNNPACK_FP32: deprecated(DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: DEEPLAB_V3_MOBILENET_V3_LARGE_COREML_FP16,
-      QNN_A16W8: DEEPLAB_V3_MOBILENET_V3_LARGE_QNN_A16W8,
+      QNN_A8W8: DEEPLAB_V3_MOBILENET_V3_LARGE_QNN_A8W8,
     }),
     /**
      * Fully Convolutional Network (FCN) semantic segmentation model with
