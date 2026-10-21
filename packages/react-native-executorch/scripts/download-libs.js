@@ -132,7 +132,8 @@ const FEATURE_MAP = {
   multimodalLLM: { backends: ['xnnpack', 'mlx', 'vulkan'], libs: ['opencv'] },
   // Privacy filter classifiers ship xnnpack + an MLX iOS export.
   privacyFilter: { backends: ['xnnpack', 'mlx'], libs: [] },
-  // Whisper ships xnnpack, coreml, an MLX iOS export and a Vulkan Android one.
+  // Whisper ships xnnpack, coreml, an MLX iOS export and a Vulkan Android one;
+  // Qwen3-ASR's MLX file also needs coreml, which runs its audio tower.
   speechToText: { backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'], libs: [] },
   // Kokoro ships xnnpack + coreml; Supertonic adds an MLX iOS export and a
   // Vulkan Android one.
