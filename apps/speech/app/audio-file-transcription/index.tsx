@@ -135,6 +135,11 @@ const MODELS = [
     name: 'Qwen3-ASR 0.6B (CPU)',
     config: models.speechToText.QWEN3_ASR.SIZE_0_6B.XNNPACK_8DA4W,
   },
+  {
+    name: 'Qwen3-ASR 0.6B (MLX + Core ML)',
+    config: models.speechToText.QWEN3_ASR.SIZE_0_6B.MLX_COREML_INT4,
+    disabled: Platform.OS !== 'ios',
+  },
 ];
 
 // Qwen3-ASR detects the language itself; 'auto' leaves it to the model.

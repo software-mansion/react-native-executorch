@@ -122,13 +122,21 @@ const CANDIDATE_BACKENDS = getCandidateBackends();
  */
 function pickVariant(keys: readonly string[], pin?: string): string {
   const backendOf = (key: string) => key.toLowerCase().split('_')[0] as BackendTag;
+  // A key may name a second backend the file also needs (`MLX_COREML_INT4`
+  // runs its audio tower on Core ML); every one of them has to be linked.
+  const isLinked = (key: string) =>
+    key
+      .toLowerCase()
+      .split('_')
+      .filter((part): part is BackendTag => (ALL_BACKENDS as readonly string[]).includes(part))
+      .every((tag) => CANDIDATE_BACKENDS.includes(tag));
 
-  if (pin !== undefined && keys.includes(pin) && CANDIDATE_BACKENDS.includes(backendOf(pin))) {
+  if (pin !== undefined && keys.includes(pin) && isLinked(pin)) {
     return pin;
   }
 
   for (const tag of CANDIDATE_BACKENDS) {
-    const match = keys.find((key) => backendOf(key) === tag);
+    const match = keys.find((key) => backendOf(key) === tag && isLinked(key));
     if (match !== undefined) return match;
   }
 
@@ -1634,6 +1642,12 @@ const QWEN3_ASR_0_6B_XNNPACK_8DA4W: Qwen3AsrSttModel = {
   tokenizerPath: QWEN3_ASR_0_6B_TOKENIZER,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
+const QWEN3_ASR_0_6B_MLX_COREML_INT4: Qwen3AsrSttModel = {
+  name: 'qwen3-asr',
+  modelPath: `${BASE_URL}-qwen-3-asr/${NEXT_VERSION_TAG}/0_6b/mlx/qwen3_asr_0_6b_coreml_mlx_4w.pte`,
+  tokenizerPath: QWEN3_ASR_0_6B_TOKENIZER,
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
 
 // =============================================================================
 // Text to Image
@@ -2999,6 +3013,8 @@ export const models = {
     QWEN3_ASR: family({
       /** Qwen3-ASR 0.6B: a 0.18B audio encoder in front of a Qwen3-0.6B decoder. */
       SIZE_0_6B: variants({
+        /** Audio tower on Core ML, decoder on MLX: needs both backends linked. */
+        MLX_COREML_INT4: QWEN3_ASR_0_6B_MLX_COREML_INT4,
         XNNPACK_8DA4W: QWEN3_ASR_0_6B_XNNPACK_8DA4W,
       }),
     }),

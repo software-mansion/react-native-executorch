@@ -320,6 +320,17 @@ describe('variant selection rules', () => {
     expect(defaultKeyOf(distiluse(registry))).toBe('XNNPACK_8DA4W');
   });
 
+  it('picks a variant naming two backends only when both are linked', () => {
+    // Qwen3-ASR's MLX file runs its audio tower on Core ML.
+    const qwen3Asr = (registry: Node): Node =>
+      ((registry.speechToText as Node).QWEN3_ASR as Node).SIZE_0_6B as Node;
+
+    expect(defaultKeyOf(qwen3Asr(registryFor({ os: 'ios' })))).toBe('MLX_COREML_INT4');
+    expect(
+      defaultKeyOf(qwen3Asr(registryFor({ os: 'ios', backends: ['XnnpackBackend', 'MLXBackend'] })))
+    ).toBe('XNNPACK_8DA4W');
+  });
+
   it('applies a pin only on the platform it names', () => {
     // The same group pins MLX for iOS only; Android resolves by its own order.
     expect(defaultKeyOf(distiluse(registryFor({ os: 'android' })))).toBe('VULKAN_FP16');
