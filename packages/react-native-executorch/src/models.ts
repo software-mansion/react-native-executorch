@@ -2091,6 +2091,17 @@ const LFM2_5_350M_MLX_INT4: LLMModel = {
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
 };
 
+const LFM2_5_2_6B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/2_6b/xnnpack/lfm_2_5_2_6b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/2_6b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/2_6b/tokenizer_config.json`,
+};
+const LFM2_5_2_6B_MLX_INT4: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/2_6b/mlx/lfm_2_5_2_6b_mlx_int4.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/2_6b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/2_6b/tokenizer_config.json`,
+};
+
 const LFM2_5_VL_PREPROCESSOR_CONFIG = {
   image: {
     visionToken: { start: '<|image_start|>', end: '<|image_end|>' },
@@ -3194,6 +3205,15 @@ export const models = {
     LFM2_5_1_2B: variants({
       XNNPACK_8DA4W: LFM2_5_1_2B_XNNPACK_8DA4W,
       MLX_INT4: LFM2_5_1_2B_MLX_INT4,
+    }),
+    /**
+     * Liquid AI LFM 2.5 2.6B hybrid language model post-trained for instruction
+     * following and agentic workloads. The exported variants support a
+     * 4096-token context and a 128000-token multilingual vocabulary.
+     */
+    LFM2_5_2_6B: variants({
+      XNNPACK_8DA4W: LFM2_5_2_6B_XNNPACK_8DA4W,
+      MLX_INT4: LFM2_5_2_6B_MLX_INT4,
     }),
     /**
      * Liquid AI LFM 2.5 350M ultra-compact hybrid language model. Optimized for

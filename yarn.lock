@@ -15464,6 +15464,7 @@ __metadata:
   resolution: "nlp@workspace:apps/nlp"
   dependencies:
     "@babel/core": "npm:^7.29.7"
+    "@huggingface/jinja": "npm:^0.5.9"
     "@react-native/metro-config": "npm:^0.86.0"
     "@react-navigation/drawer": "npm:^7.9.4"
     "@react-navigation/native": "npm:^7.2.2"

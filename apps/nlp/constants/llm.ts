@@ -1,4 +1,5 @@
 import { models, type llm, type LLMModel, type LLMToolOpts } from 'react-native-executorch';
+import { parse, tokenize } from '@huggingface/jinja';
 
 export const TOOLS: llm.ToolDefinition[] = [
   {
@@ -201,6 +202,88 @@ export function parseHammerToolCalls(text: string): llm.ToolParserResult | undef
   }
 }
 
+type LfmLiteral = { type: string; value: unknown };
+
+function parseLfmArgument(node: LfmLiteral): unknown {
+  switch (node.type) {
+    case 'StringLiteral':
+    case 'IntegerLiteral':
+    case 'FloatLiteral':
+      return node.value;
+    case 'ArrayLiteral':
+      return (node.value as LfmLiteral[]).map(parseLfmArgument);
+    case 'ObjectLiteral':
+      return Object.fromEntries(
+        [...(node.value as Map<LfmLiteral, LfmLiteral>)].map(([key, value]) => {
+          const name = parseLfmArgument(key);
+          if (typeof name !== 'string') throw new Error('Expected a string key');
+          return [name, parseLfmArgument(value)];
+        })
+      );
+    case 'Identifier': {
+      const literals: Record<string, unknown> = {
+        True: true,
+        False: false,
+        None: null,
+        true: true,
+        false: false,
+        none: null,
+        null: null,
+      };
+      if (Object.prototype.hasOwnProperty.call(literals, String(node.value))) {
+        return literals[String(node.value)];
+      }
+    }
+  }
+  throw new Error('Expected a literal tool argument');
+}
+
+export function parseLfmToolCalls(text: string): llm.ToolParserResult | undefined {
+  // The generation prompt already opens <think>; only parse the final answer.
+  const thinkingEnd = text.lastIndexOf('</think>');
+  if (thinkingEnd === -1) return undefined;
+  const answer = text.slice(thinkingEnd + '</think>'.length);
+  const callRegex = /<\|tool_call_start\|>([\s\S]*?)<\|tool_call_end\|>/g;
+  const toolCalls: llm.ToolCall[] = [];
+
+  for (const match of answer.matchAll(callRegex)) {
+    try {
+      // Parse Python-style calls without evaluating generated expressions.
+      const program = parse(tokenize(`{{ ${match[1]} }}`));
+      const list = program.body[0] as LfmLiteral;
+      if (program.body.length !== 1 || list.type !== 'ArrayLiteral') return undefined;
+      const calls = list.value as {
+        type: string;
+        callee: { type: string; value: string };
+        args: { type: string; key: { value: string }; value: LfmLiteral }[];
+      }[];
+      for (const call of calls) {
+        if (call.type !== 'CallExpression' || call.callee.type !== 'Identifier') return undefined;
+        const args = Object.fromEntries(
+          call.args.map((arg) => {
+            if (arg.type !== 'KeywordArgumentExpression')
+              throw new Error('Expected named arguments');
+            return [arg.key.value, parseLfmArgument(arg.value)];
+          })
+        );
+        toolCalls.push({
+          type: 'function',
+          function: { name: call.callee.value, arguments: args },
+        });
+      }
+    } catch {
+      return undefined;
+    }
+  }
+
+  if (toolCalls.length === 0) return undefined;
+  const textContent = answer
+    .replace(callRegex, '')
+    .replace(/<\|im_end\|>/g, '')
+    .trim();
+  return { toolCalls, textContent: textContent || undefined };
+}
+
 export const QWEN_TOOL_STOP_REGEX = /(?:<\/tool_call>|<\|im_end\|>)/;
 
 export function parseQwenToolCalls(text: string): llm.ToolParserResult | undefined {
@@ -304,6 +387,18 @@ export const LFM2_5_GENERATION_CONFIG: llm.LLMGenerationConfig = {
   topP: 0.1,
   topK: 50,
   repetitionPenalty: 1.05,
+  maxNewTokens: 512,
+};
+
+/**
+ * LFM2.5 2.6B sampling defaults from the upstream generation_config.json.
+ * @see https://huggingface.co/LiquidAI/LFM2.5-2.6B/raw/main/generation_config.json
+ */
+export const LFM2_5_2_6B_GENERATION_CONFIG: llm.LLMGenerationConfig = {
+  temperature: 0.1,
+  topP: 1,
+  topK: 50,
+  repetitionPenalty: 1.1,
   maxNewTokens: 512,
 };
 
@@ -432,6 +527,11 @@ export const BIELIK_V3_GENERATION_CONFIG: llm.LLMGenerationConfig = {
 
 export const DEFAULT_SYSTEM_PROMPT = 'You are a helpful assistant. Your name is HAL-9000';
 
+export const LFM_TOOL_OPTS: LLMToolOpts = {
+  tools: TOOLS,
+  parseToolCalls: parseLfmToolCalls,
+};
+
 export const GEMMA_TOOL_OPTS: LLMToolOpts = {
   tools: TOOLS,
   parseToolCalls: parseGemmaToolCalls,
@@ -472,6 +572,27 @@ export interface LLMModelConfig {
 
 export const LLM_MODELS: LLMModelConfig[] = [
   // LFM 2.5 family
+  {
+    id: 'lfm-2.5-2.6b-xnnpack',
+    name: 'LFM 2.5 2.6B',
+    backend: 'xnnpack',
+    model: models.llm.LFM2_5_2_6B.XNNPACK_8DA4W,
+    generationConfig: LFM2_5_2_6B_GENERATION_CONFIG,
+    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    stopRegex: undefined,
+    toolOpts: LFM_TOOL_OPTS,
+  },
+  {
+    id: 'lfm-2.5-2.6b-mlx',
+    name: 'LFM 2.5 2.6B',
+    backend: 'mlx',
+    model: models.llm.LFM2_5_2_6B.MLX_INT4,
+    generationConfig: LFM2_5_2_6B_GENERATION_CONFIG,
+    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    stopRegex: undefined,
+    toolOpts: LFM_TOOL_OPTS,
+    iosOnly: true,
+  },
   {
     id: 'lfm-2.5-1.2b-xnnpack',
     name: 'LFM 2.5 1.2B',

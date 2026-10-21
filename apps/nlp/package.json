@@ -25,6 +25,7 @@
     "lint": "eslint . --ext .ts,.tsx --fix"
   },
   "dependencies": {
+    "@huggingface/jinja": "^0.5.9",
     "@react-navigation/drawer": "^7.9.4",
     "@react-navigation/native": "^7.2.2",
     "@shopify/react-native-skia": "2.6.2",
