@@ -3208,8 +3208,7 @@ export const models = {
     }),
     /**
      * Liquid AI LFM 2.5 2.6B hybrid language model post-trained for instruction
-     * following and agentic workloads. The exported variants support a
-     * 4096-token context and a 128000-token multilingual vocabulary.
+     * following and agentic workloads.
      */
     LFM2_5_2_6B: variants({
       XNNPACK_8DA4W: LFM2_5_2_6B_XNNPACK_8DA4W,
