@@ -258,7 +258,7 @@ describe('createLLMChatSession — a turn', () => {
     expect(secondTurn.map((prompt) => prompt.text).join('')).toContain('first question');
   });
 
-  it('stops the generation in flight on stop()', async () => {
+  it('stops generation and rolls back the current turn on stop()', async () => {
     script([{ response: 'one two three' }]);
     const session = tracked(await createLLMChatSession(config));
 
@@ -271,7 +271,20 @@ describe('createLLMChatSession — a turn', () => {
       },
     });
 
-    expect(result.messages.at(-1)!.content).toBe('one ');
+    expect(result.messages).toEqual([]);
+    expect(result.stats[0]!.numTokens).toBe(1);
+    expect(session.getHistory()).toEqual([]);
+    expect(session.getKVCacheState().pos).toBe(0);
+
+    expect((await session.sendMessage('try again')).messages).toHaveLength(2);
+  });
+
+  it('ignores stop() when no turn is in progress', async () => {
+    const session = tracked(await createLLMChatSession(config));
+
+    session.stop();
+
+    expect((await session.sendMessage('hi')).messages).toHaveLength(2);
   });
 });
 
@@ -316,6 +329,29 @@ describe('createLLMChatSession — tool calling', () => {
     expect(result.finishReason).toBe('stop');
     // One generation per turn of the loop.
     expect(result.stats).toHaveLength(2);
+  });
+
+  it('lets an active tool finish before rolling back a cancelled turn', async () => {
+    script([{ response: 'TOOL weather' }, { response: 'it is sunny' }]);
+    const parser = jest.fn(parseToolCalls);
+    const session = tracked(
+      await createLLMChatSession(config, {
+        toolOpts: { tools: [weather], parseToolCalls: parser },
+      })
+    );
+    weather.execute.mockImplementationOnce(async () => {
+      session.stop();
+      return 'sunny';
+    });
+
+    const result = await session.sendMessage('what is the weather');
+
+    expect(weather.execute).toHaveBeenCalledTimes(1);
+    expect(parser).toHaveBeenCalledTimes(1);
+    expect(result.messages).toEqual([]);
+    expect(result.stats).toHaveLength(1);
+    expect(session.getHistory()).toEqual([]);
+    expect(session.getKVCacheState().pos).toBe(0);
   });
 
   it('records the tool result against the call that asked for it', async () => {

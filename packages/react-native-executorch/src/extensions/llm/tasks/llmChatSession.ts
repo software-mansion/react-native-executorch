@@ -100,7 +100,7 @@ export type LLMChatTurnResult = {
  */
 export type LLMChatSession = {
   /**
-   * Interrupts and stops any active token generation call.
+   * Stops active generation and discards the current turn after its tool calls finish.
    */
   stop(): void;
 
@@ -215,6 +215,9 @@ export async function createLLMChatSession(
     // delimiters have been permanently prefilled and committed into the runner's KV cache.
     let committed = 0;
 
+    let isCancelled = false;
+    let isGenerating = false;
+
     // Prefill initial messages if provided
     if (initialMessages.length > 0) {
       history.push(...initialMessages);
@@ -224,11 +227,13 @@ export async function createLLMChatSession(
       committed = history.length;
     }
 
-    const stop = () => runner.stop();
+    const stop = () => {
+      if (!isGenerating) return;
+      isCancelled = true;
+      runner.stop();
+    };
 
     const generateChatTurn = wrapAsync(generateChatTurnWorklet, runtime);
-
-    let isGenerating = false;
 
     const sendMessage = async (
       message: ChatMessageContent,
@@ -248,6 +253,16 @@ export async function createLLMChatSession(
       const turnStartIdx = history.length;
       const generationStatsList: LLMGenerationStats[] = [];
 
+      // Restore history and KV cache bookkeeping to their pre-turn state.
+      // Release preprocessor resources and clear the cancellation flag.
+      const rollback = () => {
+        history.length = turnStartIdx;
+        committed = initialCommitted;
+        runner.reset(resetOnTurn ? 0 : initialPos);
+        chatPreprocessor.clear();
+        isCancelled = false;
+      };
+
       isGenerating = true;
       try {
         history.push({ role: 'user', content: message });
@@ -263,6 +278,11 @@ export async function createLLMChatSession(
         const prefillStats = await prefill(userPrompt);
         chatPreprocessor.clear();
 
+        if (isCancelled) {
+          rollback();
+          return { messages: [], stats: [], finishReason: 'stop' };
+        }
+
         // Record exact position at the end of the user message (before assistant generation header)
         const posAtEndOfUser = runner.getKVCacheState().pos;
         committed = history.length;
@@ -270,6 +290,11 @@ export async function createLLMChatSession(
         let finishReason: 'stop' | 'maxToolTurns' = 'maxToolTurns';
 
         for (let currentTurn = 0; currentTurn < maxToolTurns; ++currentTurn) {
+          if (isCancelled) {
+            rollback();
+            return { messages: [], stats: generationStatsList, finishReason: 'stop' };
+          }
+
           const uncommitted = history.length - committed;
           const prompt = chatPreprocessor.process(history, uncommitted, { addGenPrompt: true });
 
@@ -331,6 +356,11 @@ export async function createLLMChatSession(
           committed = history.length;
         }
 
+        if (isCancelled) {
+          rollback();
+          return { messages: [], stats: generationStatsList, finishReason: 'stop' };
+        }
+
         return { messages: history.slice(turnStartIdx), stats: generationStatsList, finishReason };
       } catch (err) {
         // Roll back history, KV cache, and active tensors to pre-turn state on
@@ -339,10 +369,7 @@ export async function createLLMChatSession(
         // Under `resetOnTurn` the pre-turn position IS zero: `initialPos` is
         // read before the turn begins and the turn then zeroed the cache, so
         // rewinding to it is out of range by construction.
-        history.length = turnStartIdx;
-        committed = initialCommitted;
-        runner.reset(resetOnTurn ? 0 : initialPos);
-        chatPreprocessor.clear();
+        rollback();
         throw err;
       } finally {
         isGenerating = false;
