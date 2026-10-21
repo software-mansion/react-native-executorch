@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Platform, View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { useSpeechToText, models, WHISPER_SAMPLE_RATE_HZ } from 'react-native-executorch';
+import {
+  useSpeechToText,
+  models,
+  QWEN3_ASR_LANGUAGES,
+  WHISPER_SAMPLE_RATE_HZ,
+} from 'react-native-executorch';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 import DeviceInfo from 'react-native-device-info';
 
@@ -119,7 +124,18 @@ const MODELS = [
     config: models.speechToText.WHISPER.SMALL.MLX_INT8,
     disabled: Platform.OS !== 'ios',
   },
+  {
+    name: 'Qwen3-ASR 0.6B (CPU)',
+    config: models.speechToText.QWEN3_ASR.SIZE_0_6B.XNNPACK_8DA4W,
+  },
 ];
+
+// Qwen3-ASR detects the language itself; 'auto' leaves it to the model.
+const AUTO = 'auto';
+const languagesOf = (config: (typeof MODELS)[number]['config']): readonly string[] =>
+  'supportedLanguages' in config
+    ? config.supportedLanguages
+    : [AUTO, ...Object.keys(QWEN3_ASR_LANGUAGES)];
 
 const isSimulator = DeviceInfo.isEmulatorSync();
 
@@ -141,7 +157,7 @@ function STTContent() {
     error: modelError,
   } = useSpeechToText(selectedModel.config);
 
-  const supportedLanguages = selectedModel.config.supportedLanguages;
+  const supportedLanguages = languagesOf(selectedModel.config);
 
   const recorderRef = useRef<AudioRecorder | null>(null);
 
@@ -168,7 +184,8 @@ function STTContent() {
 
     (async () => {
       try {
-        const textStream = stream({ language: selectedLanguage as any });
+        const language = selectedLanguage === AUTO ? undefined : selectedLanguage;
+        const textStream = stream({ language: language as any });
         for await (const result of textStream) {
           setCommittedText(result.committed);
           setNonCommittedText(result.nonCommitted);
@@ -216,7 +233,7 @@ function STTContent() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.card}>
         <ModelPicker
-          label="Whisper Model"
+          label="Speech-to-Text Model"
           options={MODELS.map((m) => ({
             label: m.name,
             value: m,
@@ -225,14 +242,14 @@ function STTContent() {
           selectedValue={selectedModel}
           onValueChange={(m) => {
             setSelectedModel(m);
-            setSelectedLanguage(m.config.supportedLanguages[0]!);
+            setSelectedLanguage(languagesOf(m.config)[0]!);
           }}
         />
         <ModelStatus
           isReady={isSttReady}
           downloadProgress={downloadProgress}
           error={modelError ? modelError.message : null}
-          modelTypeLabel="Whisper model"
+          modelTypeLabel="Speech-to-text model"
         />
         {supportedLanguages.length > 1 && (
           <ModelPicker

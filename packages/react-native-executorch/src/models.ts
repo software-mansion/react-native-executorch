@@ -38,6 +38,7 @@ import {
   type WhisperSttModel,
   WHISPER_LANGUAGES,
 } from './extensions/speech/tasks/whisperSpeechToText';
+import type { Qwen3AsrSttModel } from './extensions/speech/tasks/qwen3AsrSpeechToText';
 import type { PaddleOcrModel } from './extensions/cv/tasks/paddleOcr';
 import type { LLMModel } from './extensions/llm/tasks/llmChatSession';
 import {
@@ -1812,6 +1813,14 @@ const WHISPER_SMALL_VULKAN_INT8: WhisperSttModel = {
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 
+const QWEN3_ASR_0_6B_TOKENIZER = `${BASE_URL}-qwen-3-asr/${NEXT_VERSION_TAG}/0_6b/tokenizer.json`;
+const QWEN3_ASR_0_6B_XNNPACK_8DA4W: Qwen3AsrSttModel = {
+  name: 'qwen3-asr',
+  modelPath: `${BASE_URL}-qwen-3-asr/${NEXT_VERSION_TAG}/0_6b/xnnpack/qwen3_asr_0_6b_xnnpack_8da4w.pte`,
+  tokenizerPath: QWEN3_ASR_0_6B_TOKENIZER,
+  vadModel: FSMN_VAD_XNNPACK_FP32,
+};
+
 // =============================================================================
 // Text to Image
 // =============================================================================
@@ -3315,6 +3324,18 @@ export const models = {
         ),
       },
     },
+
+    /**
+     * Qwen3-ASR speech recognition with integrated Voice Activity Detection.
+     * Detects the spoken language automatically across 30 languages, or
+     * transcribes in a language you pass.
+     */
+    QWEN3_ASR: family({
+      /** Qwen3-ASR 0.6B: a 0.18B audio encoder in front of a Qwen3-0.6B decoder. */
+      SIZE_0_6B: variants({
+        XNNPACK_8DA4W: QWEN3_ASR_0_6B_XNNPACK_8DA4W,
+      }),
+    }),
   },
 
   /**
