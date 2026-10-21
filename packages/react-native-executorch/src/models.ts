@@ -1874,7 +1874,8 @@ const kokoroNeuralPhonemizer = <
 
 // Chinese is published from the next tag. Its phonemizer segments the text
 // into words, with the segmenter data in the tagger slot, and reads each word
-// from the lexicon.
+// from the lexicon. Upstream's zf_xiaoni is left out: it is unintelligible even
+// in the reference PyTorch model.
 const KOKORO_NEXT_ROOT = `${BASE_URL}-kokoro/${NEXT_VERSION_TAG}`;
 const KOKORO_ZH_PHONEMIZER = {
   lang: 'zh' as const,
@@ -1882,16 +1883,7 @@ const KOKORO_ZH_PHONEMIZER = {
   lexiconSource: `${KOKORO_NEXT_ROOT}/phonemizer/zh/lexicon.json`,
 };
 const KOKORO_ZH_VOICES = kokoroVoices(
-  [
-    'zf_xiaobei',
-    'zf_xiaoni',
-    'zf_xiaoxiao',
-    'zf_xiaoyi',
-    'zm_yunjian',
-    'zm_yunxi',
-    'zm_yunxia',
-    'zm_yunyang',
-  ],
+  ['zf_xiaobei', 'zf_xiaoxiao', 'zf_xiaoyi', 'zm_yunjian', 'zm_yunxi', 'zm_yunxia', 'zm_yunyang'],
   KOKORO_NEXT_ROOT
 );
 type KokoroZhVoice = keyof typeof KOKORO_ZH_VOICES;
