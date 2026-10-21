@@ -89,9 +89,10 @@ export type LLMChatTurnResult = {
   /**
    * Reason why the chat turn completed.
    * - `stop`: The model completed its answer naturally without further tool calls.
+   * - `cancelled`: The session was stopped and the current turn was discarded.
    * - `maxToolTurns`: The turn was terminated because it reached `maxToolTurns`.
    */
-  readonly finishReason: 'stop' | 'maxToolTurns';
+  readonly finishReason: 'stop' | 'cancelled' | 'maxToolTurns';
 };
 
 /**
@@ -198,10 +199,17 @@ export async function createLLMChatSession(
     // Read and parse tokenizer_config.json
     const tokenizerConfigStr = await RNBlobUtil.fs.readFile(tokenizerConfigPath, 'utf8');
     const tokenizerConfig = parseTokenizerConfig(JSON.parse(tokenizerConfigStr));
-    const { chatTemplate, stopTokens } = tokenizerConfig;
+    const { chatTemplate, bosToken, eosToken, stopTokens } = tokenizerConfig;
 
     // Prepare chat preprocessor
-    const chatPreprocessorConfig = { chatTemplate, modalities, preprocessorConfig, tools };
+    const chatPreprocessorConfig = {
+      chatTemplate,
+      bosToken,
+      eosToken,
+      modalities,
+      preprocessorConfig,
+      tools,
+    };
     const chatPreprocessor = scope.track(createChatPreprocessor(chatPreprocessorConfig));
 
     // Prepare runner
@@ -280,7 +288,7 @@ export async function createLLMChatSession(
 
         if (isCancelled) {
           rollback();
-          return { messages: [], stats: [], finishReason: 'stop' };
+          return { messages: [], stats: [], finishReason: 'cancelled' };
         }
 
         // Record exact position at the end of the user message (before assistant generation header)
@@ -292,7 +300,7 @@ export async function createLLMChatSession(
         for (let currentTurn = 0; currentTurn < maxToolTurns; ++currentTurn) {
           if (isCancelled) {
             rollback();
-            return { messages: [], stats: generationStatsList, finishReason: 'stop' };
+            return { messages: [], stats: generationStatsList, finishReason: 'cancelled' };
           }
 
           const uncommitted = history.length - committed;
@@ -358,7 +366,7 @@ export async function createLLMChatSession(
 
         if (isCancelled) {
           rollback();
-          return { messages: [], stats: generationStatsList, finishReason: 'stop' };
+          return { messages: [], stats: generationStatsList, finishReason: 'cancelled' };
         }
 
         return { messages: history.slice(turnStartIdx), stats: generationStatsList, finishReason };

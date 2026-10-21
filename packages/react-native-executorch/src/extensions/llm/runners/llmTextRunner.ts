@@ -192,7 +192,9 @@ export function createLLMTextRunner(
         if (curPos >= maxContextLen) break;
 
         const genTokArray = Int32Array.from(generatedTokens);
-        const nextToken = sample(tLogits, { generatedTokens: genTokArray }, config);
+        const seed = config?.seed === undefined ? undefined : (config.seed + numTokens) % 2 ** 32;
+        const samplingConfig = { ...config, seed };
+        const nextToken = sample(tLogits, { generatedTokens: genTokArray }, samplingConfig);
 
         if (!config?.ignoreEos && eosIds.includes(nextToken)) break;
 

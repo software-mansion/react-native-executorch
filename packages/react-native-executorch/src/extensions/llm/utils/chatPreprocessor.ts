@@ -80,6 +80,10 @@ export type LLMMediaPreprocessorConfig = {
 export type ChatPreprocessorConfig = {
   /** Jinja chat template string for prompt rendering. */
   readonly chatTemplate: string;
+  /** Beginning-of-sequence token exposed to the chat template. */
+  readonly bosToken?: string;
+  /** End-of-sequence token exposed to the chat template. */
+  readonly eosToken?: string;
   /** Tool definitions available to the model. */
   readonly tools?: readonly ToolDefinition[];
   /** Supported input modalities (e.g. `['image']`). */
@@ -302,7 +306,7 @@ function prepareStringMessages(
  * clear, and dispose methods.
  */
 export function createChatPreprocessor(config: ChatPreprocessorConfig): ChatPreprocessor {
-  const { chatTemplate, modalities, preprocessorConfig, tools } = config;
+  const { chatTemplate, bosToken, eosToken, modalities, preprocessorConfig, tools } = config;
   const template = new Template(chatTemplate);
 
   let imgPreprocessor: ReturnType<typeof createImagePreprocessor> | undefined;
@@ -384,6 +388,8 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig): ChatPrep
 
     /* eslint-disable camelcase */
     const text = template.render({
+      bos_token: bosToken,
+      eos_token: eosToken,
       tools: tools?.map((t) => ({ type: t.type, function: t.function })),
       messages: stringMessages,
       add_generation_prompt: addGenPrompt,

@@ -61,6 +61,10 @@ const NAMED_TEMPLATES = {
     { name: 'default', template: CHAT_TEMPLATE },
   ],
 };
+const SPECIAL_TOKEN_CONFIGS = [
+  { bos_token: '<|bos|>', eos_token: EOS },
+  { bos_token: { content: '<|bos|>' }, eos_token: { content: EOS } },
+];
 /* eslint-enable camelcase */
 
 let llm: ReturnType<typeof registerFakeLLM>;
@@ -79,6 +83,31 @@ beforeEach(() => {
 });
 
 describe('createLLMChatSession — construction', () => {
+  it.each(SPECIAL_TOKEN_CONFIGS)(
+    'passes configured special tokens to the template (%#)',
+    async (tokens) => {
+      writeTokenizerConfig({
+        ...tokens,
+        // eslint-disable-next-line camelcase
+        chat_template: '{{ bos_token }}' + CHAT_TEMPLATE.replace('<|end|>', '{{ eos_token }}'),
+      });
+      const session = tracked(
+        await createLLMChatSession(config, {
+          initialMessages: [{ role: 'system', content: 'be brief' }],
+        })
+      );
+
+      expect(promptsSent()).toEqual([`<|bos|><|system|>be brief${EOS}`]);
+      await session.sendMessage('hi');
+      await session.sendMessage('again');
+
+      const sent = promptsSent().join('');
+      expect(sent).toContain(`<|user|>hi${EOS}`);
+      expect(sent).toContain(`<|user|>again${EOS}`);
+      expect(sent.split('<|bos|>')).toHaveLength(2);
+    }
+  );
+
   it('rejects a tokenizer config without a chat template', async () => {
     writeRawTokenizerConfig(CONFIG_WITHOUT_TEMPLATE);
 
@@ -273,6 +302,7 @@ describe('createLLMChatSession — a turn', () => {
 
     expect(result.messages).toEqual([]);
     expect(result.stats[0]!.numTokens).toBe(1);
+    expect(result.finishReason).toBe('cancelled');
     expect(session.getHistory()).toEqual([]);
     expect(session.getKVCacheState().pos).toBe(0);
 
@@ -350,6 +380,7 @@ describe('createLLMChatSession — tool calling', () => {
     expect(parser).toHaveBeenCalledTimes(1);
     expect(result.messages).toEqual([]);
     expect(result.stats).toHaveLength(1);
+    expect(result.finishReason).toBe('cancelled');
     expect(session.getHistory()).toEqual([]);
     expect(session.getKVCacheState().pos).toBe(0);
   });

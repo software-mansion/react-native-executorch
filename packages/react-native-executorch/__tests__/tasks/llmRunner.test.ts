@@ -6,6 +6,7 @@ import { createLLMGemmaRunner } from '../../src/extensions/llm/runners/llmGemmaR
 import { loadModel } from '../../src/core/model';
 import { loadTokenizer } from '../../src/extensions/nlp';
 import { fakeJsi } from '../support/fakeJsi';
+import { llm as fakeSampler } from '../support/fakeOps';
 import { exported } from '../support/fixtures';
 import { tracked } from '../support/lifetime';
 
@@ -212,6 +213,54 @@ describe.each([
     runner.generate('prompt', { temperature: 0 }, (text) => chunks.push(text));
 
     expect(chunks).toEqual(['A']);
+  });
+});
+
+describe.each([
+  ['text', TEXT_SPEC, []],
+  ['multimodal', MULTIMODAL_SPEC, ['image']],
+  ['gemma', GEMMA_SPEC, ['image', 'audio']],
+] as const)('%s runner — sampling seeds', (_name, schema, modalities) => {
+  it.each([
+    [42, [42, 43, 44]],
+    [0xffffffff, [0xffffffff, 0, 1]],
+  ] as const)(
+    'advances seed %i per token without changing caller config',
+    async (seed, expected) => {
+      registerModelWithSchema(schema, { tokenIds: [2, 2, 2, 2, 2, 2, 2, 2] });
+      const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH, modalities));
+      const seeds: unknown[] = [];
+      const config = Object.freeze({
+        seed,
+        maxNewTokens: 3,
+        constraints: () => {
+          seeds.push(fakeSampler.lastSampleOptions()?.seed);
+          return undefined;
+        },
+      });
+
+      runner.generate('prompt', config);
+      runner.generate('prompt', config);
+
+      expect(seeds).toEqual([...expected, ...expected]);
+      expect(config.seed).toBe(seed);
+    }
+  );
+
+  it('keeps sampling unseeded when no seed is supplied', async () => {
+    registerModelWithSchema(schema, { tokenIds: [2, 2, 2, 2] });
+    const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH, modalities));
+    const seeds: unknown[] = [];
+
+    runner.generate('prompt', {
+      maxNewTokens: 3,
+      constraints: () => {
+        seeds.push(fakeSampler.lastSampleOptions()?.seed);
+        return undefined;
+      },
+    });
+
+    expect(seeds).toEqual([undefined, undefined, undefined]);
   });
 });
 
