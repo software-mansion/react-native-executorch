@@ -25,7 +25,7 @@ TEST_F(PhonemizerTest, AcceptsEverySupportedLanguage) {
     // The language string is passed straight through to phonemis, which picks
     // the pipeline from it. A profile it does not know throws (below), so this
     // is what catches a name drifting apart from the TS side.
-    for (const auto *lang : {"en-us", "en-gb", "de", "fr", "es", "it", "pl", "pt", "hi"}) {
+    for (const auto *lang : {"en-us", "en-gb", "de", "fr", "es", "it", "pl", "pt", "hi", "zh"}) {
         EXPECT_TRUE(evalBool(std::string("__rnexecutorch_jsi__.speech.createPhonemizer({ lang: '") +
                              lang + "' }); return true;"))
             << "rejected language: " << lang;

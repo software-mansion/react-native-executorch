@@ -418,5 +418,14 @@
   "https://huggingface.co/software-mansion/react-native-executorch-clip-vit-base-patch32/resolve/v0.11.0/coreml/clip_vit_base_patch32_text_coreml_int8.pte": 63921048,
   "https://huggingface.co/software-mansion/react-native-executorch-blazeface/resolve/v0.11.0/vulkan/blazeface_vulkan_fp16.pte": 372866,
   "https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.11.0/tokenizer.json": 711544,
-  "https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.11.0/coreml/all_minilm_l6_v2_coreml_int8.pte": 22817740
+  "https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.11.0/coreml/all_minilm_l6_v2_coreml_int8.pte": 22817740,
+  "https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/v0.11.0/phonemizer/zh/lexicon.json": 2334963,
+  "https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/v0.11.0/phonemizer/zh/segmenter.json": 8288194,
+  "https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/v0.11.0/voices/zf_xiaobei.bin": 522240,
+  "https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/v0.11.0/voices/zf_xiaoxiao.bin": 522240,
+  "https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/v0.11.0/voices/zf_xiaoyi.bin": 522240,
+  "https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/v0.11.0/voices/zm_yunjian.bin": 522240,
+  "https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/v0.11.0/voices/zm_yunxi.bin": 522240,
+  "https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/v0.11.0/voices/zm_yunxia.bin": 522240,
+  "https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/v0.11.0/voices/zm_yunyang.bin": 522240
 }
