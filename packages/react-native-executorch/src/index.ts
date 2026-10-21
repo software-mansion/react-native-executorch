@@ -88,6 +88,7 @@ export * from './extensions/nlp/tasks/colbertEmbedding';
 export * from './extensions/nlp/tasks/privacyFilter';
 export * from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 export * from './extensions/speech/tasks/whisperSpeechToText';
+export * from './extensions/speech/tasks/qwen3AsrSpeechToText';
 export * from './extensions/speech/tasks/supertonicTextToSpeech';
 export * from './extensions/speech/tasks/kokoroTextToSpeech';
 
