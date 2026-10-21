@@ -1848,9 +1848,9 @@ const kokoroModelPaths = (
   synthesizer: `${KOKORO_ROOT}/${backend}/${dir}/synthesizer_${variant}_${backend}_fp32.pte`,
 });
 
-const kokoroVoices = <const N extends string>(names: readonly N[]) =>
+const kokoroVoices = <const N extends string>(names: readonly N[], root = KOKORO_ROOT) =>
   names.reduce(
-    (acc, name) => ({ ...acc, [name]: `${KOKORO_ROOT}/voices/${name}.bin` }),
+    (acc, name) => ({ ...acc, [name]: `${root}/voices/${name}.bin` }),
     {} as Record<N, string>
   );
 
@@ -1863,12 +1863,38 @@ const kokoroEnglishPhonemizer = (lang: 'en-us' | 'en-gb') => ({
   neuralModelSource: `${KOKORO_PHONEMIZER_ROOT}/${lang}/phonemizer_${lang.replace('-', '_')}.pte`,
 });
 
-const kokoroNeuralPhonemizer = <const L extends Exclude<PhonemizerLanguage, 'en-us' | 'en-gb'>>(
+const kokoroNeuralPhonemizer = <
+  const L extends Exclude<PhonemizerLanguage, 'en-us' | 'en-gb' | 'zh'>,
+>(
   lang: L
 ) => ({
   lang,
   neuralModelSource: `${KOKORO_PHONEMIZER_ROOT}/${lang}/phonemizer_${lang}.pte`,
 });
+
+// Chinese is published from the next tag. Its phonemizer segments the text
+// into words, with the segmenter data in the tagger slot, and reads each word
+// from the lexicon.
+const KOKORO_NEXT_ROOT = `${BASE_URL}-kokoro/${NEXT_VERSION_TAG}`;
+const KOKORO_ZH_PHONEMIZER = {
+  lang: 'zh' as const,
+  taggerSource: `${KOKORO_NEXT_ROOT}/phonemizer/zh/segmenter.json`,
+  lexiconSource: `${KOKORO_NEXT_ROOT}/phonemizer/zh/lexicon.json`,
+};
+const KOKORO_ZH_VOICES = kokoroVoices(
+  [
+    'zf_xiaobei',
+    'zf_xiaoni',
+    'zf_xiaoxiao',
+    'zf_xiaoyi',
+    'zm_yunjian',
+    'zm_yunxi',
+    'zm_yunxia',
+    'zm_yunyang',
+  ],
+  KOKORO_NEXT_ROOT
+);
+type KokoroZhVoice = keyof typeof KOKORO_ZH_VOICES;
 
 const KOKORO_EN_US_XNNPACK_FP32: KokoroTtsModel<
   'af_heart' | 'af_river' | 'af_sarah' | 'am_adam' | 'am_michael' | 'am_santa'
@@ -1925,6 +1951,12 @@ const KOKORO_DE_XNNPACK_FP32: KokoroTtsModel<'df_anna'> = {
   modelPaths: kokoroModelPaths('xnnpack', 'de', 'german'),
   phonemizer: kokoroNeuralPhonemizer('de'),
   voices: kokoroVoices(['df_anna']),
+};
+const KOKORO_ZH_XNNPACK_FP32: KokoroTtsModel<KokoroZhVoice> = {
+  name: 'kokoro',
+  modelPaths: kokoroModelPaths('xnnpack', 'std', 'standard'),
+  phonemizer: KOKORO_ZH_PHONEMIZER,
+  voices: KOKORO_ZH_VOICES,
 };
 
 // Core ML counterparts: the same weights, phonemizer and voices as the XNNPACK
@@ -1986,6 +2018,12 @@ const KOKORO_DE_COREML_FP32: KokoroTtsModel<'df_anna'> = {
   modelPaths: kokoroModelPaths('coreml', 'de', 'german'),
   phonemizer: kokoroNeuralPhonemizer('de'),
   voices: kokoroVoices(['df_anna']),
+};
+const KOKORO_ZH_COREML_FP32: KokoroTtsModel<KokoroZhVoice> = {
+  name: 'kokoro',
+  modelPaths: kokoroModelPaths('coreml', 'std', 'standard'),
+  phonemizer: KOKORO_ZH_PHONEMIZER,
+  voices: KOKORO_ZH_VOICES,
 };
 
 // =============================================================================
@@ -3621,6 +3659,10 @@ export const models = {
       DE: variants({
         XNNPACK_FP32: KOKORO_DE_XNNPACK_FP32,
         COREML_FP32: KOKORO_DE_COREML_FP32,
+      }),
+      ZH: variants({
+        XNNPACK_FP32: KOKORO_ZH_XNNPACK_FP32,
+        COREML_FP32: KOKORO_ZH_COREML_FP32,
       }),
     },
   },

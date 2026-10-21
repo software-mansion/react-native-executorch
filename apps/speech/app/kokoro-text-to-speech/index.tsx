@@ -25,6 +25,7 @@ const LANGUAGE_OPTIONS = [
   { label: 'Hindi', value: 'HI' as const },
   { label: 'Polish', value: 'PL' as const },
   { label: 'German', value: 'DE' as const },
+  { label: 'Chinese', value: 'ZH' as const },
 ];
 
 type KokoroLanguage = (typeof LANGUAGE_OPTIONS)[number]['value'];
@@ -56,6 +57,7 @@ const SAMPLE_TEXTS: Record<KokoroLanguage, string> = {
   HI: 'कोकोरो एक छोटा टेक्स्ट-टू-स्पीच मॉडल है जो पूरी तरह से आपके डिवाइस पर चलता है।',
   PL: 'Kokoro to niewielki model syntezy mowy, który działa w całości na twoim urządzeniu, bez połączenia z internetem.',
   DE: 'Kokoro ist ein kompaktes Sprachsynthesemodell, das vollständig auf deinem Gerät läuft, ganz ohne Internetverbindung.',
+  ZH: 'Kokoro 是一个小巧的语音合成模型，完全在你的设备上运行，无需联网。',
 };
 // cspell:enable
 

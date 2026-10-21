@@ -11,7 +11,17 @@ declare const phonemizerBrand: unique symbol;
  * Union of all supported language codes in the G2P pipeline.
  * @category Speech / Types
  */
-export type PhonemizerLanguage = 'en-us' | 'en-gb' | 'fr' | 'es' | 'it' | 'pt' | 'de' | 'pl' | 'hi';
+export type PhonemizerLanguage =
+  | 'en-us'
+  | 'en-gb'
+  | 'fr'
+  | 'es'
+  | 'it'
+  | 'pt'
+  | 'de'
+  | 'pl'
+  | 'hi'
+  | 'zh';
 
 /**
  * Configuration options and asset paths for initializing a {@link Phonemizer}.
@@ -51,9 +61,10 @@ export type PhonemizedText = {
   /** IPA transcription of the whole text, the same as `phonemize(text)` returns. */
   readonly phonemes: string;
   /**
-   * The whitespace-separated words of the input text, in order. Each maps onto
-   * one space-separated phoneme group, except numbers, which map onto as many as
-   * they were spelled out into. Empty if the words could not be matched.
+   * The whitespace-separated words of the input text (segmented words for
+   * Chinese), in order. Each maps onto one space-separated phoneme group,
+   * except numbers, which map onto as many as they were spelled out into.
+   * Empty if the words could not be matched.
    */
   readonly words: readonly PhonemizedWord[];
 };
