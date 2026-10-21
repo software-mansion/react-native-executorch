@@ -454,6 +454,13 @@ describe('feature map', () => {
       if (typeof value === 'string') {
         const match = value.match(/\/(xnnpack|coreml|mlx|vulkan)\//);
         if (match) found.add(match[1]!);
+        // A file can need a second backend, which only its name records:
+        // `mlx/qwen3_asr_0_6b_coreml_mlx_4w.pte` runs its audio tower on Core ML.
+        if (value.endsWith('.pte')) {
+          for (const part of value.split('/').pop()!.split('_')) {
+            if (/^(xnnpack|coreml|mlx|vulkan)$/.test(part)) found.add(part);
+          }
+        }
       } else if (Array.isArray(value)) value.forEach(walk);
       else if (isObject(value)) Object.values(value).forEach(walk);
     };
