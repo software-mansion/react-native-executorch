@@ -195,6 +195,41 @@ function deprecated<
   return config;
 }
 
+/**
+ * The remote `.pte` URLs of a variant config.
+ * @param config A single-file (`modelPath`) or multi-file (`modelPaths`) config.
+ * @returns Its model URLs.
+ */
+function modelUrls(config: object): string[] {
+  if ('modelPath' in config) return [(config as { modelPath: string }).modelPath];
+  return Object.values((config as { modelPaths: Record<string, string> }).modelPaths);
+}
+
+/**
+ * Registers the download warning of every variant marked {@link deprecated}.
+ * @param node A registry branch.
+ * @param path The branch's dotted path, starting at `models`.
+ */
+function registerDeprecations(node: object, path: string): void {
+  for (const [key, value] of Object.entries(node)) {
+    if (key === 'DEFAULT' || typeof value !== 'object' || value === null) continue;
+    const replacement = REPLACEMENTS.get(value);
+    if (replacement !== undefined) {
+      const notice =
+        `${path}.${key} is deprecated and will be removed in v1.0.0. ` +
+        `Use ${path}.${replacement}, which is faster and smaller.`;
+      // A multi-file variant warns only for the files its replacement does not
+      // reuse (Supertonic int8 keeps the fp32 duration predictor and text encoder).
+      const kept = new Set(modelUrls((node as Record<string, object>)[replacement]!));
+      for (const url of modelUrls(value)) {
+        if (!kept.has(url)) registerDeprecation(url, notice);
+      }
+    } else if (!('modelPath' in value) && !('modelPaths' in value)) {
+      registerDeprecations(value, `${path}.${key}`);
+    }
+  }
+}
+
 const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorch';
 // Models resolve through VERSION_TAG, the latest published stable tag, unless
 // they have been re-exported for the next release, in which case their URL moves
@@ -1975,11 +2010,6 @@ const LFM2_5_1_2B_XNNPACK_8DA4W: LLMModel = {
   tokenizerPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer_config.json`,
 };
-const LFM2_5_1_2B_XNNPACK_FP16: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_fp16.pte`,
-  tokenizerPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer.json`,
-  tokenizerConfigPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer_config.json`,
-};
 const LFM2_5_1_2B_MLX_INT4: LLMModel = {
   modelPath: `${LFM2_5_BASE_URL}/1_2b/mlx/lfm_2_5_1_2b_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer.json`,
@@ -1987,11 +2017,6 @@ const LFM2_5_1_2B_MLX_INT4: LLMModel = {
 };
 const LFM2_5_350M_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${LFM2_5_BASE_URL}/350m/xnnpack/lfm_2_5_350m_xnnpack_8da4w.pte`,
-  tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
-  tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
-};
-const LFM2_5_350M_XNNPACK_FP16: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/350m/xnnpack/lfm_2_5_350m_xnnpack_fp16.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
 };
@@ -2069,11 +2094,6 @@ const BIELIK_V3_1_5B_XNNPACK_8DA4W: LLMModel = {
   tokenizerPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer_config.json`,
 };
-const BIELIK_V3_1_5B_XNNPACK_FP16: LLMModel = {
-  modelPath: `${BIELIK_V3_1_5B_BASE_URL}/xnnpack/bielik_v3_0_1_5b_xnnpack_fp16.pte`,
-  tokenizerPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer_config.json`,
-};
 
 const LLAMA3_2_BASE_URL = `${BASE_URL}-llama-3.2/${VERSION_TAG}`;
 
@@ -2082,18 +2102,8 @@ const LLAMA3_2_3B_SPINQUANT: LLMModel = {
   tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
 };
-const LLAMA3_2_3B_BF16: LLMModel = {
-  modelPath: `${LLAMA3_2_BASE_URL}/3b/xnnpack/llama_3_2_3b_xnnpack_bf16.pte`,
-  tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
-};
 const LLAMA3_2_1B_SPINQUANT: LLMModel = {
   modelPath: `${LLAMA3_2_BASE_URL}/1b/xnnpack/llama_3_2_1b_xnnpack_spinquant.pte`,
-  tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
-};
-const LLAMA3_2_1B_BF16: LLMModel = {
-  modelPath: `${LLAMA3_2_BASE_URL}/1b/xnnpack/llama_3_2_1b_xnnpack_bf16.pte`,
   tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
 };
@@ -2148,28 +2158,13 @@ const HAMMER2_1_0_5B_XNNPACK_8DA4W: LLMModel = {
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
-const HAMMER2_1_0_5B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/0_5b/xnnpack/hammer_2_1_0_5b_xnnpack_bf16.pte`,
-  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
-};
 const HAMMER2_1_1_5B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${HAMMER2_1_BASE_URL}/1_5b/xnnpack/hammer_2_1_1_5b_xnnpack_8da4w.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
-const HAMMER2_1_1_5B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/1_5b/xnnpack/hammer_2_1_1_5b_xnnpack_bf16.pte`,
-  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
-};
 const HAMMER2_1_3B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${HAMMER2_1_BASE_URL}/3b/xnnpack/hammer_2_1_3b_xnnpack_8da4w.pte`,
-  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
-};
-const HAMMER2_1_3B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/3b/xnnpack/hammer_2_1_3b_xnnpack_bf16.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
@@ -2196,11 +2191,6 @@ const PHI4_MINI_XNNPACK_8DA4W: LLMModel = {
   tokenizerPath: `${PHI4_MINI_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${PHI4_MINI_BASE_URL}/tokenizer_config.json`,
 };
-const PHI4_MINI_XNNPACK_BF16: LLMModel = {
-  modelPath: `${PHI4_MINI_BASE_URL}/xnnpack/phi_4_mini_xnnpack_bf16.pte`,
-  tokenizerPath: `${PHI4_MINI_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${PHI4_MINI_BASE_URL}/tokenizer_config.json`,
-};
 const PHI4_MINI_MLX_INT4: LLMModel = {
   modelPath: `${PHI4_MINI_BASE_URL}/mlx/phi_4_mini_mlx_int4.pte`,
   tokenizerPath: `${PHI4_MINI_BASE_URL}/tokenizer.json`,
@@ -2214,28 +2204,13 @@ const QWEN2_5_0_5B_XNNPACK_8DA4W: LLMModel = {
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
-const QWEN2_5_0_5B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/0_5b/xnnpack/qwen_2_5_0_5b_xnnpack_bf16.pte`,
-  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
-};
 const QWEN2_5_1_5B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${QWEN2_5_BASE_URL}/1_5b/xnnpack/qwen_2_5_1_5b_xnnpack_8da4w.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
-const QWEN2_5_1_5B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/1_5b/xnnpack/qwen_2_5_1_5b_xnnpack_bf16.pte`,
-  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
-};
 const QWEN2_5_3B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${QWEN2_5_BASE_URL}/3b/xnnpack/qwen_2_5_3b_xnnpack_8da4w.pte`,
-  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
-};
-const QWEN2_5_3B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/3b/xnnpack/qwen_2_5_3b_xnnpack_bf16.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
@@ -2280,28 +2255,13 @@ const QWEN3_0_6B_XNNPACK_8DA4W: LLMModel = {
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
-const QWEN3_0_6B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/0_6b/xnnpack/qwen_3_0_6b_xnnpack_bf16.pte`,
-  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
-};
 const QWEN3_1_7B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${QWEN3_BASE_URL}/1_7b/xnnpack/qwen_3_1_7b_xnnpack_8da4w.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
-const QWEN3_1_7B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/1_7b/xnnpack/qwen_3_1_7b_xnnpack_bf16.pte`,
-  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
-};
 const QWEN3_4B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${QWEN3_BASE_URL}/4b/xnnpack/qwen_3_4b_xnnpack_8da4w.pte`,
-  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
-};
-const QWEN3_4B_XNNPACK_BF16: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/4b/xnnpack/qwen_3_4b_xnnpack_bf16.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
@@ -3086,10 +3046,6 @@ export const models = {
    * Generative Large Language Models (LLMs) for instruction following, chat,
    * text generation, and reasoning.
    */
-  // Every bf16 and fp16 XNNPACK export is deprecated in favour of its 8da4w or
-  // SpinQuant sibling, which is 2-3.5x smaller. bf16 also misses XNNPACK's fast
-  // kernels: Qwen2.5 0.5B decodes at 0.5 tok/s against 27.1 for 8da4w on an S26
-  // Ultra. fp16 decodes LFM2.5 350M 2.2x slower than 8da4w.
   llm: {
     /**
      * Liquid AI LFM 2.5 1.2B general-purpose hybrid language model. Built on
@@ -3100,8 +3056,6 @@ export const models = {
      */
     LFM2_5_1_2B: variants({
       XNNPACK_8DA4W: LFM2_5_1_2B_XNNPACK_8DA4W,
-      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v1.0.0. */
-      XNNPACK_FP16: deprecated(LFM2_5_1_2B_XNNPACK_FP16, 'XNNPACK_8DA4W'),
       MLX_INT4: LFM2_5_1_2B_MLX_INT4,
     }),
     /**
@@ -3112,8 +3066,6 @@ export const models = {
      */
     LFM2_5_350M: variants({
       XNNPACK_8DA4W: LFM2_5_350M_XNNPACK_8DA4W,
-      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v1.0.0. */
-      XNNPACK_FP16: deprecated(LFM2_5_350M_XNNPACK_FP16, 'XNNPACK_8DA4W'),
       MLX_INT4: LFM2_5_350M_MLX_INT4,
     }),
     /**
@@ -3147,8 +3099,6 @@ export const models = {
      */
     BIELIK_V3_1_5B: variants({
       XNNPACK_8DA4W: BIELIK_V3_1_5B_XNNPACK_8DA4W,
-      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v1.0.0. */
-      XNNPACK_FP16: deprecated(BIELIK_V3_1_5B_XNNPACK_FP16, 'XNNPACK_8DA4W'),
     }),
     /**
      * Meta Llama 3.2 1B lightweight instruction-tuned multilingual model.
@@ -3159,8 +3109,6 @@ export const models = {
      */
     LLAMA3_2_1B: variants({
       XNNPACK_SPINQUANT: LLAMA3_2_1B_SPINQUANT,
-      /** @deprecated Use `XNNPACK_SPINQUANT`. Removed in v1.0.0. */
-      XNNPACK_BF16: deprecated(LLAMA3_2_1B_BF16, 'XNNPACK_SPINQUANT'),
       MLX_INT4: LLAMA3_2_1B_MLX_INT4,
     }),
     /**
@@ -3171,8 +3119,6 @@ export const models = {
      */
     LLAMA3_2_3B: variants({
       XNNPACK_SPINQUANT: LLAMA3_2_3B_SPINQUANT,
-      /** @deprecated Use `XNNPACK_SPINQUANT`. Removed in v1.0.0. */
-      XNNPACK_BF16: deprecated(LLAMA3_2_3B_BF16, 'XNNPACK_SPINQUANT'),
       MLX_INT4: LLAMA3_2_3B_MLX_INT4,
     }),
     /**
@@ -3212,8 +3158,6 @@ export const models = {
      */
     HAMMER2_1_0_5B: variants({
       XNNPACK_8DA4W: HAMMER2_1_0_5B_XNNPACK_8DA4W,
-      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v1.0.0. */
-      XNNPACK_BF16: deprecated(HAMMER2_1_0_5B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: HAMMER2_1_0_5B_MLX_INT4,
     }),
     /**
@@ -3223,8 +3167,6 @@ export const models = {
      */
     HAMMER2_1_1_5B: variants({
       XNNPACK_8DA4W: HAMMER2_1_1_5B_XNNPACK_8DA4W,
-      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v1.0.0. */
-      XNNPACK_BF16: deprecated(HAMMER2_1_1_5B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: HAMMER2_1_1_5B_MLX_INT4,
     }),
     /**
@@ -3235,8 +3177,6 @@ export const models = {
      */
     HAMMER2_1_3B: variants({
       XNNPACK_8DA4W: HAMMER2_1_3B_XNNPACK_8DA4W,
-      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v1.0.0. */
-      XNNPACK_BF16: deprecated(HAMMER2_1_3B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: HAMMER2_1_3B_MLX_INT4,
     }),
     /**
@@ -3247,8 +3187,6 @@ export const models = {
      */
     PHI4_MINI: variants({
       XNNPACK_8DA4W: PHI4_MINI_XNNPACK_8DA4W,
-      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v1.0.0. */
-      XNNPACK_BF16: deprecated(PHI4_MINI_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: PHI4_MINI_MLX_INT4,
     }),
     /**
@@ -3259,8 +3197,6 @@ export const models = {
      */
     QWEN2_5_0_5B: variants({
       XNNPACK_8DA4W: QWEN2_5_0_5B_XNNPACK_8DA4W,
-      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v1.0.0. */
-      XNNPACK_BF16: deprecated(QWEN2_5_0_5B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: QWEN2_5_0_5B_MLX_INT4,
     }),
     /**
@@ -3271,8 +3207,6 @@ export const models = {
      */
     QWEN2_5_1_5B: variants({
       XNNPACK_8DA4W: QWEN2_5_1_5B_XNNPACK_8DA4W,
-      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v1.0.0. */
-      XNNPACK_BF16: deprecated(QWEN2_5_1_5B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: QWEN2_5_1_5B_MLX_INT4,
     }),
     /**
@@ -3282,8 +3216,6 @@ export const models = {
      */
     QWEN2_5_3B: variants({
       XNNPACK_8DA4W: QWEN2_5_3B_XNNPACK_8DA4W,
-      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v1.0.0. */
-      XNNPACK_BF16: deprecated(QWEN2_5_3B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: QWEN2_5_3B_MLX_INT4,
     }),
     /**
@@ -3294,8 +3226,6 @@ export const models = {
      */
     QWEN3_0_6B: variants({
       XNNPACK_8DA4W: QWEN3_0_6B_XNNPACK_8DA4W,
-      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v1.0.0. */
-      XNNPACK_BF16: deprecated(QWEN3_0_6B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: QWEN3_0_6B_MLX_INT4,
     }),
     /**
@@ -3305,8 +3235,6 @@ export const models = {
      */
     QWEN3_1_7B: variants({
       XNNPACK_8DA4W: QWEN3_1_7B_XNNPACK_8DA4W,
-      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v1.0.0. */
-      XNNPACK_BF16: deprecated(QWEN3_1_7B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: QWEN3_1_7B_MLX_INT4,
     }),
     /**
@@ -3317,8 +3245,6 @@ export const models = {
      */
     QWEN3_4B: variants({
       XNNPACK_8DA4W: QWEN3_4B_XNNPACK_8DA4W,
-      /** @deprecated Use `XNNPACK_8DA4W`. Removed in v1.0.0. */
-      XNNPACK_BF16: deprecated(QWEN3_4B_XNNPACK_BF16, 'XNNPACK_8DA4W'),
       MLX_INT4: QWEN3_4B_MLX_INT4,
     }),
     /**
@@ -3624,40 +3550,5 @@ export const models = {
     },
   },
 };
-
-/**
- * The remote `.pte` URLs of a variant config.
- * @param config A single-file (`modelPath`) or multi-file (`modelPaths`) config.
- * @returns Its model URLs.
- */
-function modelUrls(config: object): string[] {
-  if ('modelPath' in config) return [(config as { modelPath: string }).modelPath];
-  return Object.values((config as { modelPaths: Record<string, string> }).modelPaths);
-}
-
-/**
- * Registers the download warning of every variant marked {@link deprecated}.
- * @param node A registry branch.
- * @param path The branch's dotted path, starting at `models`.
- */
-function registerDeprecations(node: object, path: string): void {
-  for (const [key, value] of Object.entries(node)) {
-    if (key === 'DEFAULT' || typeof value !== 'object' || value === null) continue;
-    const replacement = REPLACEMENTS.get(value);
-    if (replacement !== undefined) {
-      const notice =
-        `${path}.${key} is deprecated and will be removed in v1.0.0. ` +
-        `Use ${path}.${replacement}, which is faster and smaller.`;
-      // A multi-file variant warns only for the files its replacement does not
-      // reuse (Supertonic int8 keeps the fp32 duration predictor and text encoder).
-      const kept = new Set(modelUrls((node as Record<string, object>)[replacement]!));
-      for (const url of modelUrls(value)) {
-        if (!kept.has(url)) registerDeprecation(url, notice);
-      }
-    } else if (!('modelPath' in value) && !('modelPaths' in value)) {
-      registerDeprecations(value, `${path}.${key}`);
-    }
-  }
-}
 
 registerDeprecations(models, 'models');
