@@ -253,8 +253,8 @@ export async function createLLMChatSession(
       const turnStartIdx = history.length;
       const generationStatsList: LLMGenerationStats[] = [];
 
-      // Restore history and KV cache bookkeeping to their pre-turn state.
-      // Release preprocessor resources and clear the cancellation flag.
+      // Discard the turn, release preprocessor resources, and clear cancellation.
+      // With resetOnTurn, rewind to zero because the previous cache was cleared.
       const rollback = () => {
         history.length = turnStartIdx;
         committed = initialCommitted;
@@ -363,12 +363,7 @@ export async function createLLMChatSession(
 
         return { messages: history.slice(turnStartIdx), stats: generationStatsList, finishReason };
       } catch (err) {
-        // Roll back history, KV cache, and active tensors to pre-turn state on
-        // failure. The rewind must never replace the error it is unwinding.
-        //
-        // Under `resetOnTurn` the pre-turn position IS zero: `initialPos` is
-        // read before the turn begins and the turn then zeroed the cache, so
-        // rewinding to it is out of range by construction.
+        // Restore session state before propagating the failure.
         rollback();
         throw err;
       } finally {
