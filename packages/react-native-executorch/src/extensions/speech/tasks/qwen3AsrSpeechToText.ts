@@ -313,7 +313,10 @@ export async function createQwen3AsrSpeechToText(
     );
 
     const id = (token: string) => tokenizer.tokenToId(token);
-    const text = (s: string) => Array.from(tokenizer.encode(s));
+    const text = (s: string) => {
+      'worklet';
+      return Array.from(tokenizer.encode(s));
+    };
     const asrTextToken = id('<asr_text>');
     const eosTokens = [id('<|im_end|>'), id('<|endoftext|>')];
     const promptPrefix = [
