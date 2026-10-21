@@ -19,7 +19,7 @@ import { theme } from '../../theme';
 const MODELS = [
   {
     name: 'Tiny English (CPU)',
-    config: models.speechToText.WHISPER.EN.TINY.XNNPACK_FP32,
+    config: models.speechToText.WHISPER.EN.TINY.XNNPACK_INT8,
   },
   {
     name: 'Tiny English (CoreML)',
@@ -33,7 +33,7 @@ const MODELS = [
   },
   {
     name: 'Base English (CPU)',
-    config: models.speechToText.WHISPER.EN.BASE.XNNPACK_FP32,
+    config: models.speechToText.WHISPER.EN.BASE.XNNPACK_INT8,
   },
   {
     name: 'Base English (CoreML)',
@@ -47,7 +47,7 @@ const MODELS = [
   },
   {
     name: 'Small English (CPU)',
-    config: models.speechToText.WHISPER.EN.SMALL.XNNPACK_FP32,
+    config: models.speechToText.WHISPER.EN.SMALL.XNNPACK_INT8,
   },
   {
     name: 'Small English (CoreML)',
@@ -61,7 +61,7 @@ const MODELS = [
   },
   {
     name: 'Tiny Multilingual (CPU)',
-    config: models.speechToText.WHISPER.TINY.XNNPACK_FP32,
+    config: models.speechToText.WHISPER.TINY.XNNPACK_INT8,
   },
   {
     name: 'Tiny Multilingual (CoreML)',
@@ -100,7 +100,7 @@ const MODELS = [
   },
   {
     name: 'Base Multilingual (CPU)',
-    config: models.speechToText.WHISPER.BASE.XNNPACK_FP32,
+    config: models.speechToText.WHISPER.BASE.XNNPACK_INT8,
   },
   {
     name: 'Base Multilingual (CoreML)',
@@ -114,7 +114,7 @@ const MODELS = [
   },
   {
     name: 'Small Multilingual (CPU)',
-    config: models.speechToText.WHISPER.SMALL.XNNPACK_FP32,
+    config: models.speechToText.WHISPER.SMALL.XNNPACK_INT8,
   },
   {
     name: 'Small Multilingual (CoreML)',

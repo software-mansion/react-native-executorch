@@ -27,10 +27,6 @@ const MODEL_OPTIONS: ModelOption[] = [
     value: models.textToImage.SDXS_512_DREAMSHAPER.XNNPACK_INT8,
   },
   {
-    label: 'SDXS-512-DreamShaper (XNNPACK FP32)',
-    value: models.textToImage.SDXS_512_DREAMSHAPER.XNNPACK_FP32,
-  },
-  {
     label: 'SDXS-512-DreamShaper (CoreML FP16)',
     value: models.textToImage.SDXS_512_DREAMSHAPER.COREML_FP16,
     disabled: !isPhysicalIos,

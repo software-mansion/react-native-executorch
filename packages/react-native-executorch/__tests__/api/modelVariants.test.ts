@@ -33,6 +33,11 @@ const modelPathsOf = (config: Node): string =>
         .sort()
         .join('|');
 
+const modelUrlsOf = (config: Node): string[] =>
+  typeof config.modelPath === 'string'
+    ? [config.modelPath]
+    : Object.values(config.modelPaths as Node).map(String);
+
 const isUpperKey = (key: string) => /^[A-Z0-9_]+$/.test(key);
 
 /** Every group that names a `DEFAULT`, with the dotted path it sits at. */
@@ -323,6 +328,79 @@ describe('variant selection rules', () => {
   it('applies a pin only on the platform it names', () => {
     // The same group pins MLX for iOS only; Android resolves by its own order.
     expect(defaultKeyOf(distiluse(registryFor({ os: 'android' })))).toBe('VULKAN_FP16');
+  });
+});
+
+describe('deprecated variants', () => {
+  /** The devices a `DEFAULT` can resolve differently on. */
+  const devices = [
+    { os: 'ios' as const },
+    { os: 'android' as const },
+    { os: 'ios' as const, isEmulator: true },
+    { os: 'ios' as const, backends: ['XnnpackBackend'] },
+    { os: 'android' as const, backends: ['XnnpackBackend'] },
+  ];
+
+  /**
+   * Every group of the registry as resolved on `device`, with the notices of
+   * the variants it deprecates. Read from the deprecation module the reloaded
+   * registry registered them in.
+   */
+  function deprecationsFor(device: Parameters<typeof registryFor>[0]) {
+    const registry = registryFor(device);
+    const { deprecationOf } = require('../../src/deprecation') as {
+      deprecationOf: (modelPath: string) => string | undefined;
+    };
+    return variantGroups(registry).map(({ label, group }) => ({
+      label,
+      group,
+      notices: new Map(
+        namedVariants(group).flatMap(([key, config]) => {
+          const notice = modelUrlsOf(config)
+            .map(deprecationOf)
+            .find((n) => n !== undefined);
+          return notice === undefined ? [] : [[key, notice] as const];
+        })
+      ),
+    }));
+  }
+
+  it('finds deprecated variants to check', () => {
+    const count = deprecationsFor({ os: 'android' }).reduce(
+      (n, { notices }) => n + notices.size,
+      0
+    );
+    expect(count).toBeGreaterThan(0);
+  });
+
+  it('never defaults to a deprecated variant, on any device', () => {
+    const offenders = devices.flatMap((device) =>
+      deprecationsFor(device)
+        .filter(({ group, notices }) => notices.has(defaultKeyOf(group) ?? ''))
+        .map(({ label, group }) => `${JSON.stringify(device)} ${label}: ${defaultKeyOf(group)}`)
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('points every deprecated variant at a supported sibling', () => {
+    const offenders = deprecationsFor({ os: 'android' }).flatMap(({ label, group, notices }) =>
+      [...notices].flatMap(([key, notice]) => {
+        const prefix = `models.${label}.`;
+        const named = notice.match(/^(\S+) is deprecated.* Use (\S+), which/);
+        const replacement = named?.[2]?.startsWith(prefix)
+          ? named[2].slice(prefix.length)
+          : undefined;
+        const ok =
+          named?.[1] === `${prefix}${key}` &&
+          replacement !== undefined &&
+          isConfig(group[replacement]) &&
+          !notices.has(replacement);
+        return ok ? [] : [`${label}.${key}: ${notice}`];
+      })
+    );
+
+    expect(offenders).toEqual([]);
   });
 });
 
