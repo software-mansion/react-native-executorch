@@ -62,8 +62,9 @@ The `math`, `cv`, and `speech` operations below are all of this kind.
 **TypeScript utilities** are ordinary functions — seeded random number generation,
 bounding-box geometry, tokenizers, the LLM runner. They work on plain numbers,
 typed arrays, and strings rather than tensor destinations, and they allocate and
-return their own result. The `nlp` and `llm` namespaces are entirely utilities, and
-`math` and `cv` include a few alongside their native operations.
+return their own result. The `nlp` namespace is entirely utilities, `llm` is too
+apart from its native `sample` kernel, and `math` and `cv` include a few alongside
+their native operations.
 
 ## Math operations
 
@@ -208,8 +209,16 @@ multimodal inputs when the model supports them.
 ```typescript
 import { llm } from 'react-native-executorch';
 
-const runner = llm.createLLMRunner('/path/to/model.pte', '/path/to/tokenizer.json');
+const runner = await llm.createLLMRunner('/path/to/model.pte', '/path/to/tokenizer.json');
 ```
+
+The runner picks each token with
+[`sample`](../06-api-reference/react-native-executorch/namespaces/llm/functions/sample.md), a native kernel you
+can also call directly to write your own decoding loop. It takes a `[1, vocabSize]`
+logits tensor and returns the chosen token id, applying temperature, top-k, top-p,
+min-p, repetition penalty, DRY, XTC and token constraints along the way. Unlike the
+other kernels it has no destination: it rewrites the logits in place, so copy them
+first if you still need the originals.
 
 For chat models,
 [`createChatPreprocessor`](../06-api-reference/react-native-executorch/namespaces/llm/functions/createChatPreprocessor.md)
@@ -254,5 +263,5 @@ const tLatents = tensor('float32', [1, 4, 64, 64], latents);
 - CV: [`resize`](../06-api-reference/react-native-executorch/namespaces/cv/functions/resize.md) · [`cvtColor`](../06-api-reference/react-native-executorch/namespaces/cv/functions/cvtColor.md) · [`toChannelsFirst`](../06-api-reference/react-native-executorch/namespaces/cv/functions/toChannelsFirst.md) · [`toChannelsLast`](../06-api-reference/react-native-executorch/namespaces/cv/functions/toChannelsLast.md) · [`normalize`](../06-api-reference/react-native-executorch/namespaces/cv/functions/normalize.md) · [`applyColormap`](../06-api-reference/react-native-executorch/namespaces/cv/functions/applyColormap.md)
 - Speech: [`extractFrames`](../06-api-reference/react-native-executorch/namespaces/speech/functions/extractFrames.md)
 - NLP: [`loadTokenizer`](../06-api-reference/react-native-executorch/namespaces/nlp/functions/loadTokenizer.md) · [`piiSegments`](../06-api-reference/react-native-executorch/namespaces/nlp/functions/piiSegments.md)
-- LLM: [`createLLMRunner`](../06-api-reference/react-native-executorch/namespaces/llm/functions/createLLMRunner.md) · [`createChatPreprocessor`](../06-api-reference/react-native-executorch/namespaces/llm/functions/createChatPreprocessor.md)
+- LLM: [`createLLMRunner`](../06-api-reference/react-native-executorch/namespaces/llm/functions/createLLMRunner.md) · [`sample`](../06-api-reference/react-native-executorch/namespaces/llm/functions/sample.md) · [`createChatPreprocessor`](../06-api-reference/react-native-executorch/namespaces/llm/functions/createChatPreprocessor.md)
 - Numeric helpers: [`mulberry32`](../06-api-reference/react-native-executorch/namespaces/math/functions/mulberry32.md) · [`randomNormal`](../06-api-reference/react-native-executorch/namespaces/math/functions/randomNormal.md) · [`repeatInterleave`](../06-api-reference/react-native-executorch/namespaces/math/functions/repeatInterleave.md)

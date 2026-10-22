@@ -29,8 +29,9 @@ So `support/fakeJsi.ts` implements the native contract in JavaScript instead:
 | Piece | What it does |
 | --- | --- |
 | `support/fakeTensor.ts` | Typed-array-backed tensors with the real `setData`/`getData` byte semantics, `copyTo` windows, and use-after-dispose errors |
-| `support/fakeOps.ts` | JS implementations of the `math`, `cv` and `speech` operators, plus the phonemizer host object |
-| `support/fakeJsi.ts` | `createTensor`, `loadModel`, `loadTokenizer`, `createLLMRunner`, and the resource trackers |
+| `support/fakeOps.ts` | JS implementations of the `math`, `cv` and `speech` operators, the phonemizer host object, and a greedy `llm.sample` |
+| `support/fakeJsi.ts` | `createTensor`, `loadModel`, `loadTokenizer`, and the resource trackers |
+| `support/fakeLLM.ts` | A scripted LLM `.pte` and its tokenizer, for the TypeScript LLM runner to drive |
 | `support/blobUtilMock.ts` | In-memory filesystem plus a programmable server (status, body, `Range` support, `stateChange`, and a gate to hold a download open) |
 | `support/workletsMock.ts` | Runs worklets inline — a worklet is an ordinary function marked for a second runtime |
 
@@ -98,9 +99,9 @@ The line is drawn per pipeline rather than per suite, because it falls in a
 different place for each. Kokoro's waveform is weights, but its chunking,
 argument validation and streaming are not; the privacy filter's logits are
 weights, but the BIOES decode and the sliding window over them are pure
-TypeScript and are driven end to end; the LLM's generation belongs to the
-native runner, but the chat session's history, KV cache bookkeeping and
-tool-calling loop are covered against a scripted one; PaddleOCR's probability
+TypeScript and are driven end to end; the LLM's next-token logits are
+weights, but the runner's prefill/decode loop and the chat session's history,
+KV cache bookkeeping and tool-calling loop run over a scripted model; PaddleOCR's probability
 map is weights, but the quad decode, CTC collapse and reading order run over a
 map the test paints.
 

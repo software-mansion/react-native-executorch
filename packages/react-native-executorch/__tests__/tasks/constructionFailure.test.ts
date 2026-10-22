@@ -2,7 +2,7 @@
  * What a `create<Task>` factory leaves behind when it throws.
  *
  * Every factory follows the same shape: load a model (and, depending on the
- * task, a tokenizer, a phonemizer, an LLM runner or a whole nested pipeline),
+ * task, a tokenizer, a phonemizer or a whole nested pipeline),
  * validate the schema, pre-allocate the execution tensors, and only then hand
  * back a `dispose`. A failure anywhere after the first allocation means the
  * caller never receives that `dispose`, so whatever was already allocated is
@@ -36,12 +36,15 @@ import { createFsmnVoiceActivityDetector } from '../../src/extensions/speech/tas
 import { createKokoroTextToSpeech } from '../../src/extensions/speech/tasks/kokoroTextToSpeech';
 import { createSupertonicTextToSpeech } from '../../src/extensions/speech/tasks/supertonicTextToSpeech';
 import { createWhisperSpeechToText } from '../../src/extensions/speech/tasks/whisperSpeechToText';
+import { createLLMRunner } from '../../src/extensions/llm/llmRunner';
+import { createLLMChatSession } from '../../src/extensions/llm/tasks/llmChatSession';
 import { fakeFs } from '../support/blobUtilMock';
 import { fakeJsi } from '../support/fakeJsi';
 import { STRETCH_PREPROCESSING, exported } from '../support/fixtures';
 
 const MODEL_PATH = '/models/mismatched.pte';
 const TOKENIZER_PATH = '/models/tokenizer.json';
+const TOKENIZER_CONFIG_PATH = '/models/tokenizer_config.json';
 const CHARSET_PATH = '/models/charset.json';
 const VOICE_PATH = '/models/voice.bin';
 
@@ -140,23 +143,34 @@ const factories: Record<string, () => Promise<unknown>> = {
       phonemizer: { lang: 'en-us' },
       voices: { v: VOICE_PATH },
     } as never),
+  llmRunner: () => createLLMRunner(MODEL_PATH, TOKENIZER_PATH),
+  llmChatSession: () =>
+    createLLMChatSession({
+      modelPath: MODEL_PATH,
+      tokenizerPath: TOKENIZER_PATH,
+      tokenizerConfigPath: TOKENIZER_CONFIG_PATH,
+    }),
 };
 
 /** Everything the fake still considers allocated, as one comparable object. */
 const stillAllocated = () => ({
   models: fakeJsi.liveModels(),
   tokenizers: fakeJsi.liveTokenizers(),
-  runners: fakeJsi.liveRunners(),
   phonemizers: fakeJsi.livePhonemizers(),
   tensors: fakeJsi.liveTensorDescriptions(),
 });
 
-const NOTHING = { models: [], tokenizers: [], runners: [], phonemizers: [], tensors: [] };
+const NOTHING = { models: [], tokenizers: [], phonemizers: [], tensors: [] };
 
 describe('create<Task> — schema validation failure', () => {
   beforeEach(() => {
     fakeJsi.registerModel(MODEL_PATH, { schema: MISMATCHED });
     fakeJsi.registerTokenizer(TOKENIZER_PATH, { tokens: ['a', 'b'] });
+    fakeFs.write(
+      TOKENIZER_CONFIG_PATH,
+      // eslint-disable-next-line camelcase
+      JSON.stringify({ chat_template: '{{ prompt }}', eos_token: '<|end|>' })
+    );
     fakeFs.write(CHARSET_PATH, JSON.stringify(['a', 'b', 'c']));
     fakeFs.write(VOICE_PATH, new Uint8Array(1024));
   });

@@ -26,6 +26,12 @@ export default function Home() {
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('llm/')}>
           <Text style={styles.buttonText}>LLM</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.navigate('constrained-decoding/')}
+        >
+          <Text style={styles.buttonText}>Potion Lab · Constrained Decoding</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

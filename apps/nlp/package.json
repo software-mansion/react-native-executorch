@@ -25,6 +25,7 @@
     "lint": "eslint . --ext .ts,.tsx --fix"
   },
   "dependencies": {
+    "@huggingface/jinja": "^0.5.9",
     "@react-navigation/drawer": "^7.9.4",
     "@react-navigation/native": "^7.2.2",
     "@shopify/react-native-skia": "2.6.2",
@@ -37,6 +38,7 @@
     "expo-router": "~57.0.26",
     "react": "19.2.3",
     "react-native": "0.86.3",
+    "react-native-audio-api": "0.13.6",
     "react-native-blob-util": "^0.25.0",
     "react-native-drawer-layout": "^4.2.2",
     "react-native-executorch": "workspace:*",

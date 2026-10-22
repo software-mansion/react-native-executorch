@@ -26,7 +26,7 @@ using ConversionsTest = JsiTestEnv;
 // through, so its range and type checks are what stop a bad JS call from
 // reaching a reinterpret_cast. Tested against real jsi::Values.
 
-jsi::Value number(jsi::Runtime &rt, double v) {
+jsi::Value number(jsi::Runtime & /*rt*/, double v) {
     return jsi::Value(v);
 }
 
@@ -59,6 +59,16 @@ TEST_F(ConversionsTest, RejectsNaNAndInfinity) {
     const double nan = std::numeric_limits<double>::quiet_NaN();
     const double inf = std::numeric_limits<double>::infinity();
 
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<double>(rt(), "ctx", number(rt(), nan)); }, kInvalidArgument,
+                            "ctx must be a finite number"));
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<double>(rt(), "ctx", number(rt(), inf)); }, kInvalidArgument,
+                            "ctx must be a finite number"));
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<double>(rt(), "ctx", number(rt(), -inf)); }, kInvalidArgument,
+                            "ctx must be a finite number"));
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<float>(rt(), "ctx", number(rt(), nan)); }, kInvalidArgument,
+                            "ctx must be a finite number"));
+    EXPECT_TRUE(throwsCoded([&] { conversions::asType<float>(rt(), "ctx", number(rt(), inf)); }, kInvalidArgument,
+                            "ctx must be a finite number"));
     EXPECT_TRUE(throwsCoded([&] { conversions::asType<int32_t>(rt(), "ctx", number(rt(), nan)); }, kInvalidArgument));
     EXPECT_TRUE(throwsCoded([&] { conversions::asType<int32_t>(rt(), "ctx", number(rt(), inf)); }, kInvalidArgument));
     EXPECT_TRUE(throwsCoded([&] { conversions::asType<uint64_t>(rt(), "ctx", number(rt(), -inf)); }, kInvalidArgument));

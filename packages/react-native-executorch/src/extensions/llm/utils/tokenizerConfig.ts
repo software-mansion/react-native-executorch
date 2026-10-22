@@ -12,6 +12,8 @@ import { RnExecuTorchError } from '../../../core/error';
 export type TokenizerChatConfig = {
   /** Jinja chat template string for prompt rendering. */
   readonly chatTemplate: string;
+  /** Beginning-of-sequence token string, when configured. */
+  readonly bosToken?: string;
   /** End-of-sequence token string. */
   readonly eosToken: string;
   /**
@@ -67,5 +69,5 @@ export function parseTokenizerConfig(config: any): TokenizerChatConfig {
     resolveToken(config.pad_token),
   ].filter((token, index, all): token is string => !!token && all.indexOf(token) === index);
 
-  return { chatTemplate, eosToken, stopTokens };
+  return { chatTemplate, bosToken: resolveToken(config.bos_token), eosToken, stopTokens };
 }

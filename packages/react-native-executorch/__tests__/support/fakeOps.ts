@@ -1,6 +1,6 @@
 /**
  * JavaScript implementations of the native operations exposed under
- * `__rnexecutorch_jsi__.{math,cv,speech}`.
+ * `__rnexecutorch_jsi__.{math,cv,speech,llm}`.
  *
  * These follow the contracts documented on the TypeScript wrappers in
  * `src/extensions/`, so a pipeline that composes them produces the values a
@@ -698,5 +698,58 @@ export const speech = {
       }
     }
     return dst;
+  },
+};
+
+// ============================================================================
+// llm
+// ============================================================================
+
+type FakeSamplingConstraints = { allowedTokens?: Int32Array; bannedTokens?: Int32Array };
+
+let lastSampleOptions: Record<string, unknown> | undefined;
+
+export const llm = {
+  /**
+   * Greedy stand-in for the native sampler: applies the `constraints` callback
+   * the way the native chain does (first, on the raw logits) and then takes
+   * the argmax. Every other option shapes a distribution the fake has no use
+   * for, since a scripted model emits one-hot logits anyway.
+   */
+  sample(
+    logits: FakeTensor,
+    ctx: { generatedTokens?: Int32Array },
+    options: { constraints?: (ctx: unknown) => FakeSamplingConstraints | undefined } & Record<
+      string,
+      unknown
+    >
+  ): number {
+    lastSampleOptions = options;
+    const { allowedTokens, bannedTokens } = options.constraints?.(ctx) ?? {};
+    const allowed = allowedTokens && new Set(allowedTokens);
+    const banned = new Set(bannedTokens ?? []);
+
+    let best = -1;
+    let bestValue = -Infinity;
+    for (let i = 0; i < logits.numel; i++) {
+      if ((allowed && !allowed.has(i)) || banned.has(i)) continue;
+      const value = logits.getElement(i);
+      if (best === -1 || value > bestValue) {
+        best = i;
+        bestValue = value;
+      }
+    }
+    if (best === -1) throw new Error('sample: constraints left no token to choose');
+    return best;
+  },
+
+  /** @returns The options object passed to the most recent `sample` call. */
+  lastSampleOptions(): Record<string, unknown> | undefined {
+    return lastSampleOptions;
+  },
+
+  /** Clears the recorded sample options. */
+  reset(): void {
+    lastSampleOptions = undefined;
   },
 };

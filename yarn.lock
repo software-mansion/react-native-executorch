@@ -15464,6 +15464,7 @@ __metadata:
   resolution: "nlp@workspace:apps/nlp"
   dependencies:
     "@babel/core": "npm:^7.29.7"
+    "@huggingface/jinja": "npm:^0.5.9"
     "@react-native/metro-config": "npm:^0.86.0"
     "@react-navigation/drawer": "npm:^7.9.4"
     "@react-navigation/native": "npm:^7.2.2"
@@ -15479,6 +15480,7 @@ __metadata:
     expo-router: "npm:~57.0.26"
     react: "npm:19.2.3"
     react-native: "npm:0.86.3"
+    react-native-audio-api: "npm:0.13.6"
     react-native-blob-util: "npm:^0.25.0"
     react-native-drawer-layout: "npm:^4.2.2"
     react-native-executorch: "workspace:*"
