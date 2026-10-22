@@ -194,7 +194,7 @@ export function createLLMGemmaRunner(
     isCancelled.setBlocking(true);
   };
 
-  const prefillText = (prompt: string): LLMPrefillStats => {
+  const prefillText = (prompt: string, prefillLen: number): LLMPrefillStats => {
     'worklet';
     isCancelled.setBlocking(false);
 
@@ -205,7 +205,7 @@ export function createLLMGemmaRunner(
 
     let offset = 0;
     while (offset < tokens.length && !isCancelled.getBlocking()) {
-      const seqLen = Math.min(tokens.length - offset, maxSeqLen);
+      const seqLen = Math.min(tokens.length - offset, prefillLen);
       const chunk = tokens.subarray(offset, offset + seqLen);
 
       if (startPos + offset + seqLen > maxContextLen) {
@@ -248,14 +248,18 @@ export function createLLMGemmaRunner(
     return { numTokens, durationMs, tokensPerSecond };
   };
 
-  const prefillEmbeddings = (embeddings: Float32Array, numEmbedTokens: number): LLMPrefillStats => {
+  const prefillEmbeddings = (
+    embeddings: Float32Array,
+    numEmbedTokens: number,
+    prefillLen: number
+  ): LLMPrefillStats => {
     'worklet';
     const startMs = Date.now();
     const startPos = pos.getBlocking();
 
     let offset = 0;
     while (offset < numEmbedTokens && !isCancelled.getBlocking()) {
-      const seqLen = Math.min(numEmbedTokens - offset, maxSeqLen);
+      const seqLen = Math.min(numEmbedTokens - offset, prefillLen);
       const chunk = embeddings.subarray(offset * hiddenDim, (offset + seqLen) * hiddenDim);
 
       if (startPos + offset + seqLen > maxContextLen) {
@@ -304,7 +308,10 @@ export function createLLMGemmaRunner(
     return { numTokens, durationMs, tokensPerSecond };
   };
 
-  const prefillImage = (prompt: Extract<MediaInput, { kind: 'image' }>): LLMPrefillStats => {
+  const prefillImage = (
+    prompt: Extract<MediaInput, { kind: 'image' }>,
+    prefillLen: number
+  ): LLMPrefillStats => {
     'worklet';
     isCancelled.setBlocking(false);
 
@@ -325,13 +332,16 @@ export function createLLMGemmaRunner(
     try {
       model.execute('vision_encoder', [prompt.image], [tVisionEmbed]);
       const embedding = tVisionEmbed.getData(new Float32Array(tVisionEmbed.numel));
-      return prefillEmbeddings(embedding, visualTokens);
+      return prefillEmbeddings(embedding, visualTokens, prefillLen);
     } finally {
       tVisionEmbed.dispose();
     }
   };
 
-  const prefillAudio = (prompt: Extract<MediaInput, { kind: 'audio' }>): LLMPrefillStats => {
+  const prefillAudio = (
+    prompt: Extract<MediaInput, { kind: 'audio' }>,
+    prefillLen: number
+  ): LLMPrefillStats => {
     'worklet';
     isCancelled.setBlocking(false);
 
@@ -380,7 +390,7 @@ export function createLLMGemmaRunner(
         }
         if (validTokens > 0) {
           const embedding = tAudioEmbeds.getData(new Float32Array(tAudioEmbeds.numel));
-          const chunkStats = prefillEmbeddings(embedding, validTokens);
+          const chunkStats = prefillEmbeddings(embedding, validTokens, prefillLen);
           totStats = combineStats(totStats, chunkStats);
         }
       } finally {
@@ -393,9 +403,20 @@ export function createLLMGemmaRunner(
     return totStats;
   };
 
-  const prefill = (prompt: Prompt): LLMPrefillStats => {
+  const prefill = (
+    prompt: Prompt,
+    options?: Pick<LLMGenerationConfig, 'prefillLen'>
+  ): LLMPrefillStats => {
     'worklet';
     isCancelled.setBlocking(false);
+
+    const prefillLen = options?.prefillLen ?? maxSeqLen;
+    if (!Number.isInteger(prefillLen) || prefillLen < 1 || prefillLen > maxSeqLen) {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `prefill: prefillLen (${prefillLen}) must be an integer in range [1, ${maxSeqLen}].`
+      );
+    }
 
     const segments = typeof prompt === 'string' ? [prompt] : prompt;
     if (segments.length === 0) {
@@ -406,19 +427,19 @@ export function createLLMGemmaRunner(
 
     for (const segment of segments) {
       if (typeof segment === 'string') {
-        const stats = prefillText(segment);
+        const stats = prefillText(segment, prefillLen);
         totStats = combineStats(totStats, stats);
         continue;
       }
 
       switch (segment.kind) {
         case 'image': {
-          const stats = prefillImage(segment);
+          const stats = prefillImage(segment, prefillLen);
           totStats = combineStats(totStats, stats);
           break;
         }
         case 'audio': {
-          const stats = prefillAudio(segment);
+          const stats = prefillAudio(segment, prefillLen);
           totStats = combineStats(totStats, stats);
           break;
         }
@@ -441,7 +462,7 @@ export function createLLMGemmaRunner(
     'worklet';
     isCancelled.setBlocking(false);
 
-    const prefillStats = prefill(prompt);
+    const prefillStats = prefill(prompt, config);
 
     const generateStartMs = Date.now();
     const generatedTokens: number[] = [];

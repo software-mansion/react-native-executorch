@@ -156,9 +156,39 @@ describe('createLLMChatSession — construction', () => {
     expect(fakeJsi.liveModels()).toEqual([]);
     expect(fakeJsi.liveTokenizers()).toEqual([]);
   });
+
+  it('uses the default prefillLen for initial messages', async () => {
+    tracked(
+      await createLLMChatSession(config, {
+        initialMessages: [{ role: 'system', content: 'one two three four five six' }],
+        generationConfig: { prefillLen: 2 },
+      })
+    );
+
+    expect(llm.prompts().map((prompt) => prompt.numTokens)).toEqual([2, 2, 2]);
+  });
 });
 
 describe('createLLMChatSession — a turn', () => {
+  it('uses a per-turn prefillLen override without changing the session default', async () => {
+    script([{ response: 'answer with several words in the reply ' }]);
+    const session = tracked(
+      await createLLMChatSession(config, {
+        generationConfig: { prefillLen: 4 },
+      })
+    );
+
+    await session.sendMessage('one two three four five six', undefined, { prefillLen: 2 });
+    expect(llm.prompts().every((prompt) => prompt.numTokens <= 2)).toBe(true);
+    expect(llm.prompts().some((prompt) => prompt.numTokens === 2)).toBe(true);
+
+    const before = llm.prompts().length;
+    await session.sendMessage('another question with several words in it');
+    const nextTurn = llm.prompts().slice(before);
+    expect(nextTurn.every((prompt) => prompt.numTokens <= 4)).toBe(true);
+    expect(nextTurn.some((prompt) => prompt.numTokens === 4)).toBe(true);
+  });
+
   it('appends the user message and the assistant reply to the history', async () => {
     const session = tracked(await createLLMChatSession(config));
 
@@ -339,6 +369,25 @@ describe('createLLMChatSession — tool calling', () => {
   };
 
   beforeEach(() => weather.execute.mockClear());
+
+  it('forwards prefillLen through the tool loop and final message commit', async () => {
+    script([{ response: 'TOOL weather' }, { response: 'it is sunny with clear skies' }]);
+    weather.execute.mockResolvedValueOnce('sunny with clear skies all day');
+    const session = tracked(
+      await createLLMChatSession(config, {
+        generationConfig: { prefillLen: 2 },
+        toolOpts: { tools: [weather], parseToolCalls },
+      })
+    );
+
+    const result = await session.sendMessage('tell me about the weather today');
+
+    expect(result.stats).toHaveLength(2);
+    expect(result.finishReason).toBe('stop');
+    expect(weather.execute).toHaveBeenCalledTimes(1);
+    expect(llm.prompts().every((prompt) => prompt.numTokens <= 2)).toBe(true);
+    expect(session.getHistory().at(-1)?.content).toBe('it is sunny with clear skies');
+  });
 
   it('runs the tool and feeds its result back for a second generation', async () => {
     script([{ response: 'TOOL weather' }, { response: 'it is sunny' }]);

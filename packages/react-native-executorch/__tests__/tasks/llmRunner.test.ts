@@ -6,6 +6,7 @@ import { createLLMGemmaRunner } from '../../src/extensions/llm/runners/llmGemmaR
 import { loadModel } from '../../src/core/model';
 import { loadTokenizer } from '../../src/extensions/nlp';
 import { fakeJsi } from '../support/fakeJsi';
+import type { FakeTensor } from '../support/fakeTensor';
 import { llm as fakeSampler } from '../support/fakeOps';
 import { exported } from '../support/fixtures';
 import { tracked } from '../support/lifetime';
@@ -82,7 +83,11 @@ const GEMMA_SPEC = exported({
 
 function registerModelWithSchema(
   schema: any,
-  options: { maxContextLen?: number; tokenIds?: readonly number[] } = {}
+  options: {
+    maxContextLen?: number;
+    tokenIds?: readonly number[];
+    onForward?: (inputs: readonly FakeTensor[]) => void;
+  } = {}
 ) {
   const maxContextLen = options.maxContextLen ?? 512;
   let step = 0;
@@ -103,6 +108,7 @@ function registerModelWithSchema(
           return [1];
         case 'forward':
         case 'text_decoder': {
+          options.onForward?.(_inputs as readonly FakeTensor[]);
           const out = outputs[0];
           if (out && (options.tokenIds || methodName === 'text_decoder')) {
             for (let i = 0; i < out.numel; i++) out.setElement(i, 0);
@@ -262,6 +268,116 @@ describe.each([
 
     expect(seeds).toEqual([undefined, undefined, undefined]);
   });
+});
+
+describe.each([
+  ['text', TEXT_SPEC, []],
+  ['multimodal', MULTIMODAL_SPEC, ['image']],
+  ['gemma', GEMMA_SPEC, ['image', 'audio']],
+] as const)('%s runner — prefill length', (_name, schema, modalities) => {
+  const chunks: { length: number; pos: number }[] = [];
+
+  beforeEach(() => {
+    chunks.length = 0;
+    registerModelWithSchema(schema, {
+      onForward: (inputs) => {
+        chunks.push({ length: inputs[0]!.shape[1]!, pos: inputs.at(-1)!.getElement(0) });
+      },
+    });
+  });
+
+  it('limits prefill chunks and advances positions across the final partial chunk', async () => {
+    const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH, modalities));
+
+    const stats = runner.prefill('hello world hello world hello', { prefillLen: 2 });
+
+    expect(chunks).toEqual([
+      { length: 2, pos: 0 },
+      { length: 2, pos: 2 },
+      { length: 1, pos: 4 },
+    ]);
+    expect(stats.numTokens).toBe(5);
+    expect(runner.getKVCacheState().pos).toBe(5);
+  });
+
+  it('defaults to the model maximum without retaining the previous override', async () => {
+    const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH, modalities));
+    const prompt = Array(129).fill('hello').join(' ');
+
+    runner.prefill(prompt, { prefillLen: 64 });
+    expect(chunks.map((chunk) => chunk.length)).toEqual([64, 64, 1]);
+    chunks.length = 0;
+    runner.prefill(prompt);
+
+    expect(chunks).toEqual([
+      { length: 128, pos: 129 },
+      { length: 1, pos: 257 },
+    ]);
+  });
+
+  it('forwards the generation config to prefill and keeps decode steps at one token', async () => {
+    const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH, modalities));
+
+    const stats = runner.generate('hello world hello world hello', {
+      prefillLen: 2,
+      maxNewTokens: 2,
+    });
+
+    expect(chunks.map((chunk) => chunk.length)).toEqual([2, 2, 1, 1, 1]);
+    expect(stats.prefill.numTokens).toBe(5);
+    expect(stats.numTokens).toBe(2);
+    expect(runner.getKVCacheState().pos).toBe(7);
+  });
+
+  it.each([0, -1, 1.5, 129, Infinity, NaN])(
+    'rejects invalid prefillLen %s before inference',
+    async (prefillLen) => {
+      const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH, modalities));
+
+      expect(() => runner.prefill('hello', { prefillLen })).toThrow(
+        expect.objectContaining({ code: 'INVALID_ARGUMENT' })
+      );
+      expect(() => runner.generate('hello', { prefillLen })).toThrow(
+        expect.objectContaining({ code: 'INVALID_ARGUMENT' })
+      );
+      expect(chunks).toEqual([]);
+      expect(runner.getKVCacheState().pos).toBe(0);
+    }
+  );
+
+  if (_name !== 'text') {
+    it('uses the requested length for interleaved text and image embeddings', async () => {
+      const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH, modalities));
+      const image = tracked(tensor('float32', [1, 3, 32, 32]));
+
+      const stats = runner.prefill(['hello world hello', { kind: 'image', image }], {
+        prefillLen: 2,
+      });
+
+      expect(chunks).toEqual([
+        { length: 2, pos: 0 },
+        { length: 1, pos: 2 },
+        { length: 2, pos: 3 },
+        { length: 2, pos: 5 },
+      ]);
+      expect(stats.numTokens).toBe(7);
+      expect(runner.getKVCacheState().pos).toBe(7);
+    });
+  }
+
+  if (_name === 'gemma') {
+    it('chunks valid audio embeddings using the requested length', async () => {
+      const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH, modalities));
+      const audio = tracked(tensor('float32', [1, 6000]));
+
+      const stats = runner.prefill([{ kind: 'audio', audio }], { prefillLen: 2 });
+
+      expect(chunks.map((chunk) => chunk.length)).toEqual([2, 2, 2, 2, 2, 2]);
+      expect(chunks.map((chunk) => chunk.pos)).toEqual([0, 2, 4, 6, 8, 10]);
+      expect(stats.numTokens).toBe(12);
+      expect(runner.getKVCacheState().pos).toBe(12);
+    });
+  }
 });
 
 describe('createLLMRunner — variant dispatch & modalities validation', () => {

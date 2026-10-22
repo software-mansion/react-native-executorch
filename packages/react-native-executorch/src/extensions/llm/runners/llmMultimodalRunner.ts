@@ -126,7 +126,7 @@ export function createLLMMultimodalRunner(
     isCancelled.setBlocking(true);
   };
 
-  const prefillText = (prompt: string): LLMPrefillStats => {
+  const prefillText = (prompt: string, prefillLen: number): LLMPrefillStats => {
     'worklet';
     isCancelled.setBlocking(false);
 
@@ -137,7 +137,7 @@ export function createLLMMultimodalRunner(
 
     let offset = 0;
     while (offset < tokens.length && !isCancelled.getBlocking()) {
-      const seqLen = Math.min(tokens.length - offset, maxSeqLen);
+      const seqLen = Math.min(tokens.length - offset, prefillLen);
       const chunk = tokens.subarray(offset, offset + seqLen);
 
       if (startPos + offset + seqLen > maxContextLen) {
@@ -178,7 +178,10 @@ export function createLLMMultimodalRunner(
     return { numTokens, durationMs, tokensPerSecond };
   };
 
-  const prefillImage = (prompt: Extract<MediaInput, { kind: 'image' }>): LLMPrefillStats => {
+  const prefillImage = (
+    prompt: Extract<MediaInput, { kind: 'image' }>,
+    prefillLen: number
+  ): LLMPrefillStats => {
     'worklet';
     isCancelled.setBlocking(false);
 
@@ -207,7 +210,7 @@ export function createLLMMultimodalRunner(
       let offset = 0;
 
       while (offset < numVisualTokens && !isCancelled.getBlocking()) {
-        const seqLen = Math.min(numVisualTokens - offset, maxSeqLen);
+        const seqLen = Math.min(numVisualTokens - offset, prefillLen);
         const chunk = embedding.subarray(offset * hiddenDim, (offset + seqLen) * hiddenDim);
 
         if (startPos + offset + seqLen > maxContextLen) {
@@ -245,9 +248,20 @@ export function createLLMMultimodalRunner(
     return { numTokens, durationMs, tokensPerSecond };
   };
 
-  const prefill = (prompt: Prompt): LLMPrefillStats => {
+  const prefill = (
+    prompt: Prompt,
+    options?: Pick<LLMGenerationConfig, 'prefillLen'>
+  ): LLMPrefillStats => {
     'worklet';
     isCancelled.setBlocking(false);
+
+    const prefillLen = options?.prefillLen ?? maxSeqLen;
+    if (!Number.isInteger(prefillLen) || prefillLen < 1 || prefillLen > maxSeqLen) {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `prefill: prefillLen (${prefillLen}) must be an integer in range [1, ${maxSeqLen}].`
+      );
+    }
 
     const segments = typeof prompt === 'string' ? [prompt] : prompt;
     if (segments.length === 0) {
@@ -264,14 +278,14 @@ export function createLLMMultimodalRunner(
 
     for (const segment of segments) {
       if (typeof segment === 'string') {
-        const stats = prefillText(segment);
+        const stats = prefillText(segment, prefillLen);
         totStats = combine(totStats, stats);
         continue;
       }
 
       switch (segment.kind) {
         case 'image': {
-          const stats = prefillImage(segment);
+          const stats = prefillImage(segment, prefillLen);
           totStats = combine(totStats, stats);
           break;
         }
@@ -294,7 +308,7 @@ export function createLLMMultimodalRunner(
     'worklet';
     isCancelled.setBlocking(false);
 
-    const prefillStats = prefill(prompt);
+    const prefillStats = prefill(prompt, config);
 
     const generateStartMs = Date.now();
     const generatedTokens: number[] = [];

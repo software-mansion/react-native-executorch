@@ -41,7 +41,7 @@ export type FakeLLMProgram = {
 };
 
 /** A prompt the model read: the text of one prefill, and where it started. */
-export type FakePromptRead = { text: string; startPos: number };
+export type FakePromptRead = { text: string; startPos: number; numTokens: number };
 
 const VOCAB_SIZE = 4096;
 
@@ -147,7 +147,11 @@ export function registerFakeLLM(modelPath: string, tokenizerPath: string, progra
         if (emitted) generation++;
         emitted = false;
         step = 0;
-        prompts.push({ text: ids.map((id) => tokens[id]).join(' '), startPos: tPos.getElement(0) });
+        prompts.push({
+          text: ids.map((id) => tokens[id]).join(' '),
+          startPos: tPos.getElement(0),
+          numTokens: ids.length,
+        });
       }
 
       emit(outputs[0]!, current()[step] ?? eosId);

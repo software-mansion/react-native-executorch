@@ -110,9 +110,20 @@ export function createLLMTextRunner(
     isCancelled.setBlocking(true);
   };
 
-  const prefill = (prompt: Prompt): LLMPrefillStats => {
+  const prefill = (
+    prompt: Prompt,
+    options?: Pick<LLMGenerationConfig, 'prefillLen'>
+  ): LLMPrefillStats => {
     'worklet';
     isCancelled.setBlocking(false);
+
+    const prefillLen = options?.prefillLen ?? maxSeqLen;
+    if (!Number.isInteger(prefillLen) || prefillLen < 1 || prefillLen > maxSeqLen) {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `prefill: prefillLen (${prefillLen}) must be an integer in range [1, ${maxSeqLen}].`
+      );
+    }
 
     if (typeof prompt !== 'string') {
       throw RnExecuTorchError(
@@ -128,7 +139,7 @@ export function createLLMTextRunner(
 
     let offset = 0;
     while (offset < tokens.length && !isCancelled.getBlocking()) {
-      const seqLen = Math.min(tokens.length - offset, maxSeqLen);
+      const seqLen = Math.min(tokens.length - offset, prefillLen);
       const chunk = tokens.subarray(offset, offset + seqLen);
 
       if (startPos + offset + seqLen > maxContextLen) {
@@ -174,7 +185,7 @@ export function createLLMTextRunner(
       );
     }
 
-    const prefillStats = prefill(prompt);
+    const prefillStats = prefill(prompt, config);
 
     const generateStartMs = Date.now();
     const generatedTokens: number[] = [];

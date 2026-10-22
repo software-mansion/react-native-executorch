@@ -305,6 +305,21 @@ While [`useLLMChatSession`](../../06-api-reference/functions/useLLMChatSession.m
 - **KV Cache Rewind & Branching**: Call [`runner.reset(targetPos)`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#reset) to rewind the KV cache back to an exact token position. This enables speculative branching, sampling multiple divergent continuations from a shared prompt prefix without re-encoding, or manual conversation tree management.
 - **Cancellation**: Call [`runner.stop()`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner.md#stop) from any thread to abort active autoregressive generation immediately.
 
+Set `prefillLen` to limit the number of tokens processed by each decoder prefill
+call. It defaults to the model's maximum sequence length and must be an integer
+between 1 and that maximum. The final chunk can be shorter.
+
+```typescript
+runner.prefill(prompt, { prefillLen: 64 });
+runner.generate(prompt, { prefillLen: 64, maxNewTokens: 256 });
+```
+
+Chat sessions forward `generationConfig.prefillLen` to their prefills, including
+initial messages and tool results. You can override it for a turn through the
+third argument to `sendMessage()`. For multimodal models, it also controls decoder
+chunks of image and audio embeddings; image encoding and audio waveform chunk
+sizes retain their model-defined limits.
+
 ### One-Shot Generation
 
 A chat session keeps every turn in its history and KV cache, so it is the wrong
@@ -317,10 +332,10 @@ import RNBlobUtil from 'react-native-blob-util';
 import { download, llm, models, wrapAsync } from 'react-native-executorch';
 
 const model = await download(models.llm.LFM2_5_1_2B.DEFAULT);
-const { chatTemplate, stopTokens } = llm.parseTokenizerConfig(
+const { chatTemplate, bosToken, eosToken } = llm.parseTokenizerConfig(
   JSON.parse(await RNBlobUtil.fs.readFile(model.tokenizerConfigPath, 'utf8'))
 );
-const preprocessor = llm.createChatPreprocessor({ chatTemplate });
+const preprocessor = llm.createChatPreprocessor({ chatTemplate, bosToken, eosToken });
 const runner = await llm.createLLMRunner(model.modelPath, model.tokenizerPath);
 
 // Runs on a background worklet thread; `generate` is synchronous.
@@ -329,7 +344,7 @@ const complete = wrapAsync((r: llm.LLMRunner, prompt: llm.Prompt) => {
   r.reset(); // start from an empty KV cache: no earlier call leaks in
   let text = '';
   r.generate(prompt, { maxNewTokens: 256 }, (token) => {
-    if (!stopTokens.includes(token)) text += token;
+    text += token;
   });
   return text;
 });
@@ -402,7 +417,7 @@ The pipeline automatically verifies that the model's exported methods and KV cac
 - [`LLMKVCacheState`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState.md) — KV cache metrics (`pos`, `maxContextLen`, `usageRatio`).
 - [`LLMChatSessionOptions`](../../06-api-reference/type-aliases/LLMChatSessionOptions.md) — Session configuration options (`generationConfig`, `initialMessages`, `toolOpts`).
 - [`LLMModel`](../../06-api-reference/type-aliases/LLMModel.md) — Model configuration spec with model, tokenizer, and tokenizer config paths.
-- [`LLMGenerationConfig`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationConfig.md) — Sampling and decoding parameters (`temperature`, `topP`, `maxNewTokens`).
+- [`LLMGenerationConfig`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationConfig.md) — Sampling and decoding parameters (`temperature`, `topP`, `maxNewTokens`, `prefillLen`).
 - [`ChatMessage`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/ChatMessage.md) — Standard chat message structure (`role`, `content`).
 
 ### Model Presets

@@ -31,6 +31,8 @@ export type LLMGenerationConfig = SamplingConfig & {
   readonly ignoreEos?: boolean;
   /** Maximum number of new tokens to generate. */
   readonly maxNewTokens?: number;
+  /** Maximum tokens per decoder prefill call. Defaults to the model's maximum sequence length. */
+  readonly prefillLen?: number;
 };
 
 /**
@@ -137,9 +139,10 @@ export type LLMRunner = {
   /**
    * Prefills the runner with a prompt to build up the KV cache.
    * @param prompt The prefill text or multimodal prompt.
+   * @param options Optional prefill chunk size.
    * @returns Prefill performance statistics.
    */
-  prefill(prompt: Prompt): LLMPrefillStats;
+  prefill(prompt: Prompt, options?: Pick<LLMGenerationConfig, 'prefillLen'>): LLMPrefillStats;
 
   /**
    * Generates text continuation from a prompt.
