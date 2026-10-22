@@ -177,6 +177,16 @@ TEST_F(ModelTest, ExposesBackendsToJs) {
               "XnnpackBackend");
 }
 
+// The host build links no delegate, so loading the XNNPACK fixture eagerly is
+// exactly the case of an app that left out a backend its model needs. The
+// error has to name it and the config key that brings it in.
+TEST_F(ModelTest, NamesAnUnlinkedBackendOnEagerLoad) {
+    auto thrown = evalThrowing(std::format("__rnexecutorch_jsi__.loadModel('{}');", kFixture));
+
+    EXPECT_TRUE(isCodedError(thrown, "LOAD_FAILED", "method 'forward' runs on XnnpackBackend"));
+    EXPECT_THAT(thrown.message, HasSubstr("Add \"xnnpack\" to \"react-native-executorch\".backends"));
+}
+
 TEST_F(ModelTest, ReportsAMissingFileAsLoadFailed) {
     auto thrown = evalThrowing("__rnexecutorch_jsi__.loadModel('/definitely/not/a/model.pte');");
 
