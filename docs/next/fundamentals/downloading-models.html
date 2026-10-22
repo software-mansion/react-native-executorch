@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.24c039fc.css">
-<script src="/react-native-executorch/assets/js/runtime~main.96f59f86.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.5b27e3a4.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.958e5a0f.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.a09cd272.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -36,12 +36,17 @@ are addressed through the
 <a class="" href="/react-native-executorch/docs/next/api-reference/variables/models"><code>models</code></a> registry. Each entry bundles
 every file a pipeline needs behind one object. This registry is the single source
 of truth for the tuned, ready-to-run models.</li>
-<li class=""><strong>Your own models</strong> are plain URLs or local paths — a file bundled with the app,
-a <code>file://</code> path, or a URL on your own host (see
+<li class=""><strong>Your own models</strong> use <code>http(s)</code> URLs or absolute local filesystem paths (see
 <a class="" href="/react-native-executorch/docs/next/core-and-advanced/exporting-custom-models">Exporting Custom Models</a>).</li>
 </ul>
 <p>Local paths are always passed through untouched; only <code>http(s)</code> URLs are ever
-downloaded.</p>
+downloaded. Loaders require filesystem paths such as <code>/path/to/model.pte</code>;
+<code>file://</code> URIs are not supported. If a document picker returns a <code>file://</code> URI,
+convert it to an absolute filesystem path before passing it to a hook or pipeline
+factory. This applies to every file in the config, including tokenizer and
+tokenizer config files.</p>
+<p>Paths returned by <code>download()</code> are already filesystem paths. Pass them directly
+to a pipeline factory without adding a <code>file://</code> prefix.</p>
 <h2 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="automatic-downloading-with-hooks">Automatic downloading with hooks<a href="#automatic-downloading-with-hooks" class="hash-link" aria-label="Direct link to Automatic downloading with hooks" title="Direct link to Automatic downloading with hooks" translate="no">​</a></h2>
 <p>The <a class="" href="/react-native-executorch/docs/next/category/extensions"><code>use&lt;Task&gt;</code></a> hooks and the
 <a class="" href="/react-native-executorch/docs/next/api-reference/functions/useResourceDownload"><code>useResourceDownload</code></a> hook
