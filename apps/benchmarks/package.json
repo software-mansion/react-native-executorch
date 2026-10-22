@@ -27,22 +27,22 @@
     "bench:docs": "node scripts/docs-data.mjs"
   },
   "dependencies": {
-    "expo": "~56.0.9",
-    "expo-build-properties": "~56.0.17",
-    "expo-keep-awake": "~56.0.3",
-    "react": "19.2.3",
-    "react-native": "0.85.3",
+    "expo": "~58.0.14",
+    "expo-build-properties": "~58.0.11",
+    "expo-keep-awake": "~58.0.3",
+    "react": "19.3.1",
+    "react-native": "0.88.0",
     "react-native-blob-util": "^0.25.0",
     "react-native-executorch": "workspace:*",
-    "react-native-safe-area-context": "~5.7.0",
+    "react-native-safe-area-context": "~5.10.1",
     "react-native-worklets": "0.10.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.0",
-    "@react-native/metro-config": "^0.86.0",
-    "@types/react": "~19.2.0",
-    "babel-preset-expo": "~56.0.14",
-    "react-refresh": "^0.14.0"
+    "@babel/core": "^8.0.7",
+    "@react-native/metro-config": "^0.88.0",
+    "@types/react": "~19.3.0",
+    "babel-preset-expo": "~58.0.17",
+    "react-refresh": "^0.19.0"
   },
   "private": true
 }
