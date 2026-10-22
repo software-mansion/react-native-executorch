@@ -29,6 +29,7 @@ import type { SdxsTextToImageModel } from './extensions/cv/tasks/sdxsTextToImage
 import type { TextEmbedderModel } from './extensions/nlp/tasks/textEmbedding';
 import type { ColbertEmbedderModel } from './extensions/nlp/tasks/colbertEmbedding';
 import type { PrivacyFilterModel } from './extensions/nlp/tasks/privacyFilter';
+import type { MarianTranslatorModel } from './extensions/nlp/tasks/marianTranslation';
 import type { FsmnVadModel } from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 import type { SupertonicTtsModel } from './extensions/speech/tasks/supertonicTextToSpeech';
 import type { KokoroTtsModel } from './extensions/speech/tasks/kokoroTextToSpeech';
@@ -2096,6 +2097,54 @@ const PPOCRV6_SMALL_VULKAN_FP16: PaddleOcrModel = {
 };
 
 // =============================================================================
+// Translation
+// =============================================================================
+const OPUS_MT_BASE_URL = `${BASE_URL}-opus-mt/${NEXT_VERSION_TAG}`;
+
+const OPUS_MT_EN_DE_XNNPACK_INT8: MarianTranslatorModel = {
+  name: 'marian',
+  modelPath: `${OPUS_MT_BASE_URL}/en_de/xnnpack/opus_mt_en_de_xnnpack_int8.pte`,
+  tokenizerPath: `${OPUS_MT_BASE_URL}/en_de/tokenizer.json`,
+  sourceLanguage: 'en',
+  targetLanguage: 'de',
+};
+const OPUS_MT_DE_EN_XNNPACK_INT8: MarianTranslatorModel = {
+  name: 'marian',
+  modelPath: `${OPUS_MT_BASE_URL}/de_en/xnnpack/opus_mt_de_en_xnnpack_int8.pte`,
+  tokenizerPath: `${OPUS_MT_BASE_URL}/de_en/tokenizer.json`,
+  sourceLanguage: 'de',
+  targetLanguage: 'en',
+};
+const OPUS_MT_EN_ES_XNNPACK_INT8: MarianTranslatorModel = {
+  name: 'marian',
+  modelPath: `${OPUS_MT_BASE_URL}/en_es/xnnpack/opus_mt_en_es_xnnpack_int8.pte`,
+  tokenizerPath: `${OPUS_MT_BASE_URL}/en_es/tokenizer.json`,
+  sourceLanguage: 'en',
+  targetLanguage: 'es',
+};
+const OPUS_MT_ES_EN_XNNPACK_INT8: MarianTranslatorModel = {
+  name: 'marian',
+  modelPath: `${OPUS_MT_BASE_URL}/es_en/xnnpack/opus_mt_es_en_xnnpack_int8.pte`,
+  tokenizerPath: `${OPUS_MT_BASE_URL}/es_en/tokenizer.json`,
+  sourceLanguage: 'es',
+  targetLanguage: 'en',
+};
+const OPUS_MT_EN_FR_XNNPACK_INT8: MarianTranslatorModel = {
+  name: 'marian',
+  modelPath: `${OPUS_MT_BASE_URL}/en_fr/xnnpack/opus_mt_en_fr_xnnpack_int8.pte`,
+  tokenizerPath: `${OPUS_MT_BASE_URL}/en_fr/tokenizer.json`,
+  sourceLanguage: 'en',
+  targetLanguage: 'fr',
+};
+const OPUS_MT_FR_EN_XNNPACK_INT8: MarianTranslatorModel = {
+  name: 'marian',
+  modelPath: `${OPUS_MT_BASE_URL}/fr_en/xnnpack/opus_mt_fr_en_xnnpack_int8.pte`,
+  tokenizerPath: `${OPUS_MT_BASE_URL}/fr_en/tokenizer.json`,
+  sourceLanguage: 'fr',
+  targetLanguage: 'en',
+};
+
+// =============================================================================
 // LLMs
 // =============================================================================
 const LFM2_5_BASE_URL = `${BASE_URL}-lfm-2.5/${NEXT_VERSION_TAG}`;
@@ -3607,6 +3656,25 @@ export const models = {
       XNNPACK_8DA4W: PRIVACY_FILTER_NEMOTRON_XNNPACK_8DA4W,
       MLX_INT8: PRIVACY_FILTER_NEMOTRON_MLX_INT8,
     }),
+  },
+
+  /**
+   * Machine translation models. Opus-MT models each translate one language
+   * pair, a sentence at a time.
+   */
+  translation: {
+    /** Opus-MT English to German. */
+    OPUS_MT_EN_DE: variants({ XNNPACK_INT8: OPUS_MT_EN_DE_XNNPACK_INT8 }),
+    /** Opus-MT German to English. */
+    OPUS_MT_DE_EN: variants({ XNNPACK_INT8: OPUS_MT_DE_EN_XNNPACK_INT8 }),
+    /** Opus-MT English to Spanish. */
+    OPUS_MT_EN_ES: variants({ XNNPACK_INT8: OPUS_MT_EN_ES_XNNPACK_INT8 }),
+    /** Opus-MT Spanish to English. */
+    OPUS_MT_ES_EN: variants({ XNNPACK_INT8: OPUS_MT_ES_EN_XNNPACK_INT8 }),
+    /** Opus-MT English to French. */
+    OPUS_MT_EN_FR: variants({ XNNPACK_INT8: OPUS_MT_EN_FR_XNNPACK_INT8 }),
+    /** Opus-MT French to English. */
+    OPUS_MT_FR_EN: variants({ XNNPACK_INT8: OPUS_MT_FR_EN_XNNPACK_INT8 }),
   },
 
   /**
