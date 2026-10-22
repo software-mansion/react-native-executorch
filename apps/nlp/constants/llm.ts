@@ -375,6 +375,14 @@ export function parseLlamaToolCalls(text: string): llm.ToolParserResult | undefi
 
 // --- Model Family Generation Configurations ---
 
+/** Sampling defaults recommended by the MiniCPM5-2B model card. */
+export const MINICPM5_GENERATION_CONFIG: llm.LLMGenerationConfig = {
+  temperature: 1.0,
+  topP: 0.95,
+  minP: 0.0,
+  maxNewTokens: 512,
+};
+
 /**
  * Liquid AI LFM 2.5 recommended generation parameters.
  * Sampling parameters are specified in the official Liquid AI GGUF model cards
@@ -571,6 +579,27 @@ export interface LLMModelConfig {
 // --- Quantized LLM Models List ---
 
 export const LLM_MODELS: LLMModelConfig[] = [
+  // MiniCPM5
+  {
+    id: 'minicpm-5-2b-xnnpack',
+    name: 'MiniCPM5 2B',
+    backend: 'xnnpack',
+    model: models.llm.MINICPM5_2B.XNNPACK_8DA4W,
+    generationConfig: MINICPM5_GENERATION_CONFIG,
+    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    toolOpts: undefined,
+  },
+  {
+    id: 'minicpm-5-2b-mlx',
+    name: 'MiniCPM5 2B',
+    backend: 'mlx',
+    model: models.llm.MINICPM5_2B.MLX_INT4,
+    generationConfig: MINICPM5_GENERATION_CONFIG,
+    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    toolOpts: undefined,
+    iosOnly: true,
+  },
+
   // LFM 2.5 family
   {
     id: 'lfm-2.5-2.6b-xnnpack',

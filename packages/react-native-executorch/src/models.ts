@@ -2098,6 +2098,19 @@ const PPOCRV6_SMALL_VULKAN_FP16: PaddleOcrModel = {
 // =============================================================================
 // LLMs
 // =============================================================================
+const MINICPM5_BASE_URL = `${BASE_URL}-minicpm-5/${NEXT_VERSION_TAG}`;
+
+const MINICPM5_2B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${MINICPM5_BASE_URL}/xnnpack/minicpm_5_2b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${MINICPM5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${MINICPM5_BASE_URL}/tokenizer_config.json`,
+};
+const MINICPM5_2B_MLX_INT4: LLMModel = {
+  modelPath: `${MINICPM5_BASE_URL}/mlx/minicpm_5_2b_mlx_4w.pte`,
+  tokenizerPath: `${MINICPM5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${MINICPM5_BASE_URL}/tokenizer_config.json`,
+};
+
 const LFM2_5_BASE_URL = `${BASE_URL}-lfm-2.5/${NEXT_VERSION_TAG}`;
 
 const LFM2_5_1_2B_XNNPACK_8DA4W: LLMModel = {
@@ -3225,6 +3238,11 @@ export const models = {
    * text generation, and reasoning.
    */
   llm: {
+    /** OpenBMB MiniCPM5 2B chat model with an 8K context window. */
+    MINICPM5_2B: variants({
+      XNNPACK_8DA4W: MINICPM5_2B_XNNPACK_8DA4W,
+      MLX_INT4: MINICPM5_2B_MLX_INT4,
+    }),
     /**
      * Liquid AI LFM 2.5 1.2B general-purpose hybrid language model. Built on
      * the Liquid Foundation Model architecture for low memory bandwidth usage,
