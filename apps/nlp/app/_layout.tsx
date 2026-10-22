@@ -49,6 +49,13 @@ export default function Layout() {
         }}
       />
       <Drawer.Screen
+        name="translation/index"
+        options={{
+          drawerLabel: 'Translation',
+          title: 'Translation',
+        }}
+      />
+      <Drawer.Screen
         name="llm/index"
         options={{
           drawerLabel: 'LLM',
