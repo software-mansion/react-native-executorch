@@ -90,7 +90,7 @@ Specifying a task under `features` is shorthand: it automatically expands to the
 | `speechToText`         | xnnpack, coreml, mlx, vulkan | —                   |
 | `textToSpeech`         | xnnpack, coreml, mlx, vulkan | phonemis            |
 | `vad`                  | xnnpack                      | —                   |
-| `translation`          | xnnpack                      | —                   |
+| `translation`          | xnnpack, mlx                 | —                   |
 | `textEmbeddings`       | xnnpack, coreml, mlx, vulkan | —                   |
 | `imageEmbeddings`      | xnnpack, coreml, mlx, vulkan | opencv              |
 | `classification`       | xnnpack, coreml              | opencv              |

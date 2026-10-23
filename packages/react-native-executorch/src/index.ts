@@ -87,6 +87,8 @@ export * from './extensions/cv/tasks/imageEmbedding';
 export * from './extensions/cv/tasks/sdxsTextToImage';
 export * from './extensions/cv/tasks/paddleOcr';
 export * from './extensions/llm/tasks/llmChatSession';
+export * from './extensions/llm/tasks/llmTranslation';
+export type { Translator, TranslationLanguages } from './extensions/nlp/utils/translationUtils';
 export * from './extensions/nlp/tasks/tokenization';
 export * from './extensions/nlp/tasks/textEmbedding';
 export * from './extensions/nlp/tasks/colbertEmbedding';

@@ -42,6 +42,8 @@ function marianSchema(source: ConcreteDim) {
   });
 }
 
+const EN_DE = { sourceLanguage: 'en', targetLanguage: 'de' };
+
 const read = (t: FakeTensor) => Array.from({ length: t.numel }, (_, i) => t.getElement(i));
 
 /** What each `encode` received, and the decoder inputs of each step. */
@@ -79,7 +81,7 @@ describe('createMarianTranslator', () => {
     register(RangeDim(1, 8));
     const translator = tracked(await createMarianTranslator(config));
 
-    expect(await translator.translate('hello world')).toBe('hallo welt');
+    expect(await translator.translate('hello world', EN_DE)).toBe('hallo welt');
     expect(encoded).toEqual([{ ids: [2, 3, EOS], mask: [1, 1, 1] }]);
     expect(decoded).toEqual([
       { token: PAD, position: 0 },
@@ -93,7 +95,7 @@ describe('createMarianTranslator', () => {
     fakeJsi.registerTokenizer(TOKENIZER_PATH, { tokens: VOCAB, suffix: [EOS] });
     const translator = tracked(await createMarianTranslator(config));
 
-    await translator.translate('hello world');
+    await translator.translate('hello world', EN_DE);
     expect(encoded[0]!.ids).toEqual([2, 3, EOS]);
   });
 
@@ -101,7 +103,7 @@ describe('createMarianTranslator', () => {
     register(RangeDim(6, 6));
     const translator = tracked(await createMarianTranslator(config));
 
-    expect(await translator.translate('hello world')).toBe('hallo welt');
+    expect(await translator.translate('hello world', EN_DE)).toBe('hallo welt');
     expect(encoded).toEqual([{ ids: [2, 3, EOS, PAD, PAD, PAD], mask: [1, 1, 1, 0, 0, 0] }]);
   });
 
@@ -109,7 +111,7 @@ describe('createMarianTranslator', () => {
     register(RangeDim(1, 4));
     const translator = tracked(await createMarianTranslator(config));
 
-    await translator.translate('hello world hello world hello');
+    await translator.translate('hello world hello world hello', EN_DE);
     expect(encoded[0]!.ids).toEqual([2, 3, 2, EOS]);
   });
 
@@ -117,7 +119,7 @@ describe('createMarianTranslator', () => {
     register(RangeDim(1, 8));
     const translator = tracked(await createMarianTranslator(config));
 
-    const text = await translator.translate('hello. world!\n\nhello');
+    const text = await translator.translate('hello. world!\n\nhello', EN_DE);
     expect(text).toBe('hallo welt hallo welt\n\nhallo welt');
     expect(encoded).toHaveLength(3);
   });
@@ -127,7 +129,7 @@ describe('createMarianTranslator', () => {
     const translator = tracked(await createMarianTranslator(config));
     const pieces: string[] = [];
 
-    const text = await translator.translate('hello world', (piece) => pieces.push(piece));
+    const text = await translator.translate('hello world', EN_DE, (piece) => pieces.push(piece));
     // Pieces are delivered on the RN thread, which the mock defers to a macrotask.
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(pieces.join('')).toBe(text);
@@ -138,8 +140,17 @@ describe('createMarianTranslator', () => {
     register(RangeDim(1, 8), Array(300).fill(HALLO));
     const translator = tracked(await createMarianTranslator(config));
 
-    await translator.translate('hello');
+    await translator.translate('hello', EN_DE);
     expect(decoded).toHaveLength(256);
+  });
+
+  it("rejects a language pair other than the model's own", async () => {
+    register(RangeDim(1, 8));
+    const translator = tracked(await createMarianTranslator(config));
+
+    await expect(
+      translator.translate('hello', { sourceLanguage: 'de', targetLanguage: 'en' })
+    ).rejects.toThrow(/only translates en to de/);
   });
 
   it('rejects a model without the source-length constraints', async () => {
@@ -164,7 +175,7 @@ describe('createMarianTranslator', () => {
   it('releases everything on dispose', async () => {
     register(RangeDim(1, 8));
     const translator = tracked(await createMarianTranslator(config));
-    await translator.translate('hello world. hello');
+    await translator.translate('hello world. hello', EN_DE);
     translator.dispose();
 
     expect(fakeJsi.liveTensors()).toBe(0);
