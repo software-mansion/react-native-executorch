@@ -1,6 +1,52 @@
 /**
- * Text segmentation shared by the translation pipelines.
+ * Types and text segmentation shared by the translation pipelines.
  */
+
+/**
+ * Source and target language of one translation, as ISO 639-1 codes.
+ * @category NLP / Types
+ */
+export type TranslationLanguages = {
+  /** ISO 639-1 code of the language to translate from. */
+  readonly sourceLanguage: string;
+  /** ISO 639-1 code of the language to translate to. */
+  readonly targetLanguage: string;
+};
+
+/**
+ * Translation task runner, shared by every translation pipeline.
+ * @category NLP / Types
+ */
+export type Translator = {
+  /**
+   * Releases all allocated native resources.
+   */
+  readonly dispose: () => void;
+
+  /**
+   * Asynchronously translates text. Line breaks are kept.
+   * @param text The text to translate.
+   * @param languages The source and target language. A model built for one
+   * language pair accepts only that pair.
+   * @param onToken Optional callback fired on the RN thread with each newly
+   * decoded piece of the translation.
+   * @returns A promise resolving to the translated text.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the model does
+   * not translate between `languages`, `RESOURCE_BUSY` if the model is in use,
+   * or `RESOURCE_DISPOSED` if disposed.
+   */
+  readonly translate: (
+    text: string,
+    languages: TranslationLanguages,
+    onToken?: (token: string) => void
+  ) => Promise<string>;
+
+  /**
+   * Interrupts an active translation call, which returns the text translated
+   * so far.
+   */
+  readonly translateStop: () => void;
+};
 
 /**
  * A sentence and the whitespace that followed it in the source text.

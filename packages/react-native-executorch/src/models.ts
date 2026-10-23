@@ -30,6 +30,7 @@ import type { TextEmbedderModel } from './extensions/nlp/tasks/textEmbedding';
 import type { ColbertEmbedderModel } from './extensions/nlp/tasks/colbertEmbedding';
 import type { PrivacyFilterModel } from './extensions/nlp/tasks/privacyFilter';
 import type { MarianTranslatorModel } from './extensions/nlp/tasks/marianTranslation';
+import type { LLMTranslatorModel } from './extensions/llm/tasks/llmTranslation';
 import type { FsmnVadModel } from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 import type { SupertonicTtsModel } from './extensions/speech/tasks/supertonicTextToSpeech';
 import type { KokoroTtsModel } from './extensions/speech/tasks/kokoroTextToSpeech';
@@ -2144,6 +2145,21 @@ const OPUS_MT_FR_EN_XNNPACK_INT8: MarianTranslatorModel = {
   targetLanguage: 'en',
 };
 
+const EUROLLM_BASE_URL = `${BASE_URL}-eurollm/${NEXT_VERSION_TAG}/1_7b`;
+
+const EUROLLM_1_7B_XNNPACK_8DA8W: LLMTranslatorModel = {
+  name: 'eurollm',
+  modelPath: `${EUROLLM_BASE_URL}/xnnpack/eurollm_1_7b_xnnpack_8da8w.pte`,
+  tokenizerPath: `${EUROLLM_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${EUROLLM_BASE_URL}/tokenizer_config.json`,
+};
+const EUROLLM_1_7B_MLX_INT8: LLMTranslatorModel = {
+  name: 'eurollm',
+  modelPath: `${EUROLLM_BASE_URL}/mlx/eurollm_1_7b_mlx_int8.pte`,
+  tokenizerPath: `${EUROLLM_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${EUROLLM_BASE_URL}/tokenizer_config.json`,
+};
+
 // =============================================================================
 // LLMs
 // =============================================================================
@@ -3675,6 +3691,11 @@ export const models = {
     OPUS_MT_EN_FR: variants({ XNNPACK_INT8: OPUS_MT_EN_FR_XNNPACK_INT8 }),
     /** Opus-MT French to English. */
     OPUS_MT_FR_EN: variants({ XNNPACK_INT8: OPUS_MT_FR_EN_XNNPACK_INT8 }),
+    /** EuroLLM 1.7B Instruct: any two of its 35 languages with one model. */
+    EUROLLM_1_7B: variants({
+      XNNPACK_8DA8W: EUROLLM_1_7B_XNNPACK_8DA8W,
+      MLX_INT8: EUROLLM_1_7B_MLX_INT8,
+    }),
   },
 
   /**

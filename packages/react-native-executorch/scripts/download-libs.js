@@ -143,7 +143,7 @@ const FEATURE_MAP = {
   // FSMN VAD — xnnpack only.
   vad: { backends: ['xnnpack'], libs: [] },
   // Opus-MT ships xnnpack int8 only: it beat Core ML, MLX and Vulkan on device.
-  translation: { backends: ['xnnpack'], libs: [] },
+  translation: { backends: ['xnnpack', 'mlx'], libs: [] },
   // The MiniLM/CLIP-text/distiluse family ships coreml alongside xnnpack,
   // LFM2.5-Embedding and distiluse add MLX iOS exports, and every sentence
   // transformer now ships a vulkan Android export.

@@ -9,51 +9,83 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useTranslator, models, type MarianTranslatorModel } from 'react-native-executorch';
+import {
+  useTranslator,
+  models,
+  type TranslationLanguages,
+  type TranslatorModel,
+} from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
 import { theme } from '../../theme';
 
 /* cspell:disable */
-const SAMPLES = {
+const SAMPLES: Record<string, string> = {
   en: 'The weather is beautiful today. Shall we go for a walk in the park?\nI will bring something to drink.',
   de: 'Das Wetter ist heute wunderschön. Sollen wir im Park spazieren gehen?\nIch bringe etwas zu trinken mit.',
   es: 'Hoy hace un tiempo precioso. ¿Vamos a dar un paseo por el parque?\nYo llevaré algo de beber.',
   fr: 'Il fait très beau aujourd’hui. On va se promener dans le parc ?\nJ’apporterai quelque chose à boire.',
-} as const;
+  pl: 'Dzisiaj jest piękna pogoda. Może pójdziemy na spacer do parku?\nPrzyniosę coś do picia.',
+};
 /* cspell:enable */
 
-const PAIRS: { label: string; value: MarianTranslatorModel }[] = [
-  { label: 'EN → DE', value: models.translation.OPUS_MT_EN_DE.DEFAULT },
-  { label: 'DE → EN', value: models.translation.OPUS_MT_DE_EN.DEFAULT },
-  { label: 'EN → ES', value: models.translation.OPUS_MT_EN_ES.DEFAULT },
-  { label: 'ES → EN', value: models.translation.OPUS_MT_ES_EN.DEFAULT },
-  { label: 'EN → FR', value: models.translation.OPUS_MT_EN_FR.DEFAULT },
-  { label: 'FR → EN', value: models.translation.OPUS_MT_FR_EN.DEFAULT },
+type Pair = { label: string; languages: TranslationLanguages };
+const pair = (sourceLanguage: string, targetLanguage: string): Pair => ({
+  label: `${sourceLanguage.toUpperCase()} → ${targetLanguage.toUpperCase()}`,
+  languages: { sourceLanguage, targetLanguage },
+});
+
+// Opus-MT ships one model per pair; EuroLLM translates every pair with one.
+const OPUS_MT: { pair: Pair; model: TranslatorModel }[] = [
+  { pair: pair('en', 'de'), model: models.translation.OPUS_MT_EN_DE.DEFAULT },
+  { pair: pair('de', 'en'), model: models.translation.OPUS_MT_DE_EN.DEFAULT },
+  { pair: pair('en', 'es'), model: models.translation.OPUS_MT_EN_ES.DEFAULT },
+  { pair: pair('es', 'en'), model: models.translation.OPUS_MT_ES_EN.DEFAULT },
+  { pair: pair('en', 'fr'), model: models.translation.OPUS_MT_EN_FR.DEFAULT },
+  { pair: pair('fr', 'en'), model: models.translation.OPUS_MT_FR_EN.DEFAULT },
+];
+const EUROLLM_PAIRS = [...OPUS_MT.map((m) => m.pair), pair('en', 'pl'), pair('pl', 'en')];
+
+const FAMILIES = [
+  {
+    label: 'Opus-MT',
+    description:
+      'One small model per language pair. Translates a sentence at a time and streams the result as it is decoded.',
+    pairs: OPUS_MT.map((m) => m.pair),
+    modelFor: (i: number) => OPUS_MT[i]!.model,
+  },
+  {
+    label: 'EuroLLM',
+    description:
+      'One 1.7 GB model for 35 languages, so switching the pair does not reload it. Translates a line at a time.',
+    pairs: EUROLLM_PAIRS,
+    modelFor: () => models.translation.EUROLLM_1_7B.DEFAULT as TranslatorModel,
+  },
 ];
 
-const sampleFor = (model: MarianTranslatorModel): string =>
-  SAMPLES[model.sourceLanguage as keyof typeof SAMPLES] ?? '';
-
 function TranslationContent() {
+  const [family, setFamily] = useState(0);
   const [selected, setSelected] = useState(0);
-  const active = PAIRS[selected]!;
+  const { pairs, modelFor, description } = FAMILIES[family]!;
+  const active = pairs[selected]!;
   const { isReady, downloadProgress, error, translate, translateStop } = useTranslator(
-    active.value
+    modelFor(selected)
   );
 
-  const [text, setText] = useState(sampleFor(active.value));
+  const [text, setText] = useState(SAMPLES[active.languages.sourceLanguage] ?? '');
   const [output, setOutput] = useState('');
   const [busy, setBusy] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
   const [elapsedMs, setElapsedMs] = useState<number | null>(null);
 
-  const selectPair = (i: number) => {
-    if (i === selected) return;
+  const select = (nextFamily: number, nextPair: number) => {
+    if (nextFamily === family && nextPair === selected) return;
     translateStop?.();
-    setSelected(i);
-    setText(sampleFor(PAIRS[i]!.value));
+    setFamily(nextFamily);
+    setSelected(nextPair);
+    const source = FAMILIES[nextFamily]!.pairs[nextPair]!.languages.sourceLanguage;
+    setText(SAMPLES[source] ?? '');
     setOutput('');
     setRunError(null);
     setElapsedMs(null);
@@ -67,7 +99,9 @@ function TranslationContent() {
     setElapsedMs(null);
     try {
       const startedAt = Date.now();
-      const result = await translate(text, (piece) => setOutput((prev) => prev + piece));
+      const result = await translate(text, active.languages, (piece) =>
+        setOutput((prev) => prev + piece)
+      );
       setElapsedMs(Date.now() - startedAt);
       setOutput(result);
     } catch (e: any) {
@@ -78,6 +112,24 @@ function TranslationContent() {
     }
   };
 
+  const chips = (labels: string[], current: number, onPress: (i: number) => void) => (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.chipRow}
+    >
+      {labels.map((label, i) => (
+        <TouchableOpacity
+          key={label}
+          style={[styles.chip, i === current && styles.chipActive]}
+          onPress={() => onPress(i)}
+        >
+          <Text style={[styles.chipText, i === current && styles.chipTextActive]}>{label}</Text>
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
+  );
+
   return (
     <KeyboardAvoidingView
       style={styles.flex}
@@ -86,29 +138,21 @@ function TranslationContent() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Translation</Text>
-          <Text style={styles.cardDescription}>
-            On-device Opus-MT translation. Each model covers one language pair and translates the
-            text a sentence at a time, streaming the result as it is decoded.
-          </Text>
+          <Text style={styles.cardDescription}>{description}</Text>
+
+          <Text style={styles.fieldLabel}>Model</Text>
+          {chips(
+            FAMILIES.map((f) => f.label),
+            family,
+            (i) => select(i, 0)
+          )}
 
           <Text style={styles.fieldLabel}>Language pair</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipRow}
-          >
-            {PAIRS.map((pair, i) => (
-              <TouchableOpacity
-                key={pair.label}
-                style={[styles.chip, i === selected && styles.chipActive]}
-                onPress={() => selectPair(i)}
-              >
-                <Text style={[styles.chipText, i === selected && styles.chipTextActive]}>
-                  {pair.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          {chips(
+            pairs.map((p) => p.label),
+            selected,
+            (i) => select(family, i)
+          )}
 
           <ModelStatus
             isReady={isReady}

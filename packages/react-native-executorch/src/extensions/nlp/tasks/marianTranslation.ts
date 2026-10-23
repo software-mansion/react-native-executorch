@@ -20,7 +20,12 @@ import { createResourceScope } from '../../../core/lifetime';
 
 import { argmax } from '../../math';
 import { loadTokenizer } from '../tokenizer';
-import { splitSentences } from '../utils/translationUtils';
+import { RnExecuTorchError } from '../../../core/error';
+import {
+  splitSentences,
+  type TranslationLanguages,
+  type Translator,
+} from '../utils/translationUtils';
 
 // Positions in the decoder's self-attention KV cache, i.e. the most tokens one
 // sentence can translate to.
@@ -47,39 +52,20 @@ export type MarianTranslatorModel = {
 };
 
 /**
- * Marian (Opus-MT) translation task runner.
+ * Marian (Opus-MT) translation task runner. The text is split into sentences,
+ * which are translated one at a time.
  * @category NLP / Types
  */
-export type MarianTranslator = {
+export type MarianTranslator = Translator & {
   /**
-   * Releases all allocated native resources.
+   * Synchronous version of {@link Translator.translate} to be executed
+   * directly on the caller or worklet thread.
    */
-  readonly dispose: () => void;
-
-  /**
-   * Asynchronously translates text from the model's source language to its
-   * target language. The text is split into sentences, which are translated
-   * one at a time; line breaks are kept.
-   * @param text The text to translate.
-   * @param onToken Optional callback fired on the RN thread with each newly
-   * decoded piece of the translation.
-   * @returns A promise resolving to the translated text.
-   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
-   * use, or `RESOURCE_DISPOSED` if disposed.
-   */
-  readonly translate: (text: string, onToken?: (token: string) => void) => Promise<string>;
-
-  /**
-   * Synchronous version of {@link translate} to be executed directly on the
-   * caller or worklet thread.
-   */
-  readonly translateWorklet: (text: string, onToken?: (token: string) => void) => string;
-
-  /**
-   * Interrupts an active translation call, which returns the text translated
-   * so far.
-   */
-  readonly translateStop: () => void;
+  readonly translateWorklet: (
+    text: string,
+    languages: TranslationLanguages,
+    onToken?: (token: string) => void
+  ) => string;
 };
 
 /**
@@ -219,8 +205,22 @@ export async function createMarianTranslator(
       }
     };
 
-    const translateWorklet = (text: string, onToken?: (token: string) => void): string => {
+    const { sourceLanguage, targetLanguage } = config;
+    const translateWorklet = (
+      text: string,
+      languages: TranslationLanguages,
+      onToken?: (token: string) => void
+    ): string => {
       'worklet';
+      if (
+        languages.sourceLanguage !== sourceLanguage ||
+        languages.targetLanguage !== targetLanguage
+      ) {
+        throw RnExecuTorchError(
+          'INVALID_ARGUMENT',
+          `translate: this model only translates ${sourceLanguage} to ${targetLanguage}.`
+        );
+      }
       isCancelled.setBlocking(false);
 
       const emit = (piece: string) => {
