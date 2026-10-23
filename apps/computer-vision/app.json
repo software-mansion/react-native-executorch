@@ -17,7 +17,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.computervision",
       "infoPlist": {
-        "NSCameraUsageDescription": "Process photo from camera"
+        "NSCameraUsageDescription": "Process photo from camera",
+        "NSLocalNetworkUsageDescription": "Connect to the Metro dev server and local model files on your computer",
+        "NSBonjourServices": ["_http._tcp"]
       }
     },
     "android": {
