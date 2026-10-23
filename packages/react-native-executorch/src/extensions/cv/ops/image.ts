@@ -265,3 +265,106 @@ export function applyColormap(
   'worklet';
   return rnexecutorchJsi.cv.applyColormap(src, dst, colormap);
 }
+
+/**
+ * Position of a window inside an image, in pixels from its top-left corner.
+ * @category CV / Types
+ */
+export type WindowOrigin = {
+  /** Column of the window's left edge. */
+  readonly x: number;
+  /** Row of the window's top edge. */
+  readonly y: number;
+};
+
+/**
+ * Copies a window of `src` into `dst`. The window is the size of `dst` and its
+ * top-left corner sits at `origin`, so the caller sizes the destination rather
+ * than passing the extent twice.
+ * @category CV / Functions
+ * @param src The source image tensor in HWC layout. Expected shape `[H, W, C]`
+ * (channels-last). Supports any numeric data type.
+ * @param dst The pre-allocated destination image tensor, `[H', W', C]` in HWC
+ * layout with the same channel count and data type as `src`. Its spatial
+ * dimensions are the window size.
+ * @param origin Where the window starts in `src`. See {@link WindowOrigin}.
+ * @returns The destination image tensor `dst`.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the window does
+ * not fit inside `src` or if tensor shapes, layouts, or data types are invalid,
+ * `RESOURCE_BUSY` if a tensor is in use, or `RESOURCE_DISPOSED` if either
+ * tensor was disposed.
+ */
+export function crop(src: Tensor, dst: Tensor, origin: WindowOrigin): Tensor {
+  'worklet';
+  return rnexecutorchJsi.cv.crop(src, dst, { x: origin.x, y: origin.y });
+}
+
+/**
+ * Pastes the whole of `src` into the window of `dst` whose top-left corner
+ * sits at `origin`, leaving the rest of `dst` untouched. The inverse of
+ * {@link crop}.
+ * @category CV / Functions
+ * @param src The source image tensor in HWC layout. Expected shape `[H, W, C]`
+ * (channels-last). Supports any numeric data type.
+ * @param dst The pre-allocated destination image tensor, `[H', W', C]` in HWC
+ * layout with the same channel count and data type as `src`, at least as large
+ * as `src` in both spatial dimensions.
+ * @param origin Where the window starts in `dst`. See {@link WindowOrigin}.
+ * @returns The destination image tensor `dst`.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `src` does not fit
+ * inside `dst` at `origin` or if tensor shapes, layouts, or data types are
+ * invalid, `RESOURCE_BUSY` if a tensor is in use, or `RESOURCE_DISPOSED` if
+ * either tensor was disposed.
+ */
+export function paste(src: Tensor, dst: Tensor, origin: WindowOrigin): Tensor {
+  'worklet';
+  return rnexecutorchJsi.cv.paste(src, dst, { x: origin.x, y: origin.y });
+}
+
+/**
+ * Options softening the mask edge in {@link blendMasked}.
+ * @category CV / Types
+ */
+export type BlendMaskedOptions = {
+  /**
+   * Pixels to erode the masked region by before feathering, so the seam sits
+   * inside the region rather than on its edge. Default `0`.
+   */
+  readonly shrink?: number;
+  /**
+   * Size in pixels of the Gaussian kernel that feathers the mask edge. Must be
+   * odd; `0` keeps the edge hard. Default `0`.
+   */
+  readonly feather?: number;
+};
+
+/**
+ * Composites `overlay` over `src` where `mask` is non-zero, writing
+ * `src * (1 - w) + overlay * w` into `dst`, where `w` is the mask eroded and
+ * feathered per `options`. Pixels outside the mask come from `src` unchanged.
+ * @category CV / Functions
+ * @param src The base image tensor in HWC layout, `[H, W, C]`, data type `uint8`.
+ * @param overlay The image tensor to composite, `[H, W, C]`, data type `uint8`.
+ * @param mask The region to take from `overlay`, `[H, W, 1]`, data type `uint8`;
+ * any non-zero value marks a masked pixel.
+ * @param dst The pre-allocated destination image tensor, `[H, W, C]`, data type
+ * `uint8`. Must not alias `src` or `overlay`.
+ * @param options Edge erosion and feathering. See {@link BlendMaskedOptions}.
+ * @returns The destination image tensor `dst`.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes,
+ * layouts, or data types are invalid, or `feather` is even, `RESOURCE_BUSY` if
+ * a tensor is in use, or `RESOURCE_DISPOSED` if any tensor was disposed.
+ */
+export function blendMasked(
+  src: Tensor,
+  overlay: Tensor,
+  mask: Tensor,
+  dst: Tensor,
+  options?: BlendMaskedOptions
+): Tensor {
+  'worklet';
+  return rnexecutorchJsi.cv.blendMasked(src, overlay, mask, dst, {
+    shrink: options?.shrink ?? 0,
+    feather: options?.feather ?? 0,
+  });
+}

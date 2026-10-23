@@ -415,5 +415,191 @@ TEST_F(CvOpsTest, RectifyQuadRejectsWrongArgumentCounts) {
                              "INVALID_ARGUMENT", "Usage: rectifyQuad(src, dst, quad, options)"));
 }
 
+// --- Windowed copies ---------------------------------------------------------
+
+TEST_F(CvOpsTest, CropCopiesTheWindowDstIsSizedFor) {
+    // A 3x3 single-channel image numbered row-major; the 2x2 window at (1, 1)
+    // is its bottom-right corner.
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fillU8(createTensor([3, 3, 1], 'uint8'), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        const dst = createTensor([2, 2, 1], 'uint8');
+        cv.crop(src, dst, {{ x: 1, y: 1 }});
+        return readU8(dst);
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {5, 6, 8, 9}));
+}
+
+TEST_F(CvOpsTest, CropKeepsChannelsInterleaved) {
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fillU8(createTensor([1, 3, 2], 'uint8'), [1, 2, 3, 4, 5, 6]);
+        const dst = createTensor([1, 2, 2], 'uint8');
+        cv.crop(src, dst, {{ x: 1, y: 0 }});
+        return readU8(dst);
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {3, 4, 5, 6}));
+}
+
+TEST_F(CvOpsTest, CropRejectsAWindowOutsideTheSource) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format(R"(
+        {}
+        cv.crop(createTensor([3, 3, 1], 'uint8'), createTensor([2, 2, 1], 'uint8'), {{ x: 2, y: 0 }});
+    )",
+                                                      kNs)),
+                             "INVALID_ARGUMENT", "does not fit in a 3x3 image"));
+}
+
+TEST_F(CvOpsTest, CropRejectsAChannelMismatch) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format(R"(
+        {}
+        cv.crop(createTensor([3, 3, 3], 'uint8'), createTensor([2, 2, 1], 'uint8'), {{ x: 0, y: 0 }});
+    )",
+                                                      kNs)),
+                             "INVALID_ARGUMENT", "crop: dst"));
+}
+
+TEST_F(CvOpsTest, CropRejectsWrongArgumentCounts) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format("{} cv.crop();", kNs)),
+                             "INVALID_ARGUMENT", "Usage: crop(src, dst, options)"));
+}
+
+TEST_F(CvOpsTest, PasteWritesOnlyTheWindow) {
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fillU8(createTensor([2, 2, 1], 'uint8'), [5, 6, 8, 9]);
+        const dst = fillU8(createTensor([3, 3, 1], 'uint8'), [0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        cv.paste(src, dst, {{ x: 1, y: 1 }});
+        return readU8(dst);
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {0, 0, 0, 0, 5, 6, 0, 8, 9}));
+}
+
+TEST_F(CvOpsTest, PasteRoundTripsWithCrop) {
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const image = fillU8(createTensor([3, 3, 1], 'uint8'), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        const window = createTensor([2, 2, 1], 'uint8');
+        cv.crop(image, window, {{ x: 1, y: 1 }});
+        const copy = fillU8(createTensor([3, 3, 1], 'uint8'), [1, 2, 3, 4, 0, 0, 7, 0, 0]);
+        cv.paste(window, copy, {{ x: 1, y: 1 }});
+        return readU8(copy);
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {1, 2, 3, 4, 5, 6, 7, 8, 9}));
+}
+
+TEST_F(CvOpsTest, PasteRejectsASourceThatOverhangsTheDestination) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format(R"(
+        {}
+        cv.paste(createTensor([2, 2, 1], 'uint8'), createTensor([3, 3, 1], 'uint8'), {{ x: 2, y: 2 }});
+    )",
+                                                      kNs)),
+                             "INVALID_ARGUMENT", "does not fit in a 3x3 image"));
+}
+
+TEST_F(CvOpsTest, PasteRejectsWrongArgumentCounts) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format("{} cv.paste();", kNs)),
+                             "INVALID_ARGUMENT", "Usage: paste(src, dst, options)"));
+}
+
+// --- Masked blending ---------------------------------------------------------
+
+TEST_F(CvOpsTest, BlendMaskedTakesTheOverlayWhereTheMaskIsSet) {
+    // Hard edge: masked pixels come from the overlay, the rest from src.
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fillU8(createTensor([1, 4, 1], 'uint8'), [10, 10, 10, 10]);
+        const overlay = fillU8(createTensor([1, 4, 1], 'uint8'), [200, 200, 200, 200]);
+        const mask = fillU8(createTensor([1, 4, 1], 'uint8'), [0, 255, 7, 0]);
+        const dst = createTensor([1, 4, 1], 'uint8');
+        cv.blendMasked(src, overlay, mask, dst, {{ shrink: 0, feather: 0 }});
+        return readU8(dst);
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {10, 200, 200, 10}));
+}
+
+TEST_F(CvOpsTest, BlendMaskedBlendsEveryChannel) {
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fillU8(createTensor([1, 2, 3], 'uint8'), [1, 2, 3, 4, 5, 6]);
+        const overlay = fillU8(createTensor([1, 2, 3], 'uint8'), [9, 9, 9, 9, 9, 9]);
+        const mask = fillU8(createTensor([1, 2, 1], 'uint8'), [0, 1]);
+        const dst = createTensor([1, 2, 3], 'uint8');
+        cv.blendMasked(src, overlay, mask, dst, {{ shrink: 0, feather: 0 }});
+        return readU8(dst);
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {1, 2, 3, 9, 9, 9}));
+}
+
+TEST_F(CvOpsTest, BlendMaskedShrinkErodesTheMaskedRegion) {
+    // A 3-wide masked run eroded by 1 px keeps only its centre pixel.
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fillU8(createTensor([1, 5, 1], 'uint8'), [0, 0, 0, 0, 0]);
+        const overlay = fillU8(createTensor([1, 5, 1], 'uint8'), [255, 255, 255, 255, 255]);
+        const mask = fillU8(createTensor([1, 5, 1], 'uint8'), [0, 255, 255, 255, 0]);
+        const dst = createTensor([1, 5, 1], 'uint8');
+        cv.blendMasked(src, overlay, mask, dst, {{ shrink: 1, feather: 0 }});
+        return readU8(dst);
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {0, 0, 255, 0, 0}));
+}
+
+TEST_F(CvOpsTest, BlendMaskedFeatherSoftensTheSeam) {
+    // With a 3-wide Gaussian the pixels either side of the mask edge end up
+    // strictly between the two sources rather than on one of them.
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fillU8(createTensor([1, 6, 1], 'uint8'), [0, 0, 0, 0, 0, 0]);
+        const overlay = fillU8(createTensor([1, 6, 1], 'uint8'), [200, 200, 200, 200, 200, 200]);
+        const mask = fillU8(createTensor([1, 6, 1], 'uint8'), [0, 0, 0, 255, 255, 255]);
+        const dst = createTensor([1, 6, 1], 'uint8');
+        cv.blendMasked(src, overlay, mask, dst, {{ shrink: 0, feather: 3 }});
+        return readU8(dst);
+    )",
+                                              kNs));
+    ASSERT_EQ(result.size(), 6u);
+    EXPECT_EQ(result[0], 0);
+    EXPECT_GT(result[2], 0);
+    EXPECT_LT(result[2], 200);
+    EXPECT_GT(result[3], 0);
+    EXPECT_LT(result[3], 200);
+    EXPECT_EQ(result[5], 200);
+}
+
+TEST_F(CvOpsTest, BlendMaskedRejectsAnEvenFeather) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format(R"(
+        {}
+        cv.blendMasked(createTensor([1, 2, 1], 'uint8'), createTensor([1, 2, 1], 'uint8'),
+                       createTensor([1, 2, 1], 'uint8'), createTensor([1, 2, 1], 'uint8'),
+                       {{ shrink: 0, feather: 4 }});
+    )",
+                                                      kNs)),
+                             "INVALID_ARGUMENT", "feather must be 0 or an odd kernel size"));
+}
+
+TEST_F(CvOpsTest, BlendMaskedRejectsAMaskOfTheWrongShape) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format(R"(
+        {}
+        cv.blendMasked(createTensor([2, 2, 3], 'uint8'), createTensor([2, 2, 3], 'uint8'),
+                       createTensor([2, 2, 3], 'uint8'), createTensor([2, 2, 3], 'uint8'),
+                       {{ shrink: 0, feather: 0 }});
+    )",
+                                                      kNs)),
+                             "INVALID_ARGUMENT", "blendMasked: mask"));
+}
+
+TEST_F(CvOpsTest, BlendMaskedRejectsWrongArgumentCounts) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format("{} cv.blendMasked();", kNs)),
+                             "INVALID_ARGUMENT", "Usage: blendMasked(src, overlay, mask, dst, options)"));
+}
+
 } // namespace
 } // namespace rnexecutorch::tests

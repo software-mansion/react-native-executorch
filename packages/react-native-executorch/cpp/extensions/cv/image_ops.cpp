@@ -510,4 +510,162 @@ void install_rectifyQuad(jsi::Runtime &rt, jsi::Object &module) {
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 4, error::guarded(fnBody)));
 }
 
+// --- Windowed copies ---------------------------------------------------------
+
+namespace {
+struct Window {
+    int32_t x, y;
+};
+
+// Reads the `{x, y}` origin of a `w` x `h` window and checks that it lies inside
+// a `frameW` x `frameH` frame.
+Window windowInside(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &optsVal,
+                    int32_t w, int32_t h, int32_t frameW, int32_t frameH) {
+    const auto opts = conversions::asType<jsi::Object>(rt, ctx + ": options", optsVal);
+    const auto x = conversions::getRequiredProperty<int32_t>(rt, ctx + ": options", opts, "x");
+    const auto y = conversions::getRequiredProperty<int32_t>(rt, ctx + ": options", opts, "y");
+    if (x < 0 || y < 0 || x + w > frameW || y + h > frameH) {
+        throw error::InvalidArgument(std::format("{}: a {}x{} window at ({}, {}) does not fit in a {}x{} image",
+                                                 ctx, w, h, x, y, frameW, frameH));
+    }
+    return {.x = x, .y = y};
+}
+} // namespace
+
+// Copy the window of `src` that `dst` is sized for, starting at options.{x, y}.
+void install_crop(jsi::Runtime &rt, jsi::Object &module) {
+    const auto *name = "crop";
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
+        if (count != 3) {
+            throw error::InvalidArgument("crop: Usage: crop(src, dst, options)");
+        }
+
+        auto src = tensor::fromJs(rt, "crop: src", args[0], std::nullopt, {"H", "W", "C"});
+        auto dst = tensor::fromJs(rt, "crop: dst", args[1], src->dtype_, {"H'", "W'", src->shape_[2]});
+
+        tensor::checkNotSameTensor(rt, "crop: src", src, "crop: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "crop: src", src);
+        auto dstLock = tensor::tryLockUnique(rt, "crop: dst", dst);
+
+        const int32_t dstH = dst->shape_[0];
+        const int32_t dstW = dst->shape_[1];
+        const Window win = windowInside(rt, "crop", args[2], dstW, dstH, src->shape_[1], src->shape_[0]);
+
+        const int cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), src->shape_[2]);
+        try {
+            const ::cv::Mat srcMat(src->shape_[0], src->shape_[1], cvType, src->data_.get());
+            ::cv::Mat dstMat(dstH, dstW, cvType, dst->data_.get());
+            srcMat(::cv::Rect(win.x, win.y, dstW, dstH)).copyTo(dstMat);
+        } catch (const std::exception &e) {
+            throw error::Unknown("crop: " + std::string(e.what()));
+        }
+
+        return jsi::Value(rt, args[1]);
+    };
+
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, error::guarded(fnBody)));
+}
+
+// Paste the whole of `src` into the window of `dst` starting at options.{x, y};
+// the rest of `dst` is left untouched.
+void install_paste(jsi::Runtime &rt, jsi::Object &module) {
+    const auto *name = "paste";
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
+        if (count != 3) {
+            throw error::InvalidArgument("paste: Usage: paste(src, dst, options)");
+        }
+
+        auto src = tensor::fromJs(rt, "paste: src", args[0], std::nullopt, {"H", "W", "C"});
+        auto dst = tensor::fromJs(rt, "paste: dst", args[1], src->dtype_, {"H'", "W'", src->shape_[2]});
+
+        tensor::checkNotSameTensor(rt, "paste: src", src, "paste: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "paste: src", src);
+        auto dstLock = tensor::tryLockUnique(rt, "paste: dst", dst);
+
+        const int32_t srcH = src->shape_[0];
+        const int32_t srcW = src->shape_[1];
+        const Window win = windowInside(rt, "paste", args[2], srcW, srcH, dst->shape_[1], dst->shape_[0]);
+
+        const int cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), src->shape_[2]);
+        try {
+            const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
+            ::cv::Mat dstMat(dst->shape_[0], dst->shape_[1], cvType, dst->data_.get());
+            srcMat.copyTo(dstMat(::cv::Rect(win.x, win.y, srcW, srcH)));
+        } catch (const std::exception &e) {
+            throw error::Unknown("paste: " + std::string(e.what()));
+        }
+
+        return jsi::Value(rt, args[1]);
+    };
+
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, error::guarded(fnBody)));
+}
+
+// Composite `overlay` over `src` where `mask` is non-zero, with the masked
+// region eroded by `shrink` px and its edge feathered by a `feather`-wide
+// Gaussian, so the seam blends instead of cutting: dst = src*(1-w) + overlay*w.
+void install_blendMasked(jsi::Runtime &rt, jsi::Object &module) {
+    const auto *name = "blendMasked";
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
+        if (count != 5) {
+            throw error::InvalidArgument("blendMasked: Usage: blendMasked(src, overlay, mask, dst, options)");
+        }
+
+        auto src = tensor::fromJs(rt, "blendMasked: src", args[0], DType::uint8, {"H", "W", "C"});
+        auto overlay = tensor::fromJs(rt, "blendMasked: overlay", args[1], DType::uint8, src->shape_);
+        auto mask = tensor::fromJs(rt, "blendMasked: mask", args[2], DType::uint8, {src->shape_[0], src->shape_[1], 1});
+        auto dst = tensor::fromJs(rt, "blendMasked: dst", args[3], DType::uint8, src->shape_);
+
+        tensor::checkNotSameTensor(rt, "blendMasked: src", src, "blendMasked: dst", dst);
+        tensor::checkNotSameTensor(rt, "blendMasked: overlay", overlay, "blendMasked: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "blendMasked: src", src);
+        auto overlayLock = tensor::tryLockShared(rt, "blendMasked: overlay", overlay);
+        auto maskLock = tensor::tryLockShared(rt, "blendMasked: mask", mask);
+        auto dstLock = tensor::tryLockUnique(rt, "blendMasked: dst", dst);
+
+        const auto opts = conversions::asType<jsi::Object>(rt, "blendMasked: options", args[4]);
+        const auto shrink = conversions::getRequiredProperty<int32_t>(rt, "blendMasked: options", opts, "shrink");
+        const auto feather = conversions::getRequiredProperty<int32_t>(rt, "blendMasked: options", opts, "feather");
+        if (shrink < 0) {
+            throw error::InvalidArgument(std::format("blendMasked: shrink must be >= 0 (got {})", shrink));
+        }
+        if (feather < 0 || (feather > 0 && feather % 2 == 0)) {
+            throw error::InvalidArgument(std::format("blendMasked: feather must be 0 or an odd kernel size (got {})", feather));
+        }
+
+        const int32_t h = src->shape_[0];
+        const int32_t w = src->shape_[1];
+        const int cvType = CV_MAKETYPE(CV_8U, src->shape_[2]);
+
+        try {
+            const ::cv::Mat srcMat(h, w, cvType, src->data_.get());
+            const ::cv::Mat overlayMat(h, w, cvType, overlay->data_.get());
+            const ::cv::Mat maskMat(h, w, CV_8UC1, mask->data_.get());
+            ::cv::Mat dstMat(h, w, cvType, dst->data_.get());
+
+            // Weight of the overlay: 1 inside the (eroded, feathered) mask, 0 outside.
+            ::cv::Mat region;
+            ::cv::threshold(maskMat, region, 0, 255, ::cv::THRESH_BINARY);
+            if (shrink > 0) {
+                const int k = 2 * shrink + 1;
+                ::cv::erode(region, region, ::cv::getStructuringElement(::cv::MORPH_RECT, ::cv::Size(k, k)));
+            }
+            ::cv::Mat weight;
+            region.convertTo(weight, CV_32F, 1.0 / 255.0);
+            if (feather > 0) {
+                ::cv::GaussianBlur(weight, weight, ::cv::Size(feather, feather), 0);
+            }
+
+            ::cv::Mat ones = ::cv::Mat::ones(h, w, CV_32F);
+            ::cv::blendLinear(srcMat, overlayMat, ones - weight, weight, dstMat);
+        } catch (const std::exception &e) {
+            throw error::Unknown("blendMasked: " + std::string(e.what()));
+        }
+
+        return jsi::Value(rt, args[3]);
+    };
+
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 5, error::guarded(fnBody)));
+}
+
 } // namespace rnexecutorch::extensions::cv::image_ops
