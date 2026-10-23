@@ -432,3 +432,5 @@ yunjian
 yunxi
 yunxia
 yunyang
+apos
+minicpm

@@ -284,6 +284,77 @@ export function parseLfmToolCalls(text: string): llm.ToolParserResult | undefine
   return { toolCalls, textContent: textContent || undefined };
 }
 
+function decodeMiniCpmArgument(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed.startsWith('<![CDATA[') && trimmed.endsWith(']]>')) {
+    return trimmed.slice(9, -3);
+  }
+  const entities: Record<string, string> = {
+    amp: '&',
+    lt: '<',
+    gt: '>',
+    quot: '"',
+    apos: "'",
+  };
+  return trimmed.replace(/&(#x[\da-f]+|#\d+|amp|lt|gt|quot|apos);/gi, (_, entity: string) => {
+    if (entity.startsWith('#')) {
+      const code = entity.slice(1).toLowerCase();
+      return String.fromCodePoint(
+        code.startsWith('x') ? parseInt(code.slice(1), 16) : Number(code)
+      );
+    }
+    return entities[entity.toLowerCase()]!;
+  });
+}
+
+export function parseMiniCpmToolCalls(text: string): llm.ToolParserResult | undefined {
+  const thinkingEnd = text.lastIndexOf('</think>');
+  if (thinkingEnd === -1) return undefined;
+  const answer = text.slice(thinkingEnd + '</think>'.length);
+  const callRegex =
+    /<function\s+name=(["'])([^"']+)\1\s*>((?:<!\[CDATA\[[\s\S]*?\]\]>|[\s\S])*?)<\/function>/g;
+  const toolCalls: llm.ToolCall[] = [];
+
+  for (const match of answer.matchAll(callRegex)) {
+    const name = match[2]!;
+    const body = match[3]!;
+    const tool = TOOLS.find((candidate) => candidate.function.name === name);
+    if (!tool) return undefined;
+    const params = tool.function.parameters;
+    const paramRegex =
+      /<param\s+name=(["'])([^"']+)\1\s*>((?:<!\[CDATA\[[\s\S]*?\]\]>|[\s\S])*?)<\/param>/g;
+    const args: Record<string, unknown> = {};
+
+    try {
+      for (const param of body.matchAll(paramRegex)) {
+        const key = param[2]!;
+        const schema = params?.properties?.[key] as { type?: string } | undefined;
+        if (!schema || Object.prototype.hasOwnProperty.call(args, key)) return undefined;
+        const value = decodeMiniCpmArgument(param[3]!);
+        const parsed = schema.type === 'string' ? value : JSON.parse(value);
+        if (schema.type === 'number' && (typeof parsed !== 'number' || !Number.isFinite(parsed))) {
+          return undefined;
+        }
+        args[key] = parsed;
+      }
+    } catch {
+      return undefined;
+    }
+    if (body.replace(paramRegex, '').trim()) return undefined;
+    if (params?.required?.some((key) => !Object.prototype.hasOwnProperty.call(args, key))) {
+      return undefined;
+    }
+    toolCalls.push({ type: 'function', function: { name, arguments: args } });
+  }
+
+  if (toolCalls.length === 0) return undefined;
+  const textContent = answer
+    .replace(callRegex, '')
+    .replace(/<\|im_end\|>/g, '')
+    .trim();
+  return { toolCalls, textContent: textContent || undefined };
+}
+
 export const QWEN_TOOL_STOP_REGEX = /(?:<\/tool_call>|<\|im_end\|>)/;
 
 export function parseQwenToolCalls(text: string): llm.ToolParserResult | undefined {
@@ -374,6 +445,14 @@ export function parseLlamaToolCalls(text: string): llm.ToolParserResult | undefi
 }
 
 // --- Model Family Generation Configurations ---
+
+/** Sampling defaults recommended by the MiniCPM5-2B model card. */
+export const MINICPM5_GENERATION_CONFIG: llm.LLMGenerationConfig = {
+  temperature: 1.0,
+  topP: 0.95,
+  minP: 0.0,
+  maxNewTokens: 512,
+};
 
 /**
  * Liquid AI LFM 2.5 recommended generation parameters.
@@ -532,6 +611,11 @@ export const LFM_TOOL_OPTS: LLMToolOpts = {
   parseToolCalls: parseLfmToolCalls,
 };
 
+export const MINICPM5_TOOL_OPTS: LLMToolOpts = {
+  tools: TOOLS,
+  parseToolCalls: parseMiniCpmToolCalls,
+};
+
 export const GEMMA_TOOL_OPTS: LLMToolOpts = {
   tools: TOOLS,
   parseToolCalls: parseGemmaToolCalls,
@@ -571,6 +655,27 @@ export interface LLMModelConfig {
 // --- Quantized LLM Models List ---
 
 export const LLM_MODELS: LLMModelConfig[] = [
+  // MiniCPM5
+  {
+    id: 'minicpm-5-2b-xnnpack',
+    name: 'MiniCPM5 2B',
+    backend: 'xnnpack',
+    model: models.llm.MINICPM5_2B.XNNPACK_8DA4W,
+    generationConfig: MINICPM5_GENERATION_CONFIG,
+    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    toolOpts: MINICPM5_TOOL_OPTS,
+  },
+  {
+    id: 'minicpm-5-2b-mlx',
+    name: 'MiniCPM5 2B',
+    backend: 'mlx',
+    model: models.llm.MINICPM5_2B.MLX_INT4,
+    generationConfig: MINICPM5_GENERATION_CONFIG,
+    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    toolOpts: MINICPM5_TOOL_OPTS,
+    iosOnly: true,
+  },
+
   // LFM 2.5 family
   {
     id: 'lfm-2.5-2.6b-xnnpack',
@@ -1107,7 +1212,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     backend: 'xnnpack',
     model: models.llm.BIELIK_V3_1_5B.XNNPACK_8DA4W,
     generationConfig: BIELIK_V3_GENERATION_CONFIG,
-    // eslint-disable-next-line @cspell/spellchecker
+    // cspell:disable-next-line
     systemPrompt: 'Jesteś pomocnym asystentem AI mówiącym po polsku.',
     stopRegex: undefined,
     toolOpts: undefined,
