@@ -1212,7 +1212,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     backend: 'xnnpack',
     model: models.llm.BIELIK_V3_1_5B.XNNPACK_8DA4W,
     generationConfig: BIELIK_V3_GENERATION_CONFIG,
-    // eslint-disable-next-line @cspell/spellchecker
+    // cspell:disable-next-line
     systemPrompt: 'Jesteś pomocnym asystentem AI mówiącym po polsku.',
     stopRegex: undefined,
     toolOpts: undefined,
