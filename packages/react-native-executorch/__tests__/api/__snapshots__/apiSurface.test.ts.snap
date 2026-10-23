@@ -21,6 +21,7 @@ exports[`public API surface exports one hook per user-facing task 1`] = `
   "useTextToImage",
   "useTextToSpeech",
   "useTokenizer",
+  "useTranslator",
   "useVoiceActivityDetector",
 ]
 `;
@@ -74,6 +75,7 @@ exports[`public API surface matches the recorded contents of each namespace 1`] 
     "labelEntityType",
     "loadTokenizer",
     "piiSegments",
+    "splitSentences",
     "viterbiDecode",
   ],
   "schema": [
@@ -142,6 +144,8 @@ exports[`public API surface matches the recorded export list 1`] = `
   "createKeypointDetector",
   "createKokoroTextToSpeech",
   "createLLMChatSession",
+  "createLLMTranslator",
+  "createMarianTranslator",
   "createObjectDetector",
   "createPaddleOcr",
   "createPrivacyFilter",
@@ -189,6 +193,7 @@ exports[`public API surface matches the recorded export list 1`] = `
   "useTextToImage",
   "useTextToSpeech",
   "useTokenizer",
+  "useTranslator",
   "useVoiceActivityDetector",
   "wrapAsync",
 ]
