@@ -46,7 +46,7 @@
  *              textEmbeddings, imageEmbeddings,
  *              classification, objectDetection, semanticSegmentation, instanceSegmentation,
  *              ocr, verticalOCR, keypointDetection, styleTransfer, textToImage, segmentAnything,
- *              tokenizer
+ *              inpainting, tokenizer
  *
  * Platform applicability:
  *   opencv      Android + iOS — downloaded artifact
@@ -176,6 +176,8 @@ const FEATURE_MAP = {
   styleTransfer: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
   // SDXS ships xnnpack, coreml and a vulkan Android export.
   textToImage: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
+  // MI-GAN ships xnnpack, coreml and a vulkan Android export.
+  inpainting: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
   // FastSAM ships xnnpack, coreml and a vulkan Android export.
   segmentAnything: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
   // Tokenizer is pure-CPU string ops resolved from libexecutorch; needs no

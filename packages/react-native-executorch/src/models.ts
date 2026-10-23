@@ -19,6 +19,7 @@ import { getRegisteredBackends } from './utils';
 import type { ClassifierModel } from './extensions/cv/tasks/classification';
 import type { ObjectDetectorModel } from './extensions/cv/tasks/objectDetection';
 import type { StyleTransferModel } from './extensions/cv/tasks/styleTransfer';
+import type { InpainterModel } from './extensions/cv/tasks/inpainting';
 import type { SemanticSegmenterModel } from './extensions/cv/tasks/semanticSegmentation';
 import type { KeypointDetectorModel } from './extensions/cv/tasks/keypointDetection';
 import type { InstanceSegmenterModel } from './extensions/cv/tasks/instanceSegmentation';
@@ -275,6 +276,56 @@ const STYLE_TRANSFER_UDNIE_COREML_FP16: StyleTransferModel = {
 const STYLE_TRANSFER_UDNIE_VULKAN_FP16: StyleTransferModel = {
   modelPath: `${BASE_URL}-style-transfer-udnie/${NEXT_VERSION_TAG}/vulkan/style_transfer_udnie_vulkan_fp16.pte`,
   modelOpts: STYLE_TRANSFER_OPTS,
+};
+
+// =============================================================================
+// Inpainting
+// =============================================================================
+// MI-GAN takes the image in [0, 1] and a 1 = known / 0 = hole mask and folds
+// its own normalization into the graph; the crop around the hole and the
+// feathered blend follow upstream's reference pipeline (128 px of context, the
+// hole eroded by 1 px, a 5-tap Gaussian seam).
+const MIGAN_OPTS = {
+  interpolation: 'linear' as const,
+  outInterpolation: 'linear' as const,
+  cropPadding: 128,
+  blend: { shrink: 1, feather: 5 },
+};
+const MIGAN_512_XNNPACK_FP16: InpainterModel = {
+  modelPath: `${BASE_URL}-migan/${NEXT_VERSION_TAG}/xnnpack/512/migan_512_xnnpack_fp16.pte`,
+  modelOpts: MIGAN_OPTS,
+};
+const MIGAN_512_COREML_FP16: InpainterModel = {
+  modelPath: `${BASE_URL}-migan/${NEXT_VERSION_TAG}/coreml/512/migan_512_coreml_fp16.pte`,
+  modelOpts: MIGAN_OPTS,
+};
+const MIGAN_512_VULKAN_FP16: InpainterModel = {
+  modelPath: `${BASE_URL}-migan/${NEXT_VERSION_TAG}/vulkan/512/migan_512_vulkan_fp16.pte`,
+  modelOpts: MIGAN_OPTS,
+};
+const MIGAN_256_XNNPACK_FP16: InpainterModel = {
+  modelPath: `${BASE_URL}-migan/${NEXT_VERSION_TAG}/xnnpack/256/migan_256_xnnpack_fp16.pte`,
+  modelOpts: MIGAN_OPTS,
+};
+const MIGAN_256_COREML_FP16: InpainterModel = {
+  modelPath: `${BASE_URL}-migan/${NEXT_VERSION_TAG}/coreml/256/migan_256_coreml_fp16.pte`,
+  modelOpts: MIGAN_OPTS,
+};
+const MIGAN_256_VULKAN_FP16: InpainterModel = {
+  modelPath: `${BASE_URL}-migan/${NEXT_VERSION_TAG}/vulkan/256/migan_256_vulkan_fp16.pte`,
+  modelOpts: MIGAN_OPTS,
+};
+const MIGAN_FACES_256_XNNPACK_FP16: InpainterModel = {
+  modelPath: `${BASE_URL}-migan/${NEXT_VERSION_TAG}/xnnpack/faces_256/migan_faces_256_xnnpack_fp16.pte`,
+  modelOpts: MIGAN_OPTS,
+};
+const MIGAN_FACES_256_COREML_FP16: InpainterModel = {
+  modelPath: `${BASE_URL}-migan/${NEXT_VERSION_TAG}/coreml/faces_256/migan_faces_256_coreml_fp16.pte`,
+  modelOpts: MIGAN_OPTS,
+};
+const MIGAN_FACES_256_VULKAN_FP16: InpainterModel = {
+  modelPath: `${BASE_URL}-migan/${NEXT_VERSION_TAG}/vulkan/faces_256/migan_faces_256_vulkan_fp16.pte`,
+  modelOpts: MIGAN_OPTS,
 };
 
 // =============================================================================
@@ -2130,6 +2181,42 @@ export const models = {
       XNNPACK_FP32: STYLE_TRANSFER_UDNIE_XNNPACK_FP32,
       COREML_FP16: STYLE_TRANSFER_UDNIE_COREML_FP16,
       VULKAN_FP16: STYLE_TRANSFER_UDNIE_VULKAN_FP16,
+    }),
+  },
+
+  /**
+   * Image inpainting models that fill a masked region of a photo with
+   * plausible content, for object removal and photo cleanup.
+   */
+  inpainting: {
+    /**
+     * MI-GAN, a mobile inpainting GAN trained on Places2 (scenes) and FFHQ
+     * (faces). The size names the resolution the model runs at; the region
+     * around the hole is cropped and resized to it, so larger photos work at
+     * either size, with `SIZE_512` keeping more detail at a higher cost.
+     */
+    MIGAN: family({
+      /** Places2 checkpoint at 512x512, the default for general photos. */
+      SIZE_512: variants({
+        XNNPACK_FP16: MIGAN_512_XNNPACK_FP16,
+        COREML_FP16: MIGAN_512_COREML_FP16,
+        VULKAN_FP16: MIGAN_512_VULKAN_FP16,
+      }),
+      /** Places2 checkpoint at 256x256, for lower latency. */
+      SIZE_256: variants({
+        XNNPACK_FP16: MIGAN_256_XNNPACK_FP16,
+        COREML_FP16: MIGAN_256_COREML_FP16,
+        VULKAN_FP16: MIGAN_256_VULKAN_FP16,
+      }),
+      /**
+       * FFHQ checkpoint at 256x256, trained on faces. Reconstructs eyes and
+       * mouths where the scene checkpoints smear them.
+       */
+      FACES_256: variants({
+        XNNPACK_FP16: MIGAN_FACES_256_XNNPACK_FP16,
+        COREML_FP16: MIGAN_FACES_256_COREML_FP16,
+        VULKAN_FP16: MIGAN_FACES_256_VULKAN_FP16,
+      }),
     }),
   },
 
