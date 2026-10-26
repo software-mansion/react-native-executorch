@@ -135,11 +135,11 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides ready-to-use inpainting models from the [Software Mansion HuggingFace MI-GAN repository](https://huggingface.co/software-mansion/react-native-executorch-migan), available in [`models.inpainting`](../../06-api-reference/variables/models.md#inpainting):
 
-| Model Family         | Variants                                                                   | Size     | Supported Backends                           | Notes                                                                              |
-| :------------------- | :------------------------------------------------------------------------- | :------- | :------------------------------------------- | :--------------------------------------------------------------------------------- |
-| **MI-GAN 512**       | [See](../../06-api-reference/variables/models.md#inpaintingmigansize_512)  | 12–26 MB | XNNPACK (CPU), Core ML (Apple), Vulkan (GPU) | Places2 (scenes) checkpoint at 512x512. The default; keeps the most detail.        |
-| **MI-GAN 256**       | [See](../../06-api-reference/variables/models.md#inpaintingmigansize_256)  | 12–24 MB | XNNPACK (CPU), Core ML (Apple), Vulkan (GPU) | Places2 checkpoint at 256x256, for lower latency.                                  |
-| **MI-GAN Faces 256** | [See](../../06-api-reference/variables/models.md#inpaintingmiganfaces_256) | 12–24 MB | XNNPACK (CPU), Core ML (Apple), Vulkan (GPU) | FFHQ (faces) checkpoint. Reconstructs eyes and mouths the scene checkpoints smear. |
+| Model Family         | Variants                                                          | Size     | Supported Backends                           | Notes                                                                              |
+| :------------------- | :---------------------------------------------------------------- | :------- | :------------------------------------------- | :--------------------------------------------------------------------------------- |
+| **MI-GAN 512**       | [See](../../06-api-reference/variables/models.md#inpaintingmigan) | 12–26 MB | XNNPACK (CPU), Core ML (Apple), Vulkan (GPU) | Places2 (scenes) checkpoint at 512x512. The default; keeps the most detail.        |
+| **MI-GAN 256**       | [See](../../06-api-reference/variables/models.md#inpaintingmigan) | 12–24 MB | XNNPACK (CPU), Core ML (Apple), Vulkan (GPU) | Places2 checkpoint at 256x256, for lower latency.                                  |
+| **MI-GAN Faces 256** | [See](../../06-api-reference/variables/models.md#inpaintingmigan) | 12–24 MB | XNNPACK (CPU), Core ML (Apple), Vulkan (GPU) | FFHQ (faces) checkpoint. Reconstructs eyes and mouths the scene checkpoints smear. |
 
 Every variant ships as FP16. MI-GAN is published by [Picsart AI Research](https://github.com/Picsart-AI-Research/MI-GAN) under the MIT license.
 
