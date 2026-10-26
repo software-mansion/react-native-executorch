@@ -7,7 +7,7 @@
 
 import type { WorkletRuntime } from 'react-native-worklets';
 
-import { tensor, type Tensor } from '../../../core/tensor';
+import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
@@ -210,22 +210,23 @@ export async function createInpainter(
       const imageChannels = FORMAT_CHANNELS[image.format];
       const toRgba = FORMAT_CONVERSION[image.format].rgba;
 
-      const perCall: Tensor[] = [];
-      const scratch = (dtype: 'uint8', shape: number[]): Tensor => {
-        const t = tensor(dtype, shape);
-        perCall.push(t);
-        return t;
-      };
+      // Per-call buffers at the frame's resolution: the input as given, the
+      // frame as RGBA, the mask, the upsampled fill and the blended result.
+      const auxTensors = [
+        tensor('uint8', [height, width, imageChannels]),
+        tensor('uint8', [height, width, 4]),
+        tensor('uint8', [height, width, 1]),
+        tensor('uint8', [height, width, 4]),
+        tensor('uint8', [height, width, 4]),
+      ] as const;
+      const [tImage, tRgba, tMask, tFilled, tResult] = auxTensors;
 
       try {
         // The full-resolution RGBA frame the filled region is blended into.
-        const tImage = scratch('uint8', [height, width, imageChannels]).setData(image.data);
-        const tFrame =
-          toRgba === null
-            ? tImage
-            : tImage.through(cvtColor, scratch('uint8', [height, width, 4]), toRgba);
-
-        const tMask = scratch('uint8', [height, width, 1]).setData(mask.data);
+        const tFrame = tImage
+          .setData(image.data)
+          .throughIf(toRgba !== null, cvtColor, tRgba, toRgba!);
+        tMask.setData(mask.data);
 
         // Whole frame -> model input.
         tFrame
@@ -252,27 +253,18 @@ export async function createInpainter(
 
         // Model output -> RGBA at the frame's size, blended over the original
         // pixels through the full-resolution mask.
-        const tFilled = tModelOutput
+        tModelOutput
           .copyTo(tOutChw)
           .through(normalize, tOutU8, { alpha: 255, beta: 0 })
           .through(toChannelsLast, tOutHwc)
           .through(cvtColor, tOutRgba, 'RGB2RGBA')
-          .through(resize, scratch('uint8', [height, width, 4]), {
-            mode: 'stretch',
-            interpolation: outInterpolation,
-          });
-        const tResult = blendMasked(
-          tFrame,
-          tFilled,
-          tMask,
-          scratch('uint8', [height, width, 4]),
-          blend
-        );
+          .through(resize, tFilled, { mode: 'stretch', interpolation: outInterpolation });
+        blendMasked(tFrame, tFilled, tMask, tResult, blend);
 
         const data = tResult.getData(new Uint8Array(width * height * 4));
         return { data, width, height, format: 'rgba', layout: 'hwc' };
       } finally {
-        perCall.forEach((t) => t.dispose());
+        auxTensors.forEach((t) => t.dispose());
       }
     };
 
