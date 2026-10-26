@@ -1,5 +1,5 @@
 import { f32, method } from '../../src/core/schema';
-import { createInpainter, computeInpaintingCrop } from '../../src/extensions/cv/tasks/inpainting';
+import { createInpainter } from '../../src/extensions/cv/tasks/inpainting';
 import type { ImageBuffer } from '../../src/extensions/cv/image';
 import { fakeJsi } from '../support/fakeJsi';
 import type { FakeTensor } from '../support/fakeTensor';
@@ -16,7 +16,6 @@ const FILL_PIXEL = 51;
 const options = {
   interpolation: 'nearest',
   outInterpolation: 'nearest',
-  cropPadding: 0,
   blend: { shrink: 0, feather: 0 },
 } as const;
 
@@ -59,60 +58,6 @@ const rgbaAt = (output: ImageBuffer, x: number, y: number) => {
   return [...output.data.slice(at, at + 4)];
 };
 
-describe('computeInpaintingCrop', () => {
-  it('returns null for a mask that marks nothing', () => {
-    expect(computeInpaintingCrop(maskBuffer(10, 10, null), { padding: 0, minSize: 1 })).toBeNull();
-  });
-
-  it('frames the hole in a square padded on each side', () => {
-    // A 2x4 hole at (4, 3): the longer side is 4, plus 1 px of padding on each
-    // side makes a 6x6 window centred on the hole.
-    const crop = computeInpaintingCrop(maskBuffer(20, 20, { x0: 4, y0: 3, x1: 5, y1: 6 }), {
-      padding: 1,
-      minSize: 1,
-    });
-    expect(crop).toEqual({ x: 1, y: 1, width: 6, height: 6 });
-  });
-
-  it('never returns a window smaller than minSize', () => {
-    const crop = computeInpaintingCrop(maskBuffer(20, 20, { x0: 10, y0: 10, x1: 10, y1: 10 }), {
-      padding: 0,
-      minSize: 8,
-    });
-    expect(crop).toMatchObject({ width: 8, height: 8 });
-  });
-
-  it('pushes a window that overhangs the image back inside it', () => {
-    // A hole in the top-left corner would centre a 6x6 window at (0, 0); the
-    // overhang is pushed to the right and bottom so the window keeps its size.
-    const crop = computeInpaintingCrop(maskBuffer(20, 20, { x0: 0, y0: 0, x1: 1, y1: 1 }), {
-      padding: 2,
-      minSize: 1,
-    });
-    expect(crop).toEqual({ x: 0, y: 0, width: 6, height: 6 });
-  });
-
-  it('clamps a window larger than the image to the image', () => {
-    const crop = computeInpaintingCrop(maskBuffer(5, 7, { x0: 2, y0: 3, x1: 2, y1: 3 }), {
-      padding: 0,
-      minSize: 64,
-    });
-    expect(crop).toEqual({ x: 0, y: 0, width: 5, height: 7 });
-  });
-
-  it('treats any non-zero color channel of a color mask as the hole', () => {
-    const mask = imageBuffer(6, 6, 'rgba');
-    mask.data.fill(0);
-    mask.data[(2 * 6 + 3) * 4 + 2] = 255; // B of pixel (3, 2)
-    expect(computeInpaintingCrop(mask, { padding: 0, minSize: 1 })).toEqual({
-      x: 3,
-      y: 2,
-      width: 1,
-      height: 1,
-    });
-  });
-});
-
 describe('createInpainter', () => {
   beforeEach(registerPainter);
 
@@ -130,7 +75,7 @@ describe('createInpainter', () => {
   });
 
   it('fills the hole with the model output and leaves the rest untouched', async () => {
-    // The hole's 4x4 window matches the model size, so with nearest resizing
+    // The model paints the whole (downscaled) frame, so with nearest resizing
     // and a hard blend the hole takes the painted value exactly and every
     // other pixel is the input.
     const inpainter = tracked(await createInpainter(config));
@@ -149,6 +94,34 @@ describe('createInpainter', () => {
         );
       }
     }
+  });
+
+  it('feeds the model the whole frame resized to its input', async () => {
+    let imageSeen: number[] = [];
+    fakeJsi.registerModel(MODEL_PATH, {
+      schema: exported(BATCHED),
+      execute: (_method, inputs) => {
+        const image = inputs[0] as FakeTensor;
+        imageSeen = Array.from({ length: image.numel }, (_, i) => image.getElement(i));
+      },
+    });
+    const inpainter = tracked(await createInpainter(config));
+    const input = imageBuffer(2 * SIZE, 2 * SIZE);
+
+    // A hole in one corner still sends the model every part of the frame.
+    await inpainter.inpaint(input, maskBuffer(2 * SIZE, 2 * SIZE, { x0: 0, y0: 0, x1: 0, y1: 0 }));
+
+    // Nearest downscaling by 2 keeps every other pixel, laid out CHW in [0, 1].
+    const expected: number[] = [];
+    for (let c = 0; c < 3; c++) {
+      for (let y = 0; y < SIZE; y++) {
+        for (let x = 0; x < SIZE; x++) {
+          expected.push(input.data[(2 * y * 2 * SIZE + 2 * x) * 3 + c]! / 255);
+        }
+      }
+    }
+    expect(imageSeen).toHaveLength(expected.length);
+    imageSeen.forEach((v, i) => expect(v).toBeCloseTo(expected[i]!, 5));
   });
 
   it('feeds the model 1 for known pixels and 0 for the hole', async () => {
@@ -172,13 +145,12 @@ describe('createInpainter', () => {
     expect(maskSeen).toEqual(expected);
   });
 
-  it('returns the input unchanged, without running the model, for an empty mask', async () => {
+  it('returns the input unchanged for an empty mask', async () => {
     const inpainter = tracked(await createInpainter(config));
     const input = imageBuffer(6, 5);
 
     const output = await inpainter.inpaint(input, maskBuffer(6, 5, null));
 
-    expect(fakeJsi.executions()).toEqual([]);
     for (let p = 0; p < 6 * 5; p++) {
       expect([...output.data.slice(p * 4, p * 4 + 3)]).toEqual([
         ...input.data.slice(p * 3, p * 3 + 3),

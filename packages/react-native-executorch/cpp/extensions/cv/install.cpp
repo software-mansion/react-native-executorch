@@ -16,13 +16,10 @@ void install(facebook::jsi::Runtime &rt, facebook::jsi::Object &module) {
     image_ops::install_normalize(rt, cvModule);
     image_ops::install_applyColormap(rt, cvModule);
     image_ops::install_rectifyQuad(rt, cvModule);
-    image_ops::install_crop(rt, cvModule);
-    image_ops::install_paste(rt, cvModule);
     image_ops::install_blendMasked(rt, cvModule);
 
     box_ops::install_nms(rt, cvModule);
     box_ops::install_restrictToBox(rt, cvModule);
-    box_ops::install_maskBounds(rt, cvModule);
 
     ocr_ops::install_extractDbnetTextQuads(rt, cvModule);
 

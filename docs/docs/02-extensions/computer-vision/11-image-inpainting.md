@@ -1,7 +1,7 @@
 ---
 title: Image Inpainting
 slug: /extensions/image-inpainting
-description: 'Remove objects and fill masked regions of photos on-device with MI-GAN, with the crop, mask handling and seam blending built in.'
+description: 'Remove objects and fill masked regions of photos on-device with MI-GAN, with the resizing, mask handling and seam blending built in.'
 keywords:
   [
     react native,
@@ -21,7 +21,7 @@ keywords:
 
 Image inpainting fills a region of a photo with content that matches its surroundings: paint over an unwanted object, a blemish, or a passer-by, and the model reconstructs what would plausibly be behind it.
 
-The pipeline runs entirely on-device. It crops the area around the painted region, runs the model on that crop, and blends the result back into the full-resolution photo with a feathered seam, so the rest of the image is returned pixel for pixel as it came in.
+The pipeline runs entirely on-device. It runs the model on the whole photo resized to the model's resolution and blends the result back into the full-resolution photo through the mask with a feathered seam, so the rest of the image is returned pixel for pixel as it came in.
 
 ## Quick Start
 
@@ -90,15 +90,15 @@ type ImageBuffer = {
 
 Pixels outside the mask are copied from the input; the model only ever touches the masked region and a thin feathered seam around it.
 
-## How the Crop Works
+## How It Works
 
-The models run at a fixed resolution (256 or 512 px), far below a phone photo. Rather than shrinking the whole photo, the pipeline follows the reference MI-GAN implementation:
+The models run at a fixed resolution (256 or 512 px):
 
-1. Find the bounding box of the mask and frame it in a square with [`cropPadding`](../../06-api-reference/type-aliases/InpainterOptions.md#croppadding) pixels of context on each side, never smaller than the model input. The square is clamped to the photo, with any overhang pushed to the opposite side.
-2. Resize that crop to the model input (the mask with nearest-neighbor, so it stays binary), run the model, and resize the output back to the crop.
-3. Blend the output over the original crop through the mask, eroded and feathered per [`blend`](../../06-api-reference/type-aliases/InpainterOptions.md#blend), and paste the crop back into the photo.
+1. Resize the whole photo and the mask to the model input and run the model. A model pixel is part of the hole when any photo pixel it covers is, so thin strokes survive the downscale.
+2. Resize the output back to the photo's resolution.
+3. Blend it over the original photo through the full-resolution mask, eroded and feathered per [`blend`](../../06-api-reference/type-aliases/InpainterOptions.md#blend).
 
-A small hole in a large photo therefore keeps its surroundings at native resolution, while a large hole is filled at the model's resolution and upsampled. The square the model saw is available through [`computeInpaintingCrop()`](../../06-api-reference/functions/computeInpaintingCrop.md) if you want to show it or size the mask to it.
+The fill is therefore generated at the model's resolution and upsampled. To fill a small hole in a large photo at higher detail, crop the region around it yourself, inpaint the crop, and paste the result back.
 
 ## Imperative API
 
@@ -152,7 +152,6 @@ const customInpainter = await createInpainter({
   modelOpts: {
     interpolation: 'linear',
     outInterpolation: 'linear',
-    cropPadding: 128,
     blend: { shrink: 1, feather: 5 },
   },
 });
@@ -167,13 +166,12 @@ The pipeline automatically verifies that the model's exported input and output s
 
 - [`useInpainter()`](../../06-api-reference/functions/useInpainter.md) — React hook for inpainting model downloading, state, and lifecycle.
 - [`createInpainter()`](../../06-api-reference/functions/createInpainter.md) — Imperative factory for inpainting pipelines.
-- [`computeInpaintingCrop()`](../../06-api-reference/functions/computeInpaintingCrop.md) — The square around the mask the model is run on.
 
 ### Types & Options
 
 - [`Inpainter`](../../06-api-reference/type-aliases/Inpainter.md) — Inpainting runner interface (`inpaint`, [`inpaintWorklet`](../../06-api-reference/type-aliases/Inpainter.md#inpaintworklet)).
 - [`InpainterModel`](../../06-api-reference/type-aliases/InpainterModel.md) — Model configuration spec for inpainting models.
-- [`InpainterOptions`](../../06-api-reference/type-aliases/InpainterOptions.md) — Crop, interpolation and blend options.
+- [`InpainterOptions`](../../06-api-reference/type-aliases/InpainterOptions.md) — Interpolation and blend options.
 - [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) — Input, mask and output image buffer structure.
 
 ### Model Presets

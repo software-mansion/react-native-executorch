@@ -405,13 +405,12 @@ const ZIPDEPTH_BASE_VULKAN_FP16: DepthEstimatorModel = {
 // Inpainting
 // =============================================================================
 // MI-GAN takes the image in [0, 1] and a 1 = known / 0 = hole mask and folds
-// its own normalization into the graph; the crop around the hole and the
-// feathered blend follow upstream's reference pipeline (128 px of context, the
-// hole eroded by 1 px, a 5-tap Gaussian seam).
+// its own normalization into the graph; the output is blended back with the
+// hole eroded by 1 px and a 5-tap Gaussian seam, as in upstream's reference
+// pipeline.
 const MIGAN_OPTS = {
   interpolation: 'linear' as const,
   outInterpolation: 'linear' as const,
-  cropPadding: 128,
   blend: { shrink: 1, feather: 5 },
 };
 const MIGAN_512_XNNPACK_FP16: InpainterModel = {
@@ -2605,9 +2604,9 @@ export const models = {
   inpainting: {
     /**
      * MI-GAN, a mobile inpainting GAN trained on Places2 (scenes) and FFHQ
-     * (faces). The size names the resolution the model runs at; the region
-     * around the hole is cropped and resized to it, so larger photos work at
-     * either size, with `SIZE_512` keeping more detail at a higher cost.
+     * (faces). The size names the resolution the model runs at; the photo is
+     * resized to it, so larger photos work at either size, with `SIZE_512`
+     * keeping more detail at a higher cost.
      */
     MIGAN: family({
       /** Places2 checkpoint at 512x512, the default for general photos. */

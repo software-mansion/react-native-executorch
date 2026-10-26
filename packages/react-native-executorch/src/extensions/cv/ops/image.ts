@@ -267,61 +267,6 @@ export function applyColormap(
 }
 
 /**
- * Position of a window inside an image, in pixels from its top-left corner.
- * @category CV / Types
- */
-export type WindowOrigin = {
-  /** Column of the window's left edge. */
-  readonly x: number;
-  /** Row of the window's top edge. */
-  readonly y: number;
-};
-
-/**
- * Copies a window of `src` into `dst`. The window is the size of `dst` and its
- * top-left corner sits at `origin`, so the caller sizes the destination rather
- * than passing the extent twice.
- * @category CV / Functions
- * @param src The source image tensor in HWC layout. Expected shape `[H, W, C]`
- * (channels-last). Supports any numeric data type.
- * @param dst The pre-allocated destination image tensor, `[H', W', C]` in HWC
- * layout with the same channel count and data type as `src`. Its spatial
- * dimensions are the window size.
- * @param origin Where the window starts in `src`. See {@link WindowOrigin}.
- * @returns The destination image tensor `dst`.
- * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the window does
- * not fit inside `src` or if tensor shapes, layouts, or data types are invalid,
- * `RESOURCE_BUSY` if a tensor is in use, or `RESOURCE_DISPOSED` if either
- * tensor was disposed.
- */
-export function crop(src: Tensor, dst: Tensor, origin: WindowOrigin): Tensor {
-  'worklet';
-  return rnexecutorchJsi.cv.crop(src, dst, { x: origin.x, y: origin.y });
-}
-
-/**
- * Pastes the whole of `src` into the window of `dst` whose top-left corner
- * sits at `origin`, leaving the rest of `dst` untouched. The inverse of
- * {@link crop}.
- * @category CV / Functions
- * @param src The source image tensor in HWC layout. Expected shape `[H, W, C]`
- * (channels-last). Supports any numeric data type.
- * @param dst The pre-allocated destination image tensor, `[H', W', C]` in HWC
- * layout with the same channel count and data type as `src`, at least as large
- * as `src` in both spatial dimensions.
- * @param origin Where the window starts in `dst`. See {@link WindowOrigin}.
- * @returns The destination image tensor `dst`.
- * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `src` does not fit
- * inside `dst` at `origin` or if tensor shapes, layouts, or data types are
- * invalid, `RESOURCE_BUSY` if a tensor is in use, or `RESOURCE_DISPOSED` if
- * either tensor was disposed.
- */
-export function paste(src: Tensor, dst: Tensor, origin: WindowOrigin): Tensor {
-  'worklet';
-  return rnexecutorchJsi.cv.paste(src, dst, { x: origin.x, y: origin.y });
-}
-
-/**
  * Options softening the mask edge in {@link blendMasked}.
  * @category CV / Types
  */

@@ -19,7 +19,6 @@
 #include "utils.h"
 
 #include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
 
 #include "core/error.h"
 
@@ -268,49 +267,6 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
     };
 
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 4, error::guarded(fnBody)));
-}
-
-// Bounding box of the non-zero pixels of `src`, or null when there are none. A
-// pixel counts when any of its channels is non-zero; the box corners are the
-// first and last such column and row, inclusive, like restrictToBox reads them.
-void install_maskBounds(jsi::Runtime &rt, jsi::Object &module) {
-    const auto *name = "maskBounds";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
-        if (count != 1) {
-            throw error::InvalidArgument("maskBounds: Usage: maskBounds(src)");
-        }
-
-        auto src = tensor::fromJs(rt, "maskBounds: src", args[0], DType::uint8, {"H", "W", "C"});
-        auto srcLock = tensor::tryLockShared(rt, "maskBounds: src", src);
-
-        const int32_t H = src->shape_[0];
-        const int32_t W = src->shape_[1];
-        const int32_t C = src->shape_[2];
-
-        ::cv::Rect rect;
-        try {
-            // One row per image row and one column per channel sample, so the
-            // rectangle of non-zero samples spans exactly the non-zero pixels
-            // once its columns are mapped back to pixels.
-            const ::cv::Mat samples(H, W * C, CV_8UC1, src->data_.get());
-            rect = ::cv::boundingRect(samples);
-        } catch (const std::exception &e) {
-            throw error::Unknown("maskBounds: " + std::string(e.what()));
-        }
-
-        if (rect.empty()) {
-            return jsi::Value::null();
-        }
-
-        jsi::Object bounds(rt);
-        bounds.setProperty(rt, "xmin", static_cast<double>(rect.x / C));
-        bounds.setProperty(rt, "ymin", static_cast<double>(rect.y));
-        bounds.setProperty(rt, "xmax", static_cast<double>((rect.x + rect.width - 1) / C));
-        bounds.setProperty(rt, "ymax", static_cast<double>(rect.y + rect.height - 1));
-        return bounds;
-    };
-
-    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 1, error::guarded(fnBody)));
 }
 
 } // namespace rnexecutorch::extensions::cv::box_ops

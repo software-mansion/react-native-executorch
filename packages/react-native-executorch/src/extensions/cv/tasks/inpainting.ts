@@ -1,8 +1,8 @@
 /**
  * Image inpainting task pipeline: fills a masked region of a photo with
- * plausible content (object removal, blemish cleanup), with the crop around the
- * hole, the model I/O normalization, and the feathered blend back into the
- * frame handled here.
+ * plausible content (object removal, blemish cleanup). The whole frame is
+ * resized to the model input, and the output is resized back and blended into
+ * the original pixels through the mask, so only the hole changes.
  */
 
 import type { WorkletRuntime } from 'react-native-worklets';
@@ -24,13 +24,10 @@ import {
   toChannelsFirst,
   toChannelsLast,
   normalize,
-  crop,
-  paste,
   blendMasked,
   type InterpolationMethod,
   type BlendMaskedOptions,
 } from '../ops/image';
-import { maskBounds, type BoundingBox } from '../ops/box';
 
 /**
  * Options for configuring the inpainting preprocessor and postprocessor.
@@ -38,18 +35,13 @@ import { maskBounds, type BoundingBox } from '../ops/box';
  */
 export type InpainterOptions = {
   /**
-   * Interpolation used to bring the crop around the hole to the model's input
-   * size. The mask is always resized nearest-neighbor so it stays binary.
+   * Interpolation used to bring the image to the model's input size. The mask
+   * is always area-resized and re-binarized, so a model pixel is part of the
+   * hole when any of the photo pixels it covers is.
    */
   readonly interpolation: InterpolationMethod;
-  /** Interpolation used to bring the model output back to the crop's size. */
+  /** Interpolation used to bring the model output back to the image's size. */
   readonly outInterpolation: InterpolationMethod;
-  /**
-   * Context kept around the hole, in pixels on each side of its bounding box,
-   * when cropping the region the model sees. The crop is square, never smaller
-   * than the model input, and clamped to the image.
-   */
-  readonly cropPadding: number;
   /**
    * How the filled region is blended back over the original pixels. See
    * {@link BlendMaskedOptions}.
@@ -65,25 +57,9 @@ export type InpainterModel = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /**
-   * Crop, interpolation and blending options. See {@link InpainterOptions}.
+   * Interpolation and blending options. See {@link InpainterOptions}.
    */
   readonly modelOpts: InpainterOptions;
-};
-
-/**
- * The window of an image an inpainting model is run on, in pixels of that
- * image.
- * @category CV / Types
- */
-export type InpaintingCrop = {
-  /** Column of the window's left edge. */
-  readonly x: number;
-  /** Row of the window's top edge. */
-  readonly y: number;
-  /** Window width. */
-  readonly width: number;
-  /** Window height. */
-  readonly height: number;
 };
 
 /**
@@ -98,12 +74,14 @@ export type Inpainter = {
 
   /**
    * Fills the masked region of `image` and returns the whole frame with the
-   * hole filled.
+   * hole filled. The model sees the whole frame stretched to its input size;
+   * to fill a small hole in a large photo at higher detail, crop the region
+   * around it first and inpaint the crop.
    * @param image The input image buffer.
    * @param mask A buffer of the same dimensions as `image` marking the region
    * to fill: any non-zero pixel is part of the hole. A `'gray'` buffer is used
-   * as is; other formats are converted to grayscale first. An all-zero mask
-   * returns the input unchanged without running the model.
+   * as is; other formats are converted to grayscale first. Pixels outside the
+   * hole are returned unchanged.
    * @returns A promise resolving to the inpainted RGBA image buffer at the
    * input dimensions.
    * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `mask` does not
@@ -118,82 +96,6 @@ export type Inpainter = {
    */
   readonly inpaintWorklet: (image: ImageBuffer, mask: ImageBuffer) => ImageBuffer;
 };
-
-/**
- * Finds the window of an image an inpainting model should be run on: a square
- * around the hole's bounding box, padded by `padding` on each side, never
- * smaller than `minSize`, and clamped to the image, with any overhang pushed
- * to the opposite side so the window stays as large as it can.
- *
- * The hole is scanned natively. An image buffer is converted to grayscale
- * first, exactly as {@link Inpainter.inpaint} does before feeding the model, so
- * a pixel is masked when its gray value is non-zero. A tensor is scanned as is,
- * with a pixel masked when any of its channels is non-zero.
- * @category CV / Functions
- * @param mask The hole mask: an image buffer of any format, or a `uint8` tensor
- * in HWC layout.
- * @param options Context to keep around the hole and the smallest window to
- * return, both in pixels.
- * @returns The window, or `null` when the mask marks no pixel.
- * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if a tensor mask is
- * not a `uint8` HWC tensor, `RESOURCE_BUSY` if it is in use, or
- * `RESOURCE_DISPOSED` if it was disposed.
- */
-export function computeInpaintingCrop(
-  mask: ImageBuffer | Tensor,
-  options: { readonly padding: number; readonly minSize: number }
-): InpaintingCrop | null {
-  'worklet';
-  let bounds: BoundingBox<'xyxy'> | null;
-  let width: number;
-  let height: number;
-  // A tensor is a native host object, for which the `in` operator is not
-  // reliable, so an image buffer is told apart by its layout tag instead.
-  if ((mask as Partial<ImageBuffer>).layout === 'hwc') {
-    mask = mask as ImageBuffer;
-    ({ width, height } = mask);
-    const toGray = FORMAT_CONVERSION[mask.format].gray;
-    const tMask = tensor('uint8', [height, width, FORMAT_CHANNELS[mask.format]]);
-    let tGray: Tensor | null = null;
-    try {
-      tMask.setData(mask.data);
-      if (toGray !== null) {
-        tGray = tMask.through(cvtColor, tensor('uint8', [height, width, 1]), toGray);
-      }
-      bounds = maskBounds(tGray ?? tMask);
-    } finally {
-      tMask.dispose();
-      tGray?.dispose();
-    }
-  } else {
-    mask = mask as Tensor;
-    bounds = maskBounds(mask);
-    height = mask.shape[0]!;
-    width = mask.shape[1]!;
-  }
-  if (bounds === null) return null;
-  const { xmin: left, ymin: top, xmax: right, ymax: bottom } = bounds;
-
-  const centerX = Math.floor((left + right) / 2);
-  const centerY = Math.floor((top + bottom) / 2);
-  const extent = Math.max(right - left + 1, bottom - top + 1) + 2 * options.padding;
-  const size = Math.max(extent, options.minSize);
-  const half = Math.floor(size / 2);
-
-  let x0 = Math.max(centerX - half, 0);
-  let x1 = Math.min(centerX - half + size, width);
-  let y0 = Math.max(centerY - half, 0);
-  let y1 = Math.min(centerY - half + size, height);
-
-  const overhangX = Math.max(size - (x1 - x0), 0);
-  const overhangY = Math.max(size - (y1 - y0), 0);
-  x0 = Math.max(x0 - overhangX, 0);
-  x1 = Math.min(x1 + overhangX, width);
-  y0 = Math.max(y0 - overhangY, 0);
-  y1 = Math.min(y1 + overhangY, height);
-
-  return { x: x0, y: y0, width: x1 - x0, height: y1 - y0 };
-}
 
 /**
  * Creates an image inpainting runner for executing local inpainting models.
@@ -244,7 +146,8 @@ export async function createInpainter(
       tensor('float32', imageShape),
       tensor('float32', maskShape),
       tensor('float32', imageShape),
-      // Image: resized RGB crop -> CHW -> normalized.
+      // Image: resized RGBA -> RGB -> CHW -> normalized.
+      tensor('uint8', [H, W, 4]),
       tensor('uint8', [H, W, 3]),
       tensor('uint8', [3, H, W]),
       tensor('float32', [3, H, W]),
@@ -267,6 +170,7 @@ export async function createInpainter(
       tModelImage,
       tModelMask,
       tModelOutput,
+      tInRgba,
       tInRgb,
       tInChw,
       tInNorm,
@@ -281,8 +185,7 @@ export async function createInpainter(
       tOutRgba,
     ] = tensors;
 
-    const { interpolation, outInterpolation, cropPadding, blend } = modelOpts;
-    const minCropSize = Math.max(H, W);
+    const { interpolation, outInterpolation, blend } = modelOpts;
 
     const inpaintWorklet = (image: ImageBuffer, mask: ImageBuffer): ImageBuffer => {
       'worklet';
@@ -307,7 +210,7 @@ export async function createInpainter(
       };
 
       try {
-        // The full-resolution RGBA frame the result is assembled in.
+        // The full-resolution RGBA frame the filled region is blended into.
         const tImage = scratch('uint8', [height, width, imageChannels]).setData(image.data);
         const tFrame =
           toRgba === null
@@ -320,55 +223,48 @@ export async function createInpainter(
             ? tMaskIn
             : tMaskIn.through(cvtColor, scratch('uint8', [height, width, 1]), toGray);
 
-        const window = computeInpaintingCrop(tMaskGray, {
-          padding: cropPadding,
-          minSize: minCropSize,
-        });
-        if (window !== null) {
-          const { x, y, width: cw, height: ch } = window;
+        // Whole frame -> model input.
+        tFrame
+          .through(resize, tInRgba, { mode: 'stretch', interpolation })
+          .through(cvtColor, tInRgb, 'RGBA2RGB')
+          .through(toChannelsFirst, tInChw)
+          .through(normalize, tInNorm, { alpha: 1 / 255, beta: 0 })
+          .copyTo(tModelImage);
 
-          // Image crop -> model input.
-          const tCrop = tFrame.through(crop, scratch('uint8', [ch, cw, 4]), { x, y });
-          tCrop
-            .through(cvtColor, scratch('uint8', [ch, cw, 3]), 'RGBA2RGB')
-            .through(resize, tInRgb, { mode: 'stretch', interpolation })
-            .through(toChannelsFirst, tInChw)
-            .through(normalize, tInNorm, { alpha: 1 / 255, beta: 0 })
-            .copyTo(tModelImage);
+        // Mask -> model input. Area resizing keeps strokes thinner than the
+        // downscale factor as non-zero values, so binarizing at any non-zero
+        // value never drops part of the hole; then inverted to the model's
+        // 1 = known convention.
+        tMaskGray
+          .through(resize, tMaskResized, { mode: 'stretch', interpolation: 'area' })
+          .through(toChannelsFirst, tMaskChw)
+          .through(normalize, tMaskFloat, { alpha: 1, beta: 0 })
+          .through(threshold, tMaskHole, 0.5)
+          .through(normalize, tMaskKnown, { alpha: -1, beta: 1 })
+          .copyTo(tModelMask);
 
-          // Mask crop -> model input, binarized so any non-zero value is the
-          // hole, then inverted to the model's 1 = known convention.
-          const tMaskCrop = tMaskGray.through(crop, scratch('uint8', [ch, cw, 1]), { x, y });
-          tMaskCrop
-            .through(resize, tMaskResized, { mode: 'stretch', interpolation: 'nearest' })
-            .through(toChannelsFirst, tMaskChw)
-            .through(normalize, tMaskFloat, { alpha: 1, beta: 0 })
-            .through(threshold, tMaskHole, 0.5)
-            .through(normalize, tMaskKnown, { alpha: -1, beta: 1 })
-            .copyTo(tModelMask);
+        model.execute('forward', [tModelImage, tModelMask], [tModelOutput]);
 
-          model.execute('forward', [tModelImage, tModelMask], [tModelOutput]);
+        // Model output -> RGBA at the frame's size, blended over the original
+        // pixels through the full-resolution mask.
+        const tFilled = tModelOutput
+          .copyTo(tOutChw)
+          .through(normalize, tOutU8, { alpha: 255, beta: 0 })
+          .through(toChannelsLast, tOutHwc)
+          .through(cvtColor, tOutRgba, 'RGB2RGBA')
+          .through(resize, scratch('uint8', [height, width, 4]), {
+            mode: 'stretch',
+            interpolation: outInterpolation,
+          });
+        const tResult = blendMasked(
+          tFrame,
+          tFilled,
+          tMaskGray,
+          scratch('uint8', [height, width, 4]),
+          blend
+        );
 
-          // Model output -> RGBA at crop size, blended into the crop over the
-          // original pixels, then pasted back into the frame.
-          const tFilled = tModelOutput
-            .copyTo(tOutChw)
-            .through(normalize, tOutU8, { alpha: 255, beta: 0 })
-            .through(toChannelsLast, tOutHwc)
-            .through(cvtColor, tOutRgba, 'RGB2RGBA')
-            .through(resize, scratch('uint8', [ch, cw, 4]), {
-              mode: 'stretch',
-              interpolation: outInterpolation,
-            });
-
-          blendMasked(tCrop, tFilled, tMaskCrop, scratch('uint8', [ch, cw, 4]), blend).through(
-            paste,
-            tFrame,
-            { x, y }
-          );
-        }
-
-        const data = tFrame.getData(new Uint8Array(width * height * 4));
+        const data = tResult.getData(new Uint8Array(width * height * 4));
         return { data, width, height, format: 'rgba', layout: 'hwc' };
       } finally {
         perCall.forEach((t) => t.dispose());
