@@ -137,7 +137,7 @@ The library provides ready-to-use inpainting models from the [Software Mansion H
 
 | Model Family         | Variants                                                          | Size     | Supported Backends                           | Notes                                                                              |
 | :------------------- | :---------------------------------------------------------------- | :------- | :------------------------------------------- | :--------------------------------------------------------------------------------- |
-| **MI-GAN 512**       | [See](../../06-api-reference/variables/models.md#inpaintingmigan) | 12–26 MB | XNNPACK (CPU), Core ML (Apple), Vulkan (GPU) | Places2 (scenes) checkpoint at 512x512. The default; keeps the most detail.        |
+| **MI-GAN 512**       | [See](../../06-api-reference/variables/models.md#inpaintingmigan) | 14–25 MB | XNNPACK (CPU), Core ML (Apple), Vulkan (GPU) | Places2 (scenes) checkpoint at 512x512. The default; keeps the most detail.        |
 | **MI-GAN 256**       | [See](../../06-api-reference/variables/models.md#inpaintingmigan) | 12–24 MB | XNNPACK (CPU), Core ML (Apple), Vulkan (GPU) | Places2 checkpoint at 256x256, for lower latency.                                  |
 | **MI-GAN Faces 256** | [See](../../06-api-reference/variables/models.md#inpaintingmigan) | 12–24 MB | XNNPACK (CPU), Core ML (Apple), Vulkan (GPU) | FFHQ (faces) checkpoint. Reconstructs eyes and mouths the scene checkpoints smear. |
 
