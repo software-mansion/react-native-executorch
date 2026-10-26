@@ -411,7 +411,10 @@ const ZIPDEPTH_BASE_VULKAN_FP16: DepthEstimatorModel = {
 // and upsampled, so its edge is already soft and the erosion would only drop
 // strokes thinner than 3 px.
 const MIGAN_OPTS = {
+  resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
+  normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
+  outNormalizeOpts: { alpha: 255.0, beta: 0.0 },
   outInterpolation: 'linear' as const,
   blend: { shrink: 0, feather: 5 },
 };

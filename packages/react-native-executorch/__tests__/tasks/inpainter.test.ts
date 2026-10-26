@@ -14,7 +14,10 @@ const FILL = 0.2;
 const FILL_PIXEL = 51;
 
 const options = {
+  resizeMode: 'stretch',
   interpolation: 'nearest',
+  normalizeOpts: { alpha: 1 / 255, beta: 0 },
+  outNormalizeOpts: { alpha: 255, beta: 0 },
   outInterpolation: 'nearest',
   blend: { shrink: 0, feather: 0 },
 } as const;

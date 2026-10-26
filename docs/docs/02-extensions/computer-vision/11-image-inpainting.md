@@ -150,7 +150,10 @@ To use your own inpainting `.pte` model, pass an [`InpainterModel`](../../06-api
 const customInpainter = await createInpainter({
   modelPath: 'https://example.com/my-inpainter.pte',
   modelOpts: {
+    resizeMode: 'stretch',
     interpolation: 'linear',
+    normalizeOpts: { alpha: 1 / 255, beta: 0 },
+    outNormalizeOpts: { alpha: 255, beta: 0 },
     outInterpolation: 'linear',
     blend: { shrink: 1, feather: 5 },
   },
@@ -171,7 +174,7 @@ The pipeline automatically verifies that the model's exported input and output s
 
 - [`Inpainter`](../../06-api-reference/type-aliases/Inpainter.md) — Inpainting runner interface (`inpaint`, [`inpaintWorklet`](../../06-api-reference/type-aliases/Inpainter.md#inpaintworklet)).
 - [`InpainterModel`](../../06-api-reference/type-aliases/InpainterModel.md) — Model configuration spec for inpainting models.
-- [`InpainterOptions`](../../06-api-reference/type-aliases/InpainterOptions.md) — Interpolation and blend options.
+- [`InpainterOptions`](../../06-api-reference/type-aliases/InpainterOptions.md) — Input preprocessing, output postprocessing and blend options.
 - [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) — Input, mask and output image buffer structure.
 
 ### Model Presets

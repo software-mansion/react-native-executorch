@@ -26,21 +26,24 @@ import {
   normalize,
   blendMasked,
   type InterpolationMethod,
+  type NormalizeOptions,
   type BlendMaskedOptions,
 } from '../ops/image';
+import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils/imagePreprocessor';
 
 /**
- * Options for configuring the inpainting preprocessor and postprocessor.
+ * Options for configuring the inpainting preprocessor and postprocessor. The
+ * image goes through the shared image preprocessor; the mask is always
+ * area-resized and re-binarized, so a model pixel is part of the hole when any
+ * of the photo pixels it covers is.
  * @category CV / Types
  */
-export type InpainterOptions = {
-  /**
-   * Interpolation used to bring the image to the model's input size. The mask
-   * is always area-resized and re-binarized, so a model pixel is part of the
-   * hole when any of the photo pixels it covers is.
-   */
-  readonly interpolation: InterpolationMethod;
-  /** Interpolation used to bring the model output back to the image's size. */
+export type InpainterOptions = Omit<ImagePreprocessorOptions, 'resizeMode' | 'padValue'> & {
+  /** Resize mode for input images. Must be `'stretch'`. */
+  readonly resizeMode: 'stretch';
+  /** Normalization options for postprocessing output tensors back to uint8 pixel values. */
+  readonly outNormalizeOpts: NormalizeOptions;
+  /** Interpolation method used when resizing the filled frame back to input dimensions. */
   readonly outInterpolation: InterpolationMethod;
   /**
    * How the filled region is blended back over the original pixels. See
@@ -57,7 +60,8 @@ export type InpainterModel = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /**
-   * Interpolation and blending options. See {@link InpainterOptions}.
+   * Input preprocessing, output postprocessing and blending options.
+   * `resizeMode` is fixed to `'stretch'`. See {@link InpainterOptions}.
    */
   readonly modelOpts: InpainterOptions;
 };
@@ -147,16 +151,12 @@ export async function createInpainter(
     const imageShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
     const maskShape = { batched: [1, 1, H, W], unbatched: [1, H, W] }[variant];
 
+    const preprocessor = scope.track(createImagePreprocessor(modelOpts, imageShape));
+
     const tensors = [
-      // Model I/O.
-      tensor('float32', imageShape),
+      // Model I/O; the image input is owned by the preprocessor.
       tensor('float32', maskShape),
       tensor('float32', imageShape),
-      // Image: resized RGBA -> RGB -> CHW -> normalized.
-      tensor('uint8', [H, W, 4]),
-      tensor('uint8', [H, W, 3]),
-      tensor('uint8', [3, H, W]),
-      tensor('float32', [3, H, W]),
       // Mask: resized -> CHW -> float (1 = known, < 1 = hole) -> binarized.
       tensor('uint8', [H, W, 1]),
       tensor('uint8', [1, H, W]),
@@ -172,13 +172,8 @@ export async function createInpainter(
     tensors.forEach(scope.track);
 
     const [
-      tModelImage,
       tModelMask,
       tModelOutput,
-      tInRgba,
-      tInRgb,
-      tInChw,
-      tInNorm,
       tMaskResized,
       tMaskChw,
       tMaskScaled,
@@ -189,7 +184,7 @@ export async function createInpainter(
       tOutRgba,
     ] = tensors;
 
-    const { interpolation, outInterpolation, blend } = modelOpts;
+    const { outNormalizeOpts, outInterpolation, blend } = modelOpts;
 
     const inpaintWorklet = (image: ImageBuffer, mask: MaskBuffer): ImageBuffer => {
       'worklet';
@@ -229,12 +224,7 @@ export async function createInpainter(
         tMask.setData(mask.data);
 
         // Whole frame -> model input.
-        tFrame
-          .through(resize, tInRgba, { mode: 'stretch', interpolation })
-          .through(cvtColor, tInRgb, 'RGBA2RGB')
-          .through(toChannelsFirst, tInChw)
-          .through(normalize, tInNorm, { alpha: 1 / 255, beta: 0 })
-          .copyTo(tModelImage);
+        const tModelImage = preprocessor.process(image);
 
         // Mask -> model input. Area resizing keeps strokes thinner than the
         // downscale factor as non-zero values, so binarizing at any non-zero
@@ -255,7 +245,7 @@ export async function createInpainter(
         // pixels through the full-resolution mask.
         tModelOutput
           .copyTo(tOutChw)
-          .through(normalize, tOutU8, { alpha: 255, beta: 0 })
+          .through(normalize, tOutU8, outNormalizeOpts)
           .through(toChannelsLast, tOutHwc)
           .through(cvtColor, tOutRgba, 'RGB2RGBA')
           .through(resize, tFilled, { mode: 'stretch', interpolation: outInterpolation });
