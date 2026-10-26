@@ -85,8 +85,9 @@ React Native ExecuTorch requires:
 
 - **New Architecture** enabled
 - **React Native 0.83+** or **Expo SDK 55+** with [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/) (**Expo Go is not supported** due to custom C++ native libraries)
-- **`react-native-worklets` 0.10 or newer** (`>=0.10.0 <0.13.0`)
-- **iOS 17.0+** / **Android 13+** (`minSdkVersion` >= 26)
+- **`react-native-worklets` 0.10 or newer** (`>=0.10.0 <0.14.0`)
+- **iOS 17.0+** / **Android 13+** (`minSdkVersion` >= 26); a bare app's
+  `Podfile` needs `platform :ios, '17.0'`
 - **`tar` on `PATH`** — the install-time download extracts with it; macOS, Linux
   and Windows 10 1803+ all ship one. Windows and Linux hosts can build for
   Android; iOS builds need macOS.
@@ -112,6 +113,29 @@ you two incompatible native runtimes. Our own example apps reconcile them this
 way. **Expo SDK 54 cannot be supported**: it is React Native 0.81, below what
 worklets 0.10 accepts.
 :::
+
+### Babel
+
+The library runs inference on worklet threads, so add the worklets Babel plugin
+to `babel.config.js`. It must be the **last** entry in `plugins`:
+
+```js
+module.exports = {
+  presets: ['module:@react-native/babel-preset'], // or 'babel-preset-expo'
+  plugins: [
+    // ...your other plugins
+    'react-native-worklets/plugin',
+  ],
+};
+```
+
+Restart Metro with `--reset-cache` after changing it.
+
+### Telemetry
+
+Downloading one of our pre-exported models sends an anonymous download event by
+default. To opt out, call `setTelemetryEnabled(false)` once at startup. See
+[Anonymous Telemetry](./02-downloading-models.md#anonymous-telemetry--download-counter).
 
 ### Selecting native libraries
 

@@ -22,7 +22,7 @@ import type { ToolDefinition, ToolCall } from './toolCalling';
  */
 export type ChatMediaInput =
   | { readonly kind: 'image'; readonly image: ImageBuffer }
-  | { readonly kind: 'audio'; readonly audio: unknown };
+  | { readonly kind: 'audio'; readonly audio: Float32Array };
 
 /**
  * Interleaved text and media content for a chat turn.
@@ -47,8 +47,8 @@ export type ChatMessage = Readonly<
 export type LLMImagePreprocessorConfig = {
   /** Sentinel token delimiters inserted into Jinja prompts. */
   readonly visionToken: { readonly start: string; readonly end: string };
-  /** Fixed target shape expected by native LLM `[C, H, W]`. */
-  readonly targetShape: readonly [number, number, number];
+  /** Fixed target shape expected by native LLM `[C, H, W]` or `[1, C, H, W]`. */
+  readonly targetShape: readonly [number, number, number] | readonly [1, number, number, number];
   /** Image preprocessing options (normalization, resize mode, interpolation). */
   readonly preprocessorOpts: ImagePreprocessorOptions;
 };
@@ -80,6 +80,10 @@ export type LLMMediaPreprocessorConfig = {
 export type ChatPreprocessorConfig = {
   /** Jinja chat template string for prompt rendering. */
   readonly chatTemplate: string;
+  /** Beginning-of-sequence token exposed to the chat template. */
+  readonly bosToken?: string;
+  /** End-of-sequence token exposed to the chat template. */
+  readonly eosToken?: string;
   /** Tool definitions available to the model. */
   readonly tools?: readonly ToolDefinition[];
   /** Supported input modalities (e.g. `['image']`). */
@@ -302,11 +306,11 @@ function prepareStringMessages(
  * clear, and dispose methods.
  */
 export function createChatPreprocessor(config: ChatPreprocessorConfig): ChatPreprocessor {
-  const { chatTemplate, modalities, preprocessorConfig, tools } = config;
+  const { chatTemplate, bosToken, eosToken, modalities, preprocessorConfig, tools } = config;
   const template = new Template(chatTemplate);
 
   let imgPreprocessor: ReturnType<typeof createImagePreprocessor> | undefined;
-  let imgShape: [number, number, number] | undefined;
+  let imgShape: [number, number, number] | [1, number, number, number] | undefined;
 
   if (preprocessorConfig?.image !== undefined) {
     imgShape = [...preprocessorConfig.image.targetShape];
@@ -356,7 +360,9 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig): ChatPrep
       }
 
       if (media?.kind === 'audio') {
-        throw RnExecuTorchError('INVALID_ARGUMENT', 'Audio input not yet supported');
+        const tAudio = tensor('float32', [1, media.audio.length], media.audio);
+        prompt.push({ kind: 'audio', audio: tAudio });
+        tensors.push(tAudio);
       }
 
       lastIndex = regex.lastIndex;
@@ -382,6 +388,8 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig): ChatPrep
 
     /* eslint-disable camelcase */
     const text = template.render({
+      bos_token: bosToken,
+      eos_token: eosToken,
       tools: tools?.map((t) => ({ type: t.type, function: t.function })),
       messages: stringMessages,
       add_generation_prompt: addGenPrompt,

@@ -1,22 +1,22 @@
 /**
  * The LLM chat session.
  *
- * The generation itself belongs to the native runner, so what this suite owns
- * is everything the session does around it: the history it keeps, the prompt it
- * renders through the model's own chat template, the KV cache bookkeeping that
- * lets a turn prefill only what is new, the tool-calling loop, and the rollback
- * that has to leave the session usable after a failed turn.
+ * What this suite owns is everything the session does around generation: the
+ * history it keeps, the prompt it renders through the model's own chat
+ * template, the KV cache bookkeeping that lets a turn prefill only what is new,
+ * the tool-calling loop, and the rollback that has to leave the session usable
+ * after a failed turn.
  *
- * The fake runner models its KV cache as a token position that prefill and
- * generate advance and `reset` rewinds — which is the only part of the native
- * state the session reasons about — and hands out scripted responses, so a test
- * can drive a tool loop without any weights.
+ * The session runs on the real TypeScript LLM runner; only the `.pte` below it
+ * is scripted (see `support/fakeLLM.ts`), so a test can drive a tool loop
+ * without any weights and observe exactly what the model was asked to read.
  */
 import { createLLMChatSession } from '../../src/extensions/llm/tasks/llmChatSession';
 import type { ToolCall, ToolParserResult } from '../../src/extensions/llm/utils/toolCalling';
 import { fakeJsi } from '../support/fakeJsi';
 import { fakeFs } from '../support/blobUtilMock';
 import { tracked } from '../support/lifetime';
+import { registerFakeLLM, type FakeGeneration } from '../support/fakeLLM';
 
 const MODEL_PATH = '/models/llm.pte';
 const TOKENIZER_PATH = '/models/tokenizer.json';
@@ -61,21 +61,53 @@ const NAMED_TEMPLATES = {
     { name: 'default', template: CHAT_TEMPLATE },
   ],
 };
+const SPECIAL_TOKEN_CONFIGS = [
+  { bos_token: '<|bos|>', eos_token: EOS },
+  { bos_token: { content: '<|bos|>' }, eos_token: { content: EOS } },
+];
 /* eslint-enable camelcase */
 
-/** Everything the session sent to the runner this test, prefill and generate. */
-const promptsSent = (): string[] =>
-  fakeJsi
-    .runnerCalls()
-    .filter((call) => call.kind === 'prefill' || call.kind === 'generate')
-    .map((call) => (call as { text: string }).text);
+let llm: ReturnType<typeof registerFakeLLM>;
+
+/** Registers the model, answering with `generations` in order. */
+const script = (generations: readonly FakeGeneration[]) => {
+  llm = registerFakeLLM(MODEL_PATH, TOKENIZER_PATH, { eosToken: EOS, generations });
+};
+
+/** Everything the model was asked to read this test, prefill by prefill. */
+const promptsSent = (): string[] => llm.prompts().map((prompt) => prompt.text);
 
 beforeEach(() => {
   writeTokenizerConfig();
-  fakeJsi.registerLLMRunner(MODEL_PATH, { generations: [{ response: 'hello there ' }] });
+  script([{ response: 'hello there ' }]);
 });
 
 describe('createLLMChatSession — construction', () => {
+  it.each(SPECIAL_TOKEN_CONFIGS)(
+    'passes configured special tokens to the template (%#)',
+    async (tokens) => {
+      writeTokenizerConfig({
+        ...tokens,
+        // eslint-disable-next-line camelcase
+        chat_template: '{{ bos_token }}' + CHAT_TEMPLATE.replace('<|end|>', '{{ eos_token }}'),
+      });
+      const session = tracked(
+        await createLLMChatSession(config, {
+          initialMessages: [{ role: 'system', content: 'be brief' }],
+        })
+      );
+
+      expect(promptsSent()).toEqual([`<|bos|><|system|>be brief${EOS}`]);
+      await session.sendMessage('hi');
+      await session.sendMessage('again');
+
+      const sent = promptsSent().join('');
+      expect(sent).toContain(`<|user|>hi${EOS}`);
+      expect(sent).toContain(`<|user|>again${EOS}`);
+      expect(sent.split('<|bos|>')).toHaveLength(2);
+    }
+  );
+
   it('rejects a tokenizer config without a chat template', async () => {
     writeRawTokenizerConfig(CONFIG_WITHOUT_TEMPLATE);
 
@@ -112,20 +144,51 @@ describe('createLLMChatSession — construction', () => {
     );
 
     expect(session.getHistory()).toEqual([{ role: 'system', content: 'be brief' }]);
-    expect(fakeJsi.runnerCalls().map((call) => call.kind)).toEqual(['prefill']);
+    expect(promptsSent()).toEqual(['<|system|>be brief<|end|>']);
     expect(session.getKVCacheState().pos).toBeGreaterThan(0);
   });
 
-  it('releases the runner on dispose', async () => {
+  it('releases the model and the tokenizer on dispose', async () => {
     const session = await createLLMChatSession(config);
 
     session.dispose();
 
-    expect(fakeJsi.liveRunners()).toEqual([]);
+    expect(fakeJsi.liveModels()).toEqual([]);
+    expect(fakeJsi.liveTokenizers()).toEqual([]);
+  });
+
+  it('uses the default prefillLen for initial messages', async () => {
+    tracked(
+      await createLLMChatSession(config, {
+        initialMessages: [{ role: 'system', content: 'one two three four five six' }],
+        generationConfig: { prefillLen: 2 },
+      })
+    );
+
+    expect(llm.prompts().map((prompt) => prompt.numTokens)).toEqual([2, 2, 2]);
   });
 });
 
 describe('createLLMChatSession — a turn', () => {
+  it('uses a per-turn prefillLen override without changing the session default', async () => {
+    script([{ response: 'answer with several words in the reply ' }]);
+    const session = tracked(
+      await createLLMChatSession(config, {
+        generationConfig: { prefillLen: 4 },
+      })
+    );
+
+    await session.sendMessage('one two three four five six', undefined, { prefillLen: 2 });
+    expect(llm.prompts().every((prompt) => prompt.numTokens <= 2)).toBe(true);
+    expect(llm.prompts().some((prompt) => prompt.numTokens === 2)).toBe(true);
+
+    const before = llm.prompts().length;
+    await session.sendMessage('another question with several words in it');
+    const nextTurn = llm.prompts().slice(before);
+    expect(nextTurn.every((prompt) => prompt.numTokens <= 4)).toBe(true);
+    expect(nextTurn.some((prompt) => prompt.numTokens === 4)).toBe(true);
+  });
+
   it('appends the user message and the assistant reply to the history', async () => {
     const session = tracked(await createLLMChatSession(config));
 
@@ -152,7 +215,7 @@ describe('createLLMChatSession — a turn', () => {
   });
 
   it('streams every token to the callback', async () => {
-    fakeJsi.registerLLMRunner(MODEL_PATH, { generations: [{ response: 'one two three' }] });
+    script([{ response: 'one two three' }]);
     const session = tracked(await createLLMChatSession(config));
     const tokens: string[] = [];
 
@@ -164,7 +227,7 @@ describe('createLLMChatSession — a turn', () => {
   });
 
   it('keeps the eos token out of the response and out of the stream', async () => {
-    fakeJsi.registerLLMRunner(MODEL_PATH, { generations: [{ response: `done ${EOS}` }] });
+    script([{ response: `done ${EOS}` }]);
     const session = tracked(await createLLMChatSession(config));
     const tokens: string[] = [];
 
@@ -179,7 +242,7 @@ describe('createLLMChatSession — a turn', () => {
   // its config only names as `pad_token`, so `eos_token` alone does not cover it.
   it('keeps a terminal token named only as pad_token out of the response', async () => {
     writeTokenizerConfig({ pad_token: PAD }); // eslint-disable-line camelcase
-    fakeJsi.registerLLMRunner(MODEL_PATH, { generations: [{ response: `done ${PAD}` }] });
+    script([{ response: `done ${PAD}` }]);
     const session = tracked(await createLLMChatSession(config));
     const tokens: string[] = [];
 
@@ -192,7 +255,7 @@ describe('createLLMChatSession — a turn', () => {
 
   it('keeps a terminal token named only as eot_token out of the response', async () => {
     writeTokenizerConfig({ eot_token: EOT }); // eslint-disable-line camelcase
-    fakeJsi.registerLLMRunner(MODEL_PATH, { generations: [{ response: `done ${EOT}` }] });
+    script([{ response: `done ${EOT}` }]);
     const session = tracked(await createLLMChatSession(config));
 
     const result = await session.sendMessage('hi');
@@ -201,7 +264,7 @@ describe('createLLMChatSession — a turn', () => {
   });
 
   it('stops generating as soon as the stop pattern matches', async () => {
-    fakeJsi.registerLLMRunner(MODEL_PATH, { generations: [{ response: 'keep going STOP more' }] });
+    script([{ response: 'keep going STOP more' }]);
     const session = tracked(await createLLMChatSession(config, { stopRegex: /STOP/ }));
 
     const result = await session.sendMessage('hi');
@@ -217,9 +280,14 @@ describe('createLLMChatSession — a turn', () => {
 
     expect(rest).toEqual([]);
     expect(stats).toMatchObject({
-      numGeneratedTokens: expect.any(Number),
-      numPromptTokens: expect.any(Number),
-      prefillDurationMs: expect.any(Number),
+      numTokens: 2,
+      durationMs: expect.any(Number),
+      tokensPerSecond: expect.any(Number),
+      prefill: {
+        numTokens: expect.any(Number),
+        durationMs: expect.any(Number),
+        tokensPerSecond: expect.any(Number),
+      },
     });
   });
 
@@ -227,14 +295,10 @@ describe('createLLMChatSession — a turn', () => {
     const session = tracked(await createLLMChatSession(config));
     await session.sendMessage('first question');
 
-    const before = fakeJsi.runnerCalls().length;
+    const before = promptsSent().length;
     await session.sendMessage('second question');
 
-    const secondTurn = fakeJsi
-      .runnerCalls()
-      .slice(before)
-      .filter((call) => call.kind === 'prefill')
-      .map((call) => (call as { text: string }).text);
+    const secondTurn = promptsSent().slice(before);
 
     // The first turn is already in the KV cache, so it must not be re-sent.
     expect(secondTurn.join('')).toContain('second question');
@@ -245,25 +309,42 @@ describe('createLLMChatSession — a turn', () => {
     const session = tracked(await createLLMChatSession(config, { resetOnTurn: true }));
     await session.sendMessage('first question');
 
-    const before = fakeJsi.runnerCalls().length;
+    const before = llm.prompts().length;
     await session.sendMessage('second question');
 
-    const secondTurn = fakeJsi.runnerCalls().slice(before);
-    expect(secondTurn[0]).toEqual({ kind: 'reset', targetPos: 0 });
-    expect(
-      secondTurn
-        .filter((call) => call.kind === 'prefill')
-        .map((call) => (call as { text: string }).text)
-        .join('')
-    ).toContain('first question');
+    const secondTurn = llm.prompts().slice(before);
+    expect(secondTurn[0]!.startPos).toBe(0);
+    expect(secondTurn.map((prompt) => prompt.text).join('')).toContain('first question');
   });
 
-  it('forwards stop() to the runner', async () => {
+  it('stops generation and rolls back the current turn on stop()', async () => {
+    script([{ response: 'one two three' }]);
+    const session = tracked(await createLLMChatSession(config));
+
+    // The constraints callback runs on every sampling step, which makes it a
+    // hook into the middle of a generation.
+    const result = await session.sendMessage('hi', undefined, {
+      constraints: () => {
+        session.stop();
+        return undefined;
+      },
+    });
+
+    expect(result.messages).toEqual([]);
+    expect(result.stats[0]!.numTokens).toBe(1);
+    expect(result.finishReason).toBe('cancelled');
+    expect(session.getHistory()).toEqual([]);
+    expect(session.getKVCacheState().pos).toBe(0);
+
+    expect((await session.sendMessage('try again')).messages).toHaveLength(2);
+  });
+
+  it('ignores stop() when no turn is in progress', async () => {
     const session = tracked(await createLLMChatSession(config));
 
     session.stop();
 
-    expect(fakeJsi.runnerCalls()).toContainEqual({ kind: 'stop' });
+    expect((await session.sendMessage('hi')).messages).toHaveLength(2);
   });
 });
 
@@ -289,10 +370,27 @@ describe('createLLMChatSession — tool calling', () => {
 
   beforeEach(() => weather.execute.mockClear());
 
+  it('forwards prefillLen through the tool loop and final message commit', async () => {
+    script([{ response: 'TOOL weather' }, { response: 'it is sunny with clear skies' }]);
+    weather.execute.mockResolvedValueOnce('sunny with clear skies all day');
+    const session = tracked(
+      await createLLMChatSession(config, {
+        generationConfig: { prefillLen: 2 },
+        toolOpts: { tools: [weather], parseToolCalls },
+      })
+    );
+
+    const result = await session.sendMessage('tell me about the weather today');
+
+    expect(result.stats).toHaveLength(2);
+    expect(result.finishReason).toBe('stop');
+    expect(weather.execute).toHaveBeenCalledTimes(1);
+    expect(llm.prompts().every((prompt) => prompt.numTokens <= 2)).toBe(true);
+    expect(session.getHistory().at(-1)?.content).toBe('it is sunny with clear skies');
+  });
+
   it('runs the tool and feeds its result back for a second generation', async () => {
-    fakeJsi.registerLLMRunner(MODEL_PATH, {
-      generations: [{ response: 'TOOL weather' }, { response: 'it is sunny' }],
-    });
+    script([{ response: 'TOOL weather' }, { response: 'it is sunny' }]);
     const session = tracked(
       await createLLMChatSession(config, { toolOpts: { tools: [weather], parseToolCalls } })
     );
@@ -312,10 +410,32 @@ describe('createLLMChatSession — tool calling', () => {
     expect(result.stats).toHaveLength(2);
   });
 
-  it('records the tool result against the call that asked for it', async () => {
-    fakeJsi.registerLLMRunner(MODEL_PATH, {
-      generations: [{ response: 'TOOL weather' }, { response: 'it is sunny' }],
+  it('lets an active tool finish before rolling back a cancelled turn', async () => {
+    script([{ response: 'TOOL weather' }, { response: 'it is sunny' }]);
+    const parser = jest.fn(parseToolCalls);
+    const session = tracked(
+      await createLLMChatSession(config, {
+        toolOpts: { tools: [weather], parseToolCalls: parser },
+      })
+    );
+    weather.execute.mockImplementationOnce(async () => {
+      session.stop();
+      return 'sunny';
     });
+
+    const result = await session.sendMessage('what is the weather');
+
+    expect(weather.execute).toHaveBeenCalledTimes(1);
+    expect(parser).toHaveBeenCalledTimes(1);
+    expect(result.messages).toEqual([]);
+    expect(result.stats).toHaveLength(1);
+    expect(result.finishReason).toBe('cancelled');
+    expect(session.getHistory()).toEqual([]);
+    expect(session.getKVCacheState().pos).toBe(0);
+  });
+
+  it('records the tool result against the call that asked for it', async () => {
+    script([{ response: 'TOOL weather' }, { response: 'it is sunny' }]);
     const session = tracked(
       await createLLMChatSession(config, { toolOpts: { tools: [weather], parseToolCalls } })
     );
@@ -331,9 +451,7 @@ describe('createLLMChatSession — tool calling', () => {
   });
 
   it('reports an unknown tool back to the model rather than throwing', async () => {
-    fakeJsi.registerLLMRunner(MODEL_PATH, {
-      generations: [{ response: 'TOOL missing' }, { response: 'sorry' }],
-    });
+    script([{ response: 'TOOL missing' }, { response: 'sorry' }]);
     const session = tracked(
       await createLLMChatSession(config, { toolOpts: { tools: [weather], parseToolCalls } })
     );
@@ -344,9 +462,7 @@ describe('createLLMChatSession — tool calling', () => {
   });
 
   it('reports a throwing tool back to the model rather than failing the turn', async () => {
-    fakeJsi.registerLLMRunner(MODEL_PATH, {
-      generations: [{ response: 'TOOL weather' }, { response: 'sorry' }],
-    });
+    script([{ response: 'TOOL weather' }, { response: 'sorry' }]);
     weather.execute.mockRejectedValueOnce(new Error('the service is down'));
     const session = tracked(
       await createLLMChatSession(config, { toolOpts: { tools: [weather], parseToolCalls } })
@@ -360,7 +476,7 @@ describe('createLLMChatSession — tool calling', () => {
 
   it('gives up after maxToolTurns rather than looping forever', async () => {
     // A model that only ever asks for the tool again.
-    fakeJsi.registerLLMRunner(MODEL_PATH, { generations: [{ response: 'TOOL weather' }] });
+    script([{ response: 'TOOL weather' }]);
     const session = tracked(
       await createLLMChatSession(config, {
         toolOpts: { tools: [weather], parseToolCalls, maxToolTurns: 3 },
@@ -462,12 +578,12 @@ describe('createLLMChatSession — failure', () => {
     expect(result.finishReason).toBe('stop');
   });
 
-  it('surfaces a missing runner rather than resolving with a broken session', async () => {
+  it('surfaces a missing model rather than resolving with a broken session', async () => {
     fakeJsi.reset();
     writeTokenizerConfig();
 
-    await expect(createLLMChatSession(config)).rejects.toThrow(/no runner registered/);
-    expect(fakeJsi.liveRunners()).toEqual([]);
+    await expect(createLLMChatSession(config)).rejects.toThrow(/no program registered/);
+    expect(fakeJsi.liveModels()).toEqual([]);
   });
 
   it('releases the runner when the initial prefill fails', async () => {
@@ -481,6 +597,22 @@ describe('createLLMChatSession — failure', () => {
       createLLMChatSession(config, { initialMessages: [{ role: 'user', content: 'hi' }] })
     ).rejects.toThrow();
 
-    expect(fakeJsi.liveRunners()).toEqual([]);
+    expect(fakeJsi.liveModels()).toEqual([]);
+    expect(fakeJsi.liveTokenizers()).toEqual([]);
   });
+});
+
+it('rejects an overlapping turn without changing history and releases the busy guard', async () => {
+  const session = tracked(await createLLMChatSession(config));
+  const first = session.sendMessage('first question');
+  const history = session.getHistory();
+
+  await expect(session.sendMessage('overlapping question')).rejects.toMatchObject({
+    code: 'RESOURCE_BUSY',
+  });
+  await first;
+  expect(history).toEqual([{ role: 'user', content: 'first question' }]);
+  expect(session.getHistory().map((message) => message.role)).toEqual(['user', 'assistant']);
+  expect(session.getHistory()[0]!.content).toBe('first question');
+  expect((await session.sendMessage('next question')).messages.length).toBe(2);
 });

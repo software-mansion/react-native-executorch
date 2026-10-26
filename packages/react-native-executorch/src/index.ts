@@ -46,6 +46,7 @@
 // Hooks — primary API for app developers
 export * from './hooks/useClassifier';
 export * from './hooks/useStyleTransfer';
+export * from './hooks/useDepthEstimator';
 export * from './hooks/useInpainter';
 export * from './hooks/useSemanticSegmenter';
 export * from './hooks/useInstanceSegmenter';
@@ -54,6 +55,7 @@ export * from './hooks/useObjectDetector';
 export * from './hooks/useTokenizer';
 export * from './hooks/useLLMChatSession';
 export * from './hooks/useTextEmbedder';
+export * from './hooks/useColbertEmbedder';
 export * from './hooks/usePrivacyFilter';
 export * from './hooks/useImageEmbedder';
 export * from './hooks/useVoiceActivityDetector';
@@ -74,6 +76,7 @@ export * from './constants';
 // Task APIs — for developers needing manual lifetime/disposal control
 export * from './extensions/cv/tasks/classification';
 export * from './extensions/cv/tasks/styleTransfer';
+export * from './extensions/cv/tasks/depthEstimation';
 export * from './extensions/cv/tasks/inpainting';
 export * from './extensions/cv/tasks/semanticSegmentation';
 export * from './extensions/cv/tasks/instanceSegmentation';
@@ -85,11 +88,15 @@ export * from './extensions/cv/tasks/paddleOcr';
 export * from './extensions/llm/tasks/llmChatSession';
 export * from './extensions/nlp/tasks/tokenization';
 export * from './extensions/nlp/tasks/textEmbedding';
+export * from './extensions/nlp/tasks/colbertEmbedding';
 export * from './extensions/nlp/tasks/privacyFilter';
 export * from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 export * from './extensions/speech/tasks/whisperSpeechToText';
 export * from './extensions/speech/tasks/supertonicTextToSpeech';
 export * from './extensions/speech/tasks/kokoroTextToSpeech';
+
+// Vector search over embeddings
+export * from './extensions/vectorStore';
 
 // Core primitives — for library builders and power users
 export * from './core/error';
@@ -97,6 +104,12 @@ export * from './core/model';
 export * from './core/tensor';
 export * from './core/runtime';
 export * from './core/lifetime';
+
+/**
+ * Time spent inside ExecuTorch, accumulated per model and method.
+ * @category Modules
+ */
+export * as profiler from './core/profiler';
 
 /**
  * Model schema validation and dimension constraints.

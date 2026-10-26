@@ -38,6 +38,19 @@ export type Tokenizer = {
   decode(tokens: Int32Array, skipSpecialTokens?: boolean): string;
 
   /**
+   * Decodes token ids, returning `undefined` if the decoded bytes end in an
+   * incomplete UTF-8 sequence. Retain the ids and retry with additional tokens
+   * until a string is returned. An empty string is a successful decode.
+   * @param tokens The pending token ids as an `Int32Array`.
+   * @param skipSpecialTokens Whether to omit special tokens. Defaults to `true`.
+   * @returns Decoded text, or `undefined` when more tokens are needed.
+   * @throws {RnExecuTorchError} With code `EXECUTION_FAILED` if decoding fails,
+   * `RESOURCE_BUSY` if the tokenizer is in use, or `RESOURCE_DISPOSED` if
+   * disposed.
+   */
+  tryDecode(tokens: Int32Array, skipSpecialTokens?: boolean): string | undefined;
+
+  /**
    * Returns the total vocabulary size.
    * @returns The total number of tokens in the vocabulary.
    * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the tokenizer is

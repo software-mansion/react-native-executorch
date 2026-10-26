@@ -18,6 +18,8 @@
     "Core / Constants",
     "Core / Schema / Functions",
     "Core / Schema / Types",
+    "Core / Profiler / Functions",
+    "Core / Profiler / Types",
     "CV / Tasks",
     "CV / Functions",
     "CV / Types",
@@ -35,6 +37,8 @@
     "Speech / Constants",
     "Math / Functions",
     "Math / Types",
+    "Vector Store / Functions",
+    "Vector Store / Types",
     "Utils / Functions",
     "Utils / Types",
     "*"

@@ -100,18 +100,13 @@ rne_import_et_lib(et_flat_tensor "extension/flat_tensor" extension_flat_tensor)
 rne_import_et_lib(et_named_data_map "extension/named_data_map" extension_named_data_map)
 rne_import_et_lib(et_tokenizers "extension/llm/tokenizers" tokenizers)
 
-# The llm extension wraps ExecuTorch's LLM runner, which pulls in the sampler,
-# the memory allocator and the portable-kernel utilities it shares with them.
-rne_import_et_lib(et_llm_runner "extension/llm/runner" extension_llm_runner)
-rne_import_et_lib(et_llm_sampler "extension/llm/sampler" extension_llm_sampler)
+# The memory allocator and the portable-kernel utilities.
 rne_import_et_lib(et_memory_allocator "extension/memory_allocator" extension_memory_allocator)
 rne_import_et_lib(et_kernels_util "kernels/portable/cpu/util" kernels_util_all_deps)
 
-# Listed consumer-first: GNU ld resolves static archives left to right, so the
-# runner has to precede the sampler/allocator/kernel archives it pulls from, and
-# the ExecuTorch core has to follow all of them.
+# Listed consumer-first: GNU ld resolves static archives left to right.
 set(ET_LIBS
-  et_llm_runner et_llm_sampler et_memory_allocator et_kernels_util
+  et_memory_allocator et_kernels_util
   et_module et_tensor et_flat_tensor et_named_data_map et_data_loader
   et_full et_core et_tokenizers)
 
@@ -357,7 +352,7 @@ set(TEST_SUITES
   core/UtilsTest.cpp
   extensions/MathOpsTest.cpp
   extensions/SpeechOpsTest.cpp
-  extensions/LlmRunnerTest.cpp)
+  extensions/LlmOpsTest.cpp)
 
 if(RNE_TESTS_ENABLE_OPENCV)
   list(APPEND TEST_SUITES extensions/CvOpsTest.cpp extensions/OcrOpsTest.cpp)

@@ -35,6 +35,13 @@ export default function Layout() {
         }}
       />
       <Drawer.Screen
+        name="colbert/index"
+        options={{
+          drawerLabel: 'ColBERT Retrieval',
+          title: 'ColBERT Retrieval',
+        }}
+      />
+      <Drawer.Screen
         name="privacy-filter/index"
         options={{
           drawerLabel: 'Privacy Filter',
@@ -46,6 +53,13 @@ export default function Layout() {
         options={{
           drawerLabel: 'LLM',
           title: 'LLM',
+        }}
+      />
+      <Drawer.Screen
+        name="constrained-decoding/index"
+        options={{
+          drawerLabel: 'Potion Lab',
+          title: 'Constrained Decoding',
         }}
       />
     </Drawer>

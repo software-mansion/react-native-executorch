@@ -7,6 +7,7 @@ import { scheduleOnRN, type WorkletRuntime } from 'react-native-worklets';
 import RNBlobUtil from 'react-native-blob-util';
 
 import { wrapAsync } from '../../../core/runtime';
+import { RnExecuTorchError } from '../../../core/error';
 import { createResourceScope } from '../../../core/lifetime';
 import {
   createLLMRunner,
@@ -88,9 +89,10 @@ export type LLMChatTurnResult = {
   /**
    * Reason why the chat turn completed.
    * - `stop`: The model completed its answer naturally without further tool calls.
+   * - `cancelled`: The session was stopped and the current turn was discarded.
    * - `maxToolTurns`: The turn was terminated because it reached `maxToolTurns`.
    */
-  readonly finishReason: 'stop' | 'maxToolTurns';
+  readonly finishReason: 'stop' | 'cancelled' | 'maxToolTurns';
 };
 
 /**
@@ -99,7 +101,7 @@ export type LLMChatTurnResult = {
  */
 export type LLMChatSession = {
   /**
-   * Interrupts and stops any active token generation call.
+   * Stops active generation and discards the current turn after its tool calls finish.
    */
   stop(): void;
 
@@ -125,7 +127,8 @@ export type LLMChatSession = {
    * @param genConfig Generation options overriding session defaults.
    * @returns A promise resolving to the generated messages and turn stats.
    * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the message is
-   * malformed, or `INVALID_STATE` if the chat template is non-monotonic.
+   * malformed, `INVALID_STATE` if the chat template is non-monotonic, or
+   * `RESOURCE_BUSY` if another turn is in progress.
    */
   sendMessage(
     message: ChatMessageContent,
@@ -196,16 +199,22 @@ export async function createLLMChatSession(
     // Read and parse tokenizer_config.json
     const tokenizerConfigStr = await RNBlobUtil.fs.readFile(tokenizerConfigPath, 'utf8');
     const tokenizerConfig = parseTokenizerConfig(JSON.parse(tokenizerConfigStr));
-    const { chatTemplate, stopTokens } = tokenizerConfig;
+    const { chatTemplate, bosToken, eosToken, stopTokens } = tokenizerConfig;
 
     // Prepare chat preprocessor
-    const chatPreprocessorConfig = { chatTemplate, modalities, preprocessorConfig, tools };
+    const chatPreprocessorConfig = {
+      chatTemplate,
+      bosToken,
+      eosToken,
+      modalities,
+      preprocessorConfig,
+      tools,
+    };
     const chatPreprocessor = scope.track(createChatPreprocessor(chatPreprocessorConfig));
 
     // Prepare runner
-    const runner = scope.track(
-      await wrapAsync(createLLMRunner, runtime)(modelPath, tokenizerPath, modalities)
-    );
+    // prettier-ignore
+    const runner = scope.track(await createLLMRunner(modelPath, tokenizerPath, modalities, runtime));
     const prefill = wrapAsync(runner.prefill, runtime);
 
     const history: ChatMessage[] = [];
@@ -214,16 +223,23 @@ export async function createLLMChatSession(
     // delimiters have been permanently prefilled and committed into the runner's KV cache.
     let committed = 0;
 
+    let isCancelled = false;
+    let isGenerating = false;
+
     // Prefill initial messages if provided
     if (initialMessages.length > 0) {
       history.push(...initialMessages);
       const prompt = chatPreprocessor.process(history, history.length, { addGenPrompt: false });
-      await prefill(prompt);
+      await prefill(prompt, defaultGenerationConfig);
       chatPreprocessor.clear();
       committed = history.length;
     }
 
-    const stop = () => runner.stop();
+    const stop = () => {
+      if (!isGenerating) return;
+      isCancelled = true;
+      runner.stop();
+    };
 
     const generateChatTurn = wrapAsync(generateChatTurnWorklet, runtime);
 
@@ -232,6 +248,10 @@ export async function createLLMChatSession(
       onToken?: (token: string) => void,
       genConfig?: LLMGenerationConfig
     ): Promise<LLMChatTurnResult> => {
+      if (isGenerating) {
+        throw RnExecuTorchError('RESOURCE_BUSY', 'sendMessage: A turn is already in progress.');
+      }
+
       const turnGenConfig = { ...defaultGenerationConfig, ...genConfig };
       const generationOpts = { genConfig: turnGenConfig, stopTokens, stopRegex, onToken };
 
@@ -241,21 +261,35 @@ export async function createLLMChatSession(
       const turnStartIdx = history.length;
       const generationStatsList: LLMGenerationStats[] = [];
 
-      history.push({ role: 'user', content: message });
+      // Discard the turn, release preprocessor resources, and clear cancellation.
+      // With resetOnTurn, rewind to zero because the previous cache was cleared.
+      const rollback = () => {
+        history.length = turnStartIdx;
+        committed = initialCommitted;
+        runner.reset(resetOnTurn ? 0 : initialPos);
+        chatPreprocessor.clear();
+        isCancelled = false;
+      };
 
-      if (resetOnTurn) {
-        runner.reset();
-        committed = 0;
-      }
-
+      isGenerating = true;
       try {
-        let prefillStartMs = Date.now();
+        history.push({ role: 'user', content: message });
+
+        if (resetOnTurn) {
+          runner.reset();
+          committed = 0;
+        }
 
         // Prefill newly committed messages up to current user message without generation prompt
         const toCommit = history.length - committed;
         const userPrompt = chatPreprocessor.process(history, toCommit, { addGenPrompt: false });
-        await prefill(userPrompt);
+        const prefillStats = await prefill(userPrompt, turnGenConfig);
         chatPreprocessor.clear();
+
+        if (isCancelled) {
+          rollback();
+          return { messages: [], stats: [], finishReason: 'cancelled' };
+        }
 
         // Record exact position at the end of the user message (before assistant generation header)
         const posAtEndOfUser = runner.getKVCacheState().pos;
@@ -264,14 +298,18 @@ export async function createLLMChatSession(
         let finishReason: 'stop' | 'maxToolTurns' = 'maxToolTurns';
 
         for (let currentTurn = 0; currentTurn < maxToolTurns; ++currentTurn) {
+          if (isCancelled) {
+            rollback();
+            return { messages: [], stats: generationStatsList, finishReason: 'cancelled' };
+          }
+
           const uncommitted = history.length - committed;
           const prompt = chatPreprocessor.process(history, uncommitted, { addGenPrompt: true });
 
-          const prefillDurationMs = Date.now() - prefillStartMs;
-
           const { response, stats } = await generateChatTurn(runner, prompt, generationOpts);
+          const cumPrefillStats = currentTurn === 0 ? prefillStats : stats.prefill;
           chatPreprocessor.clear();
-          generationStatsList.push({ ...stats, prefillDurationMs });
+          generationStatsList.push({ ...stats, prefill: cumPrefillStats });
 
           // Always rewind KV cache back to posAtEndOfUser so next turn prefills
           // cleanly formatted message with tool outputs
@@ -314,8 +352,6 @@ export async function createLLMChatSession(
               content: toolContent,
             });
           }
-
-          prefillStartMs = Date.now();
         }
 
         // Prefill all uncommitted assistant & tool messages so KV cache contains
@@ -323,24 +359,23 @@ export async function createLLMChatSession(
         const uncommitted = history.length - committed;
         if (uncommitted > 0) {
           const prompt = chatPreprocessor.process(history, uncommitted, { addGenPrompt: false });
-          await prefill(prompt);
+          await prefill(prompt, turnGenConfig);
           chatPreprocessor.clear();
           committed = history.length;
         }
 
+        if (isCancelled) {
+          rollback();
+          return { messages: [], stats: generationStatsList, finishReason: 'cancelled' };
+        }
+
         return { messages: history.slice(turnStartIdx), stats: generationStatsList, finishReason };
       } catch (err) {
-        // Roll back history, KV cache, and active tensors to pre-turn state on
-        // failure. The rewind must never replace the error it is unwinding.
-        //
-        // Under `resetOnTurn` the pre-turn position IS zero: `initialPos` is
-        // read before the turn begins and the turn then zeroed the cache, so
-        // rewinding to it is out of range by construction.
-        history.length = turnStartIdx;
-        committed = initialCommitted;
-        runner.reset(resetOnTurn ? 0 : initialPos);
-        chatPreprocessor.clear();
+        // Restore session state before propagating the failure.
+        rollback();
         throw err;
+      } finally {
+        isGenerating = false;
       }
     };
 

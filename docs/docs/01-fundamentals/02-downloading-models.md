@@ -33,12 +33,18 @@ A model source is either remote or local:
   [`models`](../06-api-reference/variables/models.md) registry. Each entry bundles
   every file a pipeline needs behind one object. This registry is the single source
   of truth for the tuned, ready-to-run models.
-- **Your own models** are plain URLs or local paths — a file bundled with the app,
-  a `file://` path, or a URL on your own host (see
+- **Your own models** use `http(s)` URLs or absolute local filesystem paths (see
   [Exporting Custom Models](../03-core-and-advanced/07-exporting-custom-models.md)).
 
 Local paths are always passed through untouched; only `http(s)` URLs are ever
-downloaded.
+downloaded. Loaders require filesystem paths such as `/path/to/model.pte`;
+`file://` URIs are not supported. If a document picker returns a `file://` URI,
+convert it to an absolute filesystem path before passing it to a hook or pipeline
+factory. This applies to every file in the config, including tokenizer and
+tokenizer config files.
+
+Paths returned by `download()` are already filesystem paths. Pass them directly
+to a pipeline factory without adding a `file://` prefix.
 
 ## Automatic downloading with hooks
 
@@ -53,7 +59,7 @@ import { useResourceDownload, models } from 'react-native-executorch';
 
 function Example() {
   const { resource, downloadProgress, downloadError } = useResourceDownload(
-    models.classification.EFFICIENTNET_V2_S.XNNPACK_FP32
+    models.classification.EFFICIENTNET_V2_S.XNNPACK_INT8
   );
 
   // resource is undefined until the download resolves, then mirrors the config
@@ -83,7 +89,7 @@ paths — ready to pass straight to a `create<Task>` factory:
 ```typescript
 import { download, models } from 'react-native-executorch';
 
-const model = await download(models.classification.EFFICIENTNET_V2_S.XNNPACK_FP32, {
+const model = await download(models.classification.EFFICIENTNET_V2_S.XNNPACK_INT8, {
   onProgress: (p) => console.log(`${Math.round(p * 100)}%`),
 });
 

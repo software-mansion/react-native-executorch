@@ -17,11 +17,20 @@ export default function Home() {
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('text-embeddings/')}>
           <Text style={styles.buttonText}>Text Embeddings</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('colbert/')}>
+          <Text style={styles.buttonText}>ColBERT Retrieval</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('privacy-filter/')}>
           <Text style={styles.buttonText}>Privacy Filter</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('llm/')}>
           <Text style={styles.buttonText}>LLM</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.navigate('constrained-decoding/')}
+        >
+          <Text style={styles.buttonText}>Potion Lab · Constrained Decoding</Text>
         </TouchableOpacity>
       </View>
     </View>

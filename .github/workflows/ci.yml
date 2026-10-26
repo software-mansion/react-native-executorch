@@ -25,6 +25,7 @@ jobs:
     outputs:
       ts: ${{ steps.filter.outputs.ts }}
       native: ${{ steps.filter.outputs.native }}
+      libs: ${{ steps.filter.outputs.libs }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -41,6 +42,7 @@ jobs:
             {
               echo "ts=true"
               echo "native=true"
+              echo "libs=true"
             } >> "$GITHUB_OUTPUT"
             exit 0
           }
@@ -80,11 +82,55 @@ jobs:
           native_relevant='^(packages/react-native-executorch/(cpp/|package\.json$|third-party/|scripts/(build-native-test-deps\.sh|run-native-tests\.sh|fetch-test-fixtures\.sh|download-libs\.js)$)|\.gitmodules$|\.nvmrc$|\.github/workflows/ci\.yml$)'
           if echo "$files" | grep -qE "$native_relevant"; then native=true; else native=false; fi
 
-          echo "ts=$ts native=$native"
+          # package.json pins nativeLibsVersion, the release the artifacts
+          # check below lists.
+          libs_relevant='^(packages/react-native-executorch/package\.json|\.github/workflows/ci\.yml)$'
+          if echo "$files" | grep -qE "$libs_relevant"; then libs=true; else libs=false; fi
+
+          echo "ts=$ts native=$native libs=$libs"
           {
             echo "ts=$ts"
             echo "native=$native"
+            echo "libs=$libs"
           } >> "$GITHUB_OUTPUT"
+
+  native-artifacts:
+    name: Native artifacts
+    needs: changes
+    if: needs.changes.outputs.libs == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # macOS tar adds an AppleDouble `._*` entry beside each file it packs and
+      # stores extended attributes as LIBARCHIVE.xattr pax headers. A Mac's tar
+      # hides both; GNU tar extracts the `._*` entries as files, so a Linux
+      # install differed from a macOS one and Expo's fingerprint with it
+      # (#1513). GNU tar shows both, so list the pinned release with it.
+      - name: Check the pinned release carries no macOS metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(jq -r .nativeLibsVersion packages/react-native-executorch/package.json)
+          dir=$(mktemp -d)
+          gh release download "v${version}-libs" --repo "${{ github.repository }}" \
+            --pattern '*.tar.gz' --dir "$dir"
+          failed=0
+          for archive in "$dir"/*.tar.gz; do
+            name=$(basename "$archive")
+            appledouble=$(tar -tzf "$archive" 2>"$dir/stderr" | grep -cE '(^|/)\._' || true)
+            xattrs=$(grep -c 'LIBARCHIVE\.xattr' "$dir/stderr" || true)
+            if [ "$appledouble" -gt 0 ] || [ "$xattrs" -gt 0 ]; then
+              echo "::error::$name: $appledouble AppleDouble entries, $xattrs xattr headers." \
+                   "Repack with COPYFILE_DISABLE=1 and bsdtar --no-mac-metadata --no-xattrs."
+              failed=1
+            else
+              echo "$name: clean"
+            fi
+          done
+          exit "$failed"
 
   lint:
     needs: changes

@@ -12,21 +12,26 @@
  * The C++ side of the same contract is covered by the GoogleTest suites under
  * `cpp/tests/`; what these suites own is the TypeScript above it.
  */
+import { TextDecoder } from 'util';
 import type { ConcreteDim, ModelSpec } from '../../src/core/schema';
 import type { DType } from '../../src/core/tensor';
 import { FakeTensor, tensorTracker } from './fakeTensor';
-import { cv, fakePhonemizer, math, speech } from './fakeOps';
+import { cv, fakePhonemizer, llm, math, speech } from './fakeOps';
 
 // ============================================================================
 // Models
 // ============================================================================
 
-/** What `execute` does: reads the inputs and fills the pre-allocated outputs. */
+/**
+ * What `execute` does: reads the inputs and fills the pre-allocated outputs.
+ * A method with non-tensor outputs (an `Int`, a `Bool`) returns them instead,
+ * as the native `execute` does.
+ */
 export type FakeExecute = (
   methodName: string,
   inputs: readonly unknown[],
   outputs: readonly FakeTensor[]
-) => void;
+) => readonly unknown[] | void;
 
 /** A program `loadModel` can return. */
 export type FakeProgram = {
@@ -65,8 +70,8 @@ class FakeModel {
       throw new Error(`execute: method '${methodName}' is not exported by '${this.path}'`);
     }
     executions.push({ path: this.path, methodName });
-    this.program.execute?.(methodName, inputs, outputTensors);
-    return outputTensors;
+    const values = this.program.execute?.(methodName, inputs, outputTensors);
+    return values ? [...values] : outputTensors;
   }
 
   dispose(): void {
@@ -84,12 +89,20 @@ class FakeModel {
 export type FakeVocabulary = {
   /** Token strings, indexed by id. */
   tokens: readonly string[];
+  /** Optional raw decoded bytes per id, for testing split UTF-8 tokens. */
+  tokenBytes?: readonly (readonly number[])[];
   /** Ids prepended to every `encode` result (e.g. a BOS token). */
   prefix?: readonly number[];
   /** Ids appended to every `encode` result (e.g. an EOS token). */
   suffix?: readonly number[];
   /** Ids skipped by `decode` when `skipSpecialTokens` is set. */
   specialIds?: readonly number[];
+  /**
+   * Appends unknown words to `tokens` on `encode` instead of mapping them to
+   * `0`, so any text round-trips through `encode`/`decode`. The `tokens`
+   * array is mutated in place, which lets a test resolve the ids it was given.
+   */
+  open?: boolean;
 };
 
 const vocabularies = new Map<string, FakeVocabulary>();
@@ -116,6 +129,30 @@ function createFakeTokenizer(path: string, vocabulary: FakeVocabulary) {
     if (disposed) throw new Error(`${op}: tokenizer '${path}' has been disposed`);
   };
 
+  const decode = (
+    tokens: Int32Array,
+    skipSpecialTokens: boolean,
+    streaming: boolean
+  ): string | undefined => {
+    assertLive(streaming ? 'tryDecode' : 'decode');
+    const special = new Set(vocabulary.specialIds ?? []);
+    const ids = [...tokens].filter((id) => !(skipSpecialTokens && special.has(id)));
+    if (vocabulary.tokenBytes) {
+      const bytes = Uint8Array.from(ids.flatMap((id) => [...(vocabulary.tokenBytes![id] ?? [])]));
+      // Valid byte streams are enough for runner tests. The native boundary
+      // tests cover the production UTF-8 completeness check itself.
+      try {
+        return new TextDecoder('utf-8', { fatal: streaming }).decode(bytes);
+      } catch {
+        return undefined;
+      }
+    }
+    return ids
+      .map((id) => vocabulary.tokens[id] ?? '')
+      .filter(Boolean)
+      .join(' ');
+  };
+
   return {
     path,
 
@@ -125,19 +162,20 @@ function createFakeTokenizer(path: string, vocabulary: FakeVocabulary) {
     encode: (text: string): Int32Array => {
       assertLive('encode');
       const words = text.split(/\s+/).filter(Boolean);
-      const ids = words.map((word) => Math.max(0, vocabulary.tokens.indexOf(word)));
+      const ids = words.map((word) => {
+        const id = vocabulary.tokens.indexOf(word);
+        if (id !== -1 || !vocabulary.open) return Math.max(0, id);
+        return (vocabulary.tokens as string[]).push(word) - 1;
+      });
       return Int32Array.from([...(vocabulary.prefix ?? []), ...ids, ...(vocabulary.suffix ?? [])]);
     },
 
     decode: (tokens: Int32Array, skipSpecialTokens = true): string => {
-      assertLive('decode');
-      const special = new Set(vocabulary.specialIds ?? []);
-      return [...tokens]
-        .filter((id) => !(skipSpecialTokens && special.has(id)))
-        .map((id) => vocabulary.tokens[id] ?? '')
-        .filter(Boolean)
-        .join(' ');
+      return decode(tokens, skipSpecialTokens, false)!;
     },
+
+    tryDecode: (tokens: Int32Array, skipSpecialTokens = true): string | undefined =>
+      decode(tokens, skipSpecialTokens, true),
 
     getVocabSize: (): number => {
       assertLive('getVocabSize');
@@ -167,159 +205,6 @@ function createFakeTokenizer(path: string, vocabulary: FakeVocabulary) {
 }
 
 // ============================================================================
-// LLM runners
-// ============================================================================
-
-/** How a fake runner answers one `generate` call. */
-export type FakeGeneration = {
-  /** The text the runner produces, streamed token by token (words). */
-  response: string;
-};
-
-/** A runner `createLLMRunner` can return. */
-export type FakeRunnerProgram = {
-  /** Context window the runner reports. Defaults to `128`. */
-  maxSeqLen?: number;
-  /**
-   * Responses handed out in order, one per `generate` call. A runner that runs
-   * past the end of the list repeats the last entry, so a test only has to
-   * script the turns it cares about.
-   */
-  generations?: readonly FakeGeneration[];
-};
-
-/** One call made on a fake runner, in order, for a test to assert against. */
-export type RunnerCall =
-  | { kind: 'prefill'; text: string; pos: number }
-  | { kind: 'generate'; text: string; pos: number }
-  | { kind: 'reset'; targetPos: number }
-  | { kind: 'stop' };
-
-const runnerPrograms = new Map<string, FakeRunnerProgram>();
-const liveRunners = new Set<string>();
-const runnerCalls: RunnerCall[] = [];
-
-/** The text of a prompt, ignoring any media inputs a multimodal prompt carries. */
-const promptText = (prompt: unknown): string =>
-  typeof prompt === 'string'
-    ? prompt
-    : Array.isArray(prompt)
-      ? prompt.filter((part) => typeof part === 'string').join('')
-      : '';
-
-/**
- * Builds a fake LLM runner.
- *
- * Its KV cache is modelled as a token count that prefill and generate both
- * advance and `reset` rewinds, which is the only part of the native runner's
- * state the chat session actually reasons about: it diffs the position across a
- * turn to decide what still has to be prefilled, and rewinds to a recorded
- * position between tool turns.
- * @param modelPath The model path.
- * @param tokenizerPath The tokenizer path.
- * @param modalities The non-text modalities the runner accepts.
- * @param program What the runner generates.
- * @returns The fake runner.
- */
-function createFakeRunner(
-  modelPath: string,
-  tokenizerPath: string,
-  modalities: readonly string[],
-  program: FakeRunnerProgram
-) {
-  const maxSeqLen = program.maxSeqLen ?? 128;
-  let disposed = false;
-  let pos = 0;
-  let generationIndex = 0;
-  let stopped = false;
-  liveRunners.add(modelPath);
-
-  const assertLive = (op: string): void => {
-    if (disposed) throw new Error(`${op}: runner '${modelPath}' has been disposed`);
-  };
-
-  // One token per whitespace-separated word, matching the fake tokenizer.
-  const countTokens = (text: string): number => text.split(/\s+/).filter(Boolean).length;
-
-  return {
-    modelPath,
-    tokenizerPath,
-    modalities,
-
-    prefill: (prompt: unknown): void => {
-      assertLive('prefill');
-      const text = promptText(prompt);
-      pos = Math.min(maxSeqLen, pos + countTokens(text));
-      runnerCalls.push({ kind: 'prefill', text, pos });
-    },
-
-    generate: (prompt: unknown, _config?: unknown, onToken?: (token: string) => void) => {
-      assertLive('generate');
-      stopped = false;
-      const text = promptText(prompt);
-      pos = Math.min(maxSeqLen, pos + countTokens(text));
-
-      const scripted = program.generations ?? [];
-      const generation = scripted[Math.min(generationIndex, scripted.length - 1)];
-      generationIndex++;
-      const response = generation?.response ?? '';
-
-      let emitted = 0;
-      for (const token of response.split(/(?<=\s)/)) {
-        if (stopped) break;
-        onToken?.(token);
-        emitted++;
-        pos = Math.min(maxSeqLen, pos + 1);
-      }
-      runnerCalls.push({ kind: 'generate', text, pos });
-
-      return {
-        numPromptTokens: countTokens(text),
-        numGeneratedTokens: emitted,
-        firstTokenMs: 0,
-        inferenceStartMs: 0,
-        inferenceEndMs: 0,
-        modelLoadStartMs: 0,
-        modelLoadEndMs: 0,
-      };
-    },
-
-    reset: (targetPos?: number): void => {
-      assertLive('reset');
-      // The native runner only rewinds: a target past the current position is
-      // rejected rather than clamped. Modelling that here is what makes a
-      // rollback to a stale position observable in a test instead of silently
-      // succeeding.
-      if (targetPos !== undefined && (targetPos < 0 || targetPos > pos)) {
-        throw new Error(
-          `LLMRunner.reset: targetPos must be in range [0, ${pos}], but got ${targetPos}`
-        );
-      }
-      pos = targetPos ?? 0;
-      runnerCalls.push({ kind: 'reset', targetPos: pos });
-    },
-
-    stop: (): void => {
-      stopped = true;
-      runnerCalls.push({ kind: 'stop' });
-    },
-
-    getKVCacheState: () => ({
-      pos,
-      maxSeqLen,
-      remainingTokens: maxSeqLen - pos,
-      usageRatio: pos / maxSeqLen,
-    }),
-
-    dispose: (): void => {
-      if (disposed) return;
-      disposed = true;
-      liveRunners.delete(modelPath);
-    },
-  };
-}
-
-// ============================================================================
 // The global
 // ============================================================================
 
@@ -343,15 +228,7 @@ const jsi = {
   math,
   cv,
   speech,
-  llm: {
-    createLLMRunner: (modelPath: string, tokenizerPath: string, modalities: string[]) => {
-      const program = runnerPrograms.get(modelPath);
-      if (!program) {
-        throw new Error(`createLLMRunner: no runner registered at '${modelPath}'`);
-      }
-      return createFakeRunner(modelPath, tokenizerPath, modalities, program);
-    },
-  },
+  llm,
   nlp: {
     loadTokenizer: (path: string) => {
       const vocabulary = vocabularies.get(path);
@@ -392,25 +269,6 @@ export const fakeJsi = {
    */
   registerTokenizer(path: string, vocabulary: FakeVocabulary): void {
     vocabularies.set(path, vocabulary);
-  },
-
-  /**
-   * Makes `createLLMRunner(path, ...)` succeed and return a scripted runner.
-   * @param path The model path a chat session will be pointed at.
-   * @param program The context window and the responses to generate.
-   */
-  registerLLMRunner(path: string, program: FakeRunnerProgram = {}): void {
-    runnerPrograms.set(path, program);
-  },
-
-  /** @returns Every call made on a fake LLM runner so far, in order. */
-  runnerCalls(): readonly RunnerCall[] {
-    return runnerCalls;
-  },
-
-  /** @returns Model paths of LLM runners that were created and not disposed. */
-  liveRunners(): string[] {
-    return [...liveRunners].sort();
   },
 
   /** @returns Languages of phonemizers that were created and not disposed. */
@@ -463,15 +321,13 @@ export const fakeJsi = {
   reset(): void {
     programs.clear();
     vocabularies.clear();
-    runnerPrograms.clear();
     liveModels.clear();
     liveTokenizers.clear();
-    liveRunners.clear();
     executions.length = 0;
-    runnerCalls.length = 0;
     registeredBackends = ['XnnpackBackend', 'CoreMLBackend'];
     jsi.isEmulator = false;
     fakePhonemizer.reset();
+    llm.reset();
     tensorTracker.reset();
   },
 };

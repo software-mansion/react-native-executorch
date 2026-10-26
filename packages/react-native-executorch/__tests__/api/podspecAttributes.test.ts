@@ -35,13 +35,19 @@ const PACKAGE_ROOT = join(__dirname, '..', '..');
  * way, through `File.directory?`, so the suite runs on a checkout that never
  * downloaded the native libs (which CI is).
  */
-function assignedAttributes(config: Record<string, boolean> | null): string[] {
+interface PodspecEvaluation {
+  assigned: string[];
+  userTargetXcconfig: Record<string, string>;
+}
+
+function evaluatePodspec(config: Record<string, boolean> | null): PodspecEvaluation {
   // Ruby 2.6 syntax throughout: that is the system Ruby on macOS, and the one
   // a contributor who has never installed a newer one runs CocoaPods with.
   const harness = `
     require "json"
 
     $assigned = []
+    $user_target_xcconfig = {}
     # nil stands for "the postinstall hook never wrote one".
     $config_json = ARGV[0] == "" ? nil : ARGV[0]
 
@@ -78,7 +84,11 @@ function assignedAttributes(config: Record<string, boolean> | null): string[] {
         # (s.ios.vendored_frameworks = ...) return self, so the chained
         # assignment is recorded under its own name too.
         def method_missing(name, *args)
-          $assigned << name.to_s.sub(/=$/, "")
+          attr_name = name.to_s.sub(/=$/, "")
+          $assigned << attr_name
+          if attr_name == "user_target_xcconfig" && args.first.is_a?(Hash)
+            $user_target_xcconfig = args.first
+          end
           self
         end
 
@@ -98,7 +108,7 @@ function assignedAttributes(config: Record<string, boolean> | null): string[] {
     Dir.chdir(${JSON.stringify(PACKAGE_ROOT)}) do
       eval(File.read("react-native-executorch.podspec"), TOPLEVEL_BINDING, "podspec")
     end
-    puts JSON.dump($assigned.uniq)
+    puts JSON.dump({ assigned: $assigned.uniq, userTargetXcconfig: $user_target_xcconfig })
   `;
 
   let output: string;
@@ -115,7 +125,11 @@ function assignedAttributes(config: Record<string, boolean> | null): string[] {
         `${details ?? String(error)}`
     );
   }
-  return JSON.parse(output.trim()) as string[];
+  return JSON.parse(output.trim()) as PodspecEvaluation;
+}
+
+function assignedAttributes(config: Record<string, boolean> | null): string[] {
+  return evaluatePodspec(config).assigned;
 }
 
 /**
@@ -128,6 +142,7 @@ const UNCONDITIONAL_ATTRIBUTES = [
   'source_files',
   'public_header_files',
   'pod_target_xcconfig',
+  'user_target_xcconfig',
   'static_framework',
   'vendored_frameworks',
   'libraries',
@@ -166,6 +181,71 @@ describe('podspec attributes', () => {
       // A name here means the attribute sits inside a conditional it does not
       // belong in. The pod still installs; the app fails to compile or link.
       expect(missing).toEqual([]);
+    });
+  });
+
+  describe('user_target_xcconfig linker flags', () => {
+    it('routes SDK-conditional flags through RNE_OTHER_LDFLAGS and plain OTHER_LDFLAGS to avoid CocoaPods merge conflicts (#1503)', () => {
+      const { userTargetXcconfig } = evaluatePodspec({});
+
+      // Singular keys with conditional SDKs conflict across pods in CocoaPods (issue #1503).
+      // They must never be set directly on OTHER_LDFLAGS[...].
+      expect(userTargetXcconfig['OTHER_LDFLAGS[sdk=iphoneos*]']).toBeUndefined();
+      expect(userTargetXcconfig['OTHER_LDFLAGS[sdk=iphonesimulator*]']).toBeUndefined();
+
+      // Plain OTHER_LDFLAGS is a plural setting merged across pods.
+      expect(userTargetXcconfig.OTHER_LDFLAGS).toBe('$(inherited) $(RNE_OTHER_LDFLAGS)');
+
+      // SDK-specific flags are assigned to the pod-scoped variable:
+      expect(userTargetXcconfig['RNE_OTHER_LDFLAGS[sdk=iphoneos*]']).toBeDefined();
+      expect(userTargetXcconfig['RNE_OTHER_LDFLAGS[sdk=iphonesimulator*]']).toBeDefined();
+      expect(userTargetXcconfig['RNE_OTHER_LDFLAGS[sdk=iphoneos*]']).toContain(
+        'libthreadpool_ios.a'
+      );
+      expect(userTargetXcconfig['RNE_OTHER_LDFLAGS[sdk=iphonesimulator*]']).toContain(
+        'libthreadpool_simulator.a'
+      );
+      expect(userTargetXcconfig['RNE_OTHER_LDFLAGS[sdk=iphoneos*]']).toContain(
+        'libXnnpackBackend.a'
+      );
+      expect(userTargetXcconfig['RNE_OTHER_LDFLAGS[sdk=iphonesimulator*]']).toContain(
+        'libXnnpackBackend.a'
+      );
+      expect(userTargetXcconfig['RNE_OTHER_LDFLAGS[sdk=iphoneos*]']).toContain(
+        'libCoreMLBackend.a'
+      );
+      expect(userTargetXcconfig['RNE_OTHER_LDFLAGS[sdk=iphonesimulator*]']).toContain(
+        'libCoreMLBackend.a'
+      );
+      expect(userTargetXcconfig['RNE_OTHER_LDFLAGS[sdk=iphoneos*]']).toContain('libMLXBackend.a');
+      // Simulator does not link MLX:
+      expect(userTargetXcconfig['RNE_OTHER_LDFLAGS[sdk=iphonesimulator*]']).not.toContain(
+        'libMLXBackend.a'
+      );
+    });
+
+    it('omits disabled backends from RNE_OTHER_LDFLAGS', () => {
+      const { userTargetXcconfig } = evaluatePodspec({
+        enableXnnpack: false,
+        enableCoreml: false,
+        enableMlx: false,
+      });
+
+      expect(userTargetXcconfig['RNE_OTHER_LDFLAGS[sdk=iphoneos*]']).not.toContain(
+        'libXnnpackBackend.a'
+      );
+      expect(userTargetXcconfig['RNE_OTHER_LDFLAGS[sdk=iphonesimulator*]']).not.toContain(
+        'libXnnpackBackend.a'
+      );
+      expect(userTargetXcconfig['RNE_OTHER_LDFLAGS[sdk=iphoneos*]']).not.toContain(
+        'libCoreMLBackend.a'
+      );
+      expect(userTargetXcconfig['RNE_OTHER_LDFLAGS[sdk=iphonesimulator*]']).not.toContain(
+        'libCoreMLBackend.a'
+      );
+      expect(userTargetXcconfig['RNE_OTHER_LDFLAGS[sdk=iphoneos*]']).not.toContain(
+        'libMLXBackend.a'
+      );
     });
   });
 });

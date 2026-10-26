@@ -29,12 +29,12 @@ const MODEL_OPTIONS: ModelOption[] = [
     disabled: Platform.OS !== 'ios',
   },
   {
-    label: 'YOLO26 Pose (XNNPACK FP32)',
-    value: models.keypointDetection.YOLO26_POSE.SIZE_384.XNNPACK_FP32,
+    label: 'YOLO26 Pose (XNNPACK INT8)',
+    value: models.keypointDetection.YOLO26_POSE.SIZE_384.XNNPACK_INT8,
   },
   {
-    label: 'RF-DETR Keypoint (XNNPACK FP32)',
-    value: models.keypointDetection.RFDETR_KEYPOINT.XNNPACK_FP32,
+    label: 'RF-DETR Keypoint (XNNPACK INT8)',
+    value: models.keypointDetection.RFDETR_KEYPOINT.XNNPACK_INT8,
   },
   {
     label: 'RF-DETR Keypoint (CoreML FP16)',
