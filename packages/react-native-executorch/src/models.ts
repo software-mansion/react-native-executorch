@@ -416,7 +416,7 @@ const MIGAN_OPTS = {
   normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
   outNormalizeOpts: { alpha: 255.0, beta: 0.0 },
   outInterpolation: 'linear' as const,
-  blend: { shrink: 0, feather: 5 },
+  blendOpts: { shrink: 0, feather: 5 },
 };
 const MIGAN_512_XNNPACK_FP16: InpainterModel = {
   modelPath: `${BASE_URL}-migan/${NEXT_VERSION_TAG}/xnnpack/512/migan_512_xnnpack_fp16.pte`,

@@ -96,7 +96,7 @@ The models run at a fixed resolution (256 or 512 px):
 
 1. Resize the whole photo and the mask to the model input and run the model. A model pixel is part of the hole when any photo pixel it covers is, so thin strokes survive the downscale.
 2. Resize the output back to the photo's resolution.
-3. Blend it over the original photo through the full-resolution mask, eroded and feathered per [`blend`](../../06-api-reference/type-aliases/InpainterOptions.md#blend).
+3. Blend it over the original photo through the full-resolution mask, eroded and feathered per [`blendOpts`](../../06-api-reference/type-aliases/InpainterOptions.md#blendopts).
 
 The fill is therefore generated at the model's resolution and upsampled. To fill a small hole in a large photo at higher detail, crop the region around it yourself, inpaint the crop, and paste the result back.
 
@@ -155,7 +155,7 @@ const customInpainter = await createInpainter({
     normalizeOpts: { alpha: 1 / 255, beta: 0 },
     outNormalizeOpts: { alpha: 255, beta: 0 },
     outInterpolation: 'linear',
-    blend: { shrink: 1, feather: 5 },
+    blendOpts: { shrink: 1, feather: 5 },
   },
 });
 ```

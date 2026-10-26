@@ -49,7 +49,7 @@ export type InpainterOptions = Omit<ImagePreprocessorOptions, 'resizeMode' | 'pa
    * How the filled region is blended back over the original pixels. See
    * {@link BlendMaskedOptions}.
    */
-  readonly blend: BlendMaskedOptions;
+  readonly blendOpts: BlendMaskedOptions;
 };
 
 /**
@@ -184,7 +184,7 @@ export async function createInpainter(
       tOutRgba,
     ] = tensors;
 
-    const { outNormalizeOpts, outInterpolation, blend } = modelOpts;
+    const { outNormalizeOpts, outInterpolation, blendOpts } = modelOpts;
 
     const inpaintWorklet = (image: ImageBuffer, mask: MaskBuffer): ImageBuffer => {
       'worklet';
@@ -249,7 +249,7 @@ export async function createInpainter(
           .through(toChannelsLast, tOutHwc)
           .through(cvtColor, tOutRgba, 'RGB2RGBA')
           .through(resize, tFilled, { mode: 'stretch', interpolation: outInterpolation });
-        blendMasked(tFrame, tFilled, tMask, tResult, blend);
+        blendMasked(tFrame, tFilled, tMask, tResult, blendOpts);
 
         const data = tResult.getData(new Uint8Array(width * height * 4));
         return { data, width, height, format: 'rgba', layout: 'hwc' };

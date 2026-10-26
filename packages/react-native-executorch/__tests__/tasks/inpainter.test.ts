@@ -19,7 +19,7 @@ const options = {
   normalizeOpts: { alpha: 1 / 255, beta: 0 },
   outNormalizeOpts: { alpha: 255, beta: 0 },
   outInterpolation: 'nearest',
-  blend: { shrink: 0, feather: 0 },
+  blendOpts: { shrink: 0, feather: 0 },
 } as const;
 
 const config = { modelPath: MODEL_PATH, modelOpts: options };
