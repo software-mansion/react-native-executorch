@@ -662,7 +662,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     backend: 'xnnpack',
     model: models.llm.MINICPM5_2B.XNNPACK_8DA4W,
     generationConfig: MINICPM5_GENERATION_CONFIG,
-    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    systemPrompt: `${DEFAULT_SYSTEM_PROMPT}. Always reply in the language of the user's latest message.`,
     toolOpts: MINICPM5_TOOL_OPTS,
   },
   {
@@ -671,7 +671,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     backend: 'mlx',
     model: models.llm.MINICPM5_2B.MLX_INT4,
     generationConfig: MINICPM5_GENERATION_CONFIG,
-    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    systemPrompt: `${DEFAULT_SYSTEM_PROMPT}. Always reply in the language of the user's latest message.`,
     toolOpts: MINICPM5_TOOL_OPTS,
     iosOnly: true,
   },
