@@ -10599,20 +10599,6 @@
   },
   {
     "task": "llm",
-    "model": "lfm2-5-350-m",
-    "backend": "xnnpack",
-    "precision": "fp16",
-    "device": "s26ultra",
-    "medianMs": 2664,
-    "meanMs": 2664,
-    "tokensPerSecond": 23.6,
-    "ttftMs": 21,
-    "peakMb": 1212,
-    "loadMs": 585,
-    "sizeMb": 810
-  },
-  {
-    "task": "llm",
     "model": "qwen2-5-1-5-b",
     "backend": "xnnpack",
     "precision": "8da4w",
@@ -10792,19 +10778,5 @@
     "peakMb": 3428,
     "loadMs": 3089,
     "sizeMb": 2543
-  },
-  {
-    "task": "llm",
-    "model": "qwen2-5-0-5-b",
-    "backend": "xnnpack",
-    "precision": "bf16",
-    "device": "s26ultra",
-    "medianMs": 135431,
-    "meanMs": 135431,
-    "tokensPerSecond": 0.5,
-    "ttftMs": 321,
-    "peakMb": 1536,
-    "loadMs": 500,
-    "sizeMb": 950
   }
 ]

@@ -17,8 +17,9 @@ export type BenchmarkRow = {
 
 /**
  * Joins rows generated from raw runs (`measured.json`) with published rows
- * that have no raw runs behind them (`imported.json`). A device present in
- * the measured rows replaces all of its imported ones.
+ * that have no raw runs behind them (`imported.json`). Measured variants
+ * replace matching imported variants; other published results remain available
+ * when a device has only a partial new run.
  * @param measured Rows built by `yarn bench:docs` in `apps/benchmarks`.
  * @param imported Rows with no raw runs.
  * @returns The rows to chart.
@@ -27,8 +28,10 @@ export function mergeBenchmarkRows(
   measured: readonly BenchmarkRow[],
   imported: readonly BenchmarkRow[]
 ): BenchmarkRow[] {
-  const measuredDevices = new Set(measured.map((row) => row.device));
-  return [...measured, ...imported.filter((row) => !measuredDevices.has(row.device))];
+  const key = (row: BenchmarkRow) =>
+    JSON.stringify([row.device, row.task, row.model, row.backend, row.precision]);
+  const measuredVariants = new Set(measured.map(key));
+  return [...measured, ...imported.filter((row) => !measuredVariants.has(key(row)))];
 }
 
 export type MetricId =
@@ -97,9 +100,10 @@ export const METRICS: Metric[] = [
   },
   {
     id: 'peakMb',
-    label: 'Peak Memory',
+    label: 'Peak Process Memory',
     unit: 'MB',
-    description: 'Peak resident memory (RAM) allocated during model execution.',
+    description:
+      'Peak process footprint during inference, including the app baseline: total PSS on Android and phys_footprint on iOS.',
     lowerIsBetter: true,
   },
   {
@@ -122,6 +126,7 @@ export const DEVICES: Device[] = [
   { id: 's26ultra', shortName: 'S26 Ultra' },
   { id: 'pixel10', shortName: 'Pixel 10' },
   { id: 's20plus', shortName: 'S20+' },
+  { id: 's24', shortName: 'S24' },
   { id: 'iphone17', shortName: 'iPhone 17' },
   { id: 'iphonese', shortName: 'iPhone SE 3' },
 ];

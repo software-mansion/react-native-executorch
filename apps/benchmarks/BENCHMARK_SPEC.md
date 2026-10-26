@@ -39,9 +39,9 @@ Per variant, per repeat:
 | `memory.disposed`        | Footprint after `dispose` — a leak is a case that never returns to baseline |
 
 `memory.*` is process footprint, not native heap: `phys_footprint` on iOS (what
-jetsam measures an app against) and total PSS on Android. Both count the
-resident pages of a memory-mapped `.pte`, which the heap counters miss entirely
-and which is most of a model's cost.
+jetsam measures an app against) and total PSS on Android. Raw results record the
+process baseline separately, so process memory can be distinguished from a
+model's incremental footprint.
 
 Memory is sampled in a separate pass from the timings. Reading total PSS on
 Android walks `/proc/self/smaps` and costs milliseconds; polling that during a
@@ -148,14 +148,15 @@ would move for reasons unrelated to the device.
 `src/inputs.ts` is the definition; `INPUT_SPEC_VERSION` is recorded in every
 report and the comparator refuses to diff across a change to it.
 
-| Task                                                                                               | Input                                                                                                                                                 |
-| -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vision (classification, detection, segmentation, style transfer, OCR, keypoints, image embeddings) | A fixed 512x512 or 640x640 scene: a vertical gradient, three solid ellipses, and a seeded dither                                                      |
-| Text embeddings, privacy filter                                                                    | Fixed prose, with the PII text seeded with the entity types a detector should find                                                                    |
-| VAD, speech-to-text                                                                                | 10 s of a voice-shaped waveform: a 130 Hz pulse train through three formant resonators, 0.7 s bursts alternating with 0.3 s of near-silence           |
-| Text-to-speech                                                                                     | Fixed text; the voice is the alphabetically first the config publishes, so the choice is a property of the voice set rather than of declaration order |
-| Text-to-image                                                                                      | Fixed prompt, fixed seed                                                                                                                              |
-| LLM                                                                                                | Fixed short prompt, **64 tokens decoded with EOS ignored and temperature 0**                                                                          |
+| Task                                                                                                                 | Input                                                                                                                                                 |
+| -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vision (classification, depth estimation, detection, segmentation, style transfer, OCR, keypoints, image embeddings) | A fixed 512x512 or 640x640 scene: a vertical gradient, three solid ellipses, and a seeded dither                                                      |
+| ColBERT embeddings                                                                                                   | The fixed text-embedding paragraph, encoded as a document; query encoding and MaxSim scoring are not timed                                            |
+| Text embeddings, privacy filter                                                                                      | Fixed prose, with the PII text seeded with the entity types a detector should find                                                                    |
+| VAD, speech-to-text                                                                                                  | 10 s of a voice-shaped waveform: a 130 Hz pulse train through three formant resonators, 0.7 s bursts alternating with 0.3 s of near-silence           |
+| Text-to-speech                                                                                                       | Fixed text; the voice is the alphabetically first the config publishes, so the choice is a property of the voice set rather than of declaration order |
+| Text-to-image                                                                                                        | Fixed prompt, fixed seed                                                                                                                              |
+| LLM                                                                                                                  | Fixed short prompt, **64 tokens decoded with EOS ignored and temperature 0**                                                                          |
 
 Two caveats worth knowing before reading the output:
 
@@ -166,7 +167,7 @@ Two caveats worth knowing before reading the output:
 - **LLMs.** Decode is pinned to a fixed token count because generation length is
   otherwise a property of the model and its quantisation, and a wall-clock
   figure over a varying token count compares nothing. Divide `pipeline.median`
-  by 64 for milliseconds per token; `detail.timeToFirstTokenMs` and
+  by the recorded generated-token count (`units`) for milliseconds per token; `detail.timeToFirstTokenMs` and
   `detail.prefillMs` are reported separately. Multimodal models are driven
   text-only.
 

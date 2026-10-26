@@ -2,15 +2,14 @@
 /**
  * Builds the docs benchmark data from raw runs.
  *
- * The raw runs are the source of truth and live beside the docs page, one
+ * To generate data, collect raw runs beside the docs page, one
  * directory per device: `runs/<deviceId>/*.jsonl`, where `<deviceId>` is the
- * id the docs list the device under. A docs version cut copies them along with
- * the page, so every release keeps the runs its numbers came from, and
- * `bench:compare` can diff a new run against any of them.
+ * id the docs list the device under. Only the generated JSON is needed by the
+ * docs build; archive raw runs outside the repository after generation.
  *
  * This writes `measured.json` beside them. The page merges it with
  * `imported.json`, the published rows that have no raw runs behind them: a
- * device with runs here replaces its imported rows entirely.
+ * measured variant replaces its matching imported row.
  *
  * Usage:
  *   yarn bench:docs                       # ../../docs/docs/04-benchmarks
@@ -67,8 +66,19 @@ function toRow(deviceId, entries) {
   };
 
   if (task === 'llm') {
-    // `units` is the runner's generated-token count over a pinned-length
-    // generation: 63 for 64 new tokens, the first coming from prefill.
+    if (
+      entries.some(
+        (entry) =>
+          !Number.isFinite(entry.units) ||
+          entry.units <= 0 ||
+          !Number.isFinite(entry.detail?.timeToFirstTokenMs) ||
+          entry.detail.timeToFirstTokenMs < 0
+      )
+    ) {
+      throw new Error(`LLM measurement ${first.id} is missing valid token or TTFT stats`);
+    }
+    // Use the runner's actual generated-token count for the fixed-length
+    // generation; older runtime exports counted the first token separately.
     row.tokensPerSecond = round(first.units / (medianMs / 1000), 1);
     row.ttftMs = round(pick((entry) => entry.detail?.timeToFirstTokenMs));
   } else {

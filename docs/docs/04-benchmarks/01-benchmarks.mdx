@@ -26,28 +26,31 @@ export const benchmarks = mergeBenchmarkRows(measured, imported);
 
 # Benchmarks
 
-Every model variant in the React Native ExecuTorch registry is measured directly on physical iOS and Android hardware. We profile the complete end-to-end pipeline—from camera frames, audio, and text through pre-processing, forward inference on mobile silicon, and post-processing—alongside isolated ExecuTorch runtime latency, peak RAM, cold-start load times, and binary download sizes.
+These benchmarks measure model variants directly on physical iOS and Android hardware. Coverage varies by task, model variant, and device; each chart shows the measurements available for its selected model. We profile the complete end-to-end pipeline—from camera frames, audio, and text through pre-processing, forward inference on mobile silicon, and post-processing—alongside isolated ExecuTorch runtime latency, peak RAM, cold-start load times, and binary download sizes.
 
 ### Backends and Precision
 
 Each variant is defined by two choices:
 
 - **Backend (Where it runs):** The hardware execution engine. **XNNPACK** runs on mobile CPUs for universal compatibility across iOS and Android; **Core ML** targets the Apple Neural Engine (NPU) and GPU on iOS; **Vulkan** runs on Android GPUs; and **MLX** uses Apple Silicon unified memory. To configure which backends are compiled into your app, see [Native Libraries](../03-core-and-advanced/08-native-libraries.md).
-- **Precision (How weights are stored):** The numerical format of model weights. Full precision (`fp32`) preserves original fidelity at the cost of larger downloads and RAM. Quantized formats (`fp16`, `int8`, `4-bit`) compress weights, drastically cutting file size and memory while speeding up compute with minimal impact on real-world accuracy. See [Exporting Custom Models](../03-core-and-advanced/07-exporting-custom-models.md) for lowering details.
+- **Precision (How weights are stored):** The numerical format of model weights. Full precision (`fp32`) preserves original fidelity at the cost of larger downloads and RAM. Reduced precision (`fp16`) and integer quantization (`int8`, `4-bit`) reduce weight storage and memory use and can speed up computation; evaluate accuracy for your task. See [Exporting Custom Models](../03-core-and-advanced/07-exporting-custom-models.md) for lowering details.
 
 Explore the charts below to compare backends and find the optimal balance for your app.
 
 ## Devices
 
-Measurements were collected on physical iOS and Android devices spanning flagship, modern mid-tier, and legacy hardware tiers. All numbers come from release builds of React Native ExecuTorch 0.11.0-dev (`main` shortly after v0.10.0), measured in September 2026.
+Measurements were collected on physical iOS and Android devices spanning flagship, modern mid-tier, and legacy hardware tiers. All numbers come from release builds of React Native ExecuTorch 0.11.0-dev (`main` shortly after v0.10.0), measured in September 2026, with supplemental quantized LLM, depth estimation, and ColBERT runs in October 2026.
 
 | Device | Backends tested | Variants | Notes |
 |---|---|---|---|
-| Samsung Galaxy S26 Ultra | XNNPACK (123), Vulkan (24) | 147 | Flagship Android test device (Snapdragon SM8850); covers all standard tasks and 23 LLM variants |
-| Google Pixel 10 | XNNPACK (100), Vulkan (24) | 124 | Modern Android device featuring Google Tensor G5 |
-| Samsung Galaxy S20+ | XNNPACK (100), Vulkan (24) | 124 | Baseline Android device (Exynos 990) representing older generation hardware |
-| iPhone 17 | XNNPACK (100), Core ML (75), MLX (15) | 190 | Flagship iOS reference device (A19) testing XNNPACK, Core ML, and MLX execution |
-| iPhone SE (3rd gen) | XNNPACK (99), Core ML (73), MLX (15) | 187 | Compact iOS hardware (A15 Bionic) with 4 GB RAM to test performance and memory bounds |
+| Samsung Galaxy S26 Ultra | XNNPACK (121), Vulkan (24) | 145 | Snapdragon SM8850; historical standard-task results and 21 quantized LLM variants |
+| Google Pixel 10 | XNNPACK (100), Vulkan (24) | 124 | Google Tensor G5; historical standard-task measurements |
+| Samsung Galaxy S20+ | XNNPACK (129), Vulkan (31) | 160 | Exynos 990; historical results plus supplemental quantized LLM, depth, and ColBERT measurements |
+| Samsung Galaxy S24 | XNNPACK (29), Vulkan (6) | 35 | Supplemental quantized LLM, depth estimation, and ColBERT measurements |
+| iPhone 17 | XNNPACK (127), Core ML (78), MLX (38) | 243 | A19; historical results plus supplemental quantized LLM, depth, and ColBERT measurements |
+| iPhone SE (3rd gen) | XNNPACK (99), Core ML (73), MLX (15) | 187 | A15 Bionic with 4 GB RAM; historical standard-task measurements |
+
+Memory values report peak process footprint during a separate inference pass, including the app baseline: total PSS on Android and `phys_footprint` on iOS. Some supplemental iPhone LLM measurements use a fresh process for each model.
 
 ## Results
 
@@ -110,6 +113,15 @@ These benchmarks measure execution latency, memory utilization, and initializati
 
 <BenchmarkChart task="style-transfer" data={benchmarks} />
 
+### [Depth Estimation](../02-extensions/computer-vision/12-depth-estimation.md)
+
+:::info Input & Pipeline Details
+- **Input:** Fixed 512x512 RGBA synthetic frame.
+- **Pipeline Structure:** The depth estimator resizes and normalizes the frame, executes the model, and resizes the raw depth map back to the input dimensions. Timings cover the full pipeline; output values retain the model's depth interpretation.
+:::
+
+<BenchmarkChart task="depth-estimation" data={benchmarks} />
+
 ### [Image Embeddings](../02-extensions/computer-vision/09-image-embeddings.md)
 
 :::info Input & Pipeline Details
@@ -147,6 +159,15 @@ These benchmarks measure execution latency, memory utilization, and initializati
 
 <BenchmarkChart task="text-embeddings" data={benchmarks} />
 
+### [ColBERT Embeddings](../02-extensions/natural-language/06-colbert-retrieval.md)
+
+:::info Input & Pipeline Details
+- **Input:** The same fixed English paragraph used for text embeddings, encoded as a document.
+- **Pipeline Structure:** Tokenization, document marker insertion and padding, model execution, and removal of masked or skiplisted token vectors. The result is a matrix of normalized per-token embeddings. Query encoding and MaxSim retrieval scoring are outside this measurement.
+:::
+
+<BenchmarkChart task="colbert-embeddings" data={benchmarks} />
+
 ### [Privacy Filter](../02-extensions/natural-language/04-privacy-filter.md)
 
 :::info Input & Pipeline Details
@@ -159,9 +180,13 @@ These benchmarks measure execution latency, memory utilization, and initializati
 ### [LLM Chat & Text Generation](../02-extensions/natural-language/02-llm-chat-and-generation.md)
 
 :::info Input & Pipeline Details
-- **Input:** Prompt (`List three uses for a paperclip.`), 64 tokens decoded with EOS ignored, temperature 0 (greedy decoding).
+- **Variants:** Quantized LLMs only.
+- **Collection:** The S26 Ultra LLM results retain the September measurements. Supplemental S20+, S24, and iPhone 17 LLM runs were collected in October using the fixed-prompt harness described below.
+- **Input:** Prompt (`List three uses for a paperclip.`), 64 tokens generated with EOS ignored, temperature 0 (greedy decoding), and the KV cache reset before each independent prompt.
 - **Prefill vs. Decode & Memory:** The short prompt isolates autoregressive token generation throughput (tokens/second) and time to first token (TTFT). Autoregressive decoding executes one forward pass per generated token. Peak memory is driven by model weights and allocated key-value (KV) cache buffers, with models larger than 2 GB peaking between 2.4 and 3.5 GB of resident RAM.
 :::
+
+On iPhone 17, Phi-4 Mini was omitted. Qwen3 4B (XNNPACK) terminated after critical memory-pressure warnings, including in a fresh-process retry. On Galaxy S24, Android's low-memory killer terminated Gemma4 Omni E2B (Vulkan) during loading in a fresh-process retry. Only successful measurements are charted.
 
 <BenchmarkChart task="llm" data={benchmarks} />
 

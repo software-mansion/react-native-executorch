@@ -173,8 +173,8 @@ post-processing in it.
 
 ## Publishing to the docs
 
-The docs benchmarks page is built from raw runs stored beside it, so each docs
-version keeps the runs its numbers came from:
+The docs benchmarks page reads `measured.json`; raw runs are only needed to
+regenerate it. Temporarily collect the runs under the page directory:
 
 ```bash
 mkdir -p ../../docs/docs/04-benchmarks/runs/s26ultra
@@ -183,12 +183,15 @@ yarn bench:docs   # regenerates docs/docs/04-benchmarks/measured.json
 ```
 
 The directory name is the device id the docs list it under (`DEVICES` in
-`docs/src/data/benchmarks.ts`). A device with runs replaces its rows in
-`imported.json`, which holds published numbers that have no raw runs behind
-them. To check a build against a release, compare against its archived runs:
+`docs/src/data/benchmarks.ts`). Generation replaces `measured.json`, so include
+all runs whose measurements it should retain. Archive the raw runs outside the
+repository and remove the temporary `runs/` directory before committing; the
+docs build only needs the generated JSON. Measured variants replace matching
+rows in `imported.json`, preserving other published results. To check a build
+against a release, compare against its archived runs:
 
 ```bash
-yarn bench:compare ../../docs/versioned_docs/version-0.11.0/04-benchmarks/runs/s26ultra/<run>.jsonl results/<new>.jsonl
+yarn bench:compare /path/to/archived/<run>.jsonl results/<new>.jsonl
 ```
 
 ## What gets measured
@@ -322,6 +325,6 @@ a **model or variant** means nothing here beyond `yarn bench:sizes`.
 
 `modules/bench-probe` is a local Expo module reading the process footprint:
 `task_vm_info.phys_footprint` on iOS (what jetsam measures an app against) and
-total PSS on Android. Both count the resident pages of a memory-mapped `.pte`,
-which the native-heap counters miss entirely — and that is most of a model's
-footprint.
+total PSS on Android. These are process-footprint counters, rather than
+native-heap totals. The raw results also record the baseline before loading and
+the footprint after disposal.

@@ -15,12 +15,13 @@
 
 import {
   createClassifier,
+  createColbertEmbedder,
+  createDepthEstimator,
   createFsmnVoiceActivityDetector,
   createImageEmbedder,
   createInstanceSegmenter,
   createKeypointDetector,
   createKokoroTextToSpeech,
-  createLLMChatSession,
   createObjectDetector,
   createPaddleOcr,
   createPrivacyFilter,
@@ -30,9 +31,16 @@ import {
   createSupertonicTextToSpeech,
   createTextEmbedder,
   createWhisperSpeechToText,
+  createResourceScope,
+  defaultWorkletRuntime,
+  llm as llmApi,
+  wrapAsync,
+  type LLMModel,
   FSMN_VAD_SAMPLE_RATE_HZ,
   WHISPER_SAMPLE_RATE_HZ,
 } from 'react-native-executorch';
+
+import RNBlobUtil from 'react-native-blob-util';
 
 import {
   IMAGE_512,
@@ -145,6 +153,22 @@ const textEmbeddings: Driver = {
   },
 };
 
+const depthEstimation: Driver = {
+  create: createDepthEstimator,
+  run: (instance) => () => {
+    'worklet';
+    return instance.estimateDepthWorklet(IMAGE_512).data.length;
+  },
+};
+
+const colbertEmbeddings: Driver = {
+  create: createColbertEmbedder,
+  run: (instance) => () => {
+    'worklet';
+    return instance.embedWorklet(SAMPLE_TEXT, 'document').numTokens;
+  },
+};
+
 const privacyFilter: Driver = {
   create: createPrivacyFilter,
   run: (instance) => () => {
@@ -248,55 +272,96 @@ const kokoroTts: Driver = {
   note: 'timed on the RN thread; includes per-chunk thread hops',
 };
 
+type LLMBenchmarkInstance = Disposable & {
+  readonly runner: llmApi.LLMRunner;
+  readonly preprocessor: llmApi.ChatPreprocessor;
+};
+
 /**
- * The LLM driver.
+ * Benchmarks independent, fixed-length generations from the same chat prompt.
  *
- * Generation is pinned to a fixed token count with EOS ignored and temperature
- * zero, so every iteration on every device does exactly the same amount of
- * decode work. Without that pin the measurement would depend on how long an
- * answer the model felt like giving, which differs per model, per quantisation,
- * and between two runs of the same model — and a wall-clock figure over a
- * varying token count measures nothing.
- *
- * `resetOnTurn` keeps each iteration a cold prompt rather than an append onto a
- * KV cache the previous iteration grew, which would make iteration N cheaper
- * than iteration 1 for reasons unrelated to the build under test.
- * @returns The driver, holding the last turn's stats for `detail` to read.
+ * A chat session retains conversation history even with `resetOnTurn`, which
+ * resets only its KV cache. Use the runner directly so every iteration starts
+ * with an empty cache and exactly one user message.
+ * @returns The driver with the latest generation's prefill and decode stats.
  */
-function llmDriver(): Driver {
-  // Written by each timed call, read once by `detail` after the timed pass.
+function llmDriver(): Driver<LLMBenchmarkInstance> {
   let lastTtftMs = 0;
   let lastPrefillMs = 0;
   let lastPromptTokens = 0;
 
   return {
-    create: (config) =>
-      createLLMChatSession(config, {
-        generationConfig: {
-          maxNewTokens: LLM_MAX_NEW_TOKENS,
-          temperature: 0,
-          ignoreEos: true,
-        },
-        resetOnTurn: true,
-      }),
-    mode: 'async',
-    runAsync: (session) => async () => {
-      const turn = await session.sendMessage(LLM_PROMPT);
-      const stats = turn.stats[turn.stats.length - 1];
-      if (stats) {
-        lastTtftMs = Math.max(0, stats.firstTokenMs - stats.inferenceStartMs);
-        lastPrefillMs = stats.prefillDurationMs ?? 0;
-        lastPromptTokens = stats.numPromptTokens;
-        return stats.numGeneratedTokens;
+    create: async (config: LLMModel) => {
+      const scope = createResourceScope();
+      try {
+        const text = await RNBlobUtil.fs.readFile(config.tokenizerConfigPath, 'utf8');
+        const { chatTemplate, bosToken, eosToken } = llmApi.parseTokenizerConfig(JSON.parse(text));
+        const preprocessor = scope.track(
+          llmApi.createChatPreprocessor({
+            chatTemplate,
+            bosToken,
+            eosToken,
+            modalities: config.modalities,
+            preprocessorConfig: config.preprocessorConfig,
+          })
+        );
+        const runner = scope.track(
+          await llmApi.createLLMRunner(config.modelPath, config.tokenizerPath, config.modalities)
+        );
+        return { runner, preprocessor, dispose: scope.dispose };
+      } catch (error) {
+        scope.dispose();
+        throw error;
       }
-      return 0;
+    },
+    mode: 'async',
+    runAsync: ({ runner, preprocessor }) => {
+      let expectedPromptTokens: number | undefined;
+      return async () => {
+        const prompt = preprocessor.process([{ role: 'user', content: LLM_PROMPT }], 1);
+        try {
+          const stats = await wrapAsync((input: llmApi.Prompt) => {
+            'worklet';
+            runner.reset();
+            const started = performance.now();
+            let timeToFirstTokenMs = -1;
+            const generation = runner.generate(
+              input,
+              {
+                maxNewTokens: LLM_MAX_NEW_TOKENS,
+                temperature: 0,
+                ignoreEos: true,
+              },
+              () => {
+                if (timeToFirstTokenMs < 0) timeToFirstTokenMs = performance.now() - started;
+              }
+            );
+            return { ...generation, timeToFirstTokenMs };
+          }, defaultWorkletRuntime)(prompt);
+          if (
+            stats.numTokens !== LLM_MAX_NEW_TOKENS ||
+            (expectedPromptTokens !== undefined && stats.prefill.numTokens !== expectedPromptTokens)
+          ) {
+            throw new Error(
+              'LLM benchmark workload changed: expected a fixed prompt and 64 generated tokens'
+            );
+          }
+          expectedPromptTokens = stats.prefill.numTokens;
+          lastTtftMs = stats.timeToFirstTokenMs;
+          lastPrefillMs = stats.prefill.durationMs;
+          lastPromptTokens = stats.prefill.numTokens;
+          return stats.numTokens;
+        } finally {
+          preprocessor.clear();
+        }
+      };
     },
     detail: () => ({
       timeToFirstTokenMs: Math.round(lastTtftMs * 1000) / 1000,
-      prefillMs: Math.round(lastPrefillMs * 1000) / 1000,
+      prefillMs: lastPrefillMs,
       promptTokens: lastPromptTokens,
     }),
-    note: `decode pinned to ${LLM_MAX_NEW_TOKENS} tokens with EOS ignored; multimodal models are driven text-only`,
+    note: `independent single-user chat prompt; KV cache reset each iteration; ${LLM_MAX_NEW_TOKENS} generated tokens with EOS ignored; multimodal models are driven text-only`,
   };
 }
 
@@ -312,6 +377,8 @@ const BY_TASK: Readonly<Record<string, Driver>> = {
   instanceSegmentation,
   imageEmbeddings,
   textEmbeddings,
+  depthEstimation,
+  colbertEmbeddings,
   privacyFilter,
   voiceActivityDetection,
   speechToText,
