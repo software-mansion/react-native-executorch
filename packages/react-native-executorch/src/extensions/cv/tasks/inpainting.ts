@@ -30,6 +30,7 @@ import {
   type InterpolationMethod,
   type BlendMaskedOptions,
 } from '../ops/image';
+import { maskBounds, type BoundingBox } from '../ops/box';
 
 /**
  * Options for configuring the inpainting preprocessor and postprocessor.
@@ -124,47 +125,54 @@ export type Inpainter = {
  * smaller than `minSize`, and clamped to the image, with any overhang pushed
  * to the opposite side so the window stays as large as it can.
  *
- * A pixel is masked when any of its color channels is non-zero (alpha is
- * ignored), which is also what the grayscale conversion `inpaint` applies to
- * a color mask yields.
+ * The hole is scanned natively. An image buffer is converted to grayscale
+ * first, exactly as {@link Inpainter.inpaint} does before feeding the model, so
+ * a pixel is masked when its gray value is non-zero. A tensor is scanned as is,
+ * with a pixel masked when any of its channels is non-zero.
  * @category CV / Functions
- * @param mask The hole mask, any format, in HWC layout.
+ * @param mask The hole mask: an image buffer of any format, or a `uint8` tensor
+ * in HWC layout.
  * @param options Context to keep around the hole and the smallest window to
  * return, both in pixels.
  * @returns The window, or `null` when the mask marks no pixel.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if a tensor mask is
+ * not a `uint8` HWC tensor, `RESOURCE_BUSY` if it is in use, or
+ * `RESOURCE_DISPOSED` if it was disposed.
  */
 export function computeInpaintingCrop(
-  mask: ImageBuffer,
+  mask: ImageBuffer | Tensor,
   options: { readonly padding: number; readonly minSize: number }
 ): InpaintingCrop | null {
   'worklet';
-  const { data, width, height, format } = mask;
-  const channels = FORMAT_CHANNELS[format];
-  const colorChannels = Math.min(channels, 3);
-
-  let left = width;
-  let right = -1;
-  let top = height;
-  let bottom = -1;
-  for (let y = 0; y < height; y++) {
-    const row = y * width * channels;
-    for (let x = 0; x < width; x++) {
-      const at = row + x * channels;
-      let masked = false;
-      for (let c = 0; c < colorChannels; c++) {
-        if (data[at + c] !== 0) {
-          masked = true;
-          break;
-        }
+  let bounds: BoundingBox<'xyxy'> | null;
+  let width: number;
+  let height: number;
+  // A tensor is a native host object, for which the `in` operator is not
+  // reliable, so an image buffer is told apart by its layout tag instead.
+  if ((mask as Partial<ImageBuffer>).layout === 'hwc') {
+    mask = mask as ImageBuffer;
+    ({ width, height } = mask);
+    const toGray = FORMAT_CONVERSION[mask.format].gray;
+    const tMask = tensor('uint8', [height, width, FORMAT_CHANNELS[mask.format]]);
+    let tGray: Tensor | null = null;
+    try {
+      tMask.setData(mask.data);
+      if (toGray !== null) {
+        tGray = tMask.through(cvtColor, tensor('uint8', [height, width, 1]), toGray);
       }
-      if (!masked) continue;
-      if (x < left) left = x;
-      if (x > right) right = x;
-      if (y < top) top = y;
-      if (y > bottom) bottom = y;
+      bounds = maskBounds(tGray ?? tMask);
+    } finally {
+      tMask.dispose();
+      tGray?.dispose();
     }
+  } else {
+    mask = mask as Tensor;
+    bounds = maskBounds(mask);
+    height = mask.shape[0]!;
+    width = mask.shape[1]!;
   }
-  if (right < 0) return null;
+  if (bounds === null) return null;
+  const { xmin: left, ymin: top, xmax: right, ymax: bottom } = bounds;
 
   const centerX = Math.floor((left + right) / 2);
   const centerY = Math.floor((top + bottom) / 2);
@@ -306,14 +314,17 @@ export async function createInpainter(
             ? tImage
             : tImage.through(cvtColor, scratch('uint8', [height, width, 4]), toRgba);
 
-        const window = computeInpaintingCrop(mask, { padding: cropPadding, minSize: minCropSize });
-        if (window !== null) {
-          const tMaskIn = scratch('uint8', [height, width, maskChannels]).setData(mask.data);
-          const tMaskGray =
-            toGray === null
-              ? tMaskIn
-              : tMaskIn.through(cvtColor, scratch('uint8', [height, width, 1]), toGray);
+        const tMaskIn = scratch('uint8', [height, width, maskChannels]).setData(mask.data);
+        const tMaskGray =
+          toGray === null
+            ? tMaskIn
+            : tMaskIn.through(cvtColor, scratch('uint8', [height, width, 1]), toGray);
 
+        const window = computeInpaintingCrop(tMaskGray, {
+          padding: cropPadding,
+          minSize: minCropSize,
+        });
+        if (window !== null) {
           const { x, y, width: cw, height: ch } = window;
 
           // Image crop -> model input.

@@ -138,7 +138,9 @@ Alongside the image transforms, `cv` includes helpers for working with detector
 outputs and shapes. Some operate on tensors —
 [`nms`](../06-api-reference/react-native-executorch/namespaces/cv/functions/nms.md)
 (non-maximum suppression over boxes and scores) and
-[`restrictToBox`](../06-api-reference/react-native-executorch/namespaces/cv/functions/restrictToBox.md)
+[`restrictToBox`](../06-api-reference/react-native-executorch/namespaces/cv/functions/restrictToBox.md),
+and [`maskBounds`](../06-api-reference/react-native-executorch/namespaces/cv/functions/maskBounds.md)
+(the bounding box of a mask's non-zero pixels)
 — while the bounding-box, point, and quadrilateral utilities
 ([`decodeBox`](../06-api-reference/react-native-executorch/namespaces/cv/functions/decodeBox.md),
 [`scaleBox`](../06-api-reference/react-native-executorch/namespaces/cv/functions/scaleBox.md),

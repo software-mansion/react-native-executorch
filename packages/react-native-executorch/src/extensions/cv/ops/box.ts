@@ -225,3 +225,23 @@ export function restrictToBox(src: Tensor, dst: Tensor, box: BoundingBox<BoxForm
   }
   return rnexecutorchJsi.cv.restrictToBox(src, dst, [a, b, c, d], box.format);
 }
+
+/**
+ * Finds the bounding box of the non-zero pixels of a mask: a segmentation
+ * mask, an inpainting hole, a binarized heatmap. A pixel counts when any of
+ * its channels is non-zero, so convert a color mask whose alpha is opaque
+ * everywhere to grayscale first.
+ * @category CV / Functions
+ * @param src The mask tensor in HWC layout. Expected shape `[H, W, C]` and
+ * data type `uint8`.
+ * @returns An `'xyxy'` box whose corners are the first and last non-zero
+ * column and row, inclusive, or `null` when no pixel is non-zero.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the tensor shape,
+ * layout, or data type is invalid, `RESOURCE_BUSY` if the tensor is in use, or
+ * `RESOURCE_DISPOSED` if it was disposed.
+ */
+export function maskBounds(src: Tensor): BoundingBox<'xyxy'> | null {
+  'worklet';
+  const bounds = rnexecutorchJsi.cv.maskBounds(src);
+  return bounds === null ? null : { format: 'xyxy', ...bounds };
+}

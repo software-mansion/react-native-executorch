@@ -557,6 +557,28 @@ export const cv = {
     return dst;
   },
 
+  /** Inclusive bounding box of the pixels with any non-zero channel, or `null`. */
+  maskBounds(src: FakeTensor): { xmin: number; ymin: number; xmax: number; ymax: number } | null {
+    const [height, width, channels] = [src.shape[0]!, src.shape[1]!, src.shape[2] ?? 1];
+    let xmin = width;
+    let ymin = height;
+    let xmax = -1;
+    let ymax = -1;
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const at = (y * width + x) * channels;
+        let set = false;
+        for (let c = 0; c < channels && !set; c++) set = src.getElement(at + c) !== 0;
+        if (!set) continue;
+        xmin = Math.min(xmin, x);
+        xmax = Math.max(xmax, x);
+        ymin = Math.min(ymin, y);
+        ymax = Math.max(ymax, y);
+      }
+    }
+    return xmax < 0 ? null : { xmin, ymin, xmax, ymax };
+  },
+
   /** Copies the `dst`-sized window of `src` starting at `origin`. */
   crop(src: FakeTensor, dst: FakeTensor, origin: { x: number; y: number }): FakeTensor {
     const [srcH, srcW, channels] = src.shape as [number, number, number];

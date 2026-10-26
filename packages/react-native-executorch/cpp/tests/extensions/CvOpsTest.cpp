@@ -601,5 +601,58 @@ TEST_F(CvOpsTest, BlendMaskedRejectsWrongArgumentCounts) {
                              "INVALID_ARGUMENT", "Usage: blendMasked(src, overlay, mask, dst, options)"));
 }
 
+// --- Mask bounds -------------------------------------------------------------
+
+TEST_F(CvOpsTest, MaskBoundsSpansTheNonZeroPixelsInclusive) {
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const mask = fillU8(createTensor([4, 5, 1], 'uint8'), [
+            0, 0, 0, 0, 0,
+            0, 0, 7, 1, 0,
+            0, 0, 0, 1, 0,
+            0, 0, 0, 0, 0,
+        ]);
+        const b = cv.maskBounds(mask);
+        return [b.xmin, b.ymin, b.xmax, b.ymax];
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {2, 1, 3, 2}));
+}
+
+TEST_F(CvOpsTest, MaskBoundsCountsAPixelWhenAnyChannelIsSet) {
+    // A 1x3 RGB row: only the blue of pixel 1 and the red of pixel 2 are set.
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const mask = fillU8(createTensor([1, 3, 3], 'uint8'), [0, 0, 0, 0, 0, 9, 5, 0, 0]);
+        const b = cv.maskBounds(mask);
+        return [b.xmin, b.ymin, b.xmax, b.ymax];
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {1, 0, 2, 0}));
+}
+
+TEST_F(CvOpsTest, MaskBoundsReturnsNullForAnAllZeroMask) {
+    EXPECT_TRUE(evalBool(std::format(R"(
+        {}
+        const mask = fillU8(createTensor([2, 2, 1], 'uint8'), [0, 0, 0, 0]);
+        return cv.maskBounds(mask) === null;
+    )",
+                                     kNs)));
+}
+
+TEST_F(CvOpsTest, MaskBoundsRejectsANonUint8Mask) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format(R"(
+        {}
+        cv.maskBounds(createTensor([2, 2, 1], 'float32'));
+    )",
+                                                      kNs)),
+                             "INVALID_ARGUMENT", "maskBounds: src"));
+}
+
+TEST_F(CvOpsTest, MaskBoundsRejectsWrongArgumentCounts) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format("{} cv.maskBounds();", kNs)),
+                             "INVALID_ARGUMENT", "Usage: maskBounds(src)"));
+}
+
 } // namespace
 } // namespace rnexecutorch::tests

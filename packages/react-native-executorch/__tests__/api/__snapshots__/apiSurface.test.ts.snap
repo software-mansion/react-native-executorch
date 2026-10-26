@@ -39,6 +39,7 @@ exports[`public API surface matches the recorded contents of each namespace 1`] 
     "distance",
     "extractDbnetTextQuads",
     "interpolatePoint",
+    "maskBounds",
     "nms",
     "normalize",
     "orderQuad",
