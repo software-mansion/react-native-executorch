@@ -553,16 +553,26 @@ void install_blendMasked(jsi::Runtime &rt, jsi::Object &module) {
             ::cv::Mat dstMat(h, w, cvType, dst->data_.get());
 
             // Weight of the overlay: 1 inside the (eroded, feathered) mask, 0 outside.
-            ::cv::Mat region;
-            ::cv::threshold(maskMat, region, 0, 255, ::cv::THRESH_BINARY);
+            ::cv::Mat hole;
+            ::cv::threshold(maskMat, hole, 0, 255, ::cv::THRESH_BINARY);
+            ::cv::Mat region = hole;
             if (shrink > 0) {
                 const int k = 2 * shrink + 1;
-                ::cv::erode(region, region, ::cv::getStructuringElement(::cv::MORPH_RECT, ::cv::Size(k, k)));
+                ::cv::Mat eroded;
+                ::cv::erode(region, eroded, ::cv::getStructuringElement(::cv::MORPH_RECT, ::cv::Size(k, k)));
+                // A region thinner than the kernel erodes to nothing, which would
+                // silently leave `src` untouched; keep the full region instead.
+                if (::cv::countNonZero(eroded) > 0) {
+                    region = eroded;
+                }
             }
             ::cv::Mat weight;
             region.convertTo(weight, CV_32F, 1.0 / 255.0);
             if (feather > 0) {
                 ::cv::GaussianBlur(weight, weight, ::cv::Size(feather, feather), 0);
+                // The blur spreads both ways; keep the ramp inside the mask so
+                // pixels outside it are returned exactly as in `src`.
+                weight.setTo(::cv::Scalar::all(0), hole == 0);
             }
 
             ::cv::Mat ones = ::cv::Mat::ones(h, w, CV_32F);

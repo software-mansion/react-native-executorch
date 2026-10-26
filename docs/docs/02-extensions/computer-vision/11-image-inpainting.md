@@ -69,7 +69,7 @@ for (let y = 150; y < 250; y++) {
 const maskBuffer = { data: mask, width: 800, height: 600, format: 'gray', layout: 'hwc' } as const;
 ```
 
-An all-zero mask returns the input unchanged without running the model.
+An all-zero mask returns the input unchanged, but the model still runs, so skip the call when there is nothing to fill.
 
 :::tip Cover the whole object
 Paint over the entire object, with a little margin. MI-GAN continues whatever touches the edge of the hole, so a mask that cuts through an object makes the model extend that object into the hole instead of removing it.
@@ -88,7 +88,7 @@ type ImageBuffer = {
 };
 ```
 
-Pixels outside the mask are copied from the input; the model only ever touches the masked region and a thin feathered seam around it.
+Pixels outside the mask are copied from the input; only the masked region changes, with the seam feathered inward from its edge.
 
 ## How It Works
 

@@ -273,12 +273,15 @@ export function applyColormap(
 export type BlendMaskedOptions = {
   /**
    * Pixels to erode the masked region by before feathering, so the seam sits
-   * inside the region rather than on its edge. Default `0`.
+   * inside the region rather than on its edge. A region thinner than
+   * `2 * shrink + 1` px would erode to nothing, so such a mask is used as is.
+   * Default `0`.
    */
   readonly shrink?: number;
   /**
-   * Size in pixels of the Gaussian kernel that feathers the mask edge. Must be
-   * odd; `0` keeps the edge hard. Default `0`.
+   * Size in pixels of the Gaussian kernel that feathers the mask edge. The
+   * ramp runs inward from the edge, so pixels outside the mask are never
+   * touched. Must be odd; `0` keeps the edge hard. Default `0`.
    */
   readonly feather?: number;
 };

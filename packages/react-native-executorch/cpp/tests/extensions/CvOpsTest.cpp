@@ -461,9 +461,25 @@ TEST_F(CvOpsTest, BlendMaskedShrinkErodesTheMaskedRegion) {
     EXPECT_TRUE(almostEqual(result, {0, 0, 255, 0, 0}));
 }
 
-TEST_F(CvOpsTest, BlendMaskedFeatherSoftensTheSeam) {
-    // With a 3-wide Gaussian the pixels either side of the mask edge end up
-    // strictly between the two sources rather than on one of them.
+TEST_F(CvOpsTest, BlendMaskedKeepsARegionThinnerThanShrink) {
+    // A 1-wide masked run would erode to nothing with shrink 1; it is blended
+    // un-eroded instead of silently leaving src untouched.
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fillU8(createTensor([1, 5, 1], 'uint8'), [0, 0, 0, 0, 0]);
+        const overlay = fillU8(createTensor([1, 5, 1], 'uint8'), [255, 255, 255, 255, 255]);
+        const mask = fillU8(createTensor([1, 5, 1], 'uint8'), [0, 0, 255, 0, 0]);
+        const dst = createTensor([1, 5, 1], 'uint8');
+        cv.blendMasked(src, overlay, mask, dst, {{ shrink: 1, feather: 0 }});
+        return readU8(dst);
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {0, 0, 255, 0, 0}));
+}
+
+TEST_F(CvOpsTest, BlendMaskedFeatherSoftensTheSeamInsideTheMask) {
+    // With a 3-wide Gaussian the first masked pixel ends up strictly between
+    // the two sources, while the pixels outside the mask stay on src.
     auto result = evalNumberArray(std::format(R"(
         {}
         const src = fillU8(createTensor([1, 6, 1], 'uint8'), [0, 0, 0, 0, 0, 0]);
@@ -476,8 +492,8 @@ TEST_F(CvOpsTest, BlendMaskedFeatherSoftensTheSeam) {
                                               kNs));
     ASSERT_EQ(result.size(), 6u);
     EXPECT_EQ(result[0], 0);
-    EXPECT_GT(result[2], 0);
-    EXPECT_LT(result[2], 200);
+    EXPECT_EQ(result[1], 0);
+    EXPECT_EQ(result[2], 0);
     EXPECT_GT(result[3], 0);
     EXPECT_LT(result[3], 200);
     EXPECT_EQ(result[5], 200);

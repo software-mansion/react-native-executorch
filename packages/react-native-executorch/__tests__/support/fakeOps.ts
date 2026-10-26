@@ -597,7 +597,8 @@ export const cv = {
           eroded[y * width + x] = min;
         }
       }
-      weight = eroded;
+      // Like the native op: a region that erodes to nothing is kept as is.
+      if (eroded.some((w) => w > 0)) weight = eroded;
     }
 
     if (opts.feather > 0) {
@@ -617,7 +618,8 @@ export const cv = {
           blurred[y * width + x] = sum / count;
         }
       }
-      weight = blurred;
+      // Like the native op: the ramp stays inside the mask.
+      weight = blurred.map((w, p) => (mask.getElement(p) !== 0 ? w : 0));
     }
 
     for (let p = 0; p < height * width; p++) {
