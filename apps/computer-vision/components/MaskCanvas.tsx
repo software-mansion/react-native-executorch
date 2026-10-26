@@ -2,7 +2,9 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import {
+  AlphaType,
   Canvas,
+  ColorType,
   Path,
   Skia,
   PaintStyle,
@@ -158,9 +160,9 @@ export function MaskCanvas({
 }
 
 /**
- * Renders brush strokes into an RGBA mask buffer at the image's resolution:
- * white where painted, black elsewhere, which is what `inpaint` reads as the
- * hole.
+ * Renders brush strokes into a grayscale mask buffer at the image's
+ * resolution: 255 where painted, 0 elsewhere, which is what `inpaint` reads as
+ * the hole.
  * @param strokes - The strokes to render, in image pixels.
  * @param width - The image width in pixels.
  * @param height - The image height in pixels.
@@ -189,5 +191,20 @@ export function rasterizeMask(strokes: readonly MaskStroke[], width: number, hei
   }
 
   surface.flush();
-  return skImageToBuffer(surface.makeImageSnapshot());
+  const snapshot = surface.makeImageSnapshot();
+  const gray = snapshot.readPixels(0, 0, {
+    width,
+    height,
+    colorType: ColorType.Gray_8,
+    alphaType: AlphaType.Opaque,
+  });
+  if (gray instanceof Uint8Array && gray.length === width * height) {
+    return { data: gray, width, height, format: 'gray' as const, layout: 'hwc' as const };
+  }
+  // Skia could not read back as grayscale; the strokes are white on black, so
+  // the red channel of the RGBA read-back is the same mask.
+  const rgba = skImageToBuffer(snapshot);
+  const data = new Uint8Array(width * height);
+  for (let i = 0; i < data.length; i++) data[i] = rgba.data[i * 4]!;
+  return { data, width, height, format: 'gray' as const, layout: 'hwc' as const };
 }

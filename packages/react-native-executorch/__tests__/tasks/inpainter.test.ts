@@ -1,5 +1,5 @@
 import { f32, method } from '../../src/core/schema';
-import { createInpainter } from '../../src/extensions/cv/tasks/inpainting';
+import { createInpainter, type MaskBuffer } from '../../src/extensions/cv/tasks/inpainting';
 import type { ImageBuffer } from '../../src/extensions/cv/image';
 import { fakeJsi } from '../support/fakeJsi';
 import type { FakeTensor } from '../support/fakeTensor';
@@ -43,7 +43,7 @@ const maskBuffer = (
   width: number,
   height: number,
   hole: { x0: number; y0: number; x1: number; y1: number } | null
-): ImageBuffer => {
+): MaskBuffer => {
   const data = new Uint8Array(width * height);
   if (hole) {
     for (let y = hole.y0; y <= hole.y1; y++) {
@@ -158,16 +158,14 @@ describe('createInpainter', () => {
     }
   });
 
-  it('accepts a color mask, taking any non-zero color channel as the hole', async () => {
+  it('rejects a mask that is not a gray buffer', async () => {
     const inpainter = tracked(await createInpainter(config));
-    const mask = imageBuffer(SIZE, SIZE, 'rgba');
-    mask.data.fill(0);
-    mask.data[(1 * SIZE + 1) * 4] = 255;
+    const mask = imageBuffer(SIZE, SIZE, 'rgba') as unknown as MaskBuffer;
 
-    const output = await inpainter.inpaint(imageBuffer(SIZE, SIZE), mask);
-
-    expect(rgbaAt(output, 1, 1)).toEqual([FILL_PIXEL, FILL_PIXEL, FILL_PIXEL, 255]);
-    expect(rgbaAt(output, 0, 0).slice(0, 3)).not.toEqual([FILL_PIXEL, FILL_PIXEL, FILL_PIXEL]);
+    await expect(inpainter.inpaint(imageBuffer(SIZE, SIZE), mask)).rejects.toMatchObject({
+      code: 'INVALID_ARGUMENT',
+    });
+    expect(fakeJsi.executions()).toEqual([]);
   });
 
   it('accepts the unbatched [3, H, W] variant', async () => {

@@ -58,7 +58,7 @@ See [`apps/computer-vision/app/inpainting`](https://github.com/software-mansion/
 
 ## The Mask
 
-[`inpaint()`](../../06-api-reference/type-aliases/Inpainter.md#inpaint) takes two [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md)s of the same dimensions: the photo and the mask. In the mask, **any non-zero pixel marks the region to fill**, so the natural way to build one is to paint white strokes on a black canvas. A `'gray'` buffer is used as is; a color buffer is converted to grayscale first, so the RGBA pixels read back from a drawing surface work directly.
+[`inpaint()`](../../06-api-reference/type-aliases/Inpainter.md#inpaint) takes two [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md)s of the same dimensions: the photo and the mask. The mask is a `'gray'` buffer, one byte per pixel, in which **any non-zero pixel marks the region to fill**, so the natural way to build one is to paint white strokes on a black canvas and read the pixels back as grayscale (Skia's `readPixels` with `ColorType.Gray_8`, for example). Other formats are rejected.
 
 ```typescript
 // A mask with a 100x100 hole at (200, 150) over an 800x600 photo

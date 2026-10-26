@@ -63,6 +63,13 @@ export type InpainterModel = {
 };
 
 /**
+ * The hole to fill, as a single-channel buffer: any non-zero pixel is part of
+ * the hole.
+ * @category CV / Types
+ */
+export type MaskBuffer = ImageBuffer & { readonly format: 'gray' };
+
+/**
  * Image inpainting task runner.
  * @category CV / Types
  */
@@ -78,23 +85,22 @@ export type Inpainter = {
    * to fill a small hole in a large photo at higher detail, crop the region
    * around it first and inpaint the crop.
    * @param image The input image buffer.
-   * @param mask A buffer of the same dimensions as `image` marking the region
-   * to fill: any non-zero pixel is part of the hole. A `'gray'` buffer is used
-   * as is; other formats are converted to grayscale first. Pixels outside the
+   * @param mask A `'gray'` buffer of the same dimensions as `image` marking the
+   * region to fill: any non-zero pixel is part of the hole. Pixels outside the
    * hole are returned unchanged.
    * @returns A promise resolving to the inpainted RGBA image buffer at the
    * input dimensions.
-   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `mask` does not
-   * match the dimensions of `image`, `RESOURCE_BUSY` if the model is in use,
-   * or `RESOURCE_DISPOSED` if disposed.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `mask` is not
+   * a `'gray'` buffer or does not match the dimensions of `image`,
+   * `RESOURCE_BUSY` if the model is in use, or `RESOURCE_DISPOSED` if disposed.
    */
-  readonly inpaint: (image: ImageBuffer, mask: ImageBuffer) => Promise<ImageBuffer>;
+  readonly inpaint: (image: ImageBuffer, mask: MaskBuffer) => Promise<ImageBuffer>;
 
   /**
    * Synchronous version of {@link inpaint} to be executed directly on the
    * caller or worklet thread.
    */
-  readonly inpaintWorklet: (image: ImageBuffer, mask: ImageBuffer) => ImageBuffer;
+  readonly inpaintWorklet: (image: ImageBuffer, mask: MaskBuffer) => ImageBuffer;
 };
 
 /**
@@ -151,10 +157,9 @@ export async function createInpainter(
       tensor('uint8', [H, W, 3]),
       tensor('uint8', [3, H, W]),
       tensor('float32', [3, H, W]),
-      // Mask: resized -> CHW -> float -> binarized (1 = hole) -> inverted (1 = known).
+      // Mask: resized -> CHW -> float (1 = known, < 1 = hole) -> binarized.
       tensor('uint8', [H, W, 1]),
       tensor('uint8', [1, H, W]),
-      tensor('float32', [1, H, W]),
       tensor('float32', [1, H, W]),
       tensor('float32', [1, H, W]),
       // Output: CHW float -> uint8 -> HWC -> RGBA.
@@ -176,8 +181,7 @@ export async function createInpainter(
       tInNorm,
       tMaskResized,
       tMaskChw,
-      tMaskFloat,
-      tMaskHole,
+      tMaskScaled,
       tMaskKnown,
       tOutChw,
       tOutU8,
@@ -187,8 +191,14 @@ export async function createInpainter(
 
     const { interpolation, outInterpolation, blend } = modelOpts;
 
-    const inpaintWorklet = (image: ImageBuffer, mask: ImageBuffer): ImageBuffer => {
+    const inpaintWorklet = (image: ImageBuffer, mask: MaskBuffer): ImageBuffer => {
       'worklet';
+      if (mask.format !== 'gray') {
+        throw RnExecuTorchError(
+          'INVALID_ARGUMENT',
+          `inpaint: mask must be a 'gray' buffer (got '${mask.format}')`
+        );
+      }
       if (mask.width !== image.width || mask.height !== image.height) {
         throw RnExecuTorchError(
           'INVALID_ARGUMENT',
@@ -199,8 +209,6 @@ export async function createInpainter(
       const { width, height } = image;
       const imageChannels = FORMAT_CHANNELS[image.format];
       const toRgba = FORMAT_CONVERSION[image.format].rgba;
-      const maskChannels = FORMAT_CHANNELS[mask.format];
-      const toGray = FORMAT_CONVERSION[mask.format].gray;
 
       const perCall: Tensor[] = [];
       const scratch = (dtype: 'uint8', shape: number[]): Tensor => {
@@ -217,11 +225,7 @@ export async function createInpainter(
             ? tImage
             : tImage.through(cvtColor, scratch('uint8', [height, width, 4]), toRgba);
 
-        const tMaskIn = scratch('uint8', [height, width, maskChannels]).setData(mask.data);
-        const tMaskGray =
-          toGray === null
-            ? tMaskIn
-            : tMaskIn.through(cvtColor, scratch('uint8', [height, width, 1]), toGray);
+        const tMask = scratch('uint8', [height, width, 1]).setData(mask.data);
 
         // Whole frame -> model input.
         tFrame
@@ -233,14 +237,15 @@ export async function createInpainter(
 
         // Mask -> model input. Area resizing keeps strokes thinner than the
         // downscale factor as non-zero values, so binarizing at any non-zero
-        // value never drops part of the hole; then inverted to the model's
-        // 1 = known convention.
-        tMaskGray
+        // value never drops part of the hole. The scaling maps 0 (known) to 1
+        // and every non-zero value below 1, so a threshold just under 1 yields
+        // the model's 1 = known / 0 = hole mask in one step; the copy reshapes
+        // it to the model's rank.
+        tMask
           .through(resize, tMaskResized, { mode: 'stretch', interpolation: 'area' })
           .through(toChannelsFirst, tMaskChw)
-          .through(normalize, tMaskFloat, { alpha: 1, beta: 0 })
-          .through(threshold, tMaskHole, 0.5)
-          .through(normalize, tMaskKnown, { alpha: -1, beta: 1 })
+          .through(normalize, tMaskScaled, { alpha: -1 / 255, beta: 1 })
+          .through(threshold, tMaskKnown, 1 - 0.5 / 255)
           .copyTo(tModelMask);
 
         model.execute('forward', [tModelImage, tModelMask], [tModelOutput]);
@@ -259,7 +264,7 @@ export async function createInpainter(
         const tResult = blendMasked(
           tFrame,
           tFilled,
-          tMaskGray,
+          tMask,
           scratch('uint8', [height, width, 4]),
           blend
         );
