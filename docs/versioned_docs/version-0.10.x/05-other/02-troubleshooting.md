@@ -116,10 +116,7 @@ later. The library needs iOS 17. In an Expo app, set it explicitly — the defau
 is lower:
 
 ```json
-[
-  "expo-build-properties",
-  { "ios": { "deploymentTarget": "17.0" } }
-]
+["expo-build-properties", { "ios": { "deploymentTarget": "17.0" } }]
 ```
 
 ## The `react-native-executorch` config block is ignored
