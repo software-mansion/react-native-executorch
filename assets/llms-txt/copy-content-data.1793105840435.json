@@ -21875,6 +21875,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/functions/createInpainter": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/functions/createInstanceSegmenter": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -22211,6 +22223,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/functions/useInpainter": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/functions/useInstanceSegmenter": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -22451,6 +22475,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/cv/functions/blendMasked": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/cv/functions/boundingBoxOfPoints": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -22668,6 +22704,18 @@
     ]
   },
   "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/cv/functions/toChannelsLast": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/cv/type-aliases/BlendMaskedOptions": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
@@ -24659,6 +24707,42 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/Inpainter": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/InpainterModel": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/InpainterOptions": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/type-aliases/InstanceSegmentationResult": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -24900,6 +24984,18 @@
     ]
   },
   "/react-native-executorch/docs/next/api-reference/type-aliases/LoadModelOptions": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/MaskBuffer": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
@@ -26040,6 +26136,18 @@
     ]
   },
   "/react-native-executorch/docs/next/extensions/image-embeddings": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/extensions/image-inpainting": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
