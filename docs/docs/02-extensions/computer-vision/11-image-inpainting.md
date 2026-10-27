@@ -21,7 +21,7 @@ keywords:
 
 Image inpainting fills a region of a photo with content that matches its surroundings: paint over an unwanted object, a blemish, or a passer-by, and the model reconstructs what would plausibly be behind it.
 
-The pipeline runs entirely on-device. It runs the model on the whole photo resized to the model's resolution and blends the result back into the full-resolution photo through the mask with a feathered seam, so the rest of the image is returned pixel for pixel as it came in.
+The pipeline runs entirely on-device. It runs the model on the whole photo resized to the model's resolution and blends the result back into the full-resolution photo through the mask, so the rest of the image is returned pixel for pixel as it came in.
 
 ## Quick Start
 
@@ -88,7 +88,7 @@ type ImageBuffer = {
 };
 ```
 
-Pixels outside the mask are copied from the input; only the masked region changes, with the seam feathered inward from its edge.
+Pixels outside the mask are copied from the input; only the masked region changes.
 
 ## How It Works
 
@@ -96,7 +96,7 @@ The models run at a fixed resolution (256 or 512 px):
 
 1. Resize the whole photo and the mask to the model input and run the model. A model pixel is part of the hole when any photo pixel it covers is, so thin strokes survive the downscale.
 2. Resize the output back to the photo's resolution.
-3. Blend it over the original photo through the full-resolution mask, eroded and feathered per [`blendOpts`](../../06-api-reference/type-aliases/InpainterOptions.md#blendopts).
+3. Blend it over the original photo through the full-resolution mask. [`blendOpts`](../../06-api-reference/type-aliases/InpainterOptions.md#blendopts) can erode the mask and feather its edge inward; the built-in models use neither, since the upsampled fill is already soft.
 
 The fill is therefore generated at the model's resolution and upsampled. To fill a small hole in a large photo at higher detail, crop the region around it yourself, inpaint the crop, and paste the result back.
 
@@ -155,7 +155,7 @@ const customInpainter = await createInpainter({
     normalizeOpts: { alpha: 1 / 255, beta: 0 },
     outNormalizeOpts: { alpha: 255, beta: 0 },
     outInterpolation: 'linear',
-    blendOpts: { shrink: 1, feather: 5 },
+    blendOpts: { shrink: 0, feather: 0 },
   },
 });
 ```

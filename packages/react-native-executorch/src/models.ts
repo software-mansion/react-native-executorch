@@ -405,18 +405,19 @@ const ZIPDEPTH_BASE_VULKAN_FP16: DepthEstimatorModel = {
 // Inpainting
 // =============================================================================
 // MI-GAN takes the image in [0, 1] and a 1 = known / 0 = hole mask and folds
-// its own normalization into the graph; the output is blended back through a
-// 5-tap Gaussian seam, as in upstream's reference pipeline. Upstream also
-// erodes the hole by 1 px, but the fill is generated at the model's resolution
-// and upsampled, so its edge is already soft and the erosion would only drop
-// strokes thinner than 3 px.
+// its own normalization into the graph. Upstream's reference pipeline erodes
+// the hole by 1 px and feathers the seam with a 5-tap Gaussian, but it blends
+// at the model's resolution; here the fill is upsampled to the photo and
+// blended there, so its edge is already soft, the erosion would only drop
+// strokes thinner than 3 px and a feather that runs inward only would leave a
+// 1 px stroke 60% original. The mask is therefore applied as is.
 const MIGAN_OPTS = {
   resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
   normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
   outNormalizeOpts: { alpha: 255.0, beta: 0.0 },
   outInterpolation: 'linear' as const,
-  blendOpts: { shrink: 0, feather: 5 },
+  blendOpts: { shrink: 0, feather: 0 },
 };
 const MIGAN_512_XNNPACK_FP16: InpainterModel = {
   modelPath: `${BASE_URL}-migan/${NEXT_VERSION_TAG}/xnnpack/512/migan_512_xnnpack_fp16.pte`,
