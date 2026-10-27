@@ -12,6 +12,7 @@ import {
   Alert,
   Image as RNImage,
   Modal,
+  Switch,
 } from 'react-native';
 import { Skia } from '@shopify/react-native-skia';
 import RNBlobUtil from 'react-native-blob-util';
@@ -22,7 +23,12 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
 import { Button } from '../../components/Button';
 import { getImage, skImageToBuffer } from '../../utils';
-import { LLM_MODELS, type LLMModelConfig, type LLMBackend } from '../../constants/llm';
+import {
+  LLM_MODELS,
+  parseMiniCpmToolCalls,
+  type LLMModelConfig,
+  type LLMBackend,
+} from '../../constants/llm';
 
 type Turn = {
   role: 'user' | 'assistant' | 'tool';
@@ -93,12 +99,23 @@ function LLMContent() {
     [activeModel]
   );
 
+  const [enableThinking, setEnableThinking] = useState(false);
+  const thinkingRef = useRef(enableThinking);
+  const supportsThinkingSwitch = activeModel.supportsThinkingSwitch !== false;
+  const toolOpts = useMemo(() => {
+    if (activeModel.toolOpts?.parseToolCalls !== parseMiniCpmToolCalls) return activeModel.toolOpts;
+    return {
+      ...activeModel.toolOpts,
+      parseToolCalls: (text: string) => parseMiniCpmToolCalls(text, thinkingRef.current),
+    };
+  }, [activeModel]);
+
   const { isReady, downloadProgress, error, sendMessage, stop, resource, getKVCacheState } =
     useLLMChatSession(activeModel.model, {
       initialMessages,
       generationConfig: activeModel.generationConfig,
       stopRegex: activeModel.stopRegex,
-      toolOpts: activeModel.toolOpts,
+      toolOpts,
       preventLoad: !isDownloadStarted,
     });
 
@@ -286,9 +303,13 @@ function LLMContent() {
         payload = textMessage;
       }
 
-      const result = await sendMessage(payload, (token) => {
-        setStreamingResponse((prev) => (prev !== null ? prev + token : token));
-      });
+      const result = await sendMessage(
+        payload,
+        (token) => {
+          setStreamingResponse((prev) => (prev !== null ? prev + token : token));
+        },
+        { enableThinking: supportsThinkingSwitch ? enableThinking : undefined }
+      );
 
       let assistantIdx = 0;
       const generatedTurns: Turn[] = result.messages
@@ -343,6 +364,20 @@ function LLMContent() {
           selectedValue={selectedModelId}
           onValueChange={handleModelChange}
         />
+        <View style={styles.thinkingRow}>
+          <Text style={styles.thinkingLabel}>
+            {supportsThinkingSwitch ? 'Thinking' : 'Thinking (always on)'}
+          </Text>
+          <Switch
+            accessibilityLabel="Thinking"
+            value={supportsThinkingSwitch ? enableThinking : true}
+            onValueChange={(value) => {
+              thinkingRef.current = value;
+              setEnableThinking(value);
+            }}
+            disabled={isGenerating || !supportsThinkingSwitch}
+          />
+        </View>
         {resource && (
           <TouchableOpacity
             style={styles.unlinkButton}
@@ -674,6 +709,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginLeft: 4,
   },
+  thinkingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  thinkingLabel: { color: '#212529', fontSize: 14, fontWeight: '600' },
   unlinkButtonText: {
     color: '#e03131',
     fontSize: 12,

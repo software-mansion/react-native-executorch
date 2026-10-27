@@ -132,6 +132,8 @@ export type ChatPreprocessor = {
    * @param options Formatting configuration.
    * @param options.addGenPrompt Whether to append the assistant generation
    * header to trigger model completion. Defaults to `true`.
+   * @param options.enableThinking Thinking preference exposed to Jinja as
+   * `enable_thinking`. Omit to preserve the template default.
    * @returns The processed {@link Prompt} payload (string or interleaved media
    * array) ready to pass to the LLM runner.
    * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `lastKMessages`
@@ -142,7 +144,7 @@ export type ChatPreprocessor = {
   readonly process: (
     history: readonly ChatMessage[],
     lastKMessages: number,
-    options?: { readonly addGenPrompt?: boolean }
+    options?: { readonly addGenPrompt?: boolean; readonly enableThinking?: boolean }
   ) => Prompt;
 
   /**
@@ -154,7 +156,7 @@ export type ChatPreprocessor = {
    */
   readonly render: (
     messages: readonly ChatMessage[],
-    options?: { readonly addGenPrompt?: boolean }
+    options?: { readonly addGenPrompt?: boolean; readonly enableThinking?: boolean }
   ) => { text: string; mediaMap: Map<number, ChatMediaInput> };
 
   /**
@@ -376,7 +378,7 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig): ChatPrep
 
   const render = (
     messages: readonly ChatMessage[],
-    options?: { readonly addGenPrompt?: boolean }
+    options?: { readonly addGenPrompt?: boolean; readonly enableThinking?: boolean }
   ): { text: string; mediaMap: Map<number, ChatMediaInput> } => {
     const addGenPrompt = options?.addGenPrompt ?? true;
 
@@ -393,6 +395,7 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig): ChatPrep
       tools: tools?.map((t) => ({ type: t.type, function: t.function })),
       messages: stringMessages,
       add_generation_prompt: addGenPrompt,
+      enable_thinking: options?.enableThinking,
     });
     /* eslint-enable camelcase */
 
@@ -402,7 +405,7 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig): ChatPrep
   const process = (
     history: readonly ChatMessage[],
     lastKMessages: number,
-    options?: { readonly addGenPrompt?: boolean }
+    options?: { readonly addGenPrompt?: boolean; readonly enableThinking?: boolean }
   ): Prompt => {
     if (lastKMessages < 0 || lastKMessages > history.length) {
       throw RnExecuTorchError(
@@ -417,7 +420,7 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig): ChatPrep
     }
 
     const previous = history.slice(0, history.length - lastKMessages);
-    const { text: prevText } = render(previous, { addGenPrompt: false });
+    const { text: prevText } = render(previous, { ...options, addGenPrompt: false });
     const { text: currText, mediaMap } = render(history, options);
 
     if (!currText.startsWith(prevText)) {

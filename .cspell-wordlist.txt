@@ -16,6 +16,7 @@ execu
 Execu
 torch
 huggingface
+apos
 bbox
 bboxes
 chatbots
@@ -33,6 +34,7 @@ microcontrollers
 notimestamps
 seqs
 smollm
+minicpm
 llms
 qwen
 XNNPACK

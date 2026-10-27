@@ -151,6 +151,21 @@ type LLMChatTurnResult = {
 
 Under the hood, [`createChatPreprocessor`](../../06-api-reference/react-native-executorch/namespaces/llm/functions/createChatPreprocessor.md) renders [`ChatMessage[]`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/ChatMessage.md) arrays using the model's official Jinja2 template from `tokenizer_config.json` (formatting special tokens, roles, and generation headers).
 
+For models that support answering without thinking, set
+`generationConfig: { enableThinking: false }` in `useLLMChatSession` or
+`createLLMChatSession`. Override it per turn with
+`session.sendMessage(message, onToken, { enableThinking: true })`. Direct
+preprocessor users can pass `enableThinking` in the options to `render()` or
+`process()`.
+
+This exposes `enable_thinking` to Jinja. The template must honor this switch;
+a template that always appends `<think>` needs to be corrected separately. Omit
+the option to preserve the template's default. The raw runner accepts already
+formatted prompts and ignores this field. When thinking is disabled, tool parsers
+must accept answers without a generated `</think>` tag. Switching thinking modes
+between turns assumes the template preserves previously cached messages; use
+`resetOnTurn: true` if the switch also changes how earlier messages are rendered.
+
 To keep multi-turn chat responsive without re-encoding past history on every message, the preprocessor uses incremental prompt diffing:
 
 1. It verifies that the rendered prefix of previously committed turns is an exact substring match of the newly updated conversation.
@@ -381,6 +396,7 @@ The library provides ready-to-use models from the [Software Mansion HuggingFace 
 | **Microsoft Phi-4 Mini** | [`3.8B`](../../06-api-reference/variables/models.md#llmphi4_mini)                                                                                                                                                  | 2.62 GB – 7.15 GB | XNNPACK (CPU), MLX (Apple)                   | High-density reasoning model for STEM problem solving & coding.             |
 | **HuggingFace SmolLM2**  | [`135M`](../../06-api-reference/variables/models.md#llmsmollm2_135m), [`360M`](../../06-api-reference/variables/models.md#llmsmollm2_360m), [`1.7B`](../../06-api-reference/variables/models.md#llmsmollm2_1_7b)   | 158 MB – 1.83 GB  | XNNPACK (CPU), MLX (Apple)                   | Smallest footprint family, for constrained devices and fast drafting.       |
 | **SpeakLeash Bielik v3** | [`1.5B`](../../06-api-reference/variables/models.md#llmbielik_v3_1_5b)                                                                                                                                             | 923 MB – 2.97 GB  | XNNPACK (CPU)                                | Bilingual Polish & English instruction model.                               |
+| **OpenBMB MiniCPM5**     | [`2B`](../../06-api-reference/variables/models.md#llmminicpm5_2b)                                                                                                                                                  | 1.36 GB – 1.42 GB | XNNPACK (CPU), MLX (Apple)                   | Compact reasoning model with thinking and tool calling.                     |
 
 :::tip Using Custom Models
 To use your own fine-tuned LLM `.pte` model, pass an [`LLMModel`](../../06-api-reference/type-aliases/LLMModel.md) configuration object to [`useLLMChatSession`](../../06-api-reference/functions/useLLMChatSession.md) or [`createLLMChatSession`](../../06-api-reference/functions/createLLMChatSession.md):

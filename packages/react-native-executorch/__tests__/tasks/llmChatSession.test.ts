@@ -12,6 +12,7 @@
  * without any weights and observe exactly what the model was asked to read.
  */
 import { createLLMChatSession } from '../../src/extensions/llm/tasks/llmChatSession';
+import { createChatPreprocessor } from '../../src/extensions/llm/utils/chatPreprocessor';
 import type { ToolCall, ToolParserResult } from '../../src/extensions/llm/utils/toolCalling';
 import { fakeJsi } from '../support/fakeJsi';
 import { fakeFs } from '../support/blobUtilMock';
@@ -82,7 +83,85 @@ beforeEach(() => {
   script([{ response: 'hello there ' }]);
 });
 
+describe('chat preprocessor — thinking render options', () => {
+  it('uses per-call thinking options for rendering and incremental prompt diffs', () => {
+    const preprocessor = tracked(
+      createChatPreprocessor({
+        chatTemplate: '{% if enable_thinking %}THINK{% else %}DIRECT{% endif %}' + CHAT_TEMPLATE,
+      })
+    );
+    const history = [{ role: 'user' as const, content: 'hi' }];
+
+    expect(preprocessor.render(history, { enableThinking: false }).text).toBe(
+      'DIRECT<|user|>hi<|end|><|assistant|>'
+    );
+    expect(preprocessor.render(history, { enableThinking: true }).text).toBe(
+      'THINK<|user|>hi<|end|><|assistant|>'
+    );
+    // Both sides of the incremental diff must receive the same thinking option.
+    expect(preprocessor.process(history, 0, { enableThinking: true })).toBe('<|assistant|>');
+    expect(preprocessor.process(history, 0, { enableThinking: false })).toBe('<|assistant|>');
+    expect(preprocessor.render(history, { enableThinking: true, addGenPrompt: false }).text).toBe(
+      'THINK<|user|>hi<|end|>'
+    );
+  });
+});
+
 describe('createLLMChatSession — construction', () => {
+  it.each([undefined, true, false])(
+    'passes enableThinking=%s to templates and preserves the omitted default',
+    async (enableThinking) => {
+      writeTokenizerConfig({
+        // eslint-disable-next-line camelcase
+        chat_template: CHAT_TEMPLATE.replace(
+          '<|assistant|>',
+          '<|assistant|>{% if enable_thinking is not defined or enable_thinking %}<think>\n{% else %}DIRECT{% endif %}'
+        ),
+      });
+      const session = tracked(
+        await createLLMChatSession(config, { generationConfig: { enableThinking } })
+      );
+
+      await session.sendMessage('hi');
+
+      expect(promptsSent()).toContain(
+        enableThinking === false ? '<|assistant|>DIRECT' : '<|assistant|><think>'
+      );
+    }
+  );
+
+  it.each([undefined, true, false])(
+    'preserves a template that ignores enableThinking=%s across turns',
+    async (enableThinking) => {
+      writeTokenizerConfig({
+        // eslint-disable-next-line camelcase
+        chat_template: CHAT_TEMPLATE.replace('<|assistant|>', '<|assistant|><think>\n'),
+      });
+      const session = tracked(
+        await createLLMChatSession(config, {
+          generationConfig: { enableThinking },
+          initialMessages: [{ role: 'system', content: 'be brief' }],
+        })
+      );
+      await session.sendMessage('hi');
+      await session.sendMessage('again');
+
+      const header = '<|assistant|><think>';
+      expect(promptsSent().filter((prompt) => prompt === header)).toHaveLength(2);
+      expect(promptsSent()[0]).toBe('<|system|>be brief<|end|>');
+      expect(session.getHistory()).toHaveLength(5);
+    }
+  );
+
+  it('leaves non-thinking templates unchanged when thinking is disabled', async () => {
+    const session = tracked(
+      await createLLMChatSession(config, { generationConfig: { enableThinking: false } })
+    );
+    await session.sendMessage('hi');
+    expect(promptsSent()).toContain('<|assistant|>');
+    expect(promptsSent().join('')).not.toContain('<think>');
+  });
+
   it.each(SPECIAL_TOKEN_CONFIGS)(
     'passes configured special tokens to the template (%#)',
     async (tokens) => {
@@ -170,6 +249,34 @@ describe('createLLMChatSession — construction', () => {
 });
 
 describe('createLLMChatSession — a turn', () => {
+  it('overrides thinking per turn and returns to the session default', async () => {
+    writeTokenizerConfig({
+      // eslint-disable-next-line camelcase
+      chat_template: CHAT_TEMPLATE.replace(
+        '<|assistant|>',
+        '<|assistant|>{% if enable_thinking %}THINK{% else %}DIRECT{% endif %}'
+      ),
+    });
+    const session = tracked(
+      await createLLMChatSession(config, { generationConfig: { enableThinking: false } })
+    );
+
+    await session.sendMessage('hi');
+    await session.sendMessage('reason about this', undefined, { enableThinking: true });
+    await session.sendMessage('hello', undefined, { enableThinking: false });
+    await session.sendMessage('again');
+
+    expect(
+      promptsSent().filter((prompt) => /^<\|assistant\|>(THINK|DIRECT)$/.test(prompt))
+    ).toEqual([
+      '<|assistant|>DIRECT',
+      '<|assistant|>THINK',
+      '<|assistant|>DIRECT',
+      '<|assistant|>DIRECT',
+    ]);
+    expect(session.getHistory()).toHaveLength(8);
+  });
+
   it('uses a per-turn prefillLen override without changing the session default', async () => {
     script([{ response: 'answer with several words in the reply ' }]);
     const session = tracked(
