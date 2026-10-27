@@ -4,8 +4,7 @@ const darkCodeTheme = require('./src/theme/CodeBlock/highlighting-dark.js');
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'React Native ExecuTorch',
-  tagline:
-    'Declarative way to run AI models in React Native on device, powered by ExecuTorch',
+  tagline: 'Declarative way to run AI models in React Native on device, powered by ExecuTorch',
   favicon: 'img/favicon.ico',
 
   url: 'https://docs.swmansion.com',
@@ -34,9 +33,8 @@ const config = {
           breadcrumbs: true,
           sidebarPath: require.resolve('./sidebars.js'),
           sidebarCollapsible: false,
-          editUrl:
-            'https://github.com/software-mansion/react-native-executorch/edit/main/docs',
-          lastVersion: '0.10.0',
+          editUrl: 'https://github.com/software-mansion/react-native-executorch/edit/main/docs',
+          lastVersion: '0.11.x',
           versions: {
             // === LEGACY SUPPORT ===: versioned docs for the legacy API (remove when legacy API is dropped)
             '0.10.0-legacy': {
@@ -83,10 +81,7 @@ const config = {
       ({
         markdown: {
           enableFiles: true,
-          excludeRoutes: [
-            '**/react-native-executorch/search',
-            '**/api-reference/**',
-          ],
+          excludeRoutes: ['**/react-native-executorch/search', '**/api-reference/**'],
           includeVersionedDocs: false,
           relativePaths: false,
         },
@@ -171,8 +166,7 @@ const config = {
             'aria-label': 'Discord server',
           },
           {
-            'href':
-              'https://github.com/software-mansion/react-native-executorch',
+            'href': 'https://github.com/software-mansion/react-native-executorch',
             'position': 'right',
             'className': 'header-github',
             'aria-label': 'GitHub repository',
@@ -182,8 +176,7 @@ const config = {
       footer: {
         style: 'light',
         links: [],
-        copyright:
-          'All trademarks and copyrights belong to their respective owners.',
+        copyright: 'All trademarks and copyrights belong to their respective owners.',
       },
       prism: {
         additionalLanguages: ['bash'],
