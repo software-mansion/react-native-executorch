@@ -7,7 +7,7 @@
 
 import type { WorkletRuntime } from 'react-native-worklets';
 
-import { tensor } from '../../../core/tensor';
+import { tensor, type Tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
@@ -206,21 +206,22 @@ export async function createInpainter(
       const toRgba = FORMAT_CONVERSION[image.format].rgba;
 
       // Per-call buffers at the frame's resolution: the input as given, the
-      // frame as RGBA, the mask, the upsampled fill and the blended result.
-      const auxTensors = [
-        tensor('uint8', [height, width, imageChannels]),
-        tensor('uint8', [height, width, 4]),
-        tensor('uint8', [height, width, 1]),
-        tensor('uint8', [height, width, 4]),
-        tensor('uint8', [height, width, 4]),
-      ] as const;
-      const [tImage, tRgba, tMask, tFilled, tResult] = auxTensors;
+      // mask, the upsampled fill and the blended result, plus the frame as
+      // RGBA when the input needs converting.
+      const tImage = tensor('uint8', [height, width, imageChannels]);
+      const tMask = tensor('uint8', [height, width, 1]);
+      const tFilled = tensor('uint8', [height, width, 4]);
+      const tResult = tensor('uint8', [height, width, 4]);
+      const auxTensors: Tensor[] = [tImage, tMask, tFilled, tResult];
 
       try {
         // The full-resolution RGBA frame the filled region is blended into.
-        const tFrame = tImage
-          .setData(image.data)
-          .throughIf(toRgba !== null, cvtColor, tRgba, toRgba!);
+        let tFrame = tImage.setData(image.data);
+        if (toRgba !== null) {
+          const tRgba = tensor('uint8', [height, width, 4]);
+          auxTensors.push(tRgba);
+          tFrame = tFrame.through(cvtColor, tRgba, toRgba);
+        }
         tMask.setData(mask.data);
 
         // Whole frame -> model input.

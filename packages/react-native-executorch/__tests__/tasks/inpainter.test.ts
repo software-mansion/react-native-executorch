@@ -242,6 +242,10 @@ describe('createInpainter', () => {
       );
     }
     await inpainter.inpaint(imageBuffer(8, 8), maskBuffer(8, 8, null));
+    await inpainter.inpaint(
+      imageBuffer(8, 8, 'rgba'),
+      maskBuffer(8, 8, { x0: 1, y0: 1, x1: 2, y1: 2 })
+    );
 
     expect(fakeJsi.liveTensors()).toBe(afterConstruction);
   });
