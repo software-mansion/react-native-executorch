@@ -1,0 +1,5 @@
+{
+  "case": "llm/gemma4-omni-e2-b-vulkan-8-da4-w",
+  "outcome": "Failed during loading in the original batch and a fresh-process retry. No measurement published.",
+  "evidence": "2026-10-26 20:38:51 device log: lmkd reclaimed com.anonymous.benchmarks (pid 30877, oom_score_adj 0), reason: min2x watermark is breached even after kill; level: 2. Confirms system memory pressure during the retry."
+}

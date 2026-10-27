@@ -1,0 +1,30 @@
+{
+  "events": [
+    {
+      "caseId": "llm/llama3-2-3-b-xnnpack-spinquant",
+      "event": "process-terminated",
+      "signal": 9,
+      "precedingConsoleWarning": "TRIM_MEMORY_RUNNING_CRITICAL",
+      "consoleWarningTime": "2026-10-26 18:53:21",
+      "assessment": "Memory pressure suspected; no matching Jetsam report was available through devicectl. A memory leak was not established.",
+      "recovery": "Relaunched the same release app in a fresh process; resumed from saved measurements. The retried case completed successfully."
+    },
+    {
+      "caseId": "llm/qwen3-4-b-xnnpack-8-da4-w",
+      "event": "process-terminated",
+      "signal": 9,
+      "precedingConsoleWarning": "TRIM_MEMORY_RUNNING_CRITICAL",
+      "consoleWarningTime": "2026-10-26 19:16:17",
+      "assessment": "Memory pressure suspected. A repeated-load leak has not been established.",
+      "recovery": "Fresh-process retry also terminated with signal 9 immediately after a critical memory warning. Recorded as a failed attempt; no timing published."
+    }
+  ],
+  "remainingCases": "Fresh process per model after each saved measurement.",
+  "skippedByUserRequest": ["llm/phi4-mini-xnnpack-8-da4-w", "llm/phi4-mini-mlx-int4"],
+  "completion": {
+    "successfulVariants": 53,
+    "failedVariants": ["llm/qwen3-4-b-xnnpack-8-da4-w"],
+    "skippedByUserRequest": ["llm/phi4-mini-xnnpack-8-da4-w", "llm/phi4-mini-mlx-int4"],
+    "allRequestedCasesAccountedFor": true
+  }
+}

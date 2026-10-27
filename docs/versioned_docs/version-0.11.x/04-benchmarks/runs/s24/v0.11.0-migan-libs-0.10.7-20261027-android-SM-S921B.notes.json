@@ -1,0 +1,14 @@
+{
+  "nativeLibsRelease": "v0.10.7-libs",
+  "source": "https://github.com/software-mansion/react-native-executorch/releases/tag/v0.10.7-libs",
+  "artifactSha256": {
+    "headers.tar.gz": "0a8a2380c1952e0284c2cdd831f5e2c062af056ace861f84671868170c174b73",
+    "vulkan-android-arm64-v8a.tar.gz": "a7ad34ac5f41146c339ace2cd808173973d3703893cc567edf41bb3564642ba1",
+    "core-android-arm64-v8a.tar.gz": "0bb757a4cfd06aee282018d98a9904f55bb0cc1fff5bcc16bb9a8a9a64a90145",
+    "xnnpack-android-arm64-v8a.tar.gz": "c50e17ccfe0feff0357aef6745f32c2980b029c6a49ec0e16bcd7f0c1c94baba",
+    "opencv-android-arm64-v8a.tar.gz": "1db60340773320b4f9bda166f407cf5d24153269f08c39a6af25eb42aec2835a"
+  },
+  "build": "Release; freshly downloaded artifacts verified against release checksums; native build outputs cleaned before rebuilding. S24 reused the refreshed Android native build with device-specific benchmark settings rebundled.",
+  "input": "Fixed 512x512 synthetic RGBA frame and a central 256x256 hole marked with a gray mask (25% of the image).",
+  "results": "All six platform-supported MIGAN variants completed with 20 timed iterations, 3 warmups, 3 load iterations and 5 memory iterations."
+}

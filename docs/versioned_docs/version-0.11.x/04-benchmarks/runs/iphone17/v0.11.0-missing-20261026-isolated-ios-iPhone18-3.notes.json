@@ -1,0 +1,15 @@
+{
+  "procedure": "Each saved measurement is followed by app termination and relaunch. Completed cases are skipped by the collector. Timing and memory iteration counts are unchanged.",
+  "launches": [
+    {
+      "caseId": "llm/gemma4-omni-e2-b-mlx-int4",
+      "procedure": "fresh process before this case",
+      "launchedAtUtc": "2026-10-26T18:28:38.181524+00:00"
+    },
+    {
+      "caseId": "llm/phi4-mini-xnnpack-8-da4-w",
+      "procedure": "fresh process before this case",
+      "launchedAtUtc": "2026-10-26T18:30:20.602376+00:00"
+    }
+  ]
+}
