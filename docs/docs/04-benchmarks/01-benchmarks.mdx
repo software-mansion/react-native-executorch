@@ -52,6 +52,10 @@ Measurements were collected on physical iOS and Android devices spanning flagshi
 
 Memory values report peak process footprint during a separate inference pass, including the app baseline: total PSS on Android and `phys_footprint` on iOS. Some supplemental iPhone LLM measurements use a fresh process for each model.
 
+:::caution GPU memory accounting
+These sampled process counters do not measure total GPU memory or the peak during model loading. GPU backends can report unexpectedly low values: for example, MLX LFM2.5-VL-1.6B (int8) reports 216 MB despite a roughly 2.8 GB download, and Gemma4 E2B on Vulkan reports 327 MB on S20+ versus 3667 MB on S24. These discrepancies suggest incomplete or device-dependent memory accounting; the exact cause has not been established. Treat the figures as observed process-counter readings, not total model memory requirements or a reliable comparison of GPU memory across devices and backends. Sampling can also miss brief peaks.
+:::
+
 ## Results
 
 :::note Performance and Precision Trade-offs
@@ -183,7 +187,7 @@ These benchmarks measure execution latency, memory utilization, and initializati
 - **Variants:** Quantized LLMs only.
 - **Collection:** The S26 Ultra LLM results retain the September measurements. Supplemental S20+, S24, and iPhone 17 LLM runs were collected in October using the fixed-prompt harness described below.
 - **Input:** Prompt (`List three uses for a paperclip.`), 64 tokens generated with EOS ignored, temperature 0 (greedy decoding), and the KV cache reset before each independent prompt.
-- **Prefill vs. Decode & Memory:** The short prompt isolates autoregressive token generation throughput (tokens/second) and time to first token (TTFT). Autoregressive decoding executes one forward pass per generated token. Peak memory is driven by model weights and allocated key-value (KV) cache buffers, with models larger than 2 GB peaking between 2.4 and 3.5 GB of resident RAM.
+- **Prefill vs. Decode & Memory:** The short prompt isolates autoregressive token generation throughput (tokens/second) and time to first token (TTFT). Autoregressive decoding executes one forward pass per generated token. Memory requirements include model weights, allocated key-value (KV) cache buffers, and intermediate tensors. Observed process memory reaches 4122 MB for Qwen3 4B on S20+; GPU readings have the accounting limitations described above.
 :::
 
 On iPhone 17, Phi-4 Mini was omitted. Qwen3 4B (XNNPACK) terminated after critical memory-pressure warnings, including in a fresh-process retry. On Galaxy S24, Android's low-memory killer terminated Gemma4 Omni E2B (Vulkan) during loading in a fresh-process retry. Only successful measurements are charted.

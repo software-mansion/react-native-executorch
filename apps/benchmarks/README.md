@@ -173,8 +173,9 @@ post-processing in it.
 
 ## Publishing to the docs
 
-The docs benchmarks page reads `measured.json`; raw runs are only needed to
-regenerate it. Temporarily collect the runs under the page directory:
+The docs benchmarks page reads `measured.json`. Its source runs are committed
+under `docs/docs/04-benchmarks/runs/`, grouped by device. Add new runs there
+and regenerate the published data:
 
 ```bash
 mkdir -p ../../docs/docs/04-benchmarks/runs/s26ultra
@@ -184,14 +185,13 @@ yarn bench:docs   # regenerates docs/docs/04-benchmarks/measured.json
 
 The directory name is the device id the docs list it under (`DEVICES` in
 `docs/src/data/benchmarks.ts`). Generation replaces `measured.json`, so include
-all runs whose measurements it should retain. Archive the raw runs outside the
-repository and remove the temporary `runs/` directory before committing; the
-docs build only needs the generated JSON. Measured variants replace matching
+all runs whose measurements it should retain. Commit the raw runs alongside
+the generated JSON so others can reproduce it. Measured variants replace matching
 rows in `imported.json`, preserving other published results. To check a build
 against a release, compare against its archived runs:
 
 ```bash
-yarn bench:compare /path/to/archived/<run>.jsonl results/<new>.jsonl
+yarn bench:compare ../../docs/docs/04-benchmarks/runs/s26ultra/<run>.jsonl results/<new>.jsonl
 ```
 
 ## What gets measured

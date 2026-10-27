@@ -103,7 +103,7 @@ export const METRICS: Metric[] = [
     label: 'Peak Process Memory',
     unit: 'MB',
     description:
-      'Peak process footprint during inference, including the app baseline: total PSS on Android and phys_footprint on iOS.',
+      'Sampled process footprint during inference, including the app baseline: total PSS on Android and phys_footprint on iOS. GPU memory may be under-counted; loading peaks and brief peaks are not captured reliably.',
     lowerIsBetter: true,
   },
   {

@@ -4,8 +4,8 @@
  *
  * To generate data, collect raw runs beside the docs page, one
  * directory per device: `runs/<deviceId>/*.jsonl`, where `<deviceId>` is the
- * id the docs list the device under. Only the generated JSON is needed by the
- * docs build; archive raw runs outside the repository after generation.
+ * id the docs list the device under. Commit the source runs alongside the
+ * generated JSON so the published data can be regenerated.
  *
  * This writes `measured.json` beside them. The page merges it with
  * `imported.json`, the published rows that have no raw runs behind them: a

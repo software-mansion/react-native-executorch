@@ -1,0 +1,25 @@
+{
+  "procedure": "Each saved measurement is followed by app termination and relaunch. Completed cases are skipped by the collector. Timing and memory iteration counts are unchanged.",
+  "launches": [
+    {
+      "caseId": "llm/qwen3-4-b-mlx-int4",
+      "procedure": "fresh process before this case",
+      "launchedAtUtc": "2026-10-26T18:34:25.131877+00:00"
+    },
+    {
+      "caseId": "llm/lfm2-5-vl-1-6-b-mlx-int8",
+      "procedure": "fresh process before this case",
+      "launchedAtUtc": "2026-10-26T18:38:15.791811+00:00"
+    },
+    {
+      "caseId": "llm/gemma4-e2-b-xnnpack-8-da4-w",
+      "procedure": "fresh process before this case",
+      "launchedAtUtc": "2026-10-26T18:40:05.264007+00:00"
+    },
+    {
+      "caseId": "llm/gemma4-omni-e2-b-xnnpack-8-da4-w",
+      "procedure": "fresh process before this case",
+      "launchedAtUtc": "2026-10-26T18:50:33.720441+00:00"
+    }
+  ]
+}
