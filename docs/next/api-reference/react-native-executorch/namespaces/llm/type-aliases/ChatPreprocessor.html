@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.24c039fc.css">
-<script src="/react-native-executorch/assets/js/runtime~main.c80212a2.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.abd5ce51.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.820b9c4c.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.b2062834.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -32,7 +32,7 @@ media tensor preprocessing.</p>
 <blockquote>
 <p><code>readonly</code> <strong>buildPrompt</strong>: (<code>text</code>, <code>mediaMap</code>) =&gt; <a class="" href="/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/llm/type-aliases/Prompt"><code>Prompt</code></a></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/llm/utils/chatPreprocessor.ts#L167" target="_blank" rel="noopener noreferrer" class="">extensions/llm/utils/chatPreprocessor.ts:167</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/llm/utils/chatPreprocessor.ts#L169" target="_blank" rel="noopener noreferrer" class="">extensions/llm/utils/chatPreprocessor.ts:169</a></p>
 <p>Replaces media sentinel tokens in rendered text with preprocessed media
 tensors.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters">Parameters<a href="#parameters" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
@@ -70,7 +70,7 @@ preprocessor.</p>
 <blockquote>
 <p><code>readonly</code> <strong>process</strong>: (<code>history</code>, <code>lastKMessages</code>, <code>options?</code>) =&gt; <a class="" href="/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/llm/type-aliases/Prompt"><code>Prompt</code></a></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/llm/utils/chatPreprocessor.ts#L142" target="_blank" rel="noopener noreferrer" class="">extensions/llm/utils/chatPreprocessor.ts:142</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/llm/utils/chatPreprocessor.ts#L144" target="_blank" rel="noopener noreferrer" class="">extensions/llm/utils/chatPreprocessor.ts:144</a></p>
 <p>Formats the conversation history into a runner-ready <a class="" href="/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/llm/type-aliases/Prompt">Prompt</a> payload,
 calculating incremental prompt diffs for multi-turn KV cache prefilling.</p>
 <p>Depending on <code>lastKMessages</code>, it performs the following:</p>
@@ -100,6 +100,10 @@ slices only the newly appended diff for prefilling.</li>
 <p><code>boolean</code></p>
 <p>Whether to append the assistant generation
 header to trigger model completion. Defaults to <code>true</code>.</p>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="enablethinking">enableThinking?<a href="#enablethinking" class="hash-link" aria-label="Direct link to enableThinking?" title="Direct link to enableThinking?" translate="no">​</a></h6>
+<p><code>boolean</code></p>
+<p>Thinking preference exposed to Jinja as
+<code>enable_thinking</code>. Omit to preserve the template default.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-3">Returns<a href="#returns-3" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
 <p><a class="" href="/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/llm/type-aliases/Prompt"><code>Prompt</code></a></p>
 <p>The processed <a class="" href="/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/llm/type-aliases/Prompt">Prompt</a> payload (string or interleaved media
@@ -115,7 +119,7 @@ template is non-monotonic, preventing safe incremental KV cache prefilling.</p>
 <blockquote>
 <p><code>readonly</code> <strong>render</strong>: (<code>messages</code>, <code>options?</code>) =&gt; <code>object</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/llm/utils/chatPreprocessor.ts#L155" target="_blank" rel="noopener noreferrer" class="">extensions/llm/utils/chatPreprocessor.ts:155</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/llm/utils/chatPreprocessor.ts#L157" target="_blank" rel="noopener noreferrer" class="">extensions/llm/utils/chatPreprocessor.ts:157</a></p>
 <p>Renders the conversation history into a formatted text string using the
 Jinja template and collects media items.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-2">Parameters<a href="#parameters-2" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
@@ -125,6 +129,8 @@ Jinja template and collects media items.</p>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="options-1">options?<a href="#options-1" class="hash-link" aria-label="Direct link to options?" title="Direct link to options?" translate="no">​</a></h5>
 <p>Additional rendering options (e.g. <code>addGenPrompt</code>).</p>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="addgenprompt-1">addGenPrompt?<a href="#addgenprompt-1" class="hash-link" aria-label="Direct link to addGenPrompt?" title="Direct link to addGenPrompt?" translate="no">​</a></h6>
+<p><code>boolean</code></p>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="enablethinking-1">enableThinking?<a href="#enablethinking-1" class="hash-link" aria-label="Direct link to enableThinking?" title="Direct link to enableThinking?" translate="no">​</a></h6>
 <p><code>boolean</code></p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-4">Returns<a href="#returns-4" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
 <p><code>object</code></p>
