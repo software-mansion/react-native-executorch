@@ -51,6 +51,10 @@ function loadRegistry() {
       )
       .replace("} from './extensions/speech/tasks/whisperSpeechToText';", "} from './_stub.ts';")
       .replace("} from './constants';", "} from './constants.ts';")
+      .replace(
+        "import { registerDeprecation } from './deprecation';",
+        "import { registerDeprecation } from './_stub.ts';"
+      )
       // Type-only imports name files that are not copied into the scratch dir.
       // Node strips the annotations but still resolves the specifier, so they
       // have to go.
@@ -70,6 +74,7 @@ function loadRegistry() {
         "export const getRegisteredBackends = () => ['XnnpackBackend', 'CoreMLBackend', 'MLXBackend', 'VulkanBackend'];",
         "export const WHISPER_LANGUAGES = ['en'];",
         'export const WhisperSttModel = undefined;',
+        'export const registerDeprecation = () => {};',
         '',
       ].join('\n')
     );
@@ -119,12 +124,19 @@ async function measure(urls, cached) {
     for (let url = queue.pop(); url !== undefined; url = queue.pop()) {
       try {
         const response = await fetch(url, { method: 'HEAD', redirect: 'follow' });
+        if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
         // Hugging Face serves LFS objects through a redirect and reports the
         // real object size in this header; Content-Length on the redirect hop
         // describes the pointer, not the file.
         const linked = response.headers.get('x-linked-size');
         const length = response.headers.get('content-length');
         sizes[url] = Number(linked ?? length ?? 0) || 0;
+        // Small JSON resources can be served without Content-Length.
+        if (sizes[url] === 0 && new URL(url).pathname.endsWith('.json')) {
+          const body = await fetch(url);
+          if (!body.ok) throw new Error(`HTTP ${body.status} for ${url}`);
+          sizes[url] = (await body.arrayBuffer()).byteLength;
+        }
       } catch {
         sizes[url] = 0;
       }

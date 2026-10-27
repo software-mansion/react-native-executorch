@@ -29,8 +29,7 @@
         "foregroundImage": "./assets/icons/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.benchmarks",
-      "usesCleartextTraffic": true
+      "package": "com.anonymous.benchmarks"
     },
     "web": {
       "favicon": "./assets/icons/favicon.png"
@@ -40,13 +39,15 @@
         "expo-build-properties",
         {
           "android": {
-            "minSdkVersion": 26
+            "minSdkVersion": 26,
+            "usesCleartextTraffic": true
           },
           "ios": {
             "deploymentTarget": "17.0"
           }
         }
-      ]
+      ],
+      "./plugins/withBenchmarkBundleInputs"
     ]
   }
 }

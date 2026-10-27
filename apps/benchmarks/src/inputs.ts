@@ -201,6 +201,13 @@ export const INPUT_SPEC_VERSION = 1;
  * construction into the numbers.
  */
 export const IMAGE_512 = syntheticImage(512, 512);
+
+/** Fixed central 256x256 hole, covering one quarter of the 512x512 frame. */
+export const INPAINTING_MASK: ImageBuffer & { readonly format: 'gray' } = (() => {
+  const data = new Uint8Array(512 * 512);
+  for (let y = 128; y < 384; y++) data.fill(255, y * 512 + 128, y * 512 + 384);
+  return { data, width: 512, height: 512, format: 'gray', layout: 'hwc' };
+})();
 export const IMAGE_640 = syntheticImage(640, 640);
 
 /** Fixed text for the text-to-speech pipelines. Long enough to span chunks. */

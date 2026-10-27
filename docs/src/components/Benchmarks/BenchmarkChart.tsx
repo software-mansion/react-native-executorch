@@ -209,7 +209,7 @@ export default function BenchmarkChart({ task, data }: Props) {
           return rankPrecision(a.precision) - rankPrecision(b.precision);
         });
       return { id: device.id, label: device.shortName, bars };
-    });
+    }).filter((group) => group.bars.length > 0);
   }, [rows, model, isSizeMetric]);
 
   const maxValue = Math.max(
