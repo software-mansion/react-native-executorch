@@ -716,6 +716,12 @@ const YOLO26_NANO_512_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> =
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26n_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
+// fp16 on the HTP with TopK on the CPU; within 0.6 mAP50-95 of fp32 at every size
+// and resolution on an S26 Ultra, and 5-11x faster than Vulkan there.
+const YOLO26_NANO_384_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/n/qnn/yolo26n_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_NANO_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26n_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -732,6 +738,10 @@ const YOLO26_NANO_640_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> =
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26n_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
+const YOLO26_NANO_512_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/n/qnn/yolo26n_512_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_NANO_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26n_640_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -742,6 +752,10 @@ const YOLO26_NANO_640_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = 
 };
 const YOLO26_NANO_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/vulkan/yolo26n_640_vulkan_fp16.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_NANO_640_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/n/qnn/yolo26n_640_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
@@ -765,6 +779,10 @@ const YOLO26_SMALL_512_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> 
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/xnnpack/yolo26s_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
+const YOLO26_SMALL_384_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/s/qnn/yolo26s_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_SMALL_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/xnnpack/yolo26s_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -781,6 +799,10 @@ const YOLO26_SMALL_640_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> 
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/xnnpack/yolo26s_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
+const YOLO26_SMALL_512_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/s/qnn/yolo26s_512_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_SMALL_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/xnnpack/yolo26s_640_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -791,6 +813,10 @@ const YOLO26_SMALL_640_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> =
 };
 const YOLO26_SMALL_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/vulkan/yolo26s_640_vulkan_fp16.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_SMALL_640_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/s/qnn/yolo26s_640_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
@@ -814,6 +840,10 @@ const YOLO26_MEDIUM_512_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo>
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/xnnpack/yolo26m_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
+const YOLO26_MEDIUM_384_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/m/qnn/yolo26m_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_MEDIUM_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/xnnpack/yolo26m_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -830,6 +860,10 @@ const YOLO26_MEDIUM_640_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo>
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/xnnpack/yolo26m_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
+const YOLO26_MEDIUM_512_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/m/qnn/yolo26m_512_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_MEDIUM_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/xnnpack/yolo26m_640_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -840,6 +874,10 @@ const YOLO26_MEDIUM_640_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> 
 };
 const YOLO26_MEDIUM_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/vulkan/yolo26m_640_vulkan_fp16.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_MEDIUM_640_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/m/qnn/yolo26m_640_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
@@ -863,6 +901,10 @@ const YOLO26_LARGE_512_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> 
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/xnnpack/yolo26l_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
+const YOLO26_LARGE_384_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/l/qnn/yolo26l_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_LARGE_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/xnnpack/yolo26l_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -879,6 +921,10 @@ const YOLO26_LARGE_640_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> 
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/xnnpack/yolo26l_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
+const YOLO26_LARGE_512_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/l/qnn/yolo26l_512_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_LARGE_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/xnnpack/yolo26l_640_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -889,6 +935,10 @@ const YOLO26_LARGE_640_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> =
 };
 const YOLO26_LARGE_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/vulkan/yolo26l_640_vulkan_fp16.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_LARGE_640_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/l/qnn/yolo26l_640_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
@@ -912,6 +962,10 @@ const YOLO26_XLARGE_512_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo>
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/xnnpack/yolo26x_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
+const YOLO26_XLARGE_384_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/x/qnn/yolo26x_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_XLARGE_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/xnnpack/yolo26x_512_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -928,6 +982,10 @@ const YOLO26_XLARGE_640_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo>
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/xnnpack/yolo26x_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
+const YOLO26_XLARGE_512_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/x/qnn/yolo26x_512_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
 const YOLO26_XLARGE_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/xnnpack/yolo26x_640_xnnpack_fp32.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
@@ -938,6 +996,10 @@ const YOLO26_XLARGE_640_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> 
 };
 const YOLO26_XLARGE_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/vulkan/yolo26x_640_vulkan_fp16.pte`,
+  modelOpts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_XLARGE_640_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/x/qnn/yolo26x_640_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
@@ -2853,6 +2915,7 @@ export const models = {
           XNNPACK_FP32: deprecated(YOLO26_NANO_384_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_NANO_384_COREML_FP16,
           VULKAN_FP16: YOLO26_NANO_384_VULKAN_FP16,
+          QNN_FP16: YOLO26_NANO_384_QNN_FP16,
         }),
         SIZE_512: variants({
           XNNPACK_INT8: YOLO26_NANO_512_XNNPACK_INT8,
@@ -2860,6 +2923,7 @@ export const models = {
           XNNPACK_FP32: deprecated(YOLO26_NANO_512_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_NANO_512_COREML_FP16,
           VULKAN_FP16: YOLO26_NANO_512_VULKAN_FP16,
+          QNN_FP16: YOLO26_NANO_512_QNN_FP16,
         }),
         SIZE_640: variants({
           XNNPACK_INT8: YOLO26_NANO_640_XNNPACK_INT8,
@@ -2867,6 +2931,7 @@ export const models = {
           XNNPACK_FP32: deprecated(YOLO26_NANO_640_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_NANO_640_COREML_FP16,
           VULKAN_FP16: YOLO26_NANO_640_VULKAN_FP16,
+          QNN_FP16: YOLO26_NANO_640_QNN_FP16,
         }),
       }),
       /**
@@ -2880,6 +2945,7 @@ export const models = {
           XNNPACK_FP32: deprecated(YOLO26_SMALL_384_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_SMALL_384_COREML_FP16,
           VULKAN_FP16: YOLO26_SMALL_384_VULKAN_FP16,
+          QNN_FP16: YOLO26_SMALL_384_QNN_FP16,
         }),
         SIZE_512: variants({
           XNNPACK_INT8: YOLO26_SMALL_512_XNNPACK_INT8,
@@ -2887,6 +2953,7 @@ export const models = {
           XNNPACK_FP32: deprecated(YOLO26_SMALL_512_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_SMALL_512_COREML_FP16,
           VULKAN_FP16: YOLO26_SMALL_512_VULKAN_FP16,
+          QNN_FP16: YOLO26_SMALL_512_QNN_FP16,
         }),
         SIZE_640: variants({
           XNNPACK_INT8: YOLO26_SMALL_640_XNNPACK_INT8,
@@ -2894,6 +2961,7 @@ export const models = {
           XNNPACK_FP32: deprecated(YOLO26_SMALL_640_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_SMALL_640_COREML_FP16,
           VULKAN_FP16: YOLO26_SMALL_640_VULKAN_FP16,
+          QNN_FP16: YOLO26_SMALL_640_QNN_FP16,
         }),
       }),
       /**
@@ -2907,6 +2975,7 @@ export const models = {
           XNNPACK_FP32: deprecated(YOLO26_MEDIUM_384_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_MEDIUM_384_COREML_FP16,
           VULKAN_FP16: YOLO26_MEDIUM_384_VULKAN_FP16,
+          QNN_FP16: YOLO26_MEDIUM_384_QNN_FP16,
         }),
         SIZE_512: variants({
           XNNPACK_INT8: YOLO26_MEDIUM_512_XNNPACK_INT8,
@@ -2914,6 +2983,7 @@ export const models = {
           XNNPACK_FP32: deprecated(YOLO26_MEDIUM_512_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_MEDIUM_512_COREML_FP16,
           VULKAN_FP16: YOLO26_MEDIUM_512_VULKAN_FP16,
+          QNN_FP16: YOLO26_MEDIUM_512_QNN_FP16,
         }),
         SIZE_640: variants({
           XNNPACK_INT8: YOLO26_MEDIUM_640_XNNPACK_INT8,
@@ -2921,6 +2991,7 @@ export const models = {
           XNNPACK_FP32: deprecated(YOLO26_MEDIUM_640_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_MEDIUM_640_COREML_FP16,
           VULKAN_FP16: YOLO26_MEDIUM_640_VULKAN_FP16,
+          QNN_FP16: YOLO26_MEDIUM_640_QNN_FP16,
         }),
       }),
       /**
@@ -2933,6 +3004,7 @@ export const models = {
           XNNPACK_FP32: deprecated(YOLO26_LARGE_384_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_LARGE_384_COREML_FP16,
           VULKAN_FP16: YOLO26_LARGE_384_VULKAN_FP16,
+          QNN_FP16: YOLO26_LARGE_384_QNN_FP16,
         }),
         SIZE_512: variants({
           XNNPACK_INT8: YOLO26_LARGE_512_XNNPACK_INT8,
@@ -2940,6 +3012,7 @@ export const models = {
           XNNPACK_FP32: deprecated(YOLO26_LARGE_512_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_LARGE_512_COREML_FP16,
           VULKAN_FP16: YOLO26_LARGE_512_VULKAN_FP16,
+          QNN_FP16: YOLO26_LARGE_512_QNN_FP16,
         }),
         SIZE_640: variants({
           XNNPACK_INT8: YOLO26_LARGE_640_XNNPACK_INT8,
@@ -2947,6 +3020,7 @@ export const models = {
           XNNPACK_FP32: deprecated(YOLO26_LARGE_640_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_LARGE_640_COREML_FP16,
           VULKAN_FP16: YOLO26_LARGE_640_VULKAN_FP16,
+          QNN_FP16: YOLO26_LARGE_640_QNN_FP16,
         }),
       }),
       /**
@@ -2960,6 +3034,7 @@ export const models = {
           XNNPACK_FP32: deprecated(YOLO26_XLARGE_384_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_XLARGE_384_COREML_FP16,
           VULKAN_FP16: YOLO26_XLARGE_384_VULKAN_FP16,
+          QNN_FP16: YOLO26_XLARGE_384_QNN_FP16,
         }),
         SIZE_512: variants({
           XNNPACK_INT8: YOLO26_XLARGE_512_XNNPACK_INT8,
@@ -2967,6 +3042,7 @@ export const models = {
           XNNPACK_FP32: deprecated(YOLO26_XLARGE_512_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_XLARGE_512_COREML_FP16,
           VULKAN_FP16: YOLO26_XLARGE_512_VULKAN_FP16,
+          QNN_FP16: YOLO26_XLARGE_512_QNN_FP16,
         }),
         SIZE_640: variants({
           XNNPACK_INT8: YOLO26_XLARGE_640_XNNPACK_INT8,
@@ -2974,6 +3050,7 @@ export const models = {
           XNNPACK_FP32: deprecated(YOLO26_XLARGE_640_XNNPACK_FP32, 'XNNPACK_INT8'),
           COREML_FP16: YOLO26_XLARGE_640_COREML_FP16,
           VULKAN_FP16: YOLO26_XLARGE_640_VULKAN_FP16,
+          QNN_FP16: YOLO26_XLARGE_640_QNN_FP16,
         }),
       }),
     }),
