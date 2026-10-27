@@ -28,23 +28,23 @@
     "test": "node --test scripts/*.test.mjs"
   },
   "dependencies": {
-    "expo": "~57.0.28",
-    "expo-build-properties": "~57.0.22",
-    "expo-keep-awake": "~57.0.2",
-    "react": "19.2.3",
-    "react-native": "0.86.3",
+    "expo": "~58.0.19",
+    "expo-build-properties": "~58.0.11",
+    "expo-keep-awake": "~58.0.3",
+    "react": "19.3.1",
+    "react-native": "0.88.0",
     "react-native-blob-util": "^0.25.0",
     "react-native-executorch": "workspace:*",
-    "react-native-safe-area-context": "~5.7.0",
+    "react-native-safe-area-context": "~5.10.1",
     "react-native-worklets": "0.13.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.7",
-    "@react-native/metro-config": "^0.86.0",
-    "@types/react": "~19.2.0",
-    "babel-preset-expo": "~57.0.15",
-    "react-refresh": "^0.14.0",
-    "typescript": "~5.9.2"
+    "@babel/core": "^8.0.9",
+    "@react-native/metro-config": "^0.88.0",
+    "@types/react": "~19.3.0",
+    "babel-preset-expo": "~58.0.20",
+    "react-refresh": "^0.19.0",
+    "typescript": "~7.0.2"
   },
   "private": true
 }
