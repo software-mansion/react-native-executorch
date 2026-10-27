@@ -47,6 +47,7 @@
 export * from './hooks/useClassifier';
 export * from './hooks/useStyleTransfer';
 export * from './hooks/useDepthEstimator';
+export * from './hooks/useInpainter';
 export * from './hooks/useSemanticSegmenter';
 export * from './hooks/useInstanceSegmenter';
 export * from './hooks/useKeypointDetector';
@@ -76,6 +77,7 @@ export * from './constants';
 export * from './extensions/cv/tasks/classification';
 export * from './extensions/cv/tasks/styleTransfer';
 export * from './extensions/cv/tasks/depthEstimation';
+export * from './extensions/cv/tasks/inpainting';
 export * from './extensions/cv/tasks/semanticSegmentation';
 export * from './extensions/cv/tasks/instanceSegmentation';
 export * from './extensions/cv/tasks/keypointDetection';

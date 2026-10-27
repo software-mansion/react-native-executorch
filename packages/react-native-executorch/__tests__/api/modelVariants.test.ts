@@ -429,6 +429,7 @@ describe('feature map', () => {
     privacyFilter: 'privacyFilter',
     imageEmbeddings: 'imageEmbeddings',
     textToImage: 'textToImage',
+    inpainting: 'inpainting',
     textToSpeech: 'textToSpeech',
     ocr: 'ocr',
   };

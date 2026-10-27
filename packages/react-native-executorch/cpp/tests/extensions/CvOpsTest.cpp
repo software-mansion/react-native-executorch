@@ -415,5 +415,116 @@ TEST_F(CvOpsTest, RectifyQuadRejectsWrongArgumentCounts) {
                              "INVALID_ARGUMENT", "Usage: rectifyQuad(src, dst, quad, options)"));
 }
 
+// --- blendMasked ------------------------------------------------------------
+
+TEST_F(CvOpsTest, BlendMaskedTakesTheOverlayWhereTheMaskIsSet) {
+    // Hard edge: masked pixels come from the overlay, the rest from src.
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fillU8(createTensor([1, 4, 1], 'uint8'), [10, 10, 10, 10]);
+        const overlay = fillU8(createTensor([1, 4, 1], 'uint8'), [200, 200, 200, 200]);
+        const mask = fillU8(createTensor([1, 4, 1], 'uint8'), [0, 255, 7, 0]);
+        const dst = createTensor([1, 4, 1], 'uint8');
+        cv.blendMasked(src, overlay, mask, dst, {{ shrink: 0, feather: 0 }});
+        return readU8(dst);
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {10, 200, 200, 10}));
+}
+
+TEST_F(CvOpsTest, BlendMaskedBlendsEveryChannel) {
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fillU8(createTensor([1, 2, 3], 'uint8'), [1, 2, 3, 4, 5, 6]);
+        const overlay = fillU8(createTensor([1, 2, 3], 'uint8'), [9, 9, 9, 9, 9, 9]);
+        const mask = fillU8(createTensor([1, 2, 1], 'uint8'), [0, 1]);
+        const dst = createTensor([1, 2, 3], 'uint8');
+        cv.blendMasked(src, overlay, mask, dst, {{ shrink: 0, feather: 0 }});
+        return readU8(dst);
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {1, 2, 3, 9, 9, 9}));
+}
+
+TEST_F(CvOpsTest, BlendMaskedShrinkErodesTheMaskedRegion) {
+    // A 3-wide masked run eroded by 1 px keeps only its centre pixel.
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fillU8(createTensor([1, 5, 1], 'uint8'), [0, 0, 0, 0, 0]);
+        const overlay = fillU8(createTensor([1, 5, 1], 'uint8'), [255, 255, 255, 255, 255]);
+        const mask = fillU8(createTensor([1, 5, 1], 'uint8'), [0, 255, 255, 255, 0]);
+        const dst = createTensor([1, 5, 1], 'uint8');
+        cv.blendMasked(src, overlay, mask, dst, {{ shrink: 1, feather: 0 }});
+        return readU8(dst);
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {0, 0, 255, 0, 0}));
+}
+
+TEST_F(CvOpsTest, BlendMaskedKeepsARegionThinnerThanShrink) {
+    // A 1-wide masked run would erode to nothing with shrink 1; it is blended
+    // un-eroded instead of silently leaving src untouched.
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fillU8(createTensor([1, 5, 1], 'uint8'), [0, 0, 0, 0, 0]);
+        const overlay = fillU8(createTensor([1, 5, 1], 'uint8'), [255, 255, 255, 255, 255]);
+        const mask = fillU8(createTensor([1, 5, 1], 'uint8'), [0, 0, 255, 0, 0]);
+        const dst = createTensor([1, 5, 1], 'uint8');
+        cv.blendMasked(src, overlay, mask, dst, {{ shrink: 1, feather: 0 }});
+        return readU8(dst);
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {0, 0, 255, 0, 0}));
+}
+
+TEST_F(CvOpsTest, BlendMaskedFeatherSoftensTheSeamInsideTheMask) {
+    // With a 3-wide Gaussian the first masked pixel ends up strictly between
+    // the two sources, while the pixels outside the mask stay on src.
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const src = fillU8(createTensor([1, 6, 1], 'uint8'), [0, 0, 0, 0, 0, 0]);
+        const overlay = fillU8(createTensor([1, 6, 1], 'uint8'), [200, 200, 200, 200, 200, 200]);
+        const mask = fillU8(createTensor([1, 6, 1], 'uint8'), [0, 0, 0, 255, 255, 255]);
+        const dst = createTensor([1, 6, 1], 'uint8');
+        cv.blendMasked(src, overlay, mask, dst, {{ shrink: 0, feather: 3 }});
+        return readU8(dst);
+    )",
+                                              kNs));
+    ASSERT_EQ(result.size(), 6u);
+    EXPECT_EQ(result[0], 0);
+    EXPECT_EQ(result[1], 0);
+    EXPECT_EQ(result[2], 0);
+    EXPECT_GT(result[3], 0);
+    EXPECT_LT(result[3], 200);
+    EXPECT_EQ(result[5], 200);
+}
+
+TEST_F(CvOpsTest, BlendMaskedRejectsAnEvenFeather) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format(R"(
+        {}
+        cv.blendMasked(createTensor([1, 2, 1], 'uint8'), createTensor([1, 2, 1], 'uint8'),
+                       createTensor([1, 2, 1], 'uint8'), createTensor([1, 2, 1], 'uint8'),
+                       {{ shrink: 0, feather: 4 }});
+    )",
+                                                      kNs)),
+                             "INVALID_ARGUMENT", "feather must be 0 or an odd kernel size"));
+}
+
+TEST_F(CvOpsTest, BlendMaskedRejectsAMaskOfTheWrongShape) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format(R"(
+        {}
+        cv.blendMasked(createTensor([2, 2, 3], 'uint8'), createTensor([2, 2, 3], 'uint8'),
+                       createTensor([2, 2, 3], 'uint8'), createTensor([2, 2, 3], 'uint8'),
+                       {{ shrink: 0, feather: 0 }});
+    )",
+                                                      kNs)),
+                             "INVALID_ARGUMENT", "blendMasked: mask"));
+}
+
+TEST_F(CvOpsTest, BlendMaskedRejectsWrongArgumentCounts) {
+    EXPECT_TRUE(isCodedError(evalThrowing(std::format("{} cv.blendMasked();", kNs)),
+                             "INVALID_ARGUMENT", "Usage: blendMasked(src, overlay, mask, dst, options)"));
+}
+
 } // namespace
 } // namespace rnexecutorch::tests

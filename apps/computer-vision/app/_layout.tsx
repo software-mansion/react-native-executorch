@@ -49,6 +49,13 @@ export default function Layout() {
         }}
       />
       <Drawer.Screen
+        name="inpainting/index"
+        options={{
+          drawerLabel: 'Image Inpainting',
+          title: 'Image Inpainting',
+        }}
+      />
+      <Drawer.Screen
         name="textToImage/index"
         options={{
           drawerLabel: 'Text to Image',

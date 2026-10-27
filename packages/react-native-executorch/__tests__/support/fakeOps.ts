@@ -556,6 +556,81 @@ export const cv = {
     }
     return dst;
   },
+
+  /**
+   * Composites `overlay` over `src` where `mask` is set. The native op erodes
+   * the mask with a square kernel and feathers it with a Gaussian; this erodes
+   * the same way and feathers with a box mean of the same width, which keeps
+   * both options load-bearing (a seam pixel moves when they change) without
+   * reproducing OpenCV's kernel weights.
+   */
+  blendMasked(
+    src: FakeTensor,
+    overlay: FakeTensor,
+    mask: FakeTensor,
+    dst: FakeTensor,
+    opts: { shrink: number; feather: number }
+  ): FakeTensor {
+    const [height, width, channels] = src.shape as [number, number, number];
+    expectShape(overlay, src.shape, 'blendMasked: overlay');
+    expectShape(mask, [height, width, 1], 'blendMasked: mask');
+    expectShape(dst, src.shape, 'blendMasked: dst');
+    if (opts.feather > 0 && opts.feather % 2 === 0) {
+      throw new Error(`blendMasked: feather must be 0 or an odd kernel size (got ${opts.feather})`);
+    }
+
+    const inRange = (y: number, x: number) => y >= 0 && y < height && x >= 0 && x < width;
+    let weight = Float32Array.from({ length: height * width }, (_, i) =>
+      mask.getElement(i) !== 0 ? 1 : 0
+    );
+
+    if (opts.shrink > 0) {
+      const eroded = new Float32Array(weight.length);
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          let min = 1;
+          for (let dy = -opts.shrink; dy <= opts.shrink; dy++) {
+            for (let dx = -opts.shrink; dx <= opts.shrink; dx++) {
+              if (inRange(y + dy, x + dx)) min = Math.min(min, weight[(y + dy) * width + x + dx]!);
+            }
+          }
+          eroded[y * width + x] = min;
+        }
+      }
+      // Like the native op: a region that erodes to nothing is kept as is.
+      if (eroded.some((w) => w > 0)) weight = eroded;
+    }
+
+    if (opts.feather > 0) {
+      const radius = (opts.feather - 1) / 2;
+      const blurred = new Float32Array(weight.length);
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          let sum = 0;
+          let count = 0;
+          for (let dy = -radius; dy <= radius; dy++) {
+            for (let dx = -radius; dx <= radius; dx++) {
+              if (!inRange(y + dy, x + dx)) continue;
+              sum += weight[(y + dy) * width + x + dx]!;
+              count++;
+            }
+          }
+          blurred[y * width + x] = sum / count;
+        }
+      }
+      // Like the native op: the ramp stays inside the mask.
+      weight = blurred.map((w, p) => (mask.getElement(p) !== 0 ? w : 0));
+    }
+
+    for (let p = 0; p < height * width; p++) {
+      const w = weight[p]!;
+      for (let c = 0; c < channels; c++) {
+        const at = p * channels + c;
+        dst.setElement(at, Math.round(src.getElement(at) * (1 - w) + overlay.getElement(at) * w));
+      }
+    }
+    return dst;
+  },
 };
 
 // ============================================================================

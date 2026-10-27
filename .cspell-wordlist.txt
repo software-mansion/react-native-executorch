@@ -350,6 +350,7 @@ dontMock
 BIES
 binarize
 binarized
+binarizing
 unclip
 phonemizations
 phonemizes
@@ -428,7 +429,17 @@ zipdepth
 xiaobei
 xiaoxiao
 xiaoyi
+xiaoni
 yunjian
 yunxi
 yunxia
 yunyang
+migan
+inpaint
+inpainted
+inpainter
+inpainting
+Picsart
+FFHQ
+grayscale
+Premul

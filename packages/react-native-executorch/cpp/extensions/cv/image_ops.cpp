@@ -510,4 +510,81 @@ void install_rectifyQuad(jsi::Runtime &rt, jsi::Object &module) {
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 4, error::guarded(fnBody)));
 }
 
+// Composite `overlay` over `src` where `mask` is non-zero, with the masked
+// region eroded by `shrink` px and its edge feathered by a `feather`-wide
+// Gaussian, so the seam blends instead of cutting: dst = src*(1-w) + overlay*w.
+void install_blendMasked(jsi::Runtime &rt, jsi::Object &module) {
+    const auto *name = "blendMasked";
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
+        if (count != 5) {
+            throw error::InvalidArgument("blendMasked: Usage: blendMasked(src, overlay, mask, dst, options)");
+        }
+
+        auto src = tensor::fromJs(rt, "blendMasked: src", args[0], DType::uint8, {"H", "W", "C"});
+        auto overlay = tensor::fromJs(rt, "blendMasked: overlay", args[1], DType::uint8, src->shape_);
+        auto mask = tensor::fromJs(rt, "blendMasked: mask", args[2], DType::uint8, {src->shape_[0], src->shape_[1], 1});
+        auto dst = tensor::fromJs(rt, "blendMasked: dst", args[3], DType::uint8, src->shape_);
+
+        tensor::checkNotSameTensor(rt, "blendMasked: src", src, "blendMasked: dst", dst);
+        tensor::checkNotSameTensor(rt, "blendMasked: overlay", overlay, "blendMasked: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "blendMasked: src", src);
+        auto overlayLock = tensor::tryLockShared(rt, "blendMasked: overlay", overlay);
+        auto maskLock = tensor::tryLockShared(rt, "blendMasked: mask", mask);
+        auto dstLock = tensor::tryLockUnique(rt, "blendMasked: dst", dst);
+
+        const auto opts = conversions::asType<jsi::Object>(rt, "blendMasked: options", args[4]);
+        const auto shrink = conversions::getRequiredProperty<int32_t>(rt, "blendMasked: options", opts, "shrink");
+        const auto feather = conversions::getRequiredProperty<int32_t>(rt, "blendMasked: options", opts, "feather");
+        if (shrink < 0) {
+            throw error::InvalidArgument(std::format("blendMasked: shrink must be >= 0 (got {})", shrink));
+        }
+        if (feather < 0 || (feather > 0 && feather % 2 == 0)) {
+            throw error::InvalidArgument(std::format("blendMasked: feather must be 0 or an odd kernel size (got {})", feather));
+        }
+
+        const int32_t h = src->shape_[0];
+        const int32_t w = src->shape_[1];
+        const int cvType = CV_MAKETYPE(CV_8U, src->shape_[2]);
+
+        try {
+            const ::cv::Mat srcMat(h, w, cvType, src->data_.get());
+            const ::cv::Mat overlayMat(h, w, cvType, overlay->data_.get());
+            const ::cv::Mat maskMat(h, w, CV_8UC1, mask->data_.get());
+            ::cv::Mat dstMat(h, w, cvType, dst->data_.get());
+
+            // Weight of the overlay: 1 inside the (eroded, feathered) mask, 0 outside.
+            ::cv::Mat hole;
+            ::cv::threshold(maskMat, hole, 0, 255, ::cv::THRESH_BINARY);
+            ::cv::Mat region = hole;
+            if (shrink > 0) {
+                const int k = 2 * shrink + 1;
+                ::cv::Mat eroded;
+                ::cv::erode(region, eroded, ::cv::getStructuringElement(::cv::MORPH_RECT, ::cv::Size(k, k)));
+                // A region thinner than the kernel erodes to nothing, which would
+                // silently leave `src` untouched; keep the full region instead.
+                if (::cv::countNonZero(eroded) > 0) {
+                    region = eroded;
+                }
+            }
+            ::cv::Mat weight;
+            region.convertTo(weight, CV_32F, 1.0 / 255.0);
+            if (feather > 0) {
+                ::cv::GaussianBlur(weight, weight, ::cv::Size(feather, feather), 0);
+                // The blur spreads both ways; keep the ramp inside the mask so
+                // pixels outside it are returned exactly as in `src`.
+                weight.setTo(::cv::Scalar::all(0), hole == 0);
+            }
+
+            ::cv::Mat ones = ::cv::Mat::ones(h, w, CV_32F);
+            ::cv::blendLinear(srcMat, overlayMat, ones - weight, weight, dstMat);
+        } catch (const std::exception &e) {
+            throw error::Unknown("blendMasked: " + std::string(e.what()));
+        }
+
+        return jsi::Value(rt, args[3]);
+    };
+
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 5, error::guarded(fnBody)));
+}
+
 } // namespace rnexecutorch::extensions::cv::image_ops

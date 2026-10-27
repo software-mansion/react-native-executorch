@@ -10,4 +10,5 @@ void install_toChannelsLast(facebook::jsi::Runtime &rt, facebook::jsi::Object &m
 void install_normalize(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
 void install_applyColormap(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
 void install_rectifyQuad(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
+void install_blendMasked(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
 } // namespace rnexecutorch::extensions::cv::image_ops

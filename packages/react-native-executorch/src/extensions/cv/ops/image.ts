@@ -265,3 +265,54 @@ export function applyColormap(
   'worklet';
   return rnexecutorchJsi.cv.applyColormap(src, dst, colormap);
 }
+
+/**
+ * Options softening the mask edge in {@link blendMasked}.
+ * @category CV / Types
+ */
+export type BlendMaskedOptions = {
+  /**
+   * Pixels to erode the masked region by before feathering, so the seam sits
+   * inside the region rather than on its edge. A region thinner than
+   * `2 * shrink + 1` px would erode to nothing, so such a mask is used as is.
+   * Default `0`.
+   */
+  readonly shrink?: number;
+  /**
+   * Size in pixels of the Gaussian kernel that feathers the mask edge. The
+   * ramp runs inward from the edge, so pixels outside the mask are never
+   * touched. Must be odd; `0` keeps the edge hard. Default `0`.
+   */
+  readonly feather?: number;
+};
+
+/**
+ * Composites `overlay` over `src` where `mask` is non-zero, writing
+ * `src * (1 - w) + overlay * w` into `dst`, where `w` is the mask eroded and
+ * feathered per `options`. Pixels outside the mask come from `src` unchanged.
+ * @category CV / Functions
+ * @param src The base image tensor in HWC layout, `[H, W, C]`, data type `uint8`.
+ * @param overlay The image tensor to composite, `[H, W, C]`, data type `uint8`.
+ * @param mask The region to take from `overlay`, `[H, W, 1]`, data type `uint8`;
+ * any non-zero value marks a masked pixel.
+ * @param dst The pre-allocated destination image tensor, `[H, W, C]`, data type
+ * `uint8`. Must not alias `src` or `overlay`.
+ * @param options Edge erosion and feathering. See {@link BlendMaskedOptions}.
+ * @returns The destination image tensor `dst`.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes,
+ * layouts, or data types are invalid, or `feather` is even, `RESOURCE_BUSY` if
+ * a tensor is in use, or `RESOURCE_DISPOSED` if any tensor was disposed.
+ */
+export function blendMasked(
+  src: Tensor,
+  overlay: Tensor,
+  mask: Tensor,
+  dst: Tensor,
+  options?: BlendMaskedOptions
+): Tensor {
+  'worklet';
+  return rnexecutorchJsi.cv.blendMasked(src, overlay, mask, dst, {
+    shrink: options?.shrink ?? 0,
+    feather: options?.feather ?? 0,
+  });
+}
