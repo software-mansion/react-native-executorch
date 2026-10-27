@@ -350,6 +350,7 @@ dontMock
 BIES
 binarize
 binarized
+binarizing
 unclip
 phonemizations
 phonemizes
@@ -428,6 +429,7 @@ zipdepth
 xiaobei
 xiaoxiao
 xiaoyi
+xiaoni
 yunjian
 yunxi
 yunxia
