@@ -86,11 +86,15 @@ type LLMChatTurnResult = {
 
 ```
 
-[`stats`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/LLMChatTurnResult#stats) is an array of [`LLMGenerationStats`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats) because tool calling can trigger multiple consecutive generation steps in a single turn (e.g. `stats[0]` for the model generating the tool call, and `stats[1]` for generating the final answer after tool execution). Each entry provides [`numPromptTokens`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats#numprompttokens), [`numGeneratedTokens`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats#numgeneratedtokens), [`prefillDurationMs`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats#prefilldurationms), and start/end timestamps ([`inferenceStartMs`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats#inferencestartms) / [`inferenceEndMs`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats#inferenceendms)) to compute tokens per second (`tok/s`).
+[`stats`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/LLMChatTurnResult#stats) is an array of [`LLMGenerationStats`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats) because tool calling can trigger multiple consecutive generation steps in a single turn (e.g. `stats[0]` for the model generating the tool call, and `stats[1]` for generating the final answer after tool execution). Each entry provides the number of generated tokens ([`numTokens`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats#numtokens)), the decode time ([`durationMs`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats#durationms)) and throughput ([`tokensPerSecond`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats#tokenspersecond)), plus the same three metrics for the prompt in [`prefill`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationStats#prefill).
 
 ## Chat Templates & Incremental KV Cache Diffing[​](#chat-templates--incremental-kv-cache-diffing "Direct link to Chat Templates & Incremental KV Cache Diffing")
 
 Under the hood, [`createChatPreprocessor`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/functions/createChatPreprocessor) renders [`ChatMessage[]`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/ChatMessage) arrays using the model's official Jinja2 template from `tokenizer_config.json` (formatting special tokens, roles, and generation headers).
+
+For models that support answering without thinking, set `generationConfig: { enableThinking: false }` in `useLLMChatSession` or `createLLMChatSession`. Override it per turn with `session.sendMessage(message, onToken, { enableThinking: true })`. Direct preprocessor users can pass `enableThinking` in the options to `render()` or `process()`.
+
+This exposes `enable_thinking` to Jinja. The template must honor this switch; a template that always appends `<think>` needs to be corrected separately. Omit the option to preserve the template's default. The raw runner accepts already formatted prompts and ignores this field. When thinking is disabled, tool parsers must accept answers without a generated `</think>` tag. Switching thinking modes between turns assumes the template preserves previously cached messages; use `resetOnTurn: true` if the switch also changes how earlier messages are rendered.
 
 To keep multi-turn chat responsive without re-encoding past history on every message, the preprocessor uses incremental prompt diffing:
 
@@ -240,16 +244,69 @@ try {
 
 ## Low-Level Runner[​](#low-level-runner "Direct link to Low-Level Runner")
 
-While [`useLLMChatSession`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useLLMChatSession) and [`createLLMChatSession`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/createLLMChatSession) handle chat formatting, message histories, and automated tool calling loops, you can drop down directly to the native [`LLMRunner`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner) via [`llm.createLLMRunner()`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/functions/createLLMRunner).
+While [`useLLMChatSession`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useLLMChatSession) and [`createLLMChatSession`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/createLLMChatSession) handle chat formatting, message histories, and automated tool calling loops, you can drop down directly to the [`LLMRunner`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner) via [`llm.createLLMRunner()`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/functions/createLLMRunner).
 
-[`LLMRunner`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner) operates synchronously on a worklet runtime thread and provides low-level control:
+[`LLMRunner`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner) runs the prefill and decode loop in TypeScript over the loaded model, picking each token with the native [`llm.sample()`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/functions/sample) kernel. It operates synchronously on a worklet runtime thread and provides low-level control:
 
 * **Raw Prompt Ingestion**: Pass raw prompt strings or preprocessed image tensors directly to the runner without role formatting or Jinja chat template rendering.
 * **Manual Prefill**: Execute [`runner.prefill(prompt)`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner#prefill) to populate the Key-Value (KV) cache with large background contexts, system prompts, or document chunks before starting interactive generation.
 * **Direct Synchronous Generation**: Call [`runner.generate(prompt, config, onToken)`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner#generate) to generate text continuations with zero Promise scheduling overhead, executing the `onToken` callback directly on each generated token.
-* **KV Cache Inspection & Slicing**: Query [`runner.getKVCacheState()`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner#getkvcachestate) to check occupied tokens ([`pos`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState#pos)), max context length ([`maxSeqLen`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState#maxseqlen)), and context capacity ratio ([`usageRatio`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState#usageratio)).
+* **KV Cache Inspection & Slicing**: Query [`runner.getKVCacheState()`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner#getkvcachestate) to check occupied tokens ([`pos`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState#pos)), max context length ([`maxContextLen`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState#maxcontextlen)), and context capacity ratio ([`usageRatio`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState#usageratio)).
 * **KV Cache Rewind & Branching**: Call [`runner.reset(targetPos)`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner#reset) to rewind the KV cache back to an exact token position. This enables speculative branching, sampling multiple divergent continuations from a shared prompt prefix without re-encoding, or manual conversation tree management.
 * **Cancellation**: Call [`runner.stop()`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMRunner#stop) from any thread to abort active autoregressive generation immediately.
+
+Set `prefillLen` to limit the number of tokens processed by each decoder prefill call. It defaults to the model's maximum sequence length and must be an integer between 1 and that maximum. The final chunk can be shorter.
+
+```typescript
+runner.prefill(prompt, { prefillLen: 64 });
+runner.generate(prompt, { prefillLen: 64, maxNewTokens: 256 });
+
+```
+
+Chat sessions forward `generationConfig.prefillLen` to their prefills, including initial messages and tool results. You can override it for a turn through the third argument to `sendMessage()`. For multimodal models, it also controls decoder chunks of image and audio embeddings; image encoding and audio waveform chunk sizes retain their model-defined limits.
+
+### One-Shot Generation[​](#one-shot-generation "Direct link to One-Shot Generation")
+
+A chat session keeps every turn in its history and KV cache, so it is the wrong tool for independent requests such as "rewrite this sentence" run many times. For those, load the model once and drive the runner directly, resetting the KV cache before each call:
+
+```typescript
+import RNBlobUtil from 'react-native-blob-util';
+import { download, llm, models, wrapAsync } from 'react-native-executorch';
+
+const model = await download(models.llm.LFM2_5_1_2B.DEFAULT);
+const { chatTemplate, bosToken, eosToken } = llm.parseTokenizerConfig(
+  JSON.parse(await RNBlobUtil.fs.readFile(model.tokenizerConfigPath, 'utf8'))
+);
+const preprocessor = llm.createChatPreprocessor({ chatTemplate, bosToken, eosToken });
+const runner = await llm.createLLMRunner(model.modelPath, model.tokenizerPath);
+
+// Runs on a background worklet thread; `generate` is synchronous.
+const complete = wrapAsync((r: llm.LLMRunner, prompt: llm.Prompt) => {
+  'worklet';
+  r.reset(); // start from an empty KV cache: no earlier call leaks in
+  let text = '';
+  r.generate(prompt, { maxNewTokens: 256 }, (token) => {
+    text += token;
+  });
+  return text;
+});
+
+export async function generateOnce(system: string, user: string): Promise<string> {
+  const messages: llm.ChatMessage[] = [
+    { role: 'system', content: system },
+    { role: 'user', content: user },
+  ];
+  const prompt = preprocessor.process(messages, messages.length);
+  try {
+    return await complete(runner, prompt);
+  } finally {
+    preprocessor.clear();
+  }
+}
+
+```
+
+Call `runner.dispose()` and `preprocessor.dispose()` when you no longer need the model. Calls on one runner must not overlap; await each before starting the next.
 
 ## Available Models[​](#available-models "Direct link to Available Models")
 
@@ -260,13 +317,13 @@ The library provides ready-to-use models from the [Software Mansion HuggingFace 
 | **Liquid LFM 2.5**       | [`350M`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmlfm2_5_350m), [`1.2B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmlfm2_5_1_2b)                                                                                                                       | 265 MB – 2.43 GB  | XNNPACK (CPU), MLX (Apple)                   | Fast hybrid RNN/Transformer for low-latency chat.                           |
 | **Liquid LFM 2.5 VL**    | [`VL 450M`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmlfm2_5_vl_450m), [`VL 1.6B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmlfm2_5_vl_1_6b)                                                                                                           | 376 MB – 2.36 GB  | XNNPACK (CPU), MLX (Apple), Vulkan (Android) | Vision-language variants for image understanding and visual reasoning.      |
 | **Meta Llama 3.2**       | [`1B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmllama3_2_1b), [`3B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmllama3_2_3b)                                                                                                                           | 1.06 GB – 5.99 GB | XNNPACK (CPU), MLX (Apple)                   | High-quality reasoning, summarization, and instruction following.           |
-| **Google Gemma 4**       | [`E2B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmgemma4_e2b)                                                                                                                                                                                                                                          | 2.45 GB – 2.70 GB | XNNPACK (CPU), MLX (Apple), Vulkan (Android) | High-fidelity instruction following from Google DeepMind research.          |
 | **Alibaba Qwen 3**       | [`0.6B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmqwen3_0_6b), [`1.7B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmqwen3_1_7b), [`4B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmqwen3_4b)             | 482 MB – 7.49 GB  | XNNPACK (CPU), MLX (Apple)                   | Next-gen compact multilingual models supporting 29+ languages.              |
 | **Alibaba Qwen 2.5**     | [`0.5B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmqwen2_5_0_5b), [`1.5B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmqwen2_5_1_5b), [`3B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmqwen2_5_3b)       | 417 MB – 5.75 GB  | XNNPACK (CPU), MLX (Apple)                   | Proven multilingual instruction models across code, math, and chat.         |
 | **Hammer 2.1**           | [`0.5B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmhammer2_1_0_5b), [`1.5B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmhammer2_1_1_5b), [`3B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmhammer2_1_3b) | 398 MB – 5.75 GB  | XNNPACK (CPU), MLX (Apple)                   | Fine-tuned function calling for automated tool execution & structured JSON. |
 | **Microsoft Phi-4 Mini** | [`3.8B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmphi4_mini)                                                                                                                                                                                                                                          | 2.62 GB – 7.15 GB | XNNPACK (CPU), MLX (Apple)                   | High-density reasoning model for STEM problem solving & coding.             |
 | **HuggingFace SmolLM2**  | [`135M`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmsmollm2_135m), [`360M`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmsmollm2_360m), [`1.7B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmsmollm2_1_7b)   | 158 MB – 1.83 GB  | XNNPACK (CPU), MLX (Apple)                   | Smallest footprint family, for constrained devices and fast drafting.       |
 | **SpeakLeash Bielik v3** | [`1.5B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmbielik_v3_1_5b)                                                                                                                                                                                                                                     | 923 MB – 2.97 GB  | XNNPACK (CPU)                                | Bilingual Polish & English instruction model.                               |
+| **OpenBMB MiniCPM5**     | [`2B`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#llmminicpm5_2b)                                                                                                                                                                                                                                          | 1.36 GB – 1.42 GB | XNNPACK (CPU), MLX (Apple)                   | Compact reasoning model with thinking and tool calling.                     |
 
 ![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)Using Custom Models
 
@@ -290,6 +347,7 @@ The pipeline automatically verifies that the model's exported methods and KV cac
 * [`useLLMChatSession()`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useLLMChatSession) — React hook for managing LLM model downloading, KV cache, and conversational sessions.
 * [`createLLMChatSession()`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/createLLMChatSession) — Imperative factory for multi-turn LLM chat sessions.
 * [`llm.createLLMRunner()`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/functions/createLLMRunner) — Low-level factory for direct prompt execution and KV cache manipulation.
+* [`llm.sample()`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/functions/sample) — Native token sampler (temperature, top-k/top-p/min-p, repetition penalty, DRY, XTC, constraints) for custom decoding loops.
 * [`llm.createChatPreprocessor()`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/functions/createChatPreprocessor) — Jinja2 template renderer, media processor, and prompt diffing engine.
 
 ### Types & Options[​](#types--options "Direct link to Types & Options")
@@ -300,10 +358,10 @@ The pipeline automatically verifies that the model's exported methods and KV cac
 * [`ToolDefinition`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/ToolDefinition) — Tool declaration with JSON Schema parameters and `execute` callback.
 * [`ToolParser`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/ToolParser) — Parser function type for extracting tool calls from model output.
 * [`LLMChatTurnResult`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/LLMChatTurnResult) — Result of a chat turn with updated messages, finish reason, and performance statistics.
-* [`LLMKVCacheState`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState) — KV cache metrics (`pos`, `maxSeqLen`, `usageRatio`).
+* [`LLMKVCacheState`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMKVCacheState) — KV cache metrics (`pos`, `maxContextLen`, `usageRatio`).
 * [`LLMChatSessionOptions`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/LLMChatSessionOptions) — Session configuration options (`generationConfig`, `initialMessages`, `toolOpts`).
 * [`LLMModel`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/LLMModel) — Model configuration spec with model, tokenizer, and tokenizer config paths.
-* [`LLMGenerationConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationConfig) — Sampling and decoding parameters (`temperature`, `topP`, `maxNewTokens`).
+* [`LLMGenerationConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/LLMGenerationConfig) — Sampling and decoding parameters (`temperature`, `topP`, `maxNewTokens`, `prefillLen`).
 * [`ChatMessage`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/llm/type-aliases/ChatMessage) — Standard chat message structure (`role`, `content`).
 
 ### Model Presets[​](#model-presets "Direct link to Model Presets")
@@ -314,5 +372,5 @@ The pipeline automatically verifies that the model's exported methods and KV cac
 
 View the implementation on GitHub:
 
-* [`src/extensions/llm/tasks/llmChatSession.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/3f13b59a1822638b61c565b9a47fd48a19c45551/packages/react-native-executorch/src/extensions/llm/tasks/llmChatSession.ts)
-* [`src/extensions/llm/llmRunner.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/3f13b59a1822638b61c565b9a47fd48a19c45551/packages/react-native-executorch/src/extensions/llm/llmRunner.ts)
+* [`src/extensions/llm/tasks/llmChatSession.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/182f231651acee34a84d33d6f9965acdd10c0767/packages/react-native-executorch/src/extensions/llm/tasks/llmChatSession.ts)
+* [`src/extensions/llm/llmRunner.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/182f231651acee34a84d33d6f9965acdd10c0767/packages/react-native-executorch/src/extensions/llm/llmRunner.ts)

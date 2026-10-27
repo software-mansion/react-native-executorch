@@ -7,9 +7,11 @@ A model config is one or more files — the `.pte` program, and often a tokenize
 A model source is either remote or local:
 
 * **Pre-exported models** live in our [HuggingFace collection](https://huggingface.co/software-mansion/collections) and are addressed through the [`models`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models) registry. Each entry bundles every file a pipeline needs behind one object. This registry is the single source of truth for the tuned, ready-to-run models.
-* **Your own models** are plain URLs or local paths — a file bundled with the app, a `file://` path, or a URL on your own host (see [Exporting Custom Models](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/exporting-custom-models.md)).
+* **Your own models** use `http(s)` URLs or absolute local filesystem paths (see [Exporting Custom Models](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/exporting-custom-models.md)).
 
-Local paths are always passed through untouched; only `http(s)` URLs are ever downloaded.
+Local paths are always passed through untouched; only `http(s)` URLs are ever downloaded. Loaders require filesystem paths such as `/path/to/model.pte`; `file://` URIs are not supported. If a document picker returns a `file://` URI, convert it to an absolute filesystem path before passing it to a hook or pipeline factory. This applies to every file in the config, including tokenizer and tokenizer config files.
+
+Paths returned by `download()` are already filesystem paths. Pass them directly to a pipeline factory without adding a `file://` prefix.
 
 ## Automatic downloading with hooks[​](#automatic-downloading-with-hooks "Direct link to Automatic downloading with hooks")
 
@@ -20,7 +22,7 @@ import { useResourceDownload, models } from 'react-native-executorch';
 
 function Example() {
   const { resource, downloadProgress, downloadError } = useResourceDownload(
-    models.classification.EFFICIENTNET_V2_S.XNNPACK_FP32
+    models.classification.EFFICIENTNET_V2_S.XNNPACK_INT8
   );
 
   // resource is undefined until the download resolves, then mirrors the config
@@ -41,7 +43,7 @@ When you're not in a component — a background task, a custom pipeline, a prelo
 ```typescript
 import { download, models } from 'react-native-executorch';
 
-const model = await download(models.classification.EFFICIENTNET_V2_S.XNNPACK_FP32, {
+const model = await download(models.classification.EFFICIENTNET_V2_S.XNNPACK_INT8, {
   onProgress: (p) => console.log(`${Math.round(p * 100)}%`),
 });
 
@@ -52,7 +54,7 @@ const model = await download(models.classification.EFFICIENTNET_V2_S.XNNPACK_FP3
 [`DownloadOptions`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/DownloadOptions) covers the common needs:
 
 * [**`onProgress(p)`**](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/DownloadOptions#onprogress) — overall progress in `[0, 1]`, weighted by each file's byte size so a large model isn't reported the same as a small tokenizer.
-* [**`signal`**](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/DownloadOptions#signal) — an `AbortSignal` to cancel. The bytes fetched so far are kept so a later download of the same source resumes instead of restarting (except on Android without the optional background downloader, where the system `DownloadManager` discards a cancelled transfer).
+* [**`signal`**](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/DownloadOptions#signal) — an `AbortSignal` to cancel. The bytes fetched so far are kept so a later download of the same source resumes instead of restarting.
 * [**`forceDownload`**](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/DownloadOptions#forcedownload) — re-download even when cached.
 
 ## Caching behavior[​](#caching-behavior "Direct link to Caching behavior")
@@ -61,7 +63,7 @@ Downloads go to a persistent cache keyed by URL, and this is what keeps repeat l
 
 * A file that is already cached resolves immediately — no network round trip.
 * Concurrent downloads of the same URL are deduplicated into one transfer.
-* Without extra dependencies, fetching falls back to what each platform supports natively: the system `DownloadManager` on Android (which continues in the background), and a streaming request on iOS (which pauses when the app is suspended and resumes when reopened).
+* Without extra dependencies, both platforms fall back to the same streaming request, which pauses when the app is suspended and resumes when reopened.
 * To keep transfers running in the background across both iOS and Android and survive the app being killed, install the optional peer dependency [`@kesha-antonov/react-native-background-downloader`](https://github.com/kesha-antonov/react-native-background-downloader) (`>=4.4.0`). The library detects and uses it automatically with zero extra configuration.
 
 Use `forceDownload` to bypass the cache and replace a file. Otherwise, downloading the same model again is effectively free.

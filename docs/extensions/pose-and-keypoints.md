@@ -83,6 +83,77 @@ For human pose models ([`YOLO26_POSE`](https://docs.swmansion.com/react-native-e
 
 For face models ([`BLAZEFACE`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#keypointdetectionblazeface)), [`landmarks`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/KeypointDetection#landmarks) includes 6 facial points from [`BLAZEFACE_LANDMARKS`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/BLAZEFACE_LANDMARKS): `leftEye`, `rightEye`, `noseTip`, `mouthCenter`, `leftEar`, `rightEar`.
 
+Models that regress depth add a `depth` to each landmark, on the same scale as `x` and negative towards the camera. It is `undefined` for the flat models.
+
+## Face Mesh[​](#face-mesh "Direct link to Face Mesh")
+
+[`FACEMESH`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#keypointdetectionfacemesh) is the dense counterpart to BlazeFace: 468 3-D vertices over a single face, keyed by their index in MediaPipe's canonical face model (see [`FACEMESH_LANDMARKS`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/FACEMESH_LANDMARKS)), so any lip/eye/oval index list published for MediaPipe Face Mesh applies unchanged.
+
+It differs from the other models on this page in two ways. It does not search an image for faces — it expects one already-cropped, face-filling image and always returns exactly one result, whose `box` is the hull of the mesh rather than a detection. And its `confidence` is a face-presence score for the whole crop, while each landmark's own `confidence` is a constant `1`. Feeding it a whole photo rather than a crop drops that score below the default `0.5` threshold on most faces, even ones filling the frame, and `detectKeypoints` then returns an empty array.
+
+```typescript
+import { createKeypointDetector, download, models } from 'react-native-executorch';
+
+const detector = await createKeypointDetector(
+  await download(models.keypointDetection.BLAZEFACE.DEFAULT)
+);
+const mesh = await createKeypointDetector(
+  await download(models.keypointDetection.FACEMESH.DEFAULT)
+);
+
+const [face] = await detector.detectKeypoints(imageBuffer);
+if (face) {
+  const crop = cropToFace(imageBuffer, face); // see below
+  const [result] = await mesh.detectKeypoints(crop.buffer);
+  const point = result?.landmarks[33]; // { x, y, confidence: 1, depth }, in crop pixels
+  if (point) console.log(crop.toSource(point.x, point.y)); // in imageBuffer pixels
+}
+
+```
+
+Like MediaPipe, crop a square 1.5x the detector's box and rotate it so the eyes are level: the mesh expects an upright face, and an axis-aligned crop of a tilted head drifts \~5 px at 30 degrees and loses the face near 90. An [`ImageBuffer`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer) is plain HWC bytes, so this is a resample loop:
+
+```typescript
+import type { BlazeFaceLandmark, KeypointDetection } from 'react-native-executorch';
+import type { ImageBuffer } from 'react-native-executorch/cv';
+
+const SIZE = 192; // the mesh's input side
+
+function cropToFace(src: ImageBuffer, face: KeypointDetection<'xyxy', BlazeFaceLandmark>) {
+  const { box, landmarks } = face;
+  const { leftEye, rightEye } = landmarks;
+  const angle = Math.atan2(rightEye.y - leftEye.y, rightEye.x - leftEye.x);
+  const [cos, sin] = [Math.cos(angle), Math.sin(angle)];
+  const cx = (box.xmin + box.xmax) / 2;
+  const cy = (box.ymin + box.ymax) / 2;
+  const scale = (Math.max(box.xmax - box.xmin, box.ymax - box.ymin) * 1.5) / SIZE;
+
+  // Crop pixel -> source pixel. Also maps the mesh's landmarks back.
+  const toSource = (x: number, y: number) => {
+    const dx = (x - SIZE / 2) * scale;
+    const dy = (y - SIZE / 2) * scale;
+    return { x: cx + dx * cos - dy * sin, y: cy + dx * sin + dy * cos };
+  };
+
+  const channels = src.data.length / (src.width * src.height);
+  const data = new Uint8Array(SIZE * SIZE * channels);
+  for (let row = 0; row < SIZE; row++) {
+    for (let col = 0; col < SIZE; col++) {
+      const { x, y } = toSource(col + 0.5, row + 0.5);
+      const sx = Math.floor(x);
+      const sy = Math.floor(y);
+      if (sx < 0 || sy < 0 || sx >= src.width || sy >= src.height) continue;
+      const from = (sy * src.width + sx) * channels;
+      data.set(src.data.subarray(from, from + channels), (row * SIZE + col) * channels);
+    }
+  }
+  return { buffer: { ...src, data, width: SIZE, height: SIZE }, toSource, scale };
+}
+
+```
+
+In the example above we use nearest-pixel sampling to keep it concise.
+
 ## Configuration & Options[​](#configuration--options "Direct link to Configuration & Options")
 
 Pass a [`DetectKeypointsOptions`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/DetectKeypointsOptions) object to [`detectKeypoints()`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/KeypointDetector#detectkeypoints) to override model defaults:
@@ -136,6 +207,7 @@ The library provides ready-to-use pose and landmark detectors from the [Software
 | Model Family            | Variants                                                                                                                       | Keypoints Detected                                                                                                                                      | Size Range          | Supported Backends             | Notes                                                                                         |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ------------------------------ | --------------------------------------------------------------------------------------------- |
 | **MediaPipe BlazeFace** | [See](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#keypointdetectionblazeface)       | [`BLAZEFACE_LANDMARKS`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/BLAZEFACE_LANDMARKS) (6 facial landmarks + box) | 0.6 MB              | XNNPACK (CPU)                  | Ultra-lightweight face bounding box & eye/ear/nose/mouth keypoint tracking (sub-millisecond). |
+| **MediaPipe Face Mesh** | [See](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#keypointdetectionfacemesh)        | [`FACEMESH_LANDMARKS`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/FACEMESH_LANDMARKS) (468 3-D mesh vertices)      | 1.6 MB – 2.5 MB     | XNNPACK (CPU), Core ML (Apple) | Dense single-face mesh from a 192x192 crop; needs a face detector in front of it.             |
 | **YOLO26 Pose**         | [See](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#keypointdetectionyolo26_pose)     | [`COCO_LANDMARKS`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/COCO_LANDMARKS) (17 body keypoints)                  | 11.4 MB             | XNNPACK (CPU), Core ML (Apple) | Real-time multi-person full-body skeletal tracking across multiple input resolutions.         |
 | **RF-DETR Keypoint**    | [See](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#keypointdetectionrfdetr_keypoint) | [`COCO_LANDMARKS`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/COCO_LANDMARKS) (17 body keypoints)                  | 138.6 MB – 140.9 MB | XNNPACK (CPU), Core ML (Apple) | High-accuracy body keypoint detection transformer for complex, occluded poses.                |
 
@@ -175,7 +247,8 @@ The pipeline automatically verifies that the model's exported input and output s
 * [`DetectKeypointsOptions`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/DetectKeypointsOptions) — Detection options (`confidenceThreshold`, `iouThreshold`).
 * [`KeypointDetectorModel`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/KeypointDetectorModel) — Model configuration spec for pose and landmark models.
 * [`KeypointDetectorOptions`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/KeypointDetectorOptions) — Options defining landmark names, box format, and normalization.
-* [`Landmarks`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/Landmarks) — Record of landmark names mapped to `{ x, y, confidence }`.
+* [`Landmarks`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/Landmarks) — Record of landmark names mapped to a [`Landmark`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/Landmark).
+* [`Landmark`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/Landmark) — One landmark: `x`, `y`, `confidence`, and `z` for models that regress depth.
 * [`BoundingBox`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/cv/type-aliases/BoundingBox) — Bounding box structure.
 * [`ImageBuffer`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer) — Input image buffer structure.
 
@@ -184,9 +257,10 @@ The pipeline automatically verifies that the model's exported input and output s
 * [`models.keypointDetection`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#keypointdetection) — Pre-configured keypoint and pose models registry.
 * [`COCO_LANDMARKS`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/COCO_LANDMARKS) — List of 17 standard COCO skeletal body keypoints.
 * [`BLAZEFACE_LANDMARKS`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/BLAZEFACE_LANDMARKS) — List of 6 standard BlazeFace facial landmarks.
+* [`FACEMESH_LANDMARKS`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/FACEMESH_LANDMARKS) — The 468 Face Mesh vertex indices.
 
 ![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)Source Code
 
 View the implementation on GitHub:
 
-* [`src/extensions/cv/tasks/keypointDetection.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/3f13b59a1822638b61c565b9a47fd48a19c45551/packages/react-native-executorch/src/extensions/cv/tasks/keypointDetection.ts)
+* [`src/extensions/cv/tasks/keypointDetection.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/182f231651acee34a84d33d6f9965acdd10c0767/packages/react-native-executorch/src/extensions/cv/tasks/keypointDetection.ts)

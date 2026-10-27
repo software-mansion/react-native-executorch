@@ -16,13 +16,16 @@
 ## Extensions
 
 - [Real-Time Camera Processing](https://docs.swmansion.com/react-native-executorch/docs/extensions/camera-integration.md): Run real-time on-device computer vision models on live camera feeds using VisionCamera v5 and ExecuTorch synchronous worklets.
+- [ColBERT Retrieval](https://docs.swmansion.com/react-native-executorch/docs/extensions/colbert-retrieval.md): Late-interaction (ColBERT) multi-vector text embeddings with MaxSim scoring for accurate on-device semantic search and RAG retrieval.
+- [Depth Estimation](https://docs.swmansion.com/react-native-executorch/docs/extensions/depth-estimation.md): Estimate pixel-level relative depth from a single image for portrait effects, scene understanding, and photo animation.
 - [Image Classification](https://docs.swmansion.com/react-native-executorch/docs/extensions/image-classification.md): Classify images on-device into categories using pre-trained computer vision models like EfficientNetV2.
 - [Image Embeddings](https://docs.swmansion.com/react-native-executorch/docs/extensions/image-embeddings.md): Generate high-dimensional visual feature vectors from images using multimodal models like OpenAI CLIP for zero-shot classification and search.
+- [Image Inpainting](https://docs.swmansion.com/react-native-executorch/docs/extensions/image-inpainting.md): Remove objects and fill masked regions of photos on-device with MI-GAN, with the resizing, mask handling and seam blending built in.
 - [Instance Segmentation](https://docs.swmansion.com/react-native-executorch/docs/extensions/instance-segmentation.md): Detect, classify, and extract pixel-accurate binary masks for individual object instances using models like FastSAM, YOLO26 Seg, and RF-DETR.
 - [LLM Chat & Text Generation](https://docs.swmansion.com/react-native-executorch/docs/extensions/llm-chat-and-generation.md): Run generative Large Language Models on-device with token streaming, multi-turn KV cache memory, tool calling, Jinja2 chat templates, multimodal vision inputs, and raw runner control.
 - [Object Detection](https://docs.swmansion.com/react-native-executorch/docs/extensions/object-detection.md): Locate and classify multiple objects in images with bounding boxes using real-time models like SSDLite, YOLO26, and RF-DETR.
 - [Optical Character Recognition (OCR)](https://docs.swmansion.com/react-native-executorch/docs/extensions/optical-character-recognition.md): Detect and recognize text lines in images using on-device mixed-precision PaddleOCR (PP-OCRv6).
-- [Pose & Keypoints](https://docs.swmansion.com/react-native-executorch/docs/extensions/pose-and-keypoints.md): Detect skeletal body keypoints and facial landmarks in real time with bounding boxes using models like YOLO26 Pose and BlazeFace.
+- [Pose & Keypoints](https://docs.swmansion.com/react-native-executorch/docs/extensions/pose-and-keypoints.md): Detect skeletal body keypoints and facial landmarks in real time with bounding boxes using models like YOLO26 Pose, BlazeFace and Face Mesh.
 - [Privacy Filter](https://docs.swmansion.com/react-native-executorch/docs/extensions/privacy-filter.md): Detect and redact Personally Identifiable Information (PII) like names, emails, phone numbers, and secrets directly on-device in React Native.
 - [Semantic Segmentation](https://docs.swmansion.com/react-native-executorch/docs/extensions/semantic-segmentation.md): Perform pixel-level image segmentation into categories like person, background, and Pascal VOC objects using models like DeepLabV3 and Selfie Segmentation.
 - [Speech-to-Text (STT)](https://docs.swmansion.com/react-native-executorch/docs/extensions/speech-to-text.md): Transcribe spoken audio in real time on-device in React Native using OpenAI Whisper with integrated Voice Activity Detection.
@@ -43,6 +46,10 @@
 
 - [Compatibility](https://docs.swmansion.com/react-native-executorch/docs/other/compatibility.md): React Native ExecuTorch compatibility table showing which versions of React Native are supported.
 - [Troubleshooting](https://docs.swmansion.com/react-native-executorch/docs/other/troubleshooting.md): Build and install failures caused by a project setup React Native ExecuTorch cannot control, and what to do about each.
+
+## Benchmarks
+
+- [Benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks.md): On-device latency, memory usage, and model size across React Native ExecuTorch models, measured on physical mobile devices.
 
 ## Category
 

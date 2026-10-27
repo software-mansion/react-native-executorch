@@ -41,8 +41,9 @@ React Native ExecuTorch requires:
 
 * **New Architecture** enabled
 * **React Native 0.83+** or **Expo SDK 55+** with [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/) (**Expo Go is not supported** due to custom C++ native libraries)
-* **`react-native-worklets` 0.10 or newer** (`>=0.10.0 <0.13.0`)
-* **iOS 17.0+** / **Android 13+** (set the app's `minSdkVersion` to 26 or higher)
+* **`react-native-worklets` 0.10 or newer** (`>=0.10.0 <0.14.0`)
+* **iOS 17.0+** / **Android 13+** (`minSdkVersion` >= 26); a bare app's `Podfile` needs `platform :ios, '17.0'`
+* **`tar` on `PATH`** — the install-time download extracts with it; macOS, Linux and Windows 10 1803+ all ship one. Windows and Linux hosts can build for Android; iOS builds need macOS.
 
 For supported React Native versions, see the [Compatibility table](https://docs.swmansion.com/react-native-executorch/docs/other/compatibility.md). If an install or a build fails, see [Troubleshooting](https://docs.swmansion.com/react-native-executorch/docs/other/troubleshooting.md) — most of it comes down to the package manager skipping the postinstall hook, or to `use_frameworks!`.
 
@@ -56,6 +57,27 @@ npm install react-native-worklets@^0.10.0
 ```
 
 Any other package in your app that uses worklets has to be moved to a release built against the same version; two of them asking for different worklets gives you two incompatible native runtimes. Our own example apps reconcile them this way. **Expo SDK 54 cannot be supported**: it is React Native 0.81, below what worklets 0.10 accepts.
+
+### Babel[​](#babel "Direct link to Babel")
+
+The library runs inference on worklet threads, so add the worklets Babel plugin to `babel.config.js`. It must be the **last** entry in `plugins`:
+
+```js
+module.exports = {
+  presets: ['module:@react-native/babel-preset'], // or 'babel-preset-expo'
+  plugins: [
+    // ...your other plugins
+    'react-native-worklets/plugin',
+  ],
+};
+
+```
+
+Restart Metro with `--reset-cache` after changing it.
+
+### Telemetry[​](#telemetry "Direct link to Telemetry")
+
+Downloading one of our pre-exported models sends an anonymous download event by default. To opt out, call `setTelemetryEnabled(false)` once at startup. See [Anonymous Telemetry](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/downloading-models.md#anonymous-telemetry--download-counter).
 
 ### Selecting native libraries[​](#selecting-native-libraries "Direct link to Selecting native libraries")
 

@@ -2,4 +2,4 @@
 
 ## [Computer Vision](https://docs.swmansion.com/react-native-executorch/docs/category/computer-vision.md)
 
-[10 items](https://docs.swmansion.com/react-native-executorch/docs/category/computer-vision.md)
+[12 items](https://docs.swmansion.com/react-native-executorch/docs/category/computer-vision.md)

@@ -13,7 +13,7 @@ React Native ExecuTorch supports only the [New Architecture](https://reactnative
 | 0.9.x                   | no                   | no   | no   | yes  | yes  | yes  | yes  | yes  | untested† |
 | 0.10.x                  | no                   | no   | no   | no\* | no\* | yes  | yes  | yes  | yes       |
 
-**\*** `react-native-executorch` 0.10 needs `react-native-worklets` `>=0.10.0 <0.13.0`, and worklets 0.10 is the first release to serialize an `ArrayBufferView` natively ([reanimated #9475](https://github.com/software-mansion/react-native-reanimated/pull/9475)); older ones rebuild the view over its whole backing buffer, losing `byteOffset` and `length`. Worklets 0.10 in turn requires React Native 0.83+, which is what rules out 0.81 and 0.82.
+**\*** `react-native-executorch` 0.10 needs `react-native-worklets` `>=0.10.0 <0.14.0`, and worklets 0.10 is the first release to serialize an `ArrayBufferView` natively ([reanimated #9475](https://github.com/software-mansion/react-native-reanimated/pull/9475)); older ones rebuild the view over its whole backing buffer, losing `byteOffset` and `length`. Worklets 0.10 in turn requires React Native 0.83+, which is what rules out 0.81 and 0.82.
 
 **†** Not verified. 0.8.x and 0.9.x were released before React Native 0.86 and are maintained on the `legacy` dist-tag only.
 

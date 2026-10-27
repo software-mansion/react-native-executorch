@@ -206,6 +206,19 @@ try {
 
 The returned array references the same output tensors you passed in, alongside any primitive values the method returns.
 
+### Profiling execution[​](#profiling-execution "Direct link to Profiling execution")
+
+The [`profiler`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/profiler) namespace accumulates the time every `execute` call spends inside ExecuTorch, keyed by model path and method name. It also covers models loaded internally by a pipeline, so you can see how much of a pipeline's time is model execution.
+
+```typescript
+import { profiler } from 'react-native-executorch';
+
+profiler.reset();
+model.execute('forward', [tInput], [tOutput]);
+const { forward } = profiler.get(model.path); // { count: 1, totalMs: 4.2 }
+
+```
+
 ## Lifecycle and disposal[​](#lifecycle-and-disposal "Direct link to Lifecycle and disposal")
 
 Because native memory is invisible to the garbage collector, every tensor and model must be explicitly released with dispose once you are done with it:

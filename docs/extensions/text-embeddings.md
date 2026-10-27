@@ -73,6 +73,25 @@ console.log('Similarity (unrelated):', cosineSimilarity(v1, v3)); // ~0.15
 
 ```
 
+### Vector Search[​](#vector-search "Direct link to Vector Search")
+
+For more than a handful of vectors, keep them in a [`createVectorStore`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/createVectorStore) store, which ranks them for you. It takes plain vectors, so it works with any embedder, including [Image Embeddings](https://docs.swmansion.com/react-native-executorch/docs/extensions/image-embeddings.md):
+
+```typescript
+import { createVectorStore } from 'react-native-executorch';
+
+const store = createVectorStore<{ text: string }>({ metric: 'cosine' });
+for (const [id, text] of Object.entries(passages)) {
+  store.add(id, await embedder.embed(text), { text });
+}
+
+const matches = store.query(await embedder.embed('How do I change my password?'), 3);
+// [{ id, score, metadata: { text } }, ...] — most similar first
+
+```
+
+The store is in memory and searches exhaustively, which takes a few milliseconds for tens of thousands of vectors. `remove`, `get`, `has` and per-query `filter`/`minScore` are also available. Nothing is persisted.
+
 ## Asymmetric Retrieval & Prompt Prefixes[​](#asymmetric-retrieval--prompt-prefixes "Direct link to Asymmetric Retrieval & Prompt Prefixes")
 
 Some embedding models (like [`LFM2_5_EMBEDDING_350M`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/models#textembeddingslfm2_5_embedding_350m)) are trained asymmetrically where search queries and indexed passages use different prompt prefixes:
@@ -157,6 +176,7 @@ The pipeline automatically verifies that the model's exported input and output s
 
 * [`TextEmbedder`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/TextEmbedder) — Text embedder runner interface ([`embed`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/TextEmbedder#embed), [`embedWorklet`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/TextEmbedder#embedworklet)).
 * [`TextEmbedderModel`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/TextEmbedderModel) — Model configuration spec with `modelPath`, `tokenizerPath`, and `defaultPrompt`.
+* [`createVectorStore()`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/createVectorStore) — In-memory vector store with nearest-neighbor search.
 
 ### Model Presets[​](#model-presets "Direct link to Model Presets")
 
@@ -166,4 +186,4 @@ The pipeline automatically verifies that the model's exported input and output s
 
 View the implementation on GitHub:
 
-* [`src/extensions/nlp/tasks/textEmbedding.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/3f13b59a1822638b61c565b9a47fd48a19c45551/packages/react-native-executorch/src/extensions/nlp/tasks/textEmbedding.ts)
+* [`src/extensions/nlp/tasks/textEmbedding.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/182f231651acee34a84d33d6f9965acdd10c0767/packages/react-native-executorch/src/extensions/nlp/tasks/textEmbedding.ts)

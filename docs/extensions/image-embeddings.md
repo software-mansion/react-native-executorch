@@ -71,6 +71,25 @@ console.log('Match similarity score:', score);
 
 ```
 
+### Vector Search[​](#vector-search "Direct link to Vector Search")
+
+For more than a handful of vectors, keep them in a [`createVectorStore`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/createVectorStore) store, which ranks them for you. It takes plain vectors, so image and [Text Embeddings](https://docs.swmansion.com/react-native-executorch/docs/extensions/text-embeddings.md) from a shared space (like CLIP) can be queried against each other:
+
+```typescript
+import { createVectorStore } from 'react-native-executorch';
+
+const store = createVectorStore<{ uri: string }>({ metric: 'cosine' });
+for (const photo of photos) {
+  store.add(photo.id, await imageEmbedder.embed(photo.buffer), { uri: photo.uri });
+}
+
+const matches = store.query(await textEmbedder.embed('a dog on the beach'), 3);
+// [{ id, score, metadata: { uri } }, ...] — most similar first
+
+```
+
+The store is in memory and searches exhaustively, which takes a few milliseconds for tens of thousands of vectors. `remove`, `get`, `has` and per-query `filter`/`minScore` are also available. Nothing is persisted.
+
 ## Imperative API[​](#imperative-api "Direct link to Imperative API")
 
 For background indexing, SQLite vector ingestion, or manual lifecycle management outside React components, create the embedder using [`createImageEmbedder`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/createImageEmbedder):
@@ -144,6 +163,7 @@ The pipeline automatically verifies that the model's exported input and output s
 * [`ImageEmbedderModel`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/type-aliases/ImageEmbedderModel) — Model configuration spec for vision embedders.
 * [`ImagePreprocessorOptions`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/cv/type-aliases/ImagePreprocessorOptions) — Options defining normalization, interpolation, and resize modes.
 * [`ImageBuffer`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer) — Input image buffer structure.
+* [`createVectorStore()`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/createVectorStore) — In-memory vector store with nearest-neighbor search.
 
 ### Model Presets[​](#model-presets "Direct link to Model Presets")
 
@@ -153,4 +173,4 @@ The pipeline automatically verifies that the model's exported input and output s
 
 View the implementation on GitHub:
 
-* [`src/extensions/cv/tasks/imageEmbedding.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/3f13b59a1822638b61c565b9a47fd48a19c45551/packages/react-native-executorch/src/extensions/cv/tasks/imageEmbedding.ts)
+* [`src/extensions/cv/tasks/imageEmbedding.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/182f231651acee34a84d33d6f9965acdd10c0767/packages/react-native-executorch/src/extensions/cv/tasks/imageEmbedding.ts)

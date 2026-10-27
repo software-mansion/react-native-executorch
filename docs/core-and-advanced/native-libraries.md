@@ -26,21 +26,21 @@ Add a `react-native-executorch` block to your `package.json`:
 
 ### Options[​](#options "Direct link to Options")
 
-| Option     | Purpose                                                                              | Accepted values                                                                                                                                                                                                                                                                                                                                           |
-| ---------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `features` | High-level tasks — each automatically expands to the backends and libraries it needs | `"classification"`, `"imageEmbeddings"`, `"instanceSegmentation"`, `"keypointDetection"`, `"llm"`, `"multimodalLLM"`, `"objectDetection"`, `"ocr"`, `"privacyFilter"`, `"segmentAnything"`, `"semanticSegmentation"`, `"speechToText"`, `"styleTransfer"`, `"textEmbeddings"`, `"textToImage"`, `"textToSpeech"`, `"tokenizer"`, `"vad"`, `"verticalOCR"` |
-| `backends` | Hardware acceleration backends directly                                              | `"xnnpack"`, `"coreml"`, `"mlx"`, `"vulkan"`                                                                                                                                                                                                                                                                                                              |
-| `libs`     | Extra native C++ libraries                                                           | `"opencv"`, `"phonemis"`                                                                                                                                                                                                                                                                                                                                  |
+| Option     | Purpose                                                                              | Accepted values                                                                                                                                                                                                                                                                                                                                                           |
+| ---------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `features` | High-level tasks — each automatically expands to the backends and libraries it needs | `"classification"`, `"imageEmbeddings"`, `"inpainting"`, `"instanceSegmentation"`, `"keypointDetection"`, `"llm"`, `"multimodalLLM"`, `"objectDetection"`, `"ocr"`, `"privacyFilter"`, `"segmentAnything"`, `"semanticSegmentation"`, `"speechToText"`, `"styleTransfer"`, `"textEmbeddings"`, `"textToImage"`, `"textToSpeech"`, `"tokenizer"`, `"vad"`, `"verticalOCR"` |
+| `backends` | Hardware acceleration backends directly                                              | `"xnnpack"`, `"coreml"`, `"mlx"`, `"vulkan"`                                                                                                                                                                                                                                                                                                                              |
+| `libs`     | Extra native C++ libraries                                                           | `"opencv"`, `"phonemis"`                                                                                                                                                                                                                                                                                                                                                  |
 
 The three lists are merged, so you can pair high-level `features` with specific `backends` or `libs`. Re-run your package manager install after editing.
 
 ![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)Monorepos
 
-The block is read from the directory the install was run in, which in a workspace is the **root** — a block in an app's own `package.json` is ignored. `node_modules/react-native-executorch/rne-build-config.json` records what was actually resolved.
+The block is read from the directory the install was run in, then from every `package.json` above the installed package. A hoisted workspace resolves to the **root** either way, so put the block there; an app that keeps its own `node_modules` (pnpm, nohoist) is found from its own `package.json`. `node_modules/react-native-executorch/rne-build-config.json` records what was actually resolved, and the install log names the manifest it read.
 
-![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)pnpm
+![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)pnpm and npm 12
 
-pnpm 10 and later do not run dependency build scripts unless you allow them, so the download never happens and the native build fails later on a missing file. Run `pnpm approve-builds react-native-executorch` once. See [Troubleshooting](https://docs.swmansion.com/react-native-executorch/docs/other/troubleshooting.md).
+pnpm 10 and later, and npm 12 and later, do not run dependency install scripts unless you allow them, so the download never happens and the native build fails later on a missing file. Run `pnpm approve-builds react-native-executorch` or `npm approve-scripts react-native-executorch` once. See [Troubleshooting](https://docs.swmansion.com/react-native-executorch/docs/other/troubleshooting.md).
 
 ### Backends[​](#backends "Direct link to Backends")
 
@@ -71,13 +71,26 @@ Specifying a task under `features` is shorthand: it automatically expands to the
 | `textEmbeddings`       | xnnpack, coreml, mlx, vulkan | —                   |
 | `imageEmbeddings`      | xnnpack, coreml, mlx, vulkan | opencv              |
 | `classification`       | xnnpack, coreml              | opencv              |
-| `objectDetection`      | xnnpack, coreml              | opencv              |
-| `keypointDetection`    | xnnpack, coreml, mlx         | opencv              |
+| `depthEstimation`      | xnnpack, coreml, vulkan      | opencv              |
+| `objectDetection`      | xnnpack, coreml, vulkan      | opencv              |
+| `keypointDetection`    | xnnpack, coreml, mlx, vulkan | opencv              |
 | `semanticSegmentation` | xnnpack, coreml              | opencv              |
-| `instanceSegmentation` | xnnpack, coreml              | opencv              |
+| `instanceSegmentation` | xnnpack, coreml, vulkan      | opencv              |
 | `ocr`                  | xnnpack, coreml, vulkan      | opencv              |
 | `verticalOCR`          | xnnpack                      | opencv              |
-| `styleTransfer`        | xnnpack, coreml              | opencv              |
-| `textToImage`          | xnnpack, coreml              | opencv              |
-| `segmentAnything`      | xnnpack, coreml              | opencv              |
+| `styleTransfer`        | xnnpack, coreml, vulkan      | opencv              |
+| `textToImage`          | xnnpack, coreml, vulkan      | opencv              |
+| `inpainting`           | xnnpack, coreml, vulkan      | opencv              |
+| `segmentAnything`      | xnnpack, coreml, vulkan      | opencv              |
 | `tokenizer`            | —                            | —                   |
+
+## Binary size[​](#binary-size "Direct link to Binary size")
+
+Approximate size each backend adds to a release `arm64` build:
+
+| Backend   | Android  | iOS     |
+| --------- | -------- | ------- |
+| `xnnpack` | +1.7 MB  | +1.4 MB |
+| `coreml`  | —        | +0.4 MB |
+| `mlx`     | —        | +6.0 MB |
+| `vulkan`  | +10.3 MB | —       |
