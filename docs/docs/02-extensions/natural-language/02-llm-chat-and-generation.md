@@ -151,6 +151,21 @@ type LLMChatTurnResult = {
 
 Under the hood, [`createChatPreprocessor`](../../06-api-reference/react-native-executorch/namespaces/llm/functions/createChatPreprocessor.md) renders [`ChatMessage[]`](../../06-api-reference/react-native-executorch/namespaces/llm/type-aliases/ChatMessage.md) arrays using the model's official Jinja2 template from `tokenizer_config.json` (formatting special tokens, roles, and generation headers).
 
+For models that support answering without thinking, set
+`generationConfig: { enableThinking: false }` in `useLLMChatSession` or
+`createLLMChatSession`. Override it per turn with
+`session.sendMessage(message, onToken, { enableThinking: true })`. Direct
+preprocessor users can pass `enableThinking` in the options to `render()` or
+`process()`.
+
+This exposes `enable_thinking` to Jinja. The template must honor this switch;
+a template that always appends `<think>` needs to be corrected separately. Omit
+the option to preserve the template's default. The raw runner accepts already
+formatted prompts and ignores this field. When thinking is disabled, tool parsers
+must accept answers without a generated `</think>` tag. Switching thinking modes
+between turns assumes the template preserves previously cached messages; use
+`resetOnTurn: true` if the switch also changes how earlier messages are rendered.
+
 To keep multi-turn chat responsive without re-encoding past history on every message, the preprocessor uses incremental prompt diffing:
 
 1. It verifies that the rendered prefix of previously committed turns is an exact substring match of the newly updated conversation.

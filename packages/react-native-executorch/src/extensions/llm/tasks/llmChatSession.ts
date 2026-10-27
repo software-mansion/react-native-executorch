@@ -229,7 +229,11 @@ export async function createLLMChatSession(
     // Prefill initial messages if provided
     if (initialMessages.length > 0) {
       history.push(...initialMessages);
-      const prompt = chatPreprocessor.process(history, history.length, { addGenPrompt: false });
+      const prefillOptions = {
+        addGenPrompt: false,
+        enableThinking: defaultGenerationConfig?.enableThinking,
+      };
+      const prompt = chatPreprocessor.process(history, history.length, prefillOptions);
       await prefill(prompt, defaultGenerationConfig);
       chatPreprocessor.clear();
       committed = history.length;
@@ -253,6 +257,8 @@ export async function createLLMChatSession(
       }
 
       const turnGenConfig = { ...defaultGenerationConfig, ...genConfig };
+      const prefillOptions = { enableThinking: turnGenConfig.enableThinking, addGenPrompt: false };
+      const renderOptions = { ...prefillOptions, addGenPrompt: true };
       const generationOpts = { genConfig: turnGenConfig, stopTokens, stopRegex, onToken };
 
       const initialCommitted = committed;
@@ -282,7 +288,7 @@ export async function createLLMChatSession(
 
         // Prefill newly committed messages up to current user message without generation prompt
         const toCommit = history.length - committed;
-        const userPrompt = chatPreprocessor.process(history, toCommit, { addGenPrompt: false });
+        const userPrompt = chatPreprocessor.process(history, toCommit, prefillOptions);
         const prefillStats = await prefill(userPrompt, turnGenConfig);
         chatPreprocessor.clear();
 
@@ -304,7 +310,7 @@ export async function createLLMChatSession(
           }
 
           const uncommitted = history.length - committed;
-          const prompt = chatPreprocessor.process(history, uncommitted, { addGenPrompt: true });
+          const prompt = chatPreprocessor.process(history, uncommitted, renderOptions);
 
           const { response, stats } = await generateChatTurn(runner, prompt, generationOpts);
           const cumPrefillStats = currentTurn === 0 ? prefillStats : stats.prefill;
@@ -358,7 +364,7 @@ export async function createLLMChatSession(
         // full closed conversation
         const uncommitted = history.length - committed;
         if (uncommitted > 0) {
-          const prompt = chatPreprocessor.process(history, uncommitted, { addGenPrompt: false });
+          const prompt = chatPreprocessor.process(history, uncommitted, prefillOptions);
           await prefill(prompt, turnGenConfig);
           chatPreprocessor.clear();
           committed = history.length;

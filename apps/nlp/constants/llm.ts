@@ -307,10 +307,13 @@ function decodeMiniCpmArgument(value: string): string {
   });
 }
 
-export function parseMiniCpmToolCalls(text: string): llm.ToolParserResult | undefined {
+export function parseMiniCpmToolCalls(
+  text: string,
+  enableThinking = true
+): llm.ToolParserResult | undefined {
   const thinkingEnd = text.lastIndexOf('</think>');
-  if (thinkingEnd === -1) return undefined;
-  const answer = text.slice(thinkingEnd + '</think>'.length);
+  if (thinkingEnd === -1 && (enableThinking || text.includes('<think>'))) return undefined;
+  const answer = thinkingEnd === -1 ? text : text.slice(thinkingEnd + '</think>'.length);
   const callRegex =
     /<function\s+name=(["'])([^"']+)\1\s*>((?:<!\[CDATA\[[\s\S]*?\]\]>|[\s\S])*?)<\/function>/g;
   const toolCalls: llm.ToolCall[] = [];
@@ -650,6 +653,7 @@ export interface LLMModelConfig {
   stopRegex?: RegExp;
   toolOpts: LLMToolOpts | undefined;
   iosOnly?: boolean;
+  supportsThinkingSwitch?: boolean;
 }
 
 // --- Quantized LLM Models List ---
@@ -679,6 +683,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
   // LFM 2.5 family
   {
     id: 'lfm-2.5-2.6b-xnnpack',
+    supportsThinkingSwitch: false,
     name: 'LFM 2.5 2.6B',
     backend: 'xnnpack',
     model: models.llm.LFM2_5_2_6B.XNNPACK_8DA4W,
@@ -689,6 +694,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
   },
   {
     id: 'lfm-2.5-2.6b-mlx',
+    supportsThinkingSwitch: false,
     name: 'LFM 2.5 2.6B',
     backend: 'mlx',
     model: models.llm.LFM2_5_2_6B.MLX_INT4,

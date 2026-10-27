@@ -27,6 +27,8 @@ import { createLLMGemmaRunner, LLM_GEMMA_SPEC } from './runners/llmGemmaRunner';
  * @category LLM / Types
  */
 export type LLMGenerationConfig = SamplingConfig & {
+  /** Sets `enable_thinking` in supported chat templates; ignored by raw runners. */
+  readonly enableThinking?: boolean;
   /** Whether to ignore EOS tokens during generation. */
   readonly ignoreEos?: boolean;
   /** Maximum number of new tokens to generate. */
