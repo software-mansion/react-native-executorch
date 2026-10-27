@@ -39,15 +39,15 @@ Explore the charts below to compare backends and find the optimal balance for yo
 
 ## Devices
 
-Measurements were collected on physical iOS and Android devices spanning flagship, modern mid-tier, and legacy hardware tiers. All numbers come from release builds of React Native ExecuTorch 0.11.0-dev (`main` shortly after v0.10.0), measured in September 2026, with supplemental quantized LLM, depth estimation, and ColBERT runs in October 2026.
+Measurements were collected on physical iOS and Android devices spanning flagship, modern mid-tier, and legacy hardware tiers. All numbers come from release builds of React Native ExecuTorch 0.11.0-dev (`main` shortly after v0.10.0), measured in September 2026, with supplemental quantized LLM, depth estimation, ColBERT, and inpainting runs in October 2026.
 
 | Device | Backends tested | Variants | Notes |
 |---|---|---|---|
 | Samsung Galaxy S26 Ultra | XNNPACK (121), Vulkan (24) | 145 | Snapdragon SM8850; historical standard-task results and 21 quantized LLM variants |
 | Google Pixel 10 | XNNPACK (100), Vulkan (24) | 124 | Google Tensor G5; historical standard-task measurements |
-| Samsung Galaxy S20+ | XNNPACK (129), Vulkan (31) | 160 | Exynos 990; historical results plus supplemental quantized LLM, depth, and ColBERT measurements |
-| Samsung Galaxy S24 | XNNPACK (29), Vulkan (6) | 35 | Supplemental quantized LLM, depth estimation, and ColBERT measurements |
-| iPhone 17 | XNNPACK (127), Core ML (78), MLX (38) | 243 | A19; historical results plus supplemental quantized LLM, depth, and ColBERT measurements |
+| Samsung Galaxy S20+ | XNNPACK (132), Vulkan (34) | 166 | Exynos 990; historical results plus supplemental quantized LLM, depth, ColBERT, and inpainting measurements |
+| Samsung Galaxy S24 | XNNPACK (32), Vulkan (9) | 41 | Supplemental quantized LLM, depth estimation, ColBERT, and inpainting measurements |
+| iPhone 17 | XNNPACK (130), Core ML (81), MLX (38) | 249 | A19; historical results plus supplemental quantized LLM, depth, ColBERT, and inpainting measurements |
 | iPhone SE (3rd gen) | XNNPACK (99), Core ML (73), MLX (15) | 187 | A15 Bionic with 4 GB RAM; historical standard-task measurements |
 
 Memory values report peak process footprint during a separate inference pass, including the app baseline: total PSS on Android and `phys_footprint` on iOS. Some supplemental iPhone LLM measurements use a fresh process for each model.
@@ -125,6 +125,15 @@ These benchmarks measure execution latency, memory utilization, and initializati
 :::
 
 <BenchmarkChart task="depth-estimation" data={benchmarks} />
+
+### [Image Inpainting](../02-extensions/computer-vision/11-image-inpainting.md)
+
+:::info Input & Pipeline Details
+- **Input:** Fixed 512x512 RGBA synthetic frame and a single-channel mask marking the central 256x256 square as the region to fill (25% of the image).
+- **Pipeline Structure:** MI-GAN resizes the image and mask to the model's 256x256 or 512x512 input, normalizes the image, and reconstructs the masked region. The output is resized back to 512x512 and blended with the original image through the mask. Timings include preprocessing, inference, and blending for the Places2 and Faces checkpoints.
+:::
+
+<BenchmarkChart task="inpainting" data={benchmarks} />
 
 ### [Image Embeddings](../02-extensions/computer-vision/09-image-embeddings.md)
 

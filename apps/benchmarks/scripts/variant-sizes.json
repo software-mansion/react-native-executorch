@@ -491,5 +491,14 @@
   "https://huggingface.co/software-mansion/react-native-executorch-yolo26/resolve/v0.11.0/x/xnnpack/yolo26x_640_xnnpack_int8.pte": 66161216,
   "https://huggingface.co/software-mansion/react-native-executorch-zipdepth/resolve/v0.11.0/base/coreml/zipdepth_base_384_coreml_fp32.pte": 24858521,
   "https://huggingface.co/software-mansion/react-native-executorch-zipdepth/resolve/v0.11.0/base/vulkan/zipdepth_base_384_vulkan_fp16.pte": 12794626,
-  "https://huggingface.co/software-mansion/react-native-executorch-zipdepth/resolve/v0.11.0/base/xnnpack/zipdepth_base_384_xnnpack_fp32.pte": 24609344
+  "https://huggingface.co/software-mansion/react-native-executorch-zipdepth/resolve/v0.11.0/base/xnnpack/zipdepth_base_384_xnnpack_fp32.pte": 24609344,
+  "https://huggingface.co/software-mansion/react-native-executorch-migan/resolve/v0.11.0/xnnpack/faces_256/migan_faces_256_xnnpack_fp16.pte": 24002700,
+  "https://huggingface.co/software-mansion/react-native-executorch-migan/resolve/v0.11.0/xnnpack/512/migan_512_xnnpack_fp16.pte": 25181068,
+  "https://huggingface.co/software-mansion/react-native-executorch-migan/resolve/v0.11.0/xnnpack/256/migan_256_xnnpack_fp16.pte": 24002700,
+  "https://huggingface.co/software-mansion/react-native-executorch-migan/resolve/v0.11.0/vulkan/faces_256/migan_faces_256_vulkan_fp16.pte": 12411650,
+  "https://huggingface.co/software-mansion/react-native-executorch-migan/resolve/v0.11.0/vulkan/512/migan_512_vulkan_fp16.pte": 14058114,
+  "https://huggingface.co/software-mansion/react-native-executorch-migan/resolve/v0.11.0/vulkan/256/migan_256_vulkan_fp16.pte": 12411650,
+  "https://huggingface.co/software-mansion/react-native-executorch-migan/resolve/v0.11.0/coreml/256/migan_256_coreml_fp16.pte": 12769586,
+  "https://huggingface.co/software-mansion/react-native-executorch-migan/resolve/v0.11.0/coreml/512/migan_512_coreml_fp16.pte": 13968400,
+  "https://huggingface.co/software-mansion/react-native-executorch-migan/resolve/v0.11.0/coreml/faces_256/migan_faces_256_coreml_fp16.pte": 12769586
 }

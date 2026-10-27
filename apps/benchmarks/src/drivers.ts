@@ -19,6 +19,7 @@ import {
   createDepthEstimator,
   createFsmnVoiceActivityDetector,
   createImageEmbedder,
+  createInpainter,
   createInstanceSegmenter,
   createKeypointDetector,
   createKokoroTextToSpeech,
@@ -45,6 +46,7 @@ import RNBlobUtil from 'react-native-blob-util';
 import {
   IMAGE_512,
   IMAGE_640,
+  INPAINTING_MASK,
   LLM_MAX_NEW_TOKENS,
   LLM_PROMPT,
   SAMPLE_PII_TEXT,
@@ -158,6 +160,14 @@ const depthEstimation: Driver = {
   run: (instance) => () => {
     'worklet';
     return instance.estimateDepthWorklet(IMAGE_512).data.length;
+  },
+};
+
+const inpainting: Driver = {
+  create: createInpainter,
+  run: (instance) => () => {
+    'worklet';
+    return instance.inpaintWorklet(IMAGE_512, INPAINTING_MASK).data.length;
   },
 };
 
@@ -378,6 +388,7 @@ const BY_TASK: Readonly<Record<string, Driver>> = {
   imageEmbeddings,
   textEmbeddings,
   depthEstimation,
+  inpainting,
   colbertEmbeddings,
   privacyFilter,
   voiceActivityDetection,

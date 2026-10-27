@@ -1,0 +1,14 @@
+{
+  "nativeLibsRelease": "v0.10.7-libs",
+  "source": "https://github.com/software-mansion/react-native-executorch/releases/tag/v0.10.7-libs",
+  "artifactSha256": {
+    "headers.tar.gz": "0a8a2380c1952e0284c2cdd831f5e2c062af056ace861f84671868170c174b73",
+    "coreml-ios.tar.gz": "01af0ceb04c92e915c7a5af54ac702045f8f5f1a53006e7be13638d84562c5a1",
+    "mlx-ios.tar.gz": "f1ff0526d7461a25e45e47c8883bc404479f4aa0d7314b0dbf3d98eb373ac9ef",
+    "core-ios.tar.gz": "d522dfd04bf096d6f9b330528c6e47cea5ecd96cf46a0af17af20d9051d828e5",
+    "xnnpack-ios.tar.gz": "09536717c94248d828e798ad7497029293fba1a889f6eabc0d37abf8f4a77e3e"
+  },
+  "build": "Release; freshly downloaded artifacts verified against release checksums; native build outputs cleaned before rebuilding. S24 reused the refreshed Android native build with device-specific benchmark settings rebundled.",
+  "input": "Fixed 512x512 synthetic RGBA frame and a central 256x256 hole marked with a gray mask (25% of the image).",
+  "results": "All six platform-supported MIGAN variants completed with 20 timed iterations, 3 warmups, 3 load iterations and 5 memory iterations."
+}
