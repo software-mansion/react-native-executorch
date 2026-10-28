@@ -27,7 +27,11 @@ const METADATA_SPEC = {
   ...method('enable_dynamic_shape', [], [{ kind: 'Bool' }]),
 };
 
-export const LLM_MULTIMODAL_SPEC = {
+/**
+ * Image-input variant (e.g. LFM 3 VL): `vision_encoder` takes a fixed-size
+ * image and returns `visualTokens` embeddings.
+ */
+export const LLM_VISION_SPEC = {
   ...method(
     'text_decoder',
     [f32(1, Dyn('seqLen'), 'hiddenDim'), i64(Dyn('seqLen'))],
@@ -78,10 +82,10 @@ export function createLLMMultimodalRunner(
   modalities?: readonly Modality[]
 ): LLMRunner {
   const { variant, dims, dim } = validateSpec(model.schema, {
-    image: LLM_MULTIMODAL_SPEC,
+    vision: LLM_VISION_SPEC,
     audio: LLM_AUDIO_SPEC,
   });
-  const modality: Modality = variant;
+  const modality: Modality = variant === 'vision' ? 'image' : 'audio';
 
   if (!modalities?.includes(modality)) {
     throw RnExecuTorchError(
@@ -97,7 +101,7 @@ export function createLLMMultimodalRunner(
   let numVisualTokens = 0;
   let audioSamples = { min: 0, max: 0, step: 1 };
   let framesPerToken = 1;
-  if (variant === 'image') {
+  if (variant === 'vision') {
     const [imgH, imgW] = dims.constant('imgH', 'imgW');
     imgShape = [1, 3, imgH, imgW] as const;
     [numVisualTokens] = dims.constant('visualTokens');
@@ -272,7 +276,7 @@ export function createLLMMultimodalRunner(
     'worklet';
     isCancelled.setBlocking(false);
 
-    if (variant !== 'image') {
+    if (variant !== 'vision') {
       throw RnExecuTorchError('INVALID_ARGUMENT', 'prefill: This model has no vision encoder.');
     }
     if (prompt.image.dtype !== 'float32') {

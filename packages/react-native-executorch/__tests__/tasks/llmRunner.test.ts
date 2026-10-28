@@ -24,7 +24,7 @@ const TEXT_SPEC = exported({
   ...method('get_eos_ids', [], [{ kind: 'Int' }]),
 });
 
-const MULTIMODAL_SPEC = exported({
+const VISION_SPEC = exported({
   ...method('text_decoder', [f32(1, RangeDim(1, 128), 64), i64(RangeDim(1, 128))], [f32(1, 100)]),
   ...method('vision_encoder', [f32(1, 3, 32, 32)], [f32(1, 4, 64)]),
   ...method('token_embedding', [i64(1, RangeDim(1, 128))], [f32(1, RangeDim(1, 128), 64)]),
@@ -161,7 +161,7 @@ beforeEach(() => {
 
 describe.each([
   ['text', TEXT_SPEC, []],
-  ['multimodal', MULTIMODAL_SPEC, ['image']],
+  ['vision', VISION_SPEC, ['image']],
   ['gemma', GEMMA_SPEC, ['image', 'audio']],
 ] as const)('%s runner — streaming UTF-8', (_name, schema, modalities) => {
   function registerBytes(pieces: readonly (readonly number[])[]) {
@@ -222,7 +222,7 @@ describe.each([
       chunks.push(text)
     );
 
-    expect(chunks).toEqual(_name === 'multimodal' ? ['', 'A'] : ['<eos>', 'A']);
+    expect(chunks).toEqual(_name === 'vision' ? ['', 'A'] : ['<eos>', 'A']);
   });
 
   it('does not carry a partial character into the next generation', async () => {
@@ -243,7 +243,7 @@ describe.each([
 
 describe.each([
   ['text', TEXT_SPEC, []],
-  ['multimodal', MULTIMODAL_SPEC, ['image']],
+  ['vision', VISION_SPEC, ['image']],
   ['gemma', GEMMA_SPEC, ['image', 'audio']],
 ] as const)('%s runner — sampling seeds', (_name, schema, modalities) => {
   it.each([
@@ -291,7 +291,7 @@ describe.each([
 
 describe.each([
   ['text', TEXT_SPEC, []],
-  ['multimodal', MULTIMODAL_SPEC, ['image']],
+  ['vision', VISION_SPEC, ['image']],
   ['gemma', GEMMA_SPEC, ['image', 'audio']],
 ] as const)('%s runner — prefill length', (_name, schema, modalities) => {
   const chunks: { length: number; pos: number }[] = [];
@@ -414,15 +414,15 @@ describe('createLLMRunner — variant dispatch & modalities validation', () => {
     );
   });
 
-  it('dispatches to vision multimodal runner when schema matches LLM_MULTIMODAL_SPEC', async () => {
-    registerModelWithSchema(MULTIMODAL_SPEC);
+  it('dispatches to vision multimodal runner when schema matches LLM_VISION_SPEC', async () => {
+    registerModelWithSchema(VISION_SPEC);
     const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH, ['image']));
     expect(runner).toBeDefined();
     expect(runner.modalities).toEqual(['image']);
   });
 
-  it('rejects multimodal runner if image modality is missing', async () => {
-    registerModelWithSchema(MULTIMODAL_SPEC);
+  it('rejects vision multimodal runner if image modality is missing', async () => {
+    registerModelWithSchema(VISION_SPEC);
     await expect(createLLMRunner(MODEL_PATH, TOKENIZER_PATH)).rejects.toThrow(
       /Multimodal model with an image encoder requires 'image' in modalities/
     );
@@ -469,7 +469,7 @@ describe('createLLMRunner — variant dispatch & modalities validation', () => {
 
 describe('createLLMMultimodalRunner — execution & KV cache lifecycle', () => {
   beforeEach(() => {
-    registerModelWithSchema(MULTIMODAL_SPEC, { maxContextLen: 256 });
+    registerModelWithSchema(VISION_SPEC, { maxContextLen: 256 });
   });
 
   it('prefills text and updates KV cache position', async () => {

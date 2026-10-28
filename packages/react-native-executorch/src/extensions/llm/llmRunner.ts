@@ -22,7 +22,7 @@ import { createLLMTextRunner, LLM_TEXT_SPEC } from './runners/llmTextRunner';
 import {
   createLLMMultimodalRunner,
   LLM_AUDIO_SPEC,
-  LLM_MULTIMODAL_SPEC,
+  LLM_VISION_SPEC,
 } from './runners/llmMultimodalRunner';
 import { createLLMGemmaRunner, LLM_GEMMA_SPEC } from './runners/llmGemmaRunner';
 
@@ -191,7 +191,7 @@ export async function createLLMRunner(
 
     const { variant } = validateSpec(model.schema, {
       text: LLM_TEXT_SPEC,
-      vision: LLM_MULTIMODAL_SPEC,
+      vision: LLM_VISION_SPEC,
       audio: LLM_AUDIO_SPEC,
       gemma: LLM_GEMMA_SPEC,
     });
