@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
-    "start": "docusaurus start",
-    "build": "docusaurus build && yarn prettier-api-reference && npm run postbuild",
+    "start": "yarn generate-models && docusaurus start",
+    "build": "yarn generate-models && docusaurus build && yarn prettier-api-reference && npm run postbuild",
+    "generate-models": "node scripts/generate-supported-models.mjs",
     "docs:version": "./scripts/build-version-docs.sh",
     "postbuild": "node scripts/postbuild.mjs",
     "prettier-api-reference": "npx prettier --write 'docs/06-api-reference/**/*.{md,mdx}'",
