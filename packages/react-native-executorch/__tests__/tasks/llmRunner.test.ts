@@ -173,6 +173,7 @@ describe.each([
     registerModelWithSchema(schema, { tokenIds: pieces.map((_, i) => i + 2) });
   }
 
+  // cspell:disable-next-line
   it.each(['हिन्दी', 'اردو', 'ไทย', '한국어', '😀', 'żółć', '中文'])(
     'preserves split bytes in %s',
     async (reply) => {
