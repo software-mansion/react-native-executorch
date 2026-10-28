@@ -1821,16 +1821,16 @@ const WHISPER_SMALL_VULKAN_INT8: WhisperSttModel = {
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 
-const QWEN3_ASR_0_6B_TOKENIZER = `${BASE_URL}-qwen-3-asr/${NEXT_VERSION_TAG}/0_6b/tokenizer.json`;
+const QWEN3_ASR_0_6B_TOKENIZER = `${BASE_URL}/Qwen3-ASR-ExecuTorch/${VERSION_TAG}/0_6b/tokenizer.json`;
 const QWEN3_ASR_0_6B_XNNPACK_8DA4W: Qwen3AsrSttModel = {
   name: 'qwen3-asr',
-  modelPath: `${BASE_URL}-qwen-3-asr/${NEXT_VERSION_TAG}/0_6b/xnnpack/qwen3_asr_0_6b_xnnpack_8da4w.pte`,
+  modelPath: `${BASE_URL}/Qwen3-ASR-ExecuTorch/${VERSION_TAG}/0_6b/xnnpack/qwen3_asr_0_6b_xnnpack_8da4w.pte`,
   tokenizerPath: QWEN3_ASR_0_6B_TOKENIZER,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const QWEN3_ASR_0_6B_MLX_COREML_INT4: Qwen3AsrSttModel = {
   name: 'qwen3-asr',
-  modelPath: `${BASE_URL}-qwen-3-asr/${NEXT_VERSION_TAG}/0_6b/mlx/qwen3_asr_0_6b_coreml_mlx_4w.pte`,
+  modelPath: `${BASE_URL}/Qwen3-ASR-ExecuTorch/${VERSION_TAG}/0_6b/mlx/qwen3_asr_0_6b_coreml_mlx_4w.pte`,
   tokenizerPath: QWEN3_ASR_0_6B_TOKENIZER,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
