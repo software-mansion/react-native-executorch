@@ -2156,7 +2156,7 @@ const PPOCRV6_SMALL_VULKAN_FP16: PaddleOcrModel = {
 // =============================================================================
 // Translation
 // =============================================================================
-const OPUS_MT_BASE_URL = `${BASE_URL}/opus-mt-ExecuTorch/${NEXT_VERSION_TAG}`;
+const OPUS_MT_BASE_URL = `${BASE_URL}/opus-mt-ExecuTorch/${VERSION_TAG}`;
 
 const OPUS_MT_EN_DE_XNNPACK_INT8: MarianTranslatorModel = {
   name: 'marian',
@@ -2201,7 +2201,7 @@ const OPUS_MT_FR_EN_XNNPACK_INT8: MarianTranslatorModel = {
   targetLanguage: 'en',
 };
 
-const EUROLLM_BASE_URL = `${BASE_URL}/EuroLLM-1.7B-Instruct-ExecuTorch/${NEXT_VERSION_TAG}/1_7b`;
+const EUROLLM_BASE_URL = `${BASE_URL}/EuroLLM-1.7B-Instruct-ExecuTorch/${VERSION_TAG}/1_7b`;
 
 const EUROLLM_1_7B_XNNPACK_8DA8W: LLMTranslatorModel = {
   name: 'eurollm',
