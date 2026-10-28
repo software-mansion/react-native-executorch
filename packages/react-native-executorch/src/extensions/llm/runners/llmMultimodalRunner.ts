@@ -46,24 +46,65 @@ export const LLM_MULTIMODAL_SPEC = {
   ...METADATA_SPEC,
 };
 
+/**
+ * Audio-input variant (e.g. LFM3-Audio): `audio_encoder` takes a mono 16 kHz
+ * waveform whose length the schema declares as a range. Its `min` is one
+ * analysis window and its `step` the hop, so a clip is right-padded to `min + k * step`
+ * samples; every `get_audio_frames_per_token` frames become one token.
+ */
+export const LLM_AUDIO_SPEC = {
+  ...method(
+    'text_decoder',
+    [f32(1, Dyn('seqLen'), 'hiddenDim'), i64(Dyn('seqLen'))],
+    [f32(1, 'vocabSize')]
+  ),
+  ...method(
+    'audio_encoder', // prettier-ignore
+    [f32(1, Dyn('audioSamples'))],
+    [f32(1, Dyn('audioTokens'), 'hiddenDim')]
+  ),
+  ...method(
+    'token_embedding', // prettier-ignore
+    [i64(1, Dyn('seqLen'))],
+    [f32(1, Dyn('seqLen'), 'hiddenDim')]
+  ),
+  ...method('get_audio_frames_per_token', [], [{ kind: 'Int' }]),
+  ...METADATA_SPEC,
+};
+
 export function createLLMMultimodalRunner(
   model: Model,
   tokenizer: Tokenizer,
   modalities?: readonly Modality[]
 ): LLMRunner {
-  if (!modalities?.includes('image')) {
+  const { variant, dims, dim } = validateSpec(model.schema, {
+    image: LLM_MULTIMODAL_SPEC,
+    audio: LLM_AUDIO_SPEC,
+  });
+  const modality: Modality = variant;
+
+  if (!modalities?.includes(modality)) {
     throw RnExecuTorchError(
       'INVALID_ARGUMENT',
-      `Multimodal vision-language model requires 'image' in modalities.`
+      `Multimodal model with an ${modality} encoder requires '${modality}' in modalities.`
     );
   }
 
-  const { dims, dim } = validateSpec(model.schema, { default: LLM_MULTIMODAL_SPEC });
-
-  const [imgH, imgW, vocabSize] = dims.constant('imgH', 'imgW', 'vocabSize');
-  const [hiddenDim, numVisualTokens] = dims.constant('hiddenDim', 'visualTokens');
+  const [vocabSize, hiddenDim] = dims.constant('vocabSize', 'hiddenDim');
   const maxSeqLen = dim('seqLen', 'range').max;
-  const imgShape = [1, 3, imgH, imgW] as const;
+
+  let imgShape: readonly [1, 3, number, number] = [1, 3, 0, 0];
+  let numVisualTokens = 0;
+  let audioSamples = { min: 0, max: 0, step: 1 };
+  let framesPerToken = 1;
+  if (variant === 'image') {
+    const [imgH, imgW] = dims.constant('imgH', 'imgW');
+    imgShape = [1, 3, imgH, imgW] as const;
+    [numVisualTokens] = dims.constant('visualTokens');
+  } else {
+    audioSamples = dim('audioSamples', 'range');
+    [framesPerToken] = model.execute('get_audio_frames_per_token', [], []) as [number];
+  }
 
   const [maxContextLen] = model.execute('get_max_context_len', [], []) as [number];
   const eosIds = model.execute('get_eos_ids', [], []) as number[];
@@ -178,6 +219,52 @@ export function createLLMMultimodalRunner(
     return { numTokens, durationMs, tokensPerSecond };
   };
 
+  // Prefills precomputed [n, hiddenDim] embeddings in chunks of prefillLen.
+  const prefillEmbeddings = (
+    embedding: Float32Array,
+    numTokens: number,
+    prefillLen: number
+  ): LLMPrefillStats => {
+    'worklet';
+    const startMs = Date.now();
+    const startPos = pos.getBlocking();
+
+    let offset = 0;
+    while (offset < numTokens && !isCancelled.getBlocking()) {
+      const seqLen = Math.min(numTokens - offset, prefillLen);
+      const chunk = embedding.subarray(offset * hiddenDim, (offset + seqLen) * hiddenDim);
+
+      if (startPos + offset + seqLen > maxContextLen) {
+        throw RnExecuTorchError(
+          'EXECUTION_FAILED',
+          `prefill: Context length exceeded (${startPos + offset + seqLen} > ${maxContextLen}).`
+        );
+      }
+
+      const positions = BigInt64Array.from(
+        { length: seqLen }, // prettier-ignore
+        (_, i) => BigInt(startPos + offset + i)
+      );
+      const tPositions = tensor('int64', [seqLen], positions);
+      const tChunk = tensor('float32', [1, seqLen, hiddenDim], chunk);
+
+      try {
+        model.execute('text_decoder', [tChunk, tPositions], [tLogits]);
+      } finally {
+        tPositions.dispose();
+        tChunk.dispose();
+      }
+
+      pos.setBlocking(startPos + offset + seqLen);
+      offset += seqLen;
+    }
+
+    const durationMs = Date.now() - startMs;
+    const tokensPerSecond = durationMs > 0 ? (numTokens / durationMs) * 1000 : 0;
+
+    return { numTokens, durationMs, tokensPerSecond };
+  };
+
   const prefillImage = (
     prompt: Extract<MediaInput, { kind: 'image' }>,
     prefillLen: number
@@ -185,6 +272,9 @@ export function createLLMMultimodalRunner(
     'worklet';
     isCancelled.setBlocking(false);
 
+    if (variant !== 'image') {
+      throw RnExecuTorchError('INVALID_ARGUMENT', 'prefill: This model has no vision encoder.');
+    }
     if (prompt.image.dtype !== 'float32') {
       throw RnExecuTorchError(
         'INVALID_ARGUMENT',
@@ -198,54 +288,73 @@ export function createLLMMultimodalRunner(
       );
     }
 
-    const startMs = Date.now();
-    const startPos = pos.getBlocking();
-
     const tVisionEmbed = tensor('float32', [1, numVisualTokens, hiddenDim]);
     try {
       model.execute('vision_encoder', [prompt.image], [tVisionEmbed]);
-
       const embedding = tVisionEmbed.getData(new Float32Array(tVisionEmbed.numel));
-
-      let offset = 0;
-
-      while (offset < numVisualTokens && !isCancelled.getBlocking()) {
-        const seqLen = Math.min(numVisualTokens - offset, prefillLen);
-        const chunk = embedding.subarray(offset * hiddenDim, (offset + seqLen) * hiddenDim);
-
-        if (startPos + offset + seqLen > maxContextLen) {
-          throw RnExecuTorchError(
-            'EXECUTION_FAILED',
-            `prefill: Context length exceeded (${startPos + offset + seqLen} > ${maxContextLen}).`
-          );
-        }
-
-        const positions = BigInt64Array.from(
-          { length: seqLen }, // prettier-ignore
-          (_, i) => BigInt(startPos + offset + i)
-        );
-        const tPositions = tensor('int64', [seqLen], positions);
-        const tChunk = tensor('float32', [1, seqLen, hiddenDim], chunk);
-
-        try {
-          model.execute('text_decoder', [tChunk, tPositions], [tLogits]);
-        } finally {
-          tPositions.dispose();
-          tChunk.dispose();
-        }
-
-        pos.setBlocking(startPos + offset + seqLen);
-        offset += seqLen;
-      }
+      return prefillEmbeddings(embedding, numVisualTokens, prefillLen);
     } finally {
       tVisionEmbed.dispose();
     }
+  };
 
-    const durationMs = Date.now() - startMs;
-    const numTokens = numVisualTokens;
-    const tokensPerSecond = durationMs > 0 ? (numTokens / durationMs) * 1000 : 0;
+  const prefillAudio = (
+    prompt: Extract<MediaInput, { kind: 'audio' }>,
+    prefillLen: number
+  ): LLMPrefillStats => {
+    'worklet';
+    isCancelled.setBlocking(false);
 
-    return { numTokens, durationMs, tokensPerSecond };
+    if (variant !== 'audio') {
+      throw RnExecuTorchError('INVALID_ARGUMENT', 'prefill: This model has no audio encoder.');
+    }
+    if (prompt.audio.dtype !== 'float32') {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `Expected audio tensor of dtype 'float32', received '${prompt.audio.dtype}'.`
+      );
+    }
+    const numSamples = prompt.audio.numel;
+    if (numSamples === 0) {
+      throw RnExecuTorchError('INVALID_ARGUMENT', 'Audio waveform is empty.');
+    }
+
+    const rawData = prompt.audio.getData(new Float32Array(numSamples));
+    const { min: window, max: maxSamples, step: hop } = audioSamples;
+    // Clips longer than the encoder accepts are encoded in consecutive chunks
+    // that each cover a whole number of hops.
+    const chunkStride = maxSamples - window + hop;
+
+    let totStats: LLMPrefillStats = { numTokens: 0, durationMs: 0, tokensPerSecond: 0 };
+    let offset = 0;
+    while (offset < numSamples && !isCancelled.getBlocking()) {
+      const chunkSamples = Math.min(numSamples - offset, chunkStride);
+      // Right-pad to window + k * hop samples, as the feature extractor does.
+      const padded =
+        chunkSamples <= window ? window : window + Math.ceil((chunkSamples - window) / hop) * hop;
+      const numFrames = 1 + (padded - window) / hop;
+      const numAudioTokens = Math.ceil(numFrames / framesPerToken);
+
+      const wav = new Float32Array(padded);
+      wav.set(rawData.subarray(offset, offset + chunkSamples));
+      const tWaveform = tensor('float32', [1, padded], wav);
+      const tAudioEmbeds = tensor('float32', [1, numAudioTokens, hiddenDim]);
+      try {
+        model.execute('audio_encoder', [tWaveform], [tAudioEmbeds]);
+        const embedding = tAudioEmbeds.getData(new Float32Array(tAudioEmbeds.numel));
+        const stats = prefillEmbeddings(embedding, numAudioTokens, prefillLen);
+        const numTokens = totStats.numTokens + stats.numTokens;
+        const durationMs = totStats.durationMs + stats.durationMs;
+        const tokensPerSecond = durationMs > 0 ? (numTokens / durationMs) * 1000 : 0;
+        totStats = { numTokens, durationMs, tokensPerSecond };
+      } finally {
+        tWaveform.dispose();
+        tAudioEmbeds.dispose();
+      }
+      offset += chunkSamples;
+    }
+
+    return totStats;
   };
 
   const prefill = (
@@ -289,10 +398,15 @@ export function createLLMMultimodalRunner(
           totStats = combine(totStats, stats);
           break;
         }
+        case 'audio': {
+          const stats = prefillAudio(segment, prefillLen);
+          totStats = combine(totStats, stats);
+          break;
+        }
         default:
           throw RnExecuTorchError(
             'INVALID_ARGUMENT',
-            `prefill: Unsupported media input kind '${segment.kind}'.`
+            `prefill: Unsupported media input kind '${(segment as MediaInput).kind}'.`
           );
       }
     }
@@ -374,7 +488,7 @@ export function createLLMMultimodalRunner(
     // Metadata
     modelPath: model.path,
     tokenizerPath: tokenizer.path,
-    modalities: ['image'],
+    modalities: [modality],
 
     // Lifecycle & Execution
     dispose,

@@ -19,7 +19,11 @@ import { loadTokenizer } from '../nlp';
 
 import type { SamplingConfig } from './sampler';
 import { createLLMTextRunner, LLM_TEXT_SPEC } from './runners/llmTextRunner';
-import { createLLMMultimodalRunner, LLM_MULTIMODAL_SPEC } from './runners/llmMultimodalRunner';
+import {
+  createLLMMultimodalRunner,
+  LLM_AUDIO_SPEC,
+  LLM_MULTIMODAL_SPEC,
+} from './runners/llmMultimodalRunner';
 import { createLLMGemmaRunner, LLM_GEMMA_SPEC } from './runners/llmGemmaRunner';
 
 /**
@@ -188,6 +192,7 @@ export async function createLLMRunner(
     const { variant } = validateSpec(model.schema, {
       text: LLM_TEXT_SPEC,
       vision: LLM_MULTIMODAL_SPEC,
+      audio: LLM_AUDIO_SPEC,
       gemma: LLM_GEMMA_SPEC,
     });
 
@@ -195,6 +200,7 @@ export async function createLLMRunner(
       case 'text':
         return createLLMTextRunner(model, tokenizer, modalities);
       case 'vision':
+      case 'audio':
         return createLLMMultimodalRunner(model, tokenizer, modalities);
       case 'gemma':
         return createLLMGemmaRunner(model, tokenizer, modalities);
