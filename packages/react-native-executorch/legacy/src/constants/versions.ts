@@ -1,7 +1,7 @@
 const PREVIOUS_LIB_VERSION = '0.9.0';
 export const LIB_VERSION = '0.10.0';
 
-export const URL_PREFIX = 'https://huggingface.co/software-mansion/react-native-executorch';
+export const URL_PREFIX = 'https://huggingface.co/software-mansion';
 // Latest stable release. Use for back-compat references that should follow
 // the last published version rather than the in-development VERSION_TAG.
 export const PREVIOUS_VERSION_TAG = `resolve/v${PREVIOUS_LIB_VERSION}`;

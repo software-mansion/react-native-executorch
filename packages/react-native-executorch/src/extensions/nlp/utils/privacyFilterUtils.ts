@@ -16,7 +16,7 @@ const NEG_INF = Number.NEGATIVE_INFINITY;
 /**
  * Six Viterbi transition biases matching the openai/privacy-filter
  * `viterbi_calibration.json` schema (hosted at
- * https://huggingface.co/software-mansion/react-native-executorch-privacy-filter-openai/blob/main/viterbi_calibration.json).
+ * https://huggingface.co/software-mansion/openai-privacy-filter-ExecuTorch/blob/main/viterbi_calibration.json).
  * Each value is added to the decoder score whenever the corresponding BIOES
  * transition is taken. Positive values encourage the transition; negative
  * values discourage it. Every field defaults to `0` (a neutral, validity-only

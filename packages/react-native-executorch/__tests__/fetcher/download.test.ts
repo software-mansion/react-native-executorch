@@ -137,6 +137,26 @@ describe('download — caching', () => {
     expect(fakeNet.countRequests('GET', URL_A)).toBe(requestsAfterFirst);
   });
 
+  it("reuses a file cached under a renamed repo's previous URL", async () => {
+    const previous =
+      'https://huggingface.co/software-mansion/react-native-executorch-lraspp/resolve/v1/model.pte';
+    const renamed =
+      'https://huggingface.co/software-mansion/LRASPP-MobileNetV3-Large-ExecuTorch/resolve/v1/model.pte';
+    fakeNet.serve(previous);
+    fakeNet.serve(
+      'https://huggingface.co/software-mansion/react-native-executorch-lraspp/resolve/main/config.json'
+    );
+    fakeNet.serve(
+      'https://huggingface.co/software-mansion/LRASPP-MobileNetV3-Large-ExecuTorch/resolve/main/config.json'
+    );
+
+    const first = await download(previous);
+    const second = await download(renamed);
+
+    expect(second).toBe(first);
+    expect(fakeNet.countRequests('GET', renamed)).toBe(0);
+  });
+
   it('reports full progress immediately on a cache hit', async () => {
     fakeNet.serve(URL_A);
     await download(URL_A);

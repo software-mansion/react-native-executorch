@@ -2,10 +2,10 @@ import { alphabets, symbols } from './symbols';
 
 import { URL_PREFIX, PREVIOUS_VERSION_TAG } from '../versions';
 
-const DETECTOR_CRAFT_MODEL = `${URL_PREFIX}-detector-craft/${PREVIOUS_VERSION_TAG}/xnnpack/craft_xnnpack_int8.pte`;
+const DETECTOR_CRAFT_MODEL = `${URL_PREFIX}/CRAFT-ExecuTorch/${PREVIOUS_VERSION_TAG}/xnnpack/craft_xnnpack_int8.pte`;
 
 const createHFRecognizerDownloadUrl = (alphabet: keyof typeof alphabets) =>
-  `${URL_PREFIX}-recognizer-crnn.en/${PREVIOUS_VERSION_TAG}/${alphabet}/xnnpack/crnn_${alphabet}_xnnpack_fp32.pte`;
+  `${URL_PREFIX}/EasyOCR-CRNN-ExecuTorch/${PREVIOUS_VERSION_TAG}/${alphabet}/xnnpack/crnn_${alphabet}_xnnpack_fp32.pte`;
 
 const RECOGNIZER_ENGLISH_CRNN = createHFRecognizerDownloadUrl('english');
 const RECOGNIZER_LATIN_CRNN = createHFRecognizerDownloadUrl('latin');
