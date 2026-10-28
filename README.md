@@ -125,7 +125,7 @@ Full documentation, guides, architecture deep dives, and API references are avai
 
 React Native ExecuTorch powers [Private Mind](https://privatemind.swmansion.com/), a privacy-first mobile AI application available on [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) and [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
 
-<img width="2720" height="1085" alt="Private Mind promo" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
+<img width="2620" height="985" alt="Private Mind promo" src="https://raw.githubusercontent.com/software-mansion-labs/private-mind/main/promo/promo.png" />
 
 ## Created by Software Mansion
 
