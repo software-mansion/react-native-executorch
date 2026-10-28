@@ -12,7 +12,7 @@
  */
 import { models } from '../../src/models';
 
-const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorch';
+const BASE_URL = 'https://huggingface.co/software-mansion';
 
 type Node = Record<string, unknown>;
 
@@ -128,7 +128,7 @@ describe('models registry — URLs', () => {
   });
 
   it.each(urls)('%s is served over https from the software-mansion org', (_path, url) => {
-    expect(url.startsWith(`${BASE_URL}-`)).toBe(true);
+    expect(url).toMatch(new RegExp(`^${BASE_URL}/[A-Za-z0-9._-]+-ExecuTorch/`));
   });
 
   it.each(urls)('%s pins an explicit revision', (_path, url) => {

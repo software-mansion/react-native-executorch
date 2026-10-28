@@ -1,6 +1,7 @@
 /* eslint-disable no-bitwise */
 import { Platform } from 'react-native';
 import RNBlobUtil from 'react-native-blob-util';
+import { previousRepoUrl } from './renamedRepos';
 import * as telemetry from './telemetry';
 import {
   loadBackgroundDownloader,
@@ -60,7 +61,9 @@ function cachePathFor(url: string): string {
   const urlWithoutQuery = url.split('?')[0]!;
   const basename = urlWithoutQuery.split('/').pop() || 'model';
   // Hash guards against basename collisions across different repos/versions.
-  return `${RNE_DIRECTORY}/${djb2(urlWithoutQuery)}_${basename}`;
+  // Renamed repos hash under their previous URL so files cached before the
+  // rename stay valid.
+  return `${RNE_DIRECTORY}/${djb2(previousRepoUrl(urlWithoutQuery))}_${basename}`;
 }
 
 async function fileSize(path: string): Promise<number> {

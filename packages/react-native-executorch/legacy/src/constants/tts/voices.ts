@@ -3,8 +3,8 @@ import { PREVIOUS_VERSION_TAG, URL_PREFIX } from '../versions';
 import { KOKORO_STANDARD, KOKORO_POLISH, KOKORO_GERMAN } from './models';
 
 // Common prefixes - voices & phonemization data
-const KOKORO_VOICE_PREFIX = `${URL_PREFIX}-kokoro/${PREVIOUS_VERSION_TAG}/voices`;
-const KOKORO_PHONEMIZER_PREFIX = `${URL_PREFIX}-kokoro/${PREVIOUS_VERSION_TAG}/phonemizer`;
+const KOKORO_VOICE_PREFIX = `${URL_PREFIX}/Kokoro-82M-ExecuTorch/${PREVIOUS_VERSION_TAG}/voices`;
+const KOKORO_PHONEMIZER_PREFIX = `${URL_PREFIX}/Kokoro-82M-ExecuTorch/${PREVIOUS_VERSION_TAG}/phonemizer`;
 
 const KOKORO_PHONEMIZER_EN_US_PREFIX = `${KOKORO_PHONEMIZER_PREFIX}/en-us`;
 const KOKORO_PHONEMIZER_EN_US_TAGGER = `${KOKORO_PHONEMIZER_EN_US_PREFIX}/tags.json`;

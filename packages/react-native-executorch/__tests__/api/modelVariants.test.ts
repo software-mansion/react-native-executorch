@@ -455,7 +455,7 @@ describe('feature map', () => {
     const found = new Set<string>();
     const walk = (value: unknown): void => {
       if (typeof value === 'string') {
-        const match = value.match(/react-native-executorch-([^/]+)\//);
+        const match = value.match(/huggingface\.co\/software-mansion\/([^/]+)\//);
         if (match) found.add(match[1]!);
       } else if (Array.isArray(value)) value.forEach(walk);
       else if (isObject(value)) Object.values(value).forEach(walk);
@@ -474,7 +474,7 @@ describe('feature map', () => {
     const source = readFileSync(join(__dirname, '../../legacy/src/constants/modelUrls.ts'), 'utf8');
     const bySlug = new Map<string, Set<string>>();
     for (const [, slug, backend] of source.matchAll(
-      /\$\{URL_PREFIX\}-([^/`]+)\/[^`]*?\/(xnnpack|coreml|mlx|vulkan)\//g
+      /\$\{URL_PREFIX\}\/([^/`]+)\/[^`]*?\/(xnnpack|coreml|mlx|vulkan)\//g
     )) {
       if (!bySlug.has(slug!)) bySlug.set(slug!, new Set());
       bySlug.get(slug!)!.add(backend!);

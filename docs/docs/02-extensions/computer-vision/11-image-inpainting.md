@@ -133,7 +133,7 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 ## Available Models
 
-The library provides ready-to-use inpainting models from the [Software Mansion HuggingFace MI-GAN repository](https://huggingface.co/software-mansion/react-native-executorch-migan), available in [`models.inpainting`](../../06-api-reference/variables/models.md#inpainting):
+The library provides ready-to-use inpainting models from the [Software Mansion HuggingFace MI-GAN repository](https://huggingface.co/software-mansion/MI-GAN-ExecuTorch), available in [`models.inpainting`](../../06-api-reference/variables/models.md#inpainting):
 
 | Model Family         | Variants                                                          | Size     | Supported Backends                           | Notes                                                                              |
 | :------------------- | :---------------------------------------------------------------- | :------- | :------------------------------------------- | :--------------------------------------------------------------------------------- |

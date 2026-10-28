@@ -64,14 +64,14 @@ fetch_fixture() {
 
 fetch_fixture \
   "selfie_segmentation_xnnpack_fp32.pte" \
-  "software-mansion/react-native-executorch-selfie-segmentation" \
+  "software-mansion/MediaPipe-Selfie-Segmentation-ExecuTorch" \
   "13a9494d8230279b47973b91c94b1aa902d307a6" \
   "xnnpack/selfie_segmentation_xnnpack_fp32.pte" \
   "176aba6a0719b56391586a3d19396315305c7adb5c16aafda350fecc596cebf9"
 
 fetch_fixture \
   "tokenizer.json" \
-  "software-mansion/react-native-executorch-whisper-tiny.en" \
+  "software-mansion/whisper-tiny.en-ExecuTorch" \
   "c99612ff807ef223f6316f33a4be7c587835a5ce" \
   "tokenizer.json" \
   "5eb60cec1e77aeeb6869a2bb5a8e01a84c3fe5d072d75369343021fe6f5310d0"
