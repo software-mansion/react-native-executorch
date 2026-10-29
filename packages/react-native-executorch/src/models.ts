@@ -2773,20 +2773,8 @@ export const models = {
       COREML_FP16: SELFIE_SEGMENTATION_LANDSCAPE_COREML_FP16,
     }),
     /**
-     * U²-Netp salient foreground segmentation at 320x320, for objects as well
-     * as people. Produces one foreground logit channel rather than object
-     * categories or separate instances. The export includes image-maximum
-     * scaling and ImageNet normalization; the configured preprocessor only
-     * scales RGB bytes to [0, 1].
-     *
-     * The segmenter applies sigmoid and returns foreground intensity in each
-     * RGB channel of an RGBA mask (0 = background, 255 = foreground), with
-     * opaque alpha and no colormap. Use an RGB channel as the alpha mask when
-     * compositing the original image. Thin structures can be missed.
-     *
-     * CoreML requires iOS 18+. FP16 favors speed and may shift mask boundaries;
-     * choose COREML_FP32 or XNNPACK_FP32 when boundary precision matters.
-     * Host measurements and CoreML placement still need on-device validation.
+     * Lightweight U²-Netp foreground segmentation at 320x320 for objects and
+     * people. Returns a soft grayscale foreground mask for background removal.
      */
     U2NETP: variants({
       XNNPACK_FP32: U2NETP_XNNPACK_FP32,
