@@ -20,7 +20,7 @@ PHONEMIS_DIR="third-party/common/phonemis"
 
 # npm only picks up a LICENSE that sits in the package directory, and ours
 # lives at the repo root, so the published tarball carried no license text at
-# all. Several of the notices it now reproduces (ExecuTorch, pffft, OpenCV)
+# all. Several of the notices it now reproduces (ExecuTorch, OpenCV)
 # require that in a redistribution. Copy it in for the pack and drop it again
 # so the working tree stays clean.
 cp "$(git rev-parse --show-toplevel)/LICENSE" LICENSE
