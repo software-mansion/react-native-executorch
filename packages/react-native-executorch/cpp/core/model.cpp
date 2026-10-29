@@ -105,19 +105,9 @@ ModelHostObject::ModelHostObject(const std::string &modelPath, const bool eagerL
 
         if (eagerLoadMethods && methodName != kGetModelSchemaMethod) {
             requireRegisteredBackends(modelPath_, methodName, backends_[methodName]);
-            auto loadCtx = std::format("Load method '{}' failed.\n"
-                                       "\n"
-                                       "Common causes:\n"
-                                       "  1. Backend not registered\n"
-                                       "     Ensure backends from `model.backends` are registered\n"
-                                       "     in the ExecuTorch runtime\n"
-                                       "     (use `getRegisteredBackends()` to check registered backends).\n"
-                                       "\n"
-                                       "  2. Bad model export\n"
-                                       "     The model export itself might be broken or incompatible\n"
-                                       "     with the currently linked ExecuTorch runtime version.\n"
-                                       "\n"
-                                       "Error",
+            // Every backend is registered by now, so a failure points at the export.
+            auto loadCtx = std::format("Load method '{}' failed. The model export might be broken or "
+                                       "incompatible with the linked ExecuTorch runtime version. Error",
                                        methodName);
             unwrap(RnExecuTorchErrorCode::LoadFailed, loadCtx, etModule_->load_method(methodName));
         }

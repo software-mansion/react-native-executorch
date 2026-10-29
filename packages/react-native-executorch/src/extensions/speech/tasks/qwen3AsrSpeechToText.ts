@@ -5,7 +5,7 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 import { scheduleOnRN, createSynchronizable } from 'react-native-worklets';
 
-import { tensor, type Tensor } from '../../../core/tensor';
+import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { wrapAsync } from '../../../core/runtime';
 import {
@@ -259,15 +259,46 @@ function splitAtQuietPoints(audio: Float32Array, maxSamples: number): [number, n
   return pieces;
 }
 
+/**
+ * Maps the language code in `options` to the name the model emits.
+ * @param options Transcription options.
+ * @returns The language name, or `undefined` to let the model detect it.
+ */
+function resolveLanguage(options?: Qwen3AsrSttOptions): string | undefined {
+  'worklet';
+  if (options?.language === undefined) return undefined;
+  const name = (QWEN3_ASR_LANGUAGES as Record<string, string>)[options.language];
+  if (name === undefined) {
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `Language "${options.language}" is not supported by Qwen3-ASR.`
+    );
+  }
+  return name;
+}
+
+// prettier-ignore
 const qwen3AsrSpec = (melFrames: SymbolicDim, audioTokens: SymbolicDim) => ({
-  ...method('preprocess', [f32(Dyn('Samples'))], [f32(1, MEL_BINS, Dyn('Frames'))]),
+  ...method(
+    'preprocess',
+    [f32(Dyn('Samples'))],
+    [f32(1, MEL_BINS, Dyn('Frames'))]
+  ),
   ...method(
     'audio_encoder', // One 8 s attention window: whole 100-frame chunks, plus the valid token count.
     [f32(1, MEL_BINS, melFrames), i64(1)],
     [f32(1, audioTokens, 'Dim')]
   ),
-  ...method('token_embedding', [i64(1, Dyn('Tokens'))], [f32(1, Dyn('Tokens'), 'Dim')]),
-  ...method('text_decoder', [f32(1, Dyn('PrefillLen'), 'Dim'), i64(1)], [f32(1, 'VocabSize')]),
+  ...method(
+    'token_embedding',
+    [i64(1, Dyn('Tokens'))],
+    [f32(1, Dyn('Tokens'), 'Dim')]
+  ),
+  ...method(
+    'text_decoder',
+    [f32(1, Dyn('PrefillLen'), 'Dim'), i64(1)],
+    [f32(1, 'VocabSize')]
+  ),
 });
 
 /**
@@ -349,24 +380,17 @@ export async function createQwen3AsrSpeechToText(
 
     const isCancelled = createSynchronizable(false);
 
-    // Runs `fn` with freshly allocated tensors, disposing them afterwards.
-    const withTensors = <R>(created: Tensor[], fn: () => R): R => {
-      'worklet';
-      try {
-        return fn();
-      } finally {
-        created.forEach((t) => t.dispose());
-      }
-    };
-
     const embedTokens = (ids: number[]): Float32Array => {
       'worklet';
       const tIds = tensor('int64', [1, ids.length], BigInt64Array.from(ids.map(BigInt)));
       const tOut = tensor('float32', [1, ids.length, dim]);
-      return withTensors([tIds, tOut], () => {
+      try {
         model.execute('token_embedding', [tIds], [tOut]);
         return tOut.getData(new Float32Array(ids.length * dim));
-      });
+      } finally {
+        tIds.dispose();
+        tOut.dispose();
+      }
     };
 
     const encodeAudio = (audio: Float32Array): Float32Array => {
@@ -374,10 +398,14 @@ export async function createQwen3AsrSpeechToText(
       const frames = Math.floor(audio.length / HOP_LENGTH);
       const tWave = tensor('float32', [audio.length], audio);
       const tMel = tensor('float32', [1, MEL_BINS, frames]);
-      const mel = withTensors([tWave, tMel], () => {
+      let mel: Float32Array;
+      try {
         model.execute('preprocess', [tWave], [tMel]);
-        return tMel.getData(new Float32Array(MEL_BINS * frames));
-      });
+        mel = tMel.getData(new Float32Array(MEL_BINS * frames));
+      } finally {
+        tWave.dispose();
+        tMel.dispose();
+      }
 
       const embeddings = new Float32Array(audioTokenCount(frames) * dim);
       let written = 0;
@@ -393,12 +421,15 @@ export async function createQwen3AsrSpeechToText(
         const outTokens = (width / CHUNK_FRAMES) * TOKENS_PER_CHUNK;
         const tWindow = tensor('float32', [1, MEL_BINS, width], window);
         const tOut = tensor('float32', [1, outTokens, dim]);
-        withTensors([tWindow, tOut], () => {
+        try {
           tValidTokens.setData(new BigInt64Array([BigInt(valid)]));
           model.execute('audio_encoder', [tWindow, tValidTokens], [tOut]);
           const out = tOut.getData(new Float32Array(outTokens * dim));
           embeddings.set(out.subarray(0, valid * dim), written);
-        });
+        } finally {
+          tWindow.dispose();
+          tOut.dispose();
+        }
         written += valid * dim;
       }
       return embeddings;
@@ -415,10 +446,12 @@ export async function createQwen3AsrSpeechToText(
           [1, n, dim],
           embeddings.subarray(offset * dim, (offset + n) * dim).slice()
         );
-        withTensors([tChunk], () => {
+        try {
           tPosition.setData(new BigInt64Array([BigInt(start + offset)]));
           model.execute('text_decoder', [tChunk, tPosition], [tLogits]);
-        });
+        } finally {
+          tChunk.dispose();
+        }
       }
       return tLogits.through(argmax, tArgmax).getData(new Int32Array(1))[0]!;
     };
@@ -483,19 +516,6 @@ export async function createQwen3AsrSpeechToText(
       const transcript = tokenizer.decode(Int32Array.from(generated)).trim();
       // `language None<asr_text>` marks audio with no speech in it.
       return !inTranscript && transcript.startsWith('language ') ? '' : transcript;
-    };
-
-    const resolveLanguage = (options?: Qwen3AsrSttOptions): string | undefined => {
-      'worklet';
-      if (options?.language === undefined) return undefined;
-      const name = (QWEN3_ASR_LANGUAGES as Record<string, string>)[options.language];
-      if (name === undefined) {
-        throw RnExecuTorchError(
-          'INVALID_ARGUMENT',
-          `Language "${options.language}" is not supported by Qwen3-ASR.`
-        );
-      }
-      return name;
     };
 
     const transcribeWorklet = (

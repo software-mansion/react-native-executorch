@@ -1576,42 +1576,49 @@ const FSMN_VAD_XNNPACK_FP32: FsmnVadModel = {
 // Speech-To-Text
 // =============================================================================
 const WHISPER_TINY_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_XNNPACK_INT8: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_COREML_FP16: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/coreml/whisper_tiny_en_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_MLX_BF16: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_tiny_en_mlx_bf16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_MLX_INT8: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_tiny_en_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_VULKAN_FP16: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_tiny_en_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_tiny_en_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
@@ -1619,42 +1626,49 @@ const WHISPER_TINY_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
 };
 
 const WHISPER_TINY_XNNPACK_INT8: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_tiny_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_XNNPACK_FP32: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_tiny_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_COREML_FP16: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/coreml/whisper_tiny_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_MLX_BF16: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/mlx/whisper_tiny_mlx_bf16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_MLX_INT8: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/mlx/whisper_tiny_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_VULKAN_FP16: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/vulkan/whisper_tiny_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_VULKAN_INT8: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/vulkan/whisper_tiny_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
@@ -1662,42 +1676,49 @@ const WHISPER_TINY_VULKAN_INT8: WhisperSttModel = {
 };
 
 const WHISPER_BASE_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_base_en_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_XNNPACK_INT8: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_base_en_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_COREML_FP16: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/coreml/whisper_base_en_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_MLX_BF16: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_base_en_mlx_bf16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_MLX_INT8: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_base_en_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_VULKAN_FP16: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_base_en_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_base_en_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
@@ -1705,42 +1726,49 @@ const WHISPER_BASE_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
 };
 
 const WHISPER_BASE_XNNPACK_INT8: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_base_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_XNNPACK_FP32: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_base_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_COREML_FP16: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/coreml/whisper_base_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_MLX_BF16: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/mlx/whisper_base_mlx_bf16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_MLX_INT8: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/mlx/whisper_base_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_VULKAN_FP16: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/vulkan/whisper_base_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_VULKAN_INT8: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/vulkan/whisper_base_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
@@ -1748,36 +1776,42 @@ const WHISPER_BASE_VULKAN_INT8: WhisperSttModel = {
 };
 
 const WHISPER_SMALL_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_small_en_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_EN_XNNPACK_INT8: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_small_en_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_EN_COREML_FP16: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/coreml/whisper_small_en_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_EN_MLX_INT8: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_small_en_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_EN_VULKAN_FP16: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_small_en_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_small_en_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
@@ -1785,36 +1819,42 @@ const WHISPER_SMALL_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
 };
 
 const WHISPER_SMALL_XNNPACK_INT8: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_small_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_XNNPACK_FP32: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_small_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_COREML_FP16: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/coreml/whisper_small_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_MLX_INT8: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/mlx/whisper_small_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_VULKAN_FP16: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/vulkan/whisper_small_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_VULKAN_INT8: WhisperSttModel = {
+  name: 'whisper',
   modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/vulkan/whisper_small_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,

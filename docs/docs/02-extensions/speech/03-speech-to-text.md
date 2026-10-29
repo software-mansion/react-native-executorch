@@ -21,7 +21,7 @@ keywords:
 
 # Speech-to-Text (STT)
 
-The Speech-to-Text extension transcribes spoken audio into text directly on-device using OpenAI's Whisper or Alibaba's [Qwen3-ASR](#qwen3-asr) paired with an integrated FSMN Voice Activity Detector (VAD).
+The Speech-to-Text extension transcribes spoken audio into text directly on-device using OpenAI's Whisper or Alibaba's [Qwen3-ASR](https://huggingface.co/Qwen/Qwen3-ASR-0.6B) paired with an integrated FSMN Voice Activity Detector (VAD).
 
 The pipeline supports two primary workflows:
 
@@ -203,17 +203,6 @@ const transcript = stt.transcribeWorklet(audioData, { language: 'en' });
 
 See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.md) for details on worklet execution contexts and zero-copy host objects.
 
-## Qwen3-ASR
-
-[Qwen3-ASR](https://huggingface.co/Qwen/Qwen3-ASR-0.6B) works with the same hook and the same `transcribe` / `stream` API. It detects the language by itself; pass `language` (one of [`QWEN3_ASR_LANGUAGES`](../../06-api-reference/variables/QWEN3_ASR_LANGUAGES.md)) only to force one:
-
-```typescript
-const stt = useSpeechToText(models.speechToText.QWEN3_ASR.SIZE_0_6B.DEFAULT);
-
-const transcript = await stt.transcribe(audioData); // auto-detect
-const french = await stt.transcribe(audioData, { language: 'fr' });
-```
-
 ## Available Models
 
 The library provides ready-to-use Whisper models from the [Software Mansion HuggingFace Whisper Collection](https://huggingface.co/collections/software-mansion/whisper), available in [`models.speechToText`](../../06-api-reference/variables/models.md#speechtotext):
@@ -223,7 +212,7 @@ The library provides ready-to-use Whisper models from the [Software Mansion Hugg
 | **Whisper Tiny**   | [`Multilingual`](../../06-api-reference/variables/models.md#speechtotextwhispertiny), [`English`](../../06-api-reference/variables/models.md#speechtotextwhisperentiny)   | 57.1 MB – 221.8 MB  | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | English / [`WHISPER_LANGUAGES`](../../06-api-reference/variables/WHISPER_LANGUAGES.md) (99+ languages) | Ultra-fast transcription with minimal RAM usage.                |
 | **Whisper Base**   | [`Multilingual`](../../06-api-reference/variables/models.md#speechtotextwhisperbase), [`English`](../../06-api-reference/variables/models.md#speechtotextwhisperenbase)   | 97.8 MB – 380.2 MB  | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | English / [`WHISPER_LANGUAGES`](../../06-api-reference/variables/WHISPER_LANGUAGES.md) (99+ languages) | Balanced accuracy and speed for general voice dictation.        |
 | **Whisper Small**  | [`Multilingual`](../../06-api-reference/variables/models.md#speechtotextwhispersmall), [`English`](../../06-api-reference/variables/models.md#speechtotextwhisperensmall) | 276.0 MB – 1.05 GB  | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | English / [`WHISPER_LANGUAGES`](../../06-api-reference/variables/WHISPER_LANGUAGES.md) (99+ languages) | High-capacity model for complex, noisy, or multi-speaker audio. |
-| **Qwen3-ASR 0.6B** | [`0.6B`](../../06-api-reference/variables/models.md#speechtotextqwen3_asr)                                                                                                | 707.7 MB – 808.1 MB | XNNPACK (CPU), Core ML + MLX (Apple)                          | [`QWEN3_ASR_LANGUAGES`](../../06-api-reference/variables/QWEN3_ASR_LANGUAGES.md) (30 languages)        | Automatic language detection.                                   |
+| **Qwen3-ASR 0.6B** | [`0.6B`](../../06-api-reference/variables/models.md#speechtotextqwen3_asr)                                                                                                | 707.7 MB – 808.1 MB | XNNPACK (CPU), Core ML + MLX (Apple)                          | [`QWEN3_ASR_LANGUAGES`](../../06-api-reference/variables/QWEN3_ASR_LANGUAGES.md) (30 languages)        | Detects the language; pass `language` only to force one.        |
 
 ## API Reference
 

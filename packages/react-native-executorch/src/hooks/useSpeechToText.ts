@@ -41,12 +41,16 @@ export function useSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
   downloadProgress: number;
   /** The config with every remote URL resolved to a local path. */
   resource: WhisperSttModel<L> | undefined;
+
+  // Offline transcription methods
   transcribe: WhisperSpeechToText<L>['transcribe'] | undefined;
-  transcribeWorklet: WhisperSpeechToText<L>['transcribeWorklet'] | undefined;
   transcribeStop: WhisperSpeechToText<L>['transcribeStop'] | undefined;
+  transcribeWorklet: WhisperSpeechToText<L>['transcribeWorklet'] | undefined;
+
+  // Live-streaming transcription methods
   stream: WhisperSpeechToText<L>['stream'] | undefined;
-  streamInsert: WhisperSpeechToText<L>['streamInsert'] | undefined;
   streamStop: WhisperSpeechToText<L>['streamStop'] | undefined;
+  streamInsert: WhisperSpeechToText<L>['streamInsert'] | undefined;
 };
 
 /**
@@ -77,12 +81,16 @@ export function useSpeechToText(
   downloadProgress: number;
   /** The config with every remote URL resolved to a local path. */
   resource: Qwen3AsrSttModel | undefined;
+
+  // Offline transcription methods
   transcribe: Qwen3AsrSpeechToText['transcribe'] | undefined;
-  transcribeWorklet: Qwen3AsrSpeechToText['transcribeWorklet'] | undefined;
   transcribeStop: Qwen3AsrSpeechToText['transcribeStop'] | undefined;
+  transcribeWorklet: Qwen3AsrSpeechToText['transcribeWorklet'] | undefined;
+
+  // Live-streaming transcription methods
   stream: Qwen3AsrSpeechToText['stream'] | undefined;
-  streamInsert: Qwen3AsrSpeechToText['streamInsert'] | undefined;
   streamStop: Qwen3AsrSpeechToText['streamStop'] | undefined;
+  streamInsert: Qwen3AsrSpeechToText['streamInsert'] | undefined;
 };
 
 /**
@@ -106,27 +114,31 @@ export function useSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
   downloadProgress: number;
   /** The config with every remote URL resolved to a local path. */
   resource: WhisperSttModel<L> | Qwen3AsrSttModel | undefined;
+
+  // Offline transcription methods
   transcribe: (WhisperSpeechToText<L> | Qwen3AsrSpeechToText)['transcribe'] | undefined;
+  transcribeStop: (WhisperSpeechToText<L> | Qwen3AsrSpeechToText)['transcribeStop'] | undefined;
   transcribeWorklet:
     | (WhisperSpeechToText<L> | Qwen3AsrSpeechToText)['transcribeWorklet']
     | undefined;
-  transcribeStop: (WhisperSpeechToText<L> | Qwen3AsrSpeechToText)['transcribeStop'] | undefined;
+
+  // Live-streaming transcription methods
   stream: (WhisperSpeechToText<L> | Qwen3AsrSpeechToText)['stream'] | undefined;
-  streamInsert: (WhisperSpeechToText<L> | Qwen3AsrSpeechToText)['streamInsert'] | undefined;
   streamStop: (WhisperSpeechToText<L> | Qwen3AsrSpeechToText)['streamStop'] | undefined;
+  streamInsert: (WhisperSpeechToText<L> | Qwen3AsrSpeechToText)['streamInsert'] | undefined;
 };
 
 export function useSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
   config: WhisperSttModel<L> | Qwen3AsrSttModel,
   options?: ResourceOptions
 ) {
-  // Qwen3-ASR configs carry a pipeline tag; Whisper configs predate it.
+  // Each config names the pipeline it belongs to; an untagged one is Whisper.
   const factory = (
     sttConfig: WhisperSttModel<L> | Qwen3AsrSttModel
   ): Promise<WhisperSpeechToText<L> | Qwen3AsrSpeechToText> =>
-    'name' in sttConfig && sttConfig.name === 'qwen3-asr'
+    sttConfig.name === 'qwen3-asr'
       ? createQwen3AsrSpeechToText(sttConfig)
-      : createWhisperSpeechToText(sttConfig as WhisperSttModel<L>);
+      : createWhisperSpeechToText(sttConfig);
 
   // Resolves the model, the tokenizer and the nested VAD model in one pass,
   // with progress weighted across all three.
