@@ -498,6 +498,5 @@
   "https://huggingface.co/software-mansion/U2NetP-ExecuTorch/resolve/v1.0.0/coreml/u2netp_coreml_fp16.pte": 3272420,
   "https://huggingface.co/software-mansion/U2NetP-ExecuTorch/resolve/v1.0.0/coreml/u2netp_coreml_fp32.pte": 5476362,
   "https://huggingface.co/software-mansion/U2NetP-ExecuTorch/resolve/v1.0.0/xnnpack/u2netp_xnnpack_int8.pte": 4007684,
-  "https://huggingface.co/software-mansion/U2NetP-ExecuTorch/resolve/v1.0.0/vulkan/u2netp_vulkan_fp16.pte": 2437516,
-  "https://huggingface.co/software-mansion/U2NetP-ExecuTorch/resolve/v1.0.0/vulkan/u2netp_vulkan_fp32.pte": 4646540
+  "https://huggingface.co/software-mansion/U2NetP-ExecuTorch/resolve/v1.0.0/vulkan/u2netp_vulkan_fp16.pte": 2437516
 }
