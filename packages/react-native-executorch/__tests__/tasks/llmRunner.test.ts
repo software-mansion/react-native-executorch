@@ -24,10 +24,24 @@ const TEXT_SPEC = exported({
   ...method('get_eos_ids', [], [{ kind: 'Int' }]),
 });
 
-const MULTIMODAL_SPEC = exported({
+const VISION_SPEC = exported({
   ...method('text_decoder', [f32(1, RangeDim(1, 128), 64), i64(RangeDim(1, 128))], [f32(1, 100)]),
   ...method('vision_encoder', [f32(1, 3, 32, 32)], [f32(1, 4, 64)]),
   ...method('token_embedding', [i64(1, RangeDim(1, 128))], [f32(1, RangeDim(1, 128), 64)]),
+  ...method('get_max_seq_len', [], [{ kind: 'Int' }]),
+  ...method('get_max_context_len', [], [{ kind: 'Int' }]),
+  ...method('get_vocab_size', [], [{ kind: 'Int' }]),
+  ...method('use_kv_cache', [], [{ kind: 'Bool' }]),
+  ...method('enable_dynamic_shape', [], [{ kind: 'Bool' }]),
+  ...method('get_eos_ids', [], [{ kind: 'Int' }]),
+});
+
+// 16 kHz waveform of 400 + 160k samples (k <= 20), 8 frames per audio token.
+const AUDIO_SPEC = exported({
+  ...method('text_decoder', [f32(1, RangeDim(1, 128), 64), i64(RangeDim(1, 128))], [f32(1, 100)]),
+  ...method('audio_encoder', [f32(1, RangeDim(400, 3600, 160))], [f32(1, RangeDim(1, 3), 64)]),
+  ...method('token_embedding', [i64(1, RangeDim(1, 128))], [f32(1, RangeDim(1, 128), 64)]),
+  ...method('get_audio_frames_per_token', [], [{ kind: 'Int' }]),
   ...method('get_max_seq_len', [], [{ kind: 'Int' }]),
   ...method('get_max_context_len', [], [{ kind: 'Int' }]),
   ...method('get_vocab_size', [], [{ kind: 'Int' }]),
@@ -87,6 +101,7 @@ function registerModelWithSchema(
     maxContextLen?: number;
     tokenIds?: readonly number[];
     onForward?: (inputs: readonly FakeTensor[]) => void;
+    onAudioEncode?: (inputs: readonly FakeTensor[]) => void;
   } = {}
 ) {
   const maxContextLen = options.maxContextLen ?? 512;
@@ -106,6 +121,8 @@ function registerModelWithSchema(
           return [true];
         case 'get_eos_ids':
           return [1];
+        case 'get_audio_frames_per_token':
+          return [8];
         case 'forward':
         case 'text_decoder': {
           options.onForward?.(_inputs as readonly FakeTensor[]);
@@ -117,6 +134,7 @@ function registerModelWithSchema(
           return undefined;
         }
         case 'audio_encoder': {
+          options.onAudioEncode?.(_inputs as readonly FakeTensor[]);
           const mask = outputs[1];
           if (mask) {
             for (let i = 0; i < mask.numel; i++) {
@@ -143,7 +161,7 @@ beforeEach(() => {
 
 describe.each([
   ['text', TEXT_SPEC, []],
-  ['multimodal', MULTIMODAL_SPEC, ['image']],
+  ['vision', VISION_SPEC, ['image']],
   ['gemma', GEMMA_SPEC, ['image', 'audio']],
 ] as const)('%s runner — streaming UTF-8', (_name, schema, modalities) => {
   function registerBytes(pieces: readonly (readonly number[])[]) {
@@ -155,6 +173,7 @@ describe.each([
     registerModelWithSchema(schema, { tokenIds: pieces.map((_, i) => i + 2) });
   }
 
+  // cspell:disable-next-line
   it.each(['हिन्दी', 'اردو', 'ไทย', '한국어', '😀', 'żółć', '中文'])(
     'preserves split bytes in %s',
     async (reply) => {
@@ -203,7 +222,7 @@ describe.each([
       chunks.push(text)
     );
 
-    expect(chunks).toEqual(_name === 'multimodal' ? ['', 'A'] : ['<eos>', 'A']);
+    expect(chunks).toEqual(_name === 'vision' ? ['', 'A'] : ['<eos>', 'A']);
   });
 
   it('does not carry a partial character into the next generation', async () => {
@@ -224,7 +243,7 @@ describe.each([
 
 describe.each([
   ['text', TEXT_SPEC, []],
-  ['multimodal', MULTIMODAL_SPEC, ['image']],
+  ['vision', VISION_SPEC, ['image']],
   ['gemma', GEMMA_SPEC, ['image', 'audio']],
 ] as const)('%s runner — sampling seeds', (_name, schema, modalities) => {
   it.each([
@@ -272,7 +291,7 @@ describe.each([
 
 describe.each([
   ['text', TEXT_SPEC, []],
-  ['multimodal', MULTIMODAL_SPEC, ['image']],
+  ['vision', VISION_SPEC, ['image']],
   ['gemma', GEMMA_SPEC, ['image', 'audio']],
 ] as const)('%s runner — prefill length', (_name, schema, modalities) => {
   const chunks: { length: number; pos: number }[] = [];
@@ -395,17 +414,30 @@ describe('createLLMRunner — variant dispatch & modalities validation', () => {
     );
   });
 
-  it('dispatches to vision multimodal runner when schema matches LLM_MULTIMODAL_SPEC', async () => {
-    registerModelWithSchema(MULTIMODAL_SPEC);
+  it('dispatches to vision multimodal runner when schema matches LLM_VISION_SPEC', async () => {
+    registerModelWithSchema(VISION_SPEC);
     const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH, ['image']));
     expect(runner).toBeDefined();
     expect(runner.modalities).toEqual(['image']);
   });
 
-  it('rejects multimodal runner if image modality is missing', async () => {
-    registerModelWithSchema(MULTIMODAL_SPEC);
+  it('rejects vision multimodal runner if image modality is missing', async () => {
+    registerModelWithSchema(VISION_SPEC);
     await expect(createLLMRunner(MODEL_PATH, TOKENIZER_PATH)).rejects.toThrow(
-      /Multimodal vision-language model requires 'image' in modalities/
+      /Multimodal model requires \[image\] modalities/
+    );
+  });
+
+  it('dispatches to audio multimodal runner when schema matches LLM_AUDIO_SPEC', async () => {
+    registerModelWithSchema(AUDIO_SPEC);
+    const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH, ['audio']));
+    expect(runner.modalities).toEqual(['audio']);
+  });
+
+  it('rejects audio multimodal runner if audio modality is missing', async () => {
+    registerModelWithSchema(AUDIO_SPEC);
+    await expect(createLLMRunner(MODEL_PATH, TOKENIZER_PATH, ['image'])).rejects.toThrow(
+      /Multimodal model requires \[audio\] modalities/
     );
   });
 
@@ -437,7 +469,7 @@ describe('createLLMRunner — variant dispatch & modalities validation', () => {
 
 describe('createLLMMultimodalRunner — execution & KV cache lifecycle', () => {
   beforeEach(() => {
-    registerModelWithSchema(MULTIMODAL_SPEC, { maxContextLen: 256 });
+    registerModelWithSchema(VISION_SPEC, { maxContextLen: 256 });
   });
 
   it('prefills text and updates KV cache position', async () => {
@@ -800,5 +832,55 @@ describe('createLLMGemmaRunner — execution & multimodal prefill', () => {
     runner.dispose();
     expect(fakeJsi.liveModels()).toEqual([]);
     expect(fakeJsi.liveTokenizers()).toEqual([]);
+  });
+});
+
+describe('createLLMMultimodalRunner — audio input', () => {
+  const encoderLengths: number[] = [];
+  beforeEach(() => {
+    encoderLengths.length = 0;
+    registerModelWithSchema(AUDIO_SPEC, {
+      onAudioEncode: (inputs) => encoderLengths.push(inputs[0]!.shape[1]!),
+    });
+  });
+
+  async function prefillAudio(numSamples: number) {
+    const model = await loadModel(MODEL_PATH);
+    const tokenizer = await loadTokenizer(TOKENIZER_PATH);
+    const runner = tracked(createLLMMultimodalRunner(model, tokenizer, ['audio']));
+    const wav = tensor('float32', [1, numSamples]);
+    try {
+      return { stats: runner.prefill([{ kind: 'audio', audio: wav }]), runner };
+    } finally {
+      wav.dispose();
+    }
+  }
+
+  it('right-pads a clip to the next hop and prefills ceil(frames / 8) tokens', async () => {
+    // 1000 samples -> 400 + 4 * 160 = 1040 -> 5 frames -> 1 token.
+    const { stats, runner } = await prefillAudio(1000);
+    expect(encoderLengths).toEqual([1040]);
+    expect(stats.numTokens).toBe(1);
+    expect(runner.getKVCacheState().pos).toBe(1);
+  });
+
+  it('encodes a clip longer than the encoder accepts in hop-aligned chunks', async () => {
+    // Chunks of 3600 - 400 + 160 = 3360 samples: 3360 -> 3440 (20 frames, 3 tokens),
+    // then 1640 -> 1680 (9 frames, 2 tokens).
+    const { stats } = await prefillAudio(5000);
+    expect(encoderLengths).toEqual([3440, 1680]);
+    expect(stats.numTokens).toBe(5);
+  });
+
+  it('rejects an image on an audio model', async () => {
+    const model = await loadModel(MODEL_PATH);
+    const tokenizer = await loadTokenizer(TOKENIZER_PATH);
+    const runner = tracked(createLLMMultimodalRunner(model, tokenizer, ['audio']));
+    const img = tensor('float32', [1, 3, 32, 32]);
+    try {
+      expect(() => runner.prefill([{ kind: 'image', image: img }])).toThrow();
+    } finally {
+      img.dispose();
+    }
   });
 });
