@@ -4,9 +4,11 @@ import { tensor } from '../../../core/tensor';
 import type { Model } from '../../../core/model';
 import { RnExecuTorchError } from '../../../core/error';
 import { f32, i64, method, validateSpec, DynamicDim as Dyn } from '../../../core/schema';
+import type { Range } from '../../../core/schema';
 
 import type { Tokenizer } from '../../nlp';
 import { sample } from '../sampler';
+import { combineStats } from '../utils/prefillStats';
 
 import type {
   LLMGenerationConfig,
@@ -85,28 +87,35 @@ export function createLLMMultimodalRunner(
     vision: LLM_VISION_SPEC,
     audio: LLM_AUDIO_SPEC,
   });
-  const modality: Modality = variant === 'vision' ? 'image' : 'audio';
+  const specModalities: readonly Modality[] = {
+    vision: ['image'] as const,
+    audio: ['audio'] as const,
+  }[variant];
 
-  if (!modalities?.includes(modality)) {
+  if (
+    modalities?.length !== specModalities.length ||
+    modalities.some((m) => !specModalities.includes(m))
+  ) {
     throw RnExecuTorchError(
       'INVALID_ARGUMENT',
-      `Multimodal model with an ${modality} encoder requires '${modality}' in modalities.`
+      `Multimodal model requires [${specModalities}] modalities.`
     );
   }
 
   const [vocabSize, hiddenDim] = dims.constant('vocabSize', 'hiddenDim');
   const maxSeqLen = dim('seqLen', 'range').max;
 
-  let imgShape: readonly [1, 3, number, number] = [1, 3, 0, 0];
-  let numVisualTokens = 0;
-  let audioSamples = { min: 0, max: 0, step: 1 };
-  let framesPerToken = 1;
-  if (variant === 'vision') {
-    const [imgH, imgW] = dims.constant('imgH', 'imgW');
-    imgShape = [1, 3, imgH, imgW] as const;
-    [numVisualTokens] = dims.constant('visualTokens');
-  } else {
-    audioSamples = dim('audioSamples', 'range');
+  let imgShape: readonly [1, 3, number, number];
+  let numVisualTokens: number;
+  if (modalities.includes('image')) {
+    imgShape = [1, 3, ...dims.constant('imgH', 'imgW')];
+    numVisualTokens = dim('visualTokens', 'constant');
+  }
+
+  let audioSamples: Range;
+  let framesPerToken: number;
+  if (modalities.includes('audio')) {
+    [audioSamples] = dims.range('audioSamples');
     [framesPerToken] = model.execute('get_audio_frames_per_token', [], []) as [number];
   }
 
@@ -276,7 +285,7 @@ export function createLLMMultimodalRunner(
     'worklet';
     isCancelled.setBlocking(false);
 
-    if (variant !== 'vision') {
+    if (!modalities.includes('image')) {
       throw RnExecuTorchError('INVALID_ARGUMENT', 'prefill: This model has no vision encoder.');
     }
     if (prompt.image.dtype !== 'float32') {
@@ -309,7 +318,7 @@ export function createLLMMultimodalRunner(
     'worklet';
     isCancelled.setBlocking(false);
 
-    if (variant !== 'audio') {
+    if (!modalities.includes('audio')) {
       throw RnExecuTorchError('INVALID_ARGUMENT', 'prefill: This model has no audio encoder.');
     }
     if (prompt.audio.dtype !== 'float32') {
@@ -333,9 +342,11 @@ export function createLLMMultimodalRunner(
     let offset = 0;
     while (offset < numSamples && !isCancelled.getBlocking()) {
       const chunkSamples = Math.min(numSamples - offset, chunkStride);
+
       // Right-pad to window + k * hop samples, as the feature extractor does.
-      const padded =
-        chunkSamples <= window ? window : window + Math.ceil((chunkSamples - window) / hop) * hop;
+      const k = Math.ceil((chunkSamples - window) / hop);
+      const padded = chunkSamples <= window ? window : window + k * hop;
+
       const numFrames = 1 + (padded - window) / hop;
       const numAudioTokens = Math.ceil(numFrames / framesPerToken);
 
@@ -347,10 +358,7 @@ export function createLLMMultimodalRunner(
         model.execute('audio_encoder', [tWaveform], [tAudioEmbeds]);
         const embedding = tAudioEmbeds.getData(new Float32Array(tAudioEmbeds.numel));
         const stats = prefillEmbeddings(embedding, numAudioTokens, prefillLen);
-        const numTokens = totStats.numTokens + stats.numTokens;
-        const durationMs = totStats.durationMs + stats.durationMs;
-        const tokensPerSecond = durationMs > 0 ? (numTokens / durationMs) * 1000 : 0;
-        totStats = { numTokens, durationMs, tokensPerSecond };
+        totStats = combineStats(totStats, stats);
       } finally {
         tWaveform.dispose();
         tAudioEmbeds.dispose();
@@ -382,29 +390,22 @@ export function createLLMMultimodalRunner(
     }
 
     let totStats: LLMPrefillStats = { numTokens: 0, durationMs: 0, tokensPerSecond: 0 };
-    const combine = (st1: LLMPrefillStats, st2: LLMPrefillStats): LLMPrefillStats => {
-      const numTokens = st1.numTokens + st2.numTokens;
-      const durationMs = st1.durationMs + st2.durationMs;
-      const tokensPerSecond = durationMs > 0 ? (numTokens / durationMs) * 1000 : 0;
-      return { numTokens, durationMs, tokensPerSecond };
-    };
-
     for (const segment of segments) {
       if (typeof segment === 'string') {
         const stats = prefillText(segment, prefillLen);
-        totStats = combine(totStats, stats);
+        totStats = combineStats(totStats, stats);
         continue;
       }
 
       switch (segment.kind) {
         case 'image': {
           const stats = prefillImage(segment, prefillLen);
-          totStats = combine(totStats, stats);
+          totStats = combineStats(totStats, stats);
           break;
         }
         case 'audio': {
           const stats = prefillAudio(segment, prefillLen);
-          totStats = combine(totStats, stats);
+          totStats = combineStats(totStats, stats);
           break;
         }
         default:
@@ -492,7 +493,7 @@ export function createLLMMultimodalRunner(
     // Metadata
     modelPath: model.path,
     tokenizerPath: tokenizer.path,
-    modalities: [modality],
+    modalities: specModalities,
 
     // Lifecycle & Execution
     dispose,

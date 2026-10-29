@@ -424,7 +424,7 @@ describe('createLLMRunner — variant dispatch & modalities validation', () => {
   it('rejects vision multimodal runner if image modality is missing', async () => {
     registerModelWithSchema(VISION_SPEC);
     await expect(createLLMRunner(MODEL_PATH, TOKENIZER_PATH)).rejects.toThrow(
-      /Multimodal model with an image encoder requires 'image' in modalities/
+      /Multimodal model requires \[image\] modalities/
     );
   });
 
@@ -437,7 +437,7 @@ describe('createLLMRunner — variant dispatch & modalities validation', () => {
   it('rejects audio multimodal runner if audio modality is missing', async () => {
     registerModelWithSchema(AUDIO_SPEC);
     await expect(createLLMRunner(MODEL_PATH, TOKENIZER_PATH, ['image'])).rejects.toThrow(
-      /requires 'audio' in modalities/
+      /Multimodal model requires \[audio\] modalities/
     );
   });
 
