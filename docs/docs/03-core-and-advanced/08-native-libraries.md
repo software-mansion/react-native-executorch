@@ -95,8 +95,8 @@ Specifying a task under `features` is shorthand: it automatically expands to the
 | `classification`       | xnnpack, coreml              | opencv              |
 | `depthEstimation`      | xnnpack, coreml, vulkan      | opencv              |
 | `objectDetection`      | xnnpack, coreml, vulkan      | opencv              |
-| `keypointDetection`    | xnnpack, coreml, vulkan      | opencv              |
-| `semanticSegmentation` | xnnpack, coreml              | opencv              |
+| `keypointDetection`    | xnnpack, coreml, mlx, vulkan | opencv              |
+| `semanticSegmentation` | xnnpack, coreml, vulkan      | opencv              |
 | `instanceSegmentation` | xnnpack, coreml, vulkan      | opencv              |
 | `ocr`                  | xnnpack, coreml, vulkan      | opencv              |
 | `verticalOCR`          | xnnpack                      | opencv              |

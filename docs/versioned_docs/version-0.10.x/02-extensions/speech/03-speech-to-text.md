@@ -121,7 +121,7 @@ function TranscriptionComponent() {
 ```
 
 :::tip Full Interactive Example in Gallery App
-See [`src/app/(screens)/speech-to-text.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/speech-to-text.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen featuring microphone controls, live audio streaming, and animated transcription UI.
+See [`src/app/(screens)/speech-to-text.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/v0.1.0/src/app/(screens)/speech-to-text.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery/tree/v0.1.0) for a complete, runnable screen featuring microphone controls, live audio streaming, and animated transcription UI.
 :::
 
 ## Output Format & Live Streaming
