@@ -57,7 +57,17 @@ const djb2 = (s: string): number => {
 
 const isRemote = (source: string): boolean => /^https?:\/\//.test(source);
 
-function cachePathFor(url: string): string {
+/**
+ * Returns the persistent resource path used by {@link download} without downloading
+ * or checking whether it exists. Repository aliases and query parameters use the
+ * same cache identity as downloads. Local paths lose any `file://` prefix.
+ * @category Utils / Functions
+ * @param source The remote resource URL or local file path.
+ * @returns The persistent cache path or the supplied local path.
+ */
+export function getResourceCachePath(source: string): string {
+  if (!isRemote(source)) return source.replace(/^file:\/\//, '');
+  const url = source;
   const urlWithoutQuery = url.split('?')[0]!;
   const basename = urlWithoutQuery.split('/').pop() || 'model';
   // Hash guards against basename collisions across different repos/versions.
@@ -224,7 +234,7 @@ const inFlight = new Map<string, InFlightDownload>();
 async function downloadUrl(url: string, cb: DownloadUrlCallbacks): Promise<string> {
   if (cb.signal?.aborted) throw abortError();
 
-  const dest = cachePathFor(url);
+  const dest = getResourceCachePath(url);
 
   if (cb.forceDownload) {
     // Drop the cached copy so the checks below fall through to a real fetch.
@@ -800,7 +810,7 @@ export async function download<T>(source: T, options: DownloadOptions = {}): Pro
   const measured = await Promise.all(
     urls.map(async (url) => {
       if (!options.forceDownload) {
-        const cached = await fileSize(cachePathFor(url));
+        const cached = await fileSize(getResourceCachePath(url));
         if (cached > 0) return { size: cached, pending: undefined, cached: true };
       }
       return { size: 0, pending: remoteSize(url, options.signal), cached: false };
