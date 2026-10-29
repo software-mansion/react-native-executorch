@@ -482,6 +482,34 @@ const SELFIE_SEGMENTATION_LANDSCAPE_COREML_FP16: SemanticSegmenterModel<'backgro
   modelOpts: SELFIE_SEGMENTATION_XNNPACK_FP32.modelOpts,
 };
 
+const U2NETP_OPTS = {
+  labels: ['background', 'foreground'] as const,
+  resizeMode: 'stretch' as const,
+  interpolation: 'linear' as const,
+  normalizeOpts: { alpha: 1 / 255, beta: 0 },
+  outInterpolation: 'linear' as const,
+};
+const U2NETP_XNNPACK_FP32: SemanticSegmenterModel<'background' | 'foreground'> = {
+  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/xnnpack/u2netp_xnnpack_fp32.pte`,
+  modelOpts: U2NETP_OPTS,
+};
+const U2NETP_XNNPACK_INT8: SemanticSegmenterModel<'background' | 'foreground'> = {
+  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/xnnpack/u2netp_xnnpack_int8.pte`,
+  modelOpts: U2NETP_OPTS,
+};
+const U2NETP_VULKAN_FP16: SemanticSegmenterModel<'background' | 'foreground'> = {
+  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/vulkan/u2netp_vulkan_fp16.pte`,
+  modelOpts: U2NETP_OPTS,
+};
+const U2NETP_COREML_FP16: SemanticSegmenterModel<'background' | 'foreground'> = {
+  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/coreml/u2netp_coreml_fp16.pte`,
+  modelOpts: U2NETP_OPTS,
+};
+const U2NETP_COREML_FP32: SemanticSegmenterModel<'background' | 'foreground'> = {
+  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/coreml/u2netp_coreml_fp32.pte`,
+  modelOpts: U2NETP_OPTS,
+};
+
 const LRASPP_MOBILENET_V3_LARGE_OPTS = {
   labels: PASCAL_VOC_LABELS,
   resizeMode: 'stretch' as const,
@@ -2752,6 +2780,18 @@ export const models = {
     SELFIE_SEGMENTATION_LANDSCAPE: variants({
       XNNPACK_FP32: SELFIE_SEGMENTATION_LANDSCAPE_XNNPACK_FP32,
       COREML_FP16: SELFIE_SEGMENTATION_LANDSCAPE_COREML_FP16,
+    }),
+    /**
+     * Lightweight U²-Netp foreground segmentation at 320x320 for objects and
+     * people. Returns a soft grayscale foreground mask for background removal.
+     * INT8 and Vulkan FP16 retain sensitive operations in FP32.
+     */
+    U2NETP: variants({
+      XNNPACK_FP32: U2NETP_XNNPACK_FP32,
+      XNNPACK_INT8: U2NETP_XNNPACK_INT8,
+      COREML_FP16: U2NETP_COREML_FP16,
+      COREML_FP32: U2NETP_COREML_FP32,
+      VULKAN_FP16: U2NETP_VULKAN_FP16,
     }),
     /**
      * Lite R-ASPP semantic segmentation model with MobileNetV3-Large backbone

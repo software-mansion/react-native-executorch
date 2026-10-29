@@ -166,8 +166,8 @@ const FEATURE_MAP = {
   },
   // Depth Anything V2, V3 and ZipDepth ship xnnpack, coreml and vulkan.
   depthEstimation: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
-  // DeepLab/FCN/LR-ASPP/selfie all ship xnnpack + coreml.
-  semanticSegmentation: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  // DeepLab/FCN/LR-ASPP/selfie ship xnnpack + coreml; U2NetP adds vulkan.
+  semanticSegmentation: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
   // YOLO-seg xnnpack-only, rf_detr-seg/fastsam add coreml, and all three ship
   // vulkan Android exports → union.
   instanceSegmentation: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },

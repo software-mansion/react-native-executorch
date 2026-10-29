@@ -493,5 +493,10 @@
   "https://huggingface.co/software-mansion/all-mpnet-base-v2-ExecuTorch/resolve/v0.11.0/vulkan/all_mpnet_base_v2_vulkan_fp16.pte": 217937154,
   "https://huggingface.co/software-mansion/all-MiniLM-L6-v2-ExecuTorch/resolve/v0.11.0/vulkan/all_minilm_l6_v2_vulkan_fp16.pte": 45208066,
   "https://huggingface.co/software-mansion/all-MiniLM-L6-v2-ExecuTorch/resolve/v0.11.0/xnnpack/all_minilm_l6_v2_xnnpack_fp32.pte": 90391296,
-  "https://huggingface.co/software-mansion/all-MiniLM-L6-v2-ExecuTorch/resolve/v0.11.0/coreml/all_minilm_l6_v2_coreml_fp16.pte": 45460244
+  "https://huggingface.co/software-mansion/all-MiniLM-L6-v2-ExecuTorch/resolve/v0.11.0/coreml/all_minilm_l6_v2_coreml_fp16.pte": 45460244,
+  "https://huggingface.co/software-mansion/U2NetP-ExecuTorch/resolve/v1.0.0/xnnpack/u2netp_xnnpack_fp32.pte": 4610948,
+  "https://huggingface.co/software-mansion/U2NetP-ExecuTorch/resolve/v1.0.0/coreml/u2netp_coreml_fp16.pte": 3272420,
+  "https://huggingface.co/software-mansion/U2NetP-ExecuTorch/resolve/v1.0.0/coreml/u2netp_coreml_fp32.pte": 5476362,
+  "https://huggingface.co/software-mansion/U2NetP-ExecuTorch/resolve/v1.0.0/xnnpack/u2netp_xnnpack_int8.pte": 4007684,
+  "https://huggingface.co/software-mansion/U2NetP-ExecuTorch/resolve/v1.0.0/vulkan/u2netp_vulkan_fp16.pte": 2437516
 }
