@@ -482,31 +482,32 @@ const SELFIE_SEGMENTATION_LANDSCAPE_COREML_FP16: SemanticSegmenterModel<'backgro
   modelOpts: SELFIE_SEGMENTATION_XNNPACK_FP32.modelOpts,
 };
 
+const U2NETP_OPTS = {
+  labels: ['background', 'foreground'] as const,
+  resizeMode: 'stretch' as const,
+  interpolation: 'linear' as const,
+  normalizeOpts: { alpha: 1 / 255, beta: 0 },
+  outInterpolation: 'linear' as const,
+};
 const U2NETP_XNNPACK_FP32: SemanticSegmenterModel<'background' | 'foreground'> = {
   modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/xnnpack/u2netp_xnnpack_fp32.pte`,
-  modelOpts: {
-    labels: ['background', 'foreground'] as const,
-    resizeMode: 'stretch',
-    interpolation: 'linear',
-    normalizeOpts: { alpha: 1 / 255, beta: 0 },
-    outInterpolation: 'linear',
-  },
+  modelOpts: U2NETP_OPTS,
 };
 const U2NETP_XNNPACK_INT8: SemanticSegmenterModel<'background' | 'foreground'> = {
   modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/xnnpack/u2netp_xnnpack_int8.pte`,
-  modelOpts: U2NETP_XNNPACK_FP32.modelOpts,
+  modelOpts: U2NETP_OPTS,
 };
 const U2NETP_VULKAN_FP16: SemanticSegmenterModel<'background' | 'foreground'> = {
   modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/vulkan/u2netp_vulkan_fp16.pte`,
-  modelOpts: U2NETP_XNNPACK_FP32.modelOpts,
+  modelOpts: U2NETP_OPTS,
 };
 const U2NETP_COREML_FP16: SemanticSegmenterModel<'background' | 'foreground'> = {
   modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/coreml/u2netp_coreml_fp16.pte`,
-  modelOpts: U2NETP_XNNPACK_FP32.modelOpts,
+  modelOpts: U2NETP_OPTS,
 };
 const U2NETP_COREML_FP32: SemanticSegmenterModel<'background' | 'foreground'> = {
   modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/coreml/u2netp_coreml_fp32.pte`,
-  modelOpts: U2NETP_XNNPACK_FP32.modelOpts,
+  modelOpts: U2NETP_OPTS,
 };
 
 const LRASPP_MOBILENET_V3_LARGE_OPTS = {
