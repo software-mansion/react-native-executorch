@@ -8,7 +8,6 @@ import type { Range } from '../../../core/schema';
 
 import type { Tokenizer } from '../../nlp';
 import { sample } from '../sampler';
-import { combineStats } from '../utils/prefillStats';
 
 import type {
   LLMGenerationConfig,
@@ -77,6 +76,14 @@ export const LLM_AUDIO_SPEC = {
   ...method('get_audio_frames_per_token', [], [{ kind: 'Int' }]),
   ...METADATA_SPEC,
 };
+
+function combineStats(st1: LLMPrefillStats, st2: LLMPrefillStats): LLMPrefillStats {
+  'worklet';
+  const numTokens = st1.numTokens + st2.numTokens;
+  const durationMs = st1.durationMs + st2.durationMs;
+  const tokensPerSecond = durationMs > 0 ? (numTokens / durationMs) * 1000 : 0;
+  return { numTokens, durationMs, tokensPerSecond };
+}
 
 export function createLLMMultimodalRunner(
   model: Model,

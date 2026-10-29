@@ -14,7 +14,6 @@ import {
 
 import type { Tokenizer } from '../../nlp';
 import { sample } from '../sampler';
-import { combineStats } from '../utils/prefillStats';
 
 import type {
   LLMGenerationConfig,
@@ -87,6 +86,14 @@ const AUDIO_SAMPLES_PER_BLOCK = 7680;
 const TOKENS_PER_AUDIO_BLOCK = 12;
 const MAX_AUDIO_BLOCKS = 62;
 const MAX_AUDIO_CHUNK_SAMPLES = MAX_AUDIO_BLOCKS * AUDIO_SAMPLES_PER_BLOCK;
+
+function combineStats(st1: LLMPrefillStats, st2: LLMPrefillStats): LLMPrefillStats {
+  'worklet';
+  const numTokens = st1.numTokens + st2.numTokens;
+  const durationMs = st1.durationMs + st2.durationMs;
+  const tokensPerSecond = durationMs > 0 ? (numTokens / durationMs) * 1000 : 0;
+  return { numTokens, durationMs, tokensPerSecond };
+}
 
 export function createLLMGemmaRunner(
   model: Model,
