@@ -2785,16 +2785,13 @@ export const models = {
      * people. Returns a soft grayscale foreground mask for background removal.
      * INT8 and Vulkan FP16 retain sensitive operations in FP32.
      */
-    U2NETP: variants(
-      {
-        XNNPACK_FP32: U2NETP_XNNPACK_FP32,
-        XNNPACK_INT8: U2NETP_XNNPACK_INT8,
-        COREML_FP16: U2NETP_COREML_FP16,
-        COREML_FP32: U2NETP_COREML_FP32,
-        VULKAN_FP16: U2NETP_VULKAN_FP16,
-      },
-      { android: 'XNNPACK_FP32' }
-    ),
+    U2NETP: variants({
+      XNNPACK_FP32: U2NETP_XNNPACK_FP32,
+      XNNPACK_INT8: U2NETP_XNNPACK_INT8,
+      COREML_FP16: U2NETP_COREML_FP16,
+      COREML_FP32: U2NETP_COREML_FP32,
+      VULKAN_FP16: U2NETP_VULKAN_FP16,
+    }),
     /**
      * Lite R-ASPP semantic segmentation model with MobileNetV3-Large backbone
      * (21 classes, see {@link PASCAL_VOC_LABELS}). Optimized for low-latency,

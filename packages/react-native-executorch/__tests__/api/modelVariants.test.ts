@@ -97,20 +97,15 @@ function registryFor(options: {
 
 /**
  * Every `variants(...)` call in the registry source, with the variant keys it
- * lists and whether it pins one for either platform.
+ * lists and whether it pins one for iOS.
  *
  * Prettier gives the two call shapes distinct first lines — `variants({` when
  * the group takes no pins, `variants(` when it does — which is what this reads.
  * @returns One entry per call, in source order.
  */
-function variantsCalls(): {
-  name: string;
-  keys: string[];
-  pinsIos: boolean;
-  pinsAndroid: boolean;
-}[] {
+function variantsCalls(): { name: string; keys: string[]; pinsIos: boolean }[] {
   const source = readFileSync(join(__dirname, '../../src/models.ts'), 'utf8').split('\n');
-  const calls: { name: string; keys: string[]; pinsIos: boolean; pinsAndroid: boolean }[] = [];
+  const calls: { name: string; keys: string[]; pinsIos: boolean }[] = [];
 
   for (let line = 0; line < source.length; line++) {
     const opened = source[line]!.match(/^(\s*)([A-Z][A-Z0-9_]*): variants\((\{?)$/);
@@ -123,12 +118,7 @@ function variantsCalls(): {
 
     const body = source.slice(line + 1, end);
     const keys = body.flatMap((entry) => entry.match(/^\s*([A-Z][A-Z0-9_]*):/)?.slice(1) ?? []);
-    calls.push({
-      name: name!,
-      keys,
-      pinsIos: body.some((entry) => /\bios:/.test(entry)),
-      pinsAndroid: body.some((entry) => /\bandroid:/.test(entry)),
-    });
+    calls.push({ name: name!, keys, pinsIos: body.some((entry) => /\bios:/.test(entry)) });
     line = end;
   }
 
@@ -201,14 +191,8 @@ describe('DEFAULT variant resolution', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('prefers Vulkan over XNNPACK on Android wherever a Vulkan export exists and nothing is pinned', () => {
-    const pinned = new Set(
-      variantsCalls()
-        .filter(({ pinsAndroid }) => pinsAndroid)
-        .map(({ name }) => name)
-    );
+  it('prefers Vulkan over XNNPACK on Android wherever a Vulkan export exists', () => {
     const offenders = defaultsOf(registryFor({ os: 'android' }))
-      .filter(({ label }) => !pinned.has(label.split('.').pop()!))
       .filter(({ offers }) => offers.some((key) => key.startsWith('VULKAN')))
       .filter(({ key }) => key !== undefined && !key.startsWith('VULKAN'))
       .map(({ label, key }) => `${label}: ${key}`);
@@ -316,7 +300,7 @@ describe('DEFAULT variant resolution', () => {
 });
 
 describe('variant selection rules', () => {
-  /** The distiluse group, which pins MLX over Core ML on iOS. */
+  /** The distiluse group, the one place a pin overrides the backend order. */
   const distiluse = (registry: Node): Node =>
     (registry.textEmbeddings as Node).DISTILUSE_BASE_MULTILINGUAL_CASED_V2 as Node;
 
