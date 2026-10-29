@@ -99,7 +99,7 @@ function MyComponent() {
 ```
 
 :::tip Full Interactive Example in Gallery App
-See [`src/app/(screens)/instance-segmentation.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/instance-segmentation.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen with photo picker, colored instance polygon overlays, and latency tracking.
+See [`src/app/(screens)/instance-segmentation.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/v0.1.0/src/app/(screens)/instance-segmentation.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery/tree/v0.1.0) for a complete, runnable screen with photo picker, colored instance polygon overlays, and latency tracking.
 :::
 
 ## Output Format

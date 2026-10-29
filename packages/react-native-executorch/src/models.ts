@@ -236,11 +236,10 @@ function registerDeprecations(node: object, path: string): void {
 
 const BASE_URL = 'https://huggingface.co/software-mansion';
 // Every model currently resolves through VERSION_TAG, the latest published
-// stable tag. `NEXT_VERSION_TAG = 'resolve/v1.0.0'` gets declared next to this
-// one by the first model re-exported for 1.0, and each such model's URL moves
-// over to it; the constant is absent until then rather than declared and unused,
-// because noUnusedLocals rejects a constant nothing reads.
+// stable tag, except models first published for 1.0 (LFM3), which resolve
+// through NEXT_VERSION_TAG. Re-exported models move over to it as well.
 const VERSION_TAG = 'resolve/v0.11.0';
+const NEXT_VERSION_TAG = 'resolve/v1.0.0';
 
 // =============================================================================
 // Classification
@@ -483,6 +482,34 @@ const SELFIE_SEGMENTATION_LANDSCAPE_XNNPACK_FP32: SemanticSegmenterModel<'backgr
 const SELFIE_SEGMENTATION_LANDSCAPE_COREML_FP16: SemanticSegmenterModel<'background' | 'person'> = {
   modelPath: `${BASE_URL}/MediaPipe-Selfie-Segmentation-ExecuTorch/${VERSION_TAG}/coreml/selfie_segmentation_landscape_coreml_fp16.pte`,
   modelOpts: SELFIE_SEGMENTATION_XNNPACK_FP32.modelOpts,
+};
+
+const U2NETP_OPTS = {
+  labels: ['background', 'foreground'] as const,
+  resizeMode: 'stretch' as const,
+  interpolation: 'linear' as const,
+  normalizeOpts: { alpha: 1 / 255, beta: 0 },
+  outInterpolation: 'linear' as const,
+};
+const U2NETP_XNNPACK_FP32: SemanticSegmenterModel<'background' | 'foreground'> = {
+  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/xnnpack/u2netp_xnnpack_fp32.pte`,
+  modelOpts: U2NETP_OPTS,
+};
+const U2NETP_XNNPACK_INT8: SemanticSegmenterModel<'background' | 'foreground'> = {
+  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/xnnpack/u2netp_xnnpack_int8.pte`,
+  modelOpts: U2NETP_OPTS,
+};
+const U2NETP_VULKAN_FP16: SemanticSegmenterModel<'background' | 'foreground'> = {
+  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/vulkan/u2netp_vulkan_fp16.pte`,
+  modelOpts: U2NETP_OPTS,
+};
+const U2NETP_COREML_FP16: SemanticSegmenterModel<'background' | 'foreground'> = {
+  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/coreml/u2netp_coreml_fp16.pte`,
+  modelOpts: U2NETP_OPTS,
+};
+const U2NETP_COREML_FP32: SemanticSegmenterModel<'background' | 'foreground'> = {
+  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/coreml/u2netp_coreml_fp32.pte`,
+  modelOpts: U2NETP_OPTS,
 };
 
 const LRASPP_MOBILENET_V3_LARGE_OPTS = {
@@ -2348,6 +2375,86 @@ const LFM2_5_VL_1_6B_MLX_INT8: LLMModel = {
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 
+const LFM3_BASE_URL = `${BASE_URL}/LFM3-ExecuTorch/${NEXT_VERSION_TAG}`;
+
+const LFM3_1_7B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${LFM3_BASE_URL}/1_7b/xnnpack/lfm_3_1_7b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${LFM3_BASE_URL}/1_7b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM3_BASE_URL}/1_7b/tokenizer_config.json`,
+};
+const LFM3_1_7B_MLX_INT4: LLMModel = {
+  modelPath: `${LFM3_BASE_URL}/1_7b/mlx/lfm_3_1_7b_mlx_int4.pte`,
+  tokenizerPath: `${LFM3_BASE_URL}/1_7b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM3_BASE_URL}/1_7b/tokenizer_config.json`,
+};
+const LFM3_1_7B_MLX_INT8: LLMModel = {
+  modelPath: `${LFM3_BASE_URL}/1_7b/mlx/lfm_3_1_7b_mlx_int8.pte`,
+  tokenizerPath: `${LFM3_BASE_URL}/1_7b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM3_BASE_URL}/1_7b/tokenizer_config.json`,
+};
+
+const LFM3_VL_PREPROCESSOR_CONFIG = {
+  image: {
+    visionToken: { start: '<|vision_start|>', end: '<|vision_end|>' },
+    targetShape: [1, 3, 512, 512] as const,
+    preprocessorOpts: {
+      resizeMode: 'letterbox' as const,
+      interpolation: 'linear' as const,
+      normalizeOpts: { alpha: 1.0, beta: 0.0 },
+    },
+  },
+};
+const LFM3_VL_2B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${LFM3_BASE_URL}/vl_2b/xnnpack/lfm_3_vl_2b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${LFM3_BASE_URL}/vl_2b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM3_BASE_URL}/vl_2b/tokenizer_config.json`,
+  modalities: ['image'],
+  preprocessorConfig: LFM3_VL_PREPROCESSOR_CONFIG,
+};
+const LFM3_VL_2B_MLX_INT4: LLMModel = {
+  modelPath: `${LFM3_BASE_URL}/vl_2b/mlx/lfm_3_vl_2b_mlx_int4.pte`,
+  tokenizerPath: `${LFM3_BASE_URL}/vl_2b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM3_BASE_URL}/vl_2b/tokenizer_config.json`,
+  modalities: ['image'],
+  preprocessorConfig: LFM3_VL_PREPROCESSOR_CONFIG,
+};
+const LFM3_VL_2B_MLX_INT8: LLMModel = {
+  modelPath: `${LFM3_BASE_URL}/vl_2b/mlx/lfm_3_vl_2b_mlx_int8.pte`,
+  tokenizerPath: `${LFM3_BASE_URL}/vl_2b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM3_BASE_URL}/vl_2b/tokenizer_config.json`,
+  modalities: ['image'],
+  preprocessorConfig: LFM3_VL_PREPROCESSOR_CONFIG,
+};
+
+// LFM3-Audio is exported for audio in, text out. Its prompt marks a clip with
+// a bare run of <|audio|> tokens, so the sentinel has no start/end markers.
+const LFM3_AUDIO_PREPROCESSOR_CONFIG = {
+  audio: {
+    audioToken: { start: '', end: '' },
+  },
+};
+const LFM3_AUDIO_2B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${LFM3_BASE_URL}/audio_2b/xnnpack/lfm_3_audio_2b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${LFM3_BASE_URL}/audio_2b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM3_BASE_URL}/audio_2b/tokenizer_config.json`,
+  modalities: ['audio'],
+  preprocessorConfig: LFM3_AUDIO_PREPROCESSOR_CONFIG,
+};
+const LFM3_AUDIO_2B_MLX_INT4: LLMModel = {
+  modelPath: `${LFM3_BASE_URL}/audio_2b/mlx/lfm_3_audio_2b_mlx_int4.pte`,
+  tokenizerPath: `${LFM3_BASE_URL}/audio_2b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM3_BASE_URL}/audio_2b/tokenizer_config.json`,
+  modalities: ['audio'],
+  preprocessorConfig: LFM3_AUDIO_PREPROCESSOR_CONFIG,
+};
+const LFM3_AUDIO_2B_MLX_INT8: LLMModel = {
+  modelPath: `${LFM3_BASE_URL}/audio_2b/mlx/lfm_3_audio_2b_mlx_int8.pte`,
+  tokenizerPath: `${LFM3_BASE_URL}/audio_2b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM3_BASE_URL}/audio_2b/tokenizer_config.json`,
+  modalities: ['audio'],
+  preprocessorConfig: LFM3_AUDIO_PREPROCESSOR_CONFIG,
+};
+
 const BIELIK_V3_1_5B_BASE_URL = `${BASE_URL}/Bielik-1.5B-v3.0-Instruct-ExecuTorch/${VERSION_TAG}`;
 
 const BIELIK_V3_1_5B_XNNPACK_8DA4W: LLMModel = {
@@ -2759,6 +2866,18 @@ export const models = {
     SELFIE_SEGMENTATION_LANDSCAPE: variants({
       XNNPACK_FP32: SELFIE_SEGMENTATION_LANDSCAPE_XNNPACK_FP32,
       COREML_FP16: SELFIE_SEGMENTATION_LANDSCAPE_COREML_FP16,
+    }),
+    /**
+     * Lightweight U²-Netp foreground segmentation at 320x320 for objects and
+     * people. Returns a soft grayscale foreground mask for background removal.
+     * INT8 and Vulkan FP16 retain sensitive operations in FP32.
+     */
+    U2NETP: variants({
+      XNNPACK_FP32: U2NETP_XNNPACK_FP32,
+      XNNPACK_INT8: U2NETP_XNNPACK_INT8,
+      COREML_FP16: U2NETP_COREML_FP16,
+      COREML_FP32: U2NETP_COREML_FP32,
+      VULKAN_FP16: U2NETP_VULKAN_FP16,
     }),
     /**
      * Lite R-ASPP semantic segmentation model with MobileNetV3-Large backbone
@@ -3472,6 +3591,37 @@ export const models = {
       VULKAN_8DA4W: LFM2_5_VL_1_6B_VULKAN_8DA4W,
       MLX_INT4: LFM2_5_VL_1_6B_MLX_INT4,
       MLX_INT8: LFM2_5_VL_1_6B_MLX_INT8,
+    }),
+    /**
+     * Liquid AI LFM 3 1.7B hybrid language model (gated short convolutions,
+     * sliding-window and global attention). Post-trained for agentic use, tool
+     * calling and structured output, with an 8K on-device context.
+     */
+    LFM3_1_7B: variants({
+      XNNPACK_8DA4W: LFM3_1_7B_XNNPACK_8DA4W,
+      MLX_INT4: LFM3_1_7B_MLX_INT4,
+      MLX_INT8: LFM3_1_7B_MLX_INT8,
+    }),
+    /**
+     * Liquid AI LFM 3 VL 2B vision-language model on the LFM 3 backbone with a
+     * hybrid convolution/attention vision encoder. Image description, visual
+     * question answering, document and UI understanding.
+     */
+    LFM3_VL_2B: variants({
+      XNNPACK_8DA4W: LFM3_VL_2B_XNNPACK_8DA4W,
+      MLX_INT4: LFM3_VL_2B_MLX_INT4,
+      MLX_INT8: LFM3_VL_2B_MLX_INT8,
+    }),
+    /**
+     * Liquid AI LFM 3 Audio 2B speech-understanding model on the LFM 3
+     * backbone with a causal audio encoder (16 kHz, up to 30 s per encoder
+     * call). Exported for audio in, text out: transcription (system prompt
+     * `Perform ASR in English.`), speech translation and spoken questions.
+     */
+    LFM3_AUDIO_2B: variants({
+      XNNPACK_8DA4W: LFM3_AUDIO_2B_XNNPACK_8DA4W,
+      MLX_INT4: LFM3_AUDIO_2B_MLX_INT4,
+      MLX_INT8: LFM3_AUDIO_2B_MLX_INT8,
     }),
     /**
      * Bielik v3 1.5B bilingual Polish & English language model, developed by

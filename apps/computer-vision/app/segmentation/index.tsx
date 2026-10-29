@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { commonStyles, theme } from '../../theme';
 import {
@@ -22,6 +22,29 @@ const SEGMENTATION_OPTIONS: ModelOption[] = [
   {
     label: 'Selfie Seg (FP32)',
     value: models.semanticSegmentation.SELFIE_SEGMENTATION.XNNPACK_FP32,
+  },
+  {
+    label: 'U²-Netp (XNNPACK FP32)',
+    value: models.semanticSegmentation.U2NETP.XNNPACK_FP32,
+  },
+  {
+    label: 'U²-Netp (XNNPACK INT8)',
+    value: models.semanticSegmentation.U2NETP.XNNPACK_INT8,
+  },
+  {
+    label: 'U²-Netp (CoreML FP16)',
+    value: models.semanticSegmentation.U2NETP.COREML_FP16,
+    disabled: Platform.OS !== 'ios' || Number.parseInt(String(Platform.Version), 10) < 18,
+  },
+  {
+    label: 'U²-Netp (CoreML FP32)',
+    value: models.semanticSegmentation.U2NETP.COREML_FP32,
+    disabled: Platform.OS !== 'ios' || Number.parseInt(String(Platform.Version), 10) < 18,
+  },
+  {
+    label: 'U²-Netp (Vulkan FP16)',
+    value: models.semanticSegmentation.U2NETP.VULKAN_FP16,
+    disabled: Platform.OS !== 'android',
   },
   {
     label: 'LRASPP MobileNet V3 (INT8)',

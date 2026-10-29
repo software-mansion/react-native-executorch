@@ -109,7 +109,7 @@ function SpeechComponent() {
 ```
 
 :::tip Full Interactive Example in Gallery App
-See [`src/app/(screens)/text-to-speech.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/text-to-speech.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen featuring voice selection, buffer queue streaming, Time-to-First-Audio (TTFA) benchmarking, and live waveform visualization.
+See [`src/app/(screens)/text-to-speech.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/v0.1.0/src/app/(screens)/text-to-speech.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery/tree/v0.1.0) for a complete, runnable screen featuring voice selection, buffer queue streaming, Time-to-First-Audio (TTFA) benchmarking, and live waveform visualization.
 :::
 
 ## Output Format
