@@ -1,5 +1,5 @@
 /**
- * The LLM (EuroLLM) translator.
+ * The LLM (EuroLLM, Hy-MT2) translator.
  *
  * It runs on the real chat session and LLM runner; only the `.pte` below them
  * is scripted (see `support/fakeLLM.ts`), so a test sees the exact prompt each
@@ -119,5 +119,62 @@ describe('createLLMTranslator', () => {
     expect(fakeJsi.liveTensors()).toBe(0);
     expect(fakeJsi.liveModels()).toEqual([]);
     expect(fakeJsi.liveTokenizers()).toEqual([]);
+  });
+});
+
+describe('createLLMTranslator with Hy-MT2', () => {
+  const HY_EOS = '<｜hy_place▁holder▁no▁2｜>';
+  // Hy-MT2-1.8B's chat_template.jinja, which the published tokenizer_config.json carries.
+  const HY_CHAT_TEMPLATE =
+    "{% if messages[0]['role'] == 'system' %}{% set loop_messages = messages[1:] %}{% set system_message = messages[0]['content'] %}<｜hy_begin▁of▁sentence｜>{{ system_message }}<｜hy_place▁holder▁no▁3｜>{% else %}{% set loop_messages = messages %}<｜hy_begin▁of▁sentence｜>{% endif %}{% for message in loop_messages %}{% if message['role'] == 'user' %}<｜hy_User｜>{{ message['content'] }}{% elif message['role'] == 'assistant' %}<｜hy_Assistant｜>{{ message['content'] }}<｜hy_place▁holder▁no▁2｜>{% endif %}{% endfor %}{% if add_generation_prompt %}<｜hy_Assistant｜>{% else %}<｜hy_place▁holder▁no▁8｜>{% endif %}";
+  const hyConfig = { ...config, name: 'hy-mt2' as const };
+  const hyTurn = (content: string) =>
+    squash(`<｜hy_begin▁of▁sentence｜><｜hy_User｜>${content}<｜hy_Assistant｜>`);
+
+  beforeEach(() => {
+    // The fake fs stores one byte per char, so anything outside printable ASCII
+    // goes in as a JSON escape.
+    /* eslint-disable camelcase */
+    const json = JSON.stringify({ chat_template: HY_CHAT_TEMPLATE, eos_token: HY_EOS });
+    /* eslint-enable camelcase */
+    fakeFs.write(
+      TOKENIZER_CONFIG_PATH,
+      json.replace(/[^ -~]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`)
+    );
+    llm = registerFakeLLM(MODEL_PATH, TOKENIZER_PATH, {
+      eosToken: HY_EOS,
+      generations: [{ response: 'Hallo Welt.' }],
+    });
+  });
+
+  it('sends the model card prompt naming the target language', async () => {
+    const translator = tracked(await createLLMTranslator(hyConfig));
+
+    expect(await translator.translate('Hello world.', EN_DE)).toBe('Hallo Welt.');
+    expect(promptsSent()).toEqual([
+      hyTurn(
+        'Translate the following text into German. Note that you should only output ' +
+          'the translated result without any additional explanation:\n\nHello world.'
+      ),
+    ]);
+  });
+
+  it('uses the Chinese prompt when either side is Chinese', async () => {
+    const translator = tracked(await createLLMTranslator(hyConfig));
+
+    await translator.translate('Hello world.', { sourceLanguage: 'en', targetLanguage: 'zh' });
+
+    expect(promptsSent()).toEqual([
+      hyTurn('将以下文本翻译为中文，注意只需要输出翻译后的结果，不要额外解释：\n\nHello world.'),
+    ]);
+  });
+
+  it('rejects a language the model does not know', async () => {
+    const translator = tracked(await createLLMTranslator(hyConfig));
+
+    // Maltese is a EuroLLM language, not a Hy-MT2 one.
+    await expect(
+      translator.translate('Hello', { sourceLanguage: 'mt', targetLanguage: 'en' })
+    ).rejects.toThrow(/unsupported language 'mt'/);
   });
 });

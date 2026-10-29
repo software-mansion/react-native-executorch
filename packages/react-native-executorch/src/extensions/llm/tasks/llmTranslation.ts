@@ -1,5 +1,5 @@
 /**
- * Instruction-tuned LLM (EuroLLM) machine translation task pipeline.
+ * Instruction-tuned LLM (EuroLLM, Hy-MT2) machine translation task pipeline.
  */
 
 import { scheduleOnRN, type WorkletRuntime } from 'react-native-worklets';
@@ -59,6 +59,51 @@ const EUROLLM_LANGUAGES: Readonly<Record<string, string>> = {
   zh: 'Chinese',
 };
 
+// Languages Hy-MT2 was trained on, keyed by ISO 639 code, with the English
+// and Chinese names its model card prompts use.
+const HY_MT2_LANGUAGES: Readonly<Record<string, readonly [english: string, chinese: string]>> = {
+  'ar': ['Arabic', '阿拉伯语'],
+  'bn': ['Bengali', '孟加拉语'],
+  'bo': ['Tibetan', '藏语'],
+  'cs': ['Czech', '捷克语'],
+  'de': ['German', '德语'],
+  'en': ['English', '英语'],
+  'es': ['Spanish', '西班牙语'],
+  'fa': ['Persian', '波斯语'],
+  'fr': ['French', '法语'],
+  'gu': ['Gujarati', '古吉拉特语'],
+  'he': ['Hebrew', '希伯来语'],
+  'hi': ['Hindi', '印地语'],
+  'id': ['Indonesian', '印尼语'],
+  'it': ['Italian', '意大利语'],
+  'ja': ['Japanese', '日语'],
+  'kk': ['Kazakh', '哈萨克语'],
+  'km': ['Khmer', '高棉语'],
+  'ko': ['Korean', '韩语'],
+  'mn': ['Mongolian', '蒙古语'],
+  'mr': ['Marathi', '马拉地语'],
+  'ms': ['Malay', '马来语'],
+  'my': ['Burmese', '缅甸语'],
+  'nl': ['Dutch', '荷兰语'],
+  'pl': ['Polish', '波兰语'],
+  'pt': ['Portuguese', '葡萄牙语'],
+  'ru': ['Russian', '俄语'],
+  'ta': ['Tamil', '泰米尔语'],
+  'te': ['Telugu', '泰卢固语'],
+  'th': ['Thai', '泰语'],
+  'tl': ['Filipino', '菲律宾语'],
+  'tr': ['Turkish', '土耳其语'],
+  'ug': ['Uyghur', '维吾尔语'],
+  'uk': ['Ukrainian', '乌克兰语'],
+  'ur': ['Urdu', '乌尔都语'],
+  'vi': ['Vietnamese', '越南语'],
+  'yue': ['Cantonese', '粤语'],
+  'zh': ['Chinese', '中文'],
+  'zh-Hant': ['Traditional Chinese', '繁体中文'],
+};
+
+const HY_MT2_CHINESE = new Set(['zh', 'zh-Hant', 'yue']);
+
 /**
  * Paths required to instantiate an LLM translator. One model translates
  * between any two of its supported languages.
@@ -66,15 +111,37 @@ const EUROLLM_LANGUAGES: Readonly<Record<string, string>> = {
  */
 export type LLMTranslatorModel = LLMModel & {
   /** Identifies the pipeline this config belongs to. */
-  readonly name: 'eurollm';
+  readonly name: 'eurollm' | 'hy-mt2';
 };
 
-const languageName = (code: string): string => {
-  const name = EUROLLM_LANGUAGES[code];
-  if (!name) {
-    throw RnExecuTorchError('INVALID_ARGUMENT', `translate: unsupported language '${code}'.`);
-  }
-  return name;
+const unsupported = (code: string) =>
+  RnExecuTorchError('INVALID_ARGUMENT', `translate: unsupported language '${code}'.`);
+
+// The user turn each model card prompts a translation with. Throws for a
+// language the model does not know.
+const PROMPTS: Readonly<
+  Record<LLMTranslatorModel['name'], (line: string, source: string, target: string) => string>
+> = {
+  'eurollm': (line, source, target) => {
+    const src = EUROLLM_LANGUAGES[source];
+    const tgt = EUROLLM_LANGUAGES[target];
+    if (!src) throw unsupported(source);
+    if (!tgt) throw unsupported(target);
+    return `Translate the following ${src} source text to ${tgt}:\n${src}: ${line} \n${tgt}: `;
+  },
+  // The card names only the target. Pairs with Chinese take its Chinese prompt.
+  'hy-mt2': (line, source, target) => {
+    const tgt = HY_MT2_LANGUAGES[target];
+    if (!HY_MT2_LANGUAGES[source]) throw unsupported(source);
+    if (!tgt) throw unsupported(target);
+    if (HY_MT2_CHINESE.has(source) || HY_MT2_CHINESE.has(target)) {
+      return `将以下文本翻译为${tgt[1]}，注意只需要输出翻译后的结果，不要额外解释：\n\n${line}`;
+    }
+    return (
+      `Translate the following text into ${tgt[0]}. Note that you should only output ` +
+      `the translated result without any additional explanation:\n\n${line}`
+    );
+  },
 };
 
 function generateWorklet(
@@ -98,7 +165,8 @@ function generateWorklet(
 const GENERATION_CONFIG: LLMGenerationConfig = { temperature: 0 };
 
 /**
- * Creates a translator on top of an instruction-tuned LLM such as EuroLLM.
+ * Creates a translator on top of an instruction-tuned LLM such as EuroLLM or
+ * Hy-MT2.
  *
  * Every line is sent as its own single-turn chat with the model card's
  * translation prompt, from an empty KV cache, and decoded greedily. One model
@@ -137,15 +205,15 @@ export async function createLLMTranslator(
     let busy = false;
     let stopped = false;
 
+    const userTurn = PROMPTS[config.name];
+
     const translateLine = async (
       line: string,
       source: string,
       target: string,
       onPiece: (piece: string) => void
     ): Promise<string> => {
-      const content =
-        `Translate the following ${source} source text to ${target}:\n` +
-        `${source}: ${line} \n${target}: `;
+      const content = userTurn(line, source, target);
       runner.reset();
       const prompt = chatPreprocessor.process([{ role: 'user', content }], 1, {
         addGenPrompt: true,
@@ -169,8 +237,9 @@ export async function createLLMTranslator(
       languages: TranslationLanguages,
       onToken?: (token: string) => void
     ): Promise<string> => {
-      const source = languageName(languages.sourceLanguage);
-      const target = languageName(languages.targetLanguage);
+      const { sourceLanguage: source, targetLanguage: target } = languages;
+      // Validates the pair before anything is queued.
+      userTurn('', source, target);
       if (busy) {
         throw RnExecuTorchError('RESOURCE_BUSY', 'translate: A translation is in progress.');
       }

@@ -27,6 +27,8 @@ const SAMPLES: Record<string, string> = {
   es: 'Hoy hace un tiempo precioso. ¿Vamos a dar un paseo por el parque?\nYo llevaré algo de beber.',
   fr: 'Il fait très beau aujourd’hui. On va se promener dans le parc ?\nJ’apporterai quelque chose à boire.',
   pl: 'Dzisiaj jest piękna pogoda. Może pójdziemy na spacer do parku?\nPrzyniosę coś do picia.',
+  zh: '今天天气真好。我们去公园散步好吗？\n我会带点喝的。',
+  ja: '今日はとても良い天気です。公園に散歩に行きませんか？\n飲み物を持っていきます。',
 };
 /* cspell:enable */
 
@@ -36,7 +38,7 @@ const pair = (sourceLanguage: string, targetLanguage: string): Pair => ({
   languages: { sourceLanguage, targetLanguage },
 });
 
-// Opus-MT ships one model per pair; EuroLLM translates every pair with one.
+// Opus-MT ships one model per pair; EuroLLM and Hy-MT2 translate every pair with one.
 const OPUS_MT: { pair: Pair; model: TranslatorModel }[] = [
   { pair: pair('en', 'de'), model: models.translation.OPUS_MT_EN_DE.DEFAULT },
   { pair: pair('de', 'en'), model: models.translation.OPUS_MT_DE_EN.DEFAULT },
@@ -46,6 +48,13 @@ const OPUS_MT: { pair: Pair; model: TranslatorModel }[] = [
   { pair: pair('fr', 'en'), model: models.translation.OPUS_MT_FR_EN.DEFAULT },
 ];
 const EUROLLM_PAIRS = [...OPUS_MT.map((m) => m.pair), pair('en', 'pl'), pair('pl', 'en')];
+const HY_MT2_PAIRS = [
+  ...EUROLLM_PAIRS,
+  pair('en', 'zh'),
+  pair('zh', 'en'),
+  pair('en', 'ja'),
+  pair('ja', 'en'),
+];
 
 const FAMILIES = [
   {
@@ -61,6 +70,13 @@ const FAMILIES = [
       'One 1.7 GB model for 35 languages, so switching the pair does not reload it. Translates a line at a time.',
     pairs: EUROLLM_PAIRS,
     modelFor: () => models.translation.EUROLLM_1_7B.DEFAULT as TranslatorModel,
+  },
+  {
+    label: 'Hy-MT2',
+    description:
+      'One 1.2 GB model for 38 languages and dialects, strongest on Chinese. Translates a line at a time.',
+    pairs: HY_MT2_PAIRS,
+    modelFor: () => models.translation.HY_MT2_1_8B.DEFAULT as TranslatorModel,
   },
 ];
 

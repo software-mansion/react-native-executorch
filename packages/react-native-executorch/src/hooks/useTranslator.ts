@@ -18,8 +18,8 @@ export type TranslatorModel = MarianTranslatorModel | LLMTranslatorModel;
 
 /**
  * React hook to load and run a translation pipeline: Marian (Opus-MT), one
- * model per language pair, or an LLM (EuroLLM) that translates between any two
- * of its languages.
+ * model per language pair, or an LLM (EuroLLM, Hy-MT2) that translates between
+ * any two of its languages.
  *
  * This hook manages downloading (if remote URLs are provided) and loading the
  * model and tokenizer, tracking download progress and load errors, and
@@ -60,6 +60,7 @@ export function useTranslator<C extends TranslatorModel>(
       case 'marian':
         return createMarianTranslator(translatorConfig);
       case 'eurollm':
+      case 'hy-mt2':
         return createLLMTranslator(translatorConfig);
     }
   };

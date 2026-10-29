@@ -2216,6 +2216,27 @@ const EUROLLM_1_7B_MLX_INT8: LLMTranslatorModel = {
   tokenizerConfigPath: `${EUROLLM_BASE_URL}/tokenizer_config.json`,
 };
 
+const HY_MT2_BASE_URL = `${BASE_URL}/Hy-MT2-1.8B-ExecuTorch/${VERSION_TAG}/1_8b`;
+
+const HY_MT2_1_8B_XNNPACK_8DA4W: LLMTranslatorModel = {
+  name: 'hy-mt2',
+  modelPath: `${HY_MT2_BASE_URL}/xnnpack/hy_mt2_1_8b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${HY_MT2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HY_MT2_BASE_URL}/tokenizer_config.json`,
+};
+const HY_MT2_1_8B_XNNPACK_8DA8W: LLMTranslatorModel = {
+  name: 'hy-mt2',
+  modelPath: `${HY_MT2_BASE_URL}/xnnpack/hy_mt2_1_8b_xnnpack_8da8w.pte`,
+  tokenizerPath: `${HY_MT2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HY_MT2_BASE_URL}/tokenizer_config.json`,
+};
+const HY_MT2_1_8B_MLX_INT8: LLMTranslatorModel = {
+  name: 'hy-mt2',
+  modelPath: `${HY_MT2_BASE_URL}/mlx/hy_mt2_1_8b_mlx_int8.pte`,
+  tokenizerPath: `${HY_MT2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HY_MT2_BASE_URL}/tokenizer_config.json`,
+};
+
 // =============================================================================
 // LLMs
 // =============================================================================
@@ -3805,6 +3826,12 @@ export const models = {
     EUROLLM_1_7B: variants({
       XNNPACK_8DA8W: EUROLLM_1_7B_XNNPACK_8DA8W,
       MLX_INT8: EUROLLM_1_7B_MLX_INT8,
+    }),
+    /** Hy-MT2 1.8B: any two of its 38 languages and dialects with one model. */
+    HY_MT2_1_8B: variants({
+      XNNPACK_8DA4W: HY_MT2_1_8B_XNNPACK_8DA4W,
+      XNNPACK_8DA8W: HY_MT2_1_8B_XNNPACK_8DA8W,
+      MLX_INT8: HY_MT2_1_8B_MLX_INT8,
     }),
   },
 
