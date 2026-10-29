@@ -9,6 +9,7 @@ import {
   readDocSlug,
   byPrecision,
 } from './model-registry.mjs';
+import { readAddedIn } from './model-history.mjs';
 
 export { addModelsToLLMsTxt };
 
@@ -41,14 +42,15 @@ function addModelsToLLMsTxt(buildDir) {
     throw new Error('llms.txt has no header quote or no sections to insert the models before');
   }
 
-  lines.splice(firstSection, 0, ...renderModels(tasks), '');
-  lines.splice(quote, 0, ...renderSummary(tasks), '>');
+  const addedIn = readAddedIn(tasks.flatMap((task) => task.models.map((model) => model.path)));
+  lines.splice(firstSection, 0, ...renderModels(tasks, addedIn), '');
+  lines.splice(quote, 0, ...renderSummary(tasks, addedIn), '>');
 
   writeFileSync(filePath, lines.join('\n'), 'utf8');
   console.log('Added the model registry to llms.txt');
 }
 
-function renderSummary(tasks) {
+function renderSummary(tasks, addedIn) {
   const lastVersion = config.presets[0][1].docs.lastVersion;
   const models = tasks.flatMap((task) => task.models);
   const backends = [...new Set(models.flatMap((m) => m.backends))];
@@ -59,14 +61,20 @@ function renderSummary(tasks) {
   const precisions = [...new Set(models.flatMap((m) => m.precisions))].sort(byPrecision);
   const today = new Date().toISOString().slice(0, 10);
 
+  const latestMinor = `v${lastVersion.replace(/\.x$/, '.')}`;
+  const added = addedIn
+    ? models.filter((m) => addedIn.get(m.path)?.startsWith(latestMinor)).map((m) => `\`${m.path}\``)
+    : [];
+
   return [
     `> Latest stable release: v${lastVersion} (npm \`react-native-executorch\`); this file was generated ${today}.`,
     `> ${models.length} pre-exported models across ${tasks.length} tasks, listed under "Supported Models" below.`,
     `> Backends: ${backendText}. Precisions: ${precisions.join(', ')}.`,
+    ...(added.length > 0 ? [`> New in v${lastVersion}: ${added.join(', ')}.`] : []),
   ];
 }
 
-function renderModels(tasks) {
+function renderModels(tasks, addedIn) {
   const lines = [
     '## Supported Models',
     '',
@@ -84,6 +92,7 @@ function renderModels(tasks) {
       if (model.modalities.length > 0) parts.push(`Inputs: text, ${model.modalities.join(', ')}.`);
       if (model.variants.length > 0) parts.push(`Variants: ${model.variants.join(', ')}.`);
       parts.push(`Backends: ${model.backends.map((b) => BACKEND_LABELS[b]).join(', ')}.`);
+      if (addedIn) parts.push(`Added in ${addedIn.get(model.path) ?? 'the next release'}.`);
       lines.push(`- \`${model.path}\`: ${parts.join(' ')}`);
     }
     lines.push('');

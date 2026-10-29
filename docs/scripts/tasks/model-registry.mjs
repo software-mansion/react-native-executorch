@@ -3,18 +3,21 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import ts from 'typescript';
 
-export { TASKS, BACKEND_LABELS, BACKEND_PLATFORMS, readModelRegistry, readDocSlug, byPrecision };
+export {
+  TASKS,
+  BACKEND_LABELS,
+  BACKEND_PLATFORMS,
+  REGISTRY_REPO_PATH,
+  readModelRegistry,
+  parseRegistry,
+  readDocSlug,
+  byPrecision,
+};
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DOCS_DIR = join(__dirname, '..', '..');
-const REGISTRY_PATH = join(
-  DOCS_DIR,
-  '..',
-  'packages',
-  'react-native-executorch',
-  'src',
-  'models.ts'
-);
+const REGISTRY_REPO_PATH = 'packages/react-native-executorch/src/models.ts';
+const REGISTRY_PATH = join(DOCS_DIR, '..', REGISTRY_REPO_PATH);
 
 // Every registry category, in the order the docs present them. `doc` is the
 // task's page under docs/docs and `bench` the heading anchor of its chart on
@@ -139,7 +142,25 @@ const PRECISION_ORDER = ['fp32', 'fp16', 'bf16', 'int8', '8da8w', '8da4w', 'int4
  *     variants: string[], modalities: string[] }[] }[]} One entry per task, in docs order.
  */
 function readModelRegistry() {
-  const source = readFileSync(REGISTRY_PATH, 'utf8');
+  const categories = parseRegistry(readFileSync(REGISTRY_PATH, 'utf8'));
+  for (const key of categories.keys()) {
+    if (!(key in TASKS)) {
+      throw new Error(
+        `Registry category \`models.${key}\` has no entry in TASKS (docs/scripts/tasks/model-registry.mjs).`
+      );
+    }
+  }
+  return Object.entries(TASKS)
+    .filter(([key, task]) => !task.skip && categories.has(key))
+    .map(([key, task]) => ({ key, ...task, models: categories.get(key) }));
+}
+
+/**
+ * Parses a `models.ts` source, current or from an earlier release.
+ * @param {string} source The file's contents.
+ * @returns {Map<string, object[]>} The models of each registry category.
+ */
+function parseRegistry(source) {
   const file = ts.createSourceFile(REGISTRY_PATH, source, ts.ScriptTarget.Latest, true);
 
   const constants = new Map();
@@ -160,12 +181,6 @@ function readModelRegistry() {
   for (const prop of registry.properties) {
     if (!ts.isPropertyAssignment(prop)) continue;
     const key = prop.name.getText(file);
-    if (!(key in TASKS)) {
-      throw new Error(
-        `Registry category \`models.${key}\` has no entry in TASKS (docs/scripts/tasks/model-registry.mjs).`
-      );
-    }
-    if (TASKS[key].skip) continue;
     const models = [];
     for (const entry of prop.initializer.properties ?? []) {
       if (!ts.isPropertyAssignment(entry)) continue;
@@ -185,10 +200,7 @@ function readModelRegistry() {
     }
     categories.set(key, models);
   }
-
-  return Object.entries(TASKS)
-    .filter(([key, task]) => !task.skip && categories.has(key))
-    .map(([key, task]) => ({ key, ...task, models: categories.get(key) }));
+  return categories;
 }
 
 /**

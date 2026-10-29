@@ -2,6 +2,7 @@ import { writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { BACKEND_LABELS, readModelRegistry } from './tasks/model-registry.mjs';
+import { readAddedIn } from './tasks/model-history.mjs';
 
 // Writes the Supported Models page from the `models` registry, so the list
 // moves with the library instead of being kept by hand. The page is generated
@@ -35,7 +36,7 @@ function cell(text) {
   return text.replaceAll('|', '\\|');
 }
 
-function render(tasks) {
+function render(tasks, addedIn) {
   const lines = [
     FRONT_MATTER,
     '',
@@ -51,14 +52,17 @@ function render(tasks) {
       ''
     );
     if (task.note) lines.push(task.note, '');
-    lines.push('| Model | Description | Backends | Precisions |', '| :-- | :-- | :-- | :-- |');
+    lines.push(
+      `| Model | Description | Backends | Precisions |${addedIn ? ' Added in |' : ''}`,
+      `| :-- | :-- | :-- | :-- |${addedIn ? ' :-- |' : ''}`
+    );
     for (const model of task.models) {
       let description = model.description;
       if (model.modalities.length > 0)
         description += ` Inputs: text, ${model.modalities.join(', ')}.`;
       if (model.variants.length > 0) description += ` Variants: ${model.variants.join(', ')}.`;
       lines.push(
-        `| \`${model.path}\` | ${cell(description)} | ${model.backends.map((b) => BACKEND_LABELS[b]).join(', ')} | ${model.precisions.join(', ')} |`
+        `| \`${model.path}\` | ${cell(description)} | ${model.backends.map((b) => BACKEND_LABELS[b]).join(', ')} | ${model.precisions.join(', ')} |${addedIn ? ` ${addedIn.get(model.path) ?? 'next'} |` : ''}`
       );
     }
     lines.push('');
@@ -66,5 +70,7 @@ function render(tasks) {
   return lines.join('\n');
 }
 
-writeFileSync(OUT_PATH, render(readModelRegistry()), 'utf8');
+const tasks = readModelRegistry();
+const addedIn = readAddedIn(tasks.flatMap((task) => task.models.map((model) => model.path)));
+writeFileSync(OUT_PATH, render(tasks, addedIn), 'utf8');
 console.log(`Generated ${OUT_PATH}`);
