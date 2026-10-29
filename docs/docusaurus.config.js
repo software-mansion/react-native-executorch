@@ -35,13 +35,6 @@ const config = {
           sidebarCollapsible: false,
           editUrl: 'https://github.com/software-mansion/react-native-executorch/edit/main/docs',
           lastVersion: '0.11.x',
-          versions: {
-            // === LEGACY SUPPORT ===: versioned docs for the legacy API (remove when legacy API is dropped)
-            '0.10.0-legacy': {
-              label: '0.10.0-legacy',
-              banner: 'unmaintained',
-            },
-          },
         },
         theme: {
           customCss: require.resolve('./src/css/index.css'),

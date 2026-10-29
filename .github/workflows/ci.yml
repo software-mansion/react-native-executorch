@@ -70,11 +70,11 @@ jobs:
 
           # eslint, tsc and jest read none of the C++ trees, and none of the
           # documentation.
-          ts_irrelevant='^(docs/|[^/]+\.md$|packages/react-native-executorch/(cpp|legacy/cpp)/)'
+          ts_irrelevant='^(docs/|[^/]+\.md$|packages/react-native-executorch/cpp/)'
           if echo "$files" | grep -qvE "$ts_irrelevant"; then ts=true; else ts=false; fi
 
           # The C++ suite compiles cpp/ only (cpp/tests/CMakeLists.txt globs
-          # core/ and extensions/, never legacy/). The rest of this list is what
+          # core/ and extensions/). The rest of this list is what
           # decides which ExecuTorch release it builds and links against:
           # package.json carries nativeLibsVersion, which download-libs.js reads
           # to pick the headers release, and the CI job cross-checks that
@@ -147,7 +147,7 @@ jobs:
         run: yarn lint
 
       - name: Typecheck files
-        run: yarn workspaces foreach --all --exclude react-native-executorch-webrtc --topological-dev run prepare && yarn typecheck
+        run: yarn workspaces foreach --all --topological-dev run prepare && yarn typecheck
 
   build-library:
     needs: changes
@@ -161,7 +161,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build all packages
-        run: yarn workspaces foreach --all --exclude react-native-executorch-webrtc --topological-dev run prepare
+        run: yarn workspaces foreach --all --topological-dev run prepare
 
   native-tests:
     name: C++ unit tests

@@ -59,8 +59,7 @@ if [ $# -ge 1 ] && [ "$1" = "generate_nightly_version" ]; then
   set_version "$VERSION-nightly-${GIT_COMMIT:0:7}-$DATE"
 fi
 
-# `prepare` builds both outputs the "files" list ships: lib/ via bob and the
-# legacy entry points via tsc. `bob build` alone leaves legacy/ unbuilt.
+# Build the module bundle and type declarations before packing.
 yarn prepare
 
 npm pack

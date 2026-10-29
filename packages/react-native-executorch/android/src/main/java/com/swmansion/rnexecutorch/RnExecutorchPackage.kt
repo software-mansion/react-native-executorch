@@ -11,21 +11,6 @@ class RnExecutorchPackage : BaseReactPackage() {
   override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? =
     when (name) {
       RnExecutorchModule.NAME -> RnExecutorchModule(reactContext)
-      // ==============================================================================
-      // LEGACY SUPPORT: ETInstaller (Remove when react-native-executorch/legacy is dropped)
-      // ==============================================================================
-      ETInstaller.NAME -> {
-        try {
-          ETInstaller(reactContext)
-        } catch (e: RuntimeException) {
-          if (e.cause is UnsatisfiedLinkError) {
-            ETInstallerUnavailable(reactContext)
-          } else {
-            throw e
-          }
-        }
-      }
-      // ==============================================================================
       else -> null
     }
 
@@ -41,19 +26,6 @@ class RnExecutorchPackage : BaseReactPackage() {
           false,
           true
         ),
-        // ==============================================================================
-        // LEGACY SUPPORT: ETInstaller (Remove when react-native-executorch/legacy is dropped)
-        // ==============================================================================
-        ETInstaller.NAME to ReactModuleInfo(
-          ETInstaller.NAME,
-          ETInstaller.NAME,
-          false,
-          false,
-          true,
-          false,
-          true
-        )
-        // ==============================================================================
       )
     }
 }

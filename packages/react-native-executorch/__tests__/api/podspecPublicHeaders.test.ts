@@ -32,8 +32,7 @@ const PODSPEC = join(PACKAGE_ROOT, 'react-native-executorch.podspec');
 /**
  * The globs assigned to `public_header_files`, in declaration order.
  *
- * The podspec builds the list over several statements (a base list plus the
- * legacy entry point), so every `public_header_files = [...]` and
+ * The parser accepts lists built over several statements, so every `public_header_files = [...]` and
  * `public_header_files += [...]` contributes. The trailing
  * `s.public_header_files = public_header_files` carries no array literal and
  * is skipped by the same pattern.

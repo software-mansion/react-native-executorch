@@ -156,12 +156,10 @@ const FEATURE_MAP = {
   objectDetection: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
   // Keypoint detection (#1280): BlazeFace + YOLO26-pose ship xnnpack; RF-DETR
   // keypoint and the face mesh (#1140) add coreml, and BlazeFace, YOLO26-pose
-  // and RF-DETR keypoint add vulkan Android exports → union. mlx stays for the
-  // legacy API, whose RF_DETR_KEYPOINT_PREVIEW_MLX_FP32_MODEL outlived the new
-  // registry's MLX keypoint export (dropped in #1418).
+  // and RF-DETR keypoint add vulkan Android exports → union.
   // (Named to track the useKeypointDetector hook; main calls this poseEstimation.)
   keypointDetection: {
-    backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'],
+    backends: ['xnnpack', 'coreml', 'vulkan'],
     libs: ['opencv'],
   },
   // Depth Anything V2, V3 and ZipDepth ship xnnpack, coreml and vulkan.

@@ -2,11 +2,10 @@
 # specific for windows script files
 *.bat text eol=crlf
 
-# Exclude apps, third-party, and legacy code from language stats & line counts
+# Exclude apps and third-party code from language stats & line counts
 apps/** linguist-vendored
 third-party/** linguist-vendored
 **/third-party/** linguist-vendored
-**/legacy/** linguist-vendored
 
 # Exclude documentation from codebase language stats
 docs/** linguist-documentation

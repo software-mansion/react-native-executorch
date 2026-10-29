@@ -2,18 +2,16 @@
   "name": "react-native-executorch-monorepo",
   "version": "0.0.0",
   "packageManager": "yarn@4.1.1",
-  "// === LEGACY SUPPORT: workspaces ===": "apps/legacy/* contains preserved legacy example apps (remove when legacy apps are dropped)",
   "workspaces": {
     "packages": [
       "packages/*",
-      "apps/*",
-      "apps/legacy/*"
+      "apps/*"
     ]
   },
   "scripts": {
-    "prepare": "yarn workspaces foreach --all --exclude react-native-executorch-webrtc --topological-dev run prepare",
-    "lint": "yarn workspaces foreach --all --exclude react-native-executorch-webrtc --parallel run lint",
-    "typecheck": "yarn prepare && yarn workspaces foreach --all --exclude react-native-executorch-webrtc --parallel run typecheck"
+    "prepare": "yarn workspaces foreach --all --topological-dev run prepare",
+    "lint": "yarn workspaces foreach --all --parallel run lint",
+    "typecheck": "yarn prepare && yarn workspaces foreach --all --parallel run typecheck"
   },
   "private": true,
   "devDependencies": {
