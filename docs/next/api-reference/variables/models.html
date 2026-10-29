@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.54a2641f.css">
-<script src="/react-native-executorch/assets/js/runtime~main.724f803f.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.e0d0231c.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.60ae383a.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.a5e746e9.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -24,7 +24,7 @@
 <blockquote>
 <p><code>const</code> <strong>models</strong>: <code>object</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/models.ts#L2590" target="_blank" rel="noopener noreferrer" class="">models.ts:2590</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/models.ts#L2618" target="_blank" rel="noopener noreferrer" class="">models.ts:2618</a></p>
 <p>Registry of pre-configured ExecuTorch models.</p>
 <p>This provides Hugging Face repository URLs and baseline configurations for
 tasks, allowing quick model loading and execution without manual option
@@ -2549,6 +2549,39 @@ Ideal for background blur and replacement effects.</p>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SemanticSegmenterModel"><code>SemanticSegmenterModel</code></a>&lt;<code>&quot;background&quot;</code> | <code>&quot;person&quot;</code>&gt;</p>
 </blockquote>
+<h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="semanticsegmentationu2netp">semanticSegmentation.U2NETP<a href="#semanticsegmentationu2netp" class="hash-link" aria-label="Direct link to semanticSegmentation.U2NETP" title="Direct link to semanticSegmentation.U2NETP" translate="no">​</a></h4>
+<blockquote>
+<p><strong>U2NETP</strong>: <code>object</code> &amp; <code>object</code></p>
+</blockquote>
+<p>Lightweight U²-Netp foreground segmentation at 320x320 for objects and
+people. Returns a soft grayscale foreground mask for background removal.
+INT8 and Vulkan FP16 retain sensitive operations in FP32.</p>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-205">Type Declaration<a href="#type-declaration-205" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-55">COREML_FP16<a href="#coreml_fp16-55" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<blockquote>
+<p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SemanticSegmenterModel"><code>SemanticSegmenterModel</code></a>&lt;<code>&quot;background&quot;</code> | <code>&quot;foreground&quot;</code>&gt; = <code>U2NETP_COREML_FP16</code></p>
+</blockquote>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-1">COREML_FP32<a href="#coreml_fp32-1" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
+<blockquote>
+<p><strong>COREML_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SemanticSegmenterModel"><code>SemanticSegmenterModel</code></a>&lt;<code>&quot;background&quot;</code> | <code>&quot;foreground&quot;</code>&gt; = <code>U2NETP_COREML_FP32</code></p>
+</blockquote>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-46">VULKAN_FP16<a href="#vulkan_fp16-46" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<blockquote>
+<p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SemanticSegmenterModel"><code>SemanticSegmenterModel</code></a>&lt;<code>&quot;background&quot;</code> | <code>&quot;foreground&quot;</code>&gt; = <code>U2NETP_VULKAN_FP16</code></p>
+</blockquote>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-55">XNNPACK_FP32<a href="#xnnpack_fp32-55" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
+<blockquote>
+<p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SemanticSegmenterModel"><code>SemanticSegmenterModel</code></a>&lt;<code>&quot;background&quot;</code> | <code>&quot;foreground&quot;</code>&gt; = <code>U2NETP_XNNPACK_FP32</code></p>
+</blockquote>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-48">XNNPACK_INT8<a href="#xnnpack_int8-48" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<blockquote>
+<p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SemanticSegmenterModel"><code>SemanticSegmenterModel</code></a>&lt;<code>&quot;background&quot;</code> | <code>&quot;foreground&quot;</code>&gt; = <code>U2NETP_XNNPACK_INT8</code></p>
+</blockquote>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-206">Type Declaration<a href="#type-declaration-206" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-102">DEFAULT<a href="#default-102" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<blockquote>
+<p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SemanticSegmenterModel"><code>SemanticSegmenterModel</code></a>&lt;<code>&quot;background&quot;</code> | <code>&quot;foreground&quot;</code>&gt;</p>
+</blockquote>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="speechtotext">speechToText<a href="#speechtotext" class="hash-link" aria-label="Direct link to speechToText" title="Direct link to speechToText" translate="no">​</a></h3>
 <blockquote>
 <p><strong>speechToText</strong>: <code>object</code></p>
@@ -2567,8 +2600,8 @@ variants across model sizes (<code>TINY</code>, <code>BASE</code>, <code>SMALL</
 </blockquote>
 <p>Multilingual Whisper Base model. Higher accuracy across supported
 languages.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-205">Type Declaration<a href="#type-declaration-205" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-55">COREML_FP16<a href="#coreml_fp16-55" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-207">Type Declaration<a href="#type-declaration-207" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-56">COREML_FP16<a href="#coreml_fp16-56" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a> = <code>WHISPER_BASE_COREML_FP16</code></p>
 </blockquote>
@@ -2580,7 +2613,7 @@ languages.</p>
 <blockquote>
 <p><strong>MLX_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a> = <code>WHISPER_BASE_MLX_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-46">VULKAN_FP16<a href="#vulkan_fp16-46" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-47">VULKAN_FP16<a href="#vulkan_fp16-47" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a> = <code>WHISPER_BASE_VULKAN_FP16</code></p>
 </blockquote>
@@ -2588,18 +2621,18 @@ languages.</p>
 <blockquote>
 <p><strong>VULKAN_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a> = <code>WHISPER_BASE_VULKAN_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-55"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-55" class="hash-link" aria-label="Direct link to xnnpack_fp32-55" title="Direct link to xnnpack_fp32-55" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-56"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-56" class="hash-link" aria-label="Direct link to xnnpack_fp32-56" title="Direct link to xnnpack_fp32-56" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a></p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-47">Deprecated<a href="#deprecated-47" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-48">XNNPACK_INT8<a href="#xnnpack_int8-48" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-49">XNNPACK_INT8<a href="#xnnpack_int8-49" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a> = <code>WHISPER_BASE_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-206">Type Declaration<a href="#type-declaration-206" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-102">DEFAULT<a href="#default-102" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-208">Type Declaration<a href="#type-declaration-208" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-103">DEFAULT<a href="#default-103" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a></p>
 </blockquote>
@@ -2614,8 +2647,8 @@ languages.</p>
 </blockquote>
 <p>English-only Whisper Base model. High accuracy English speech
 recognition.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-207">Type Declaration<a href="#type-declaration-207" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-56">COREML_FP16<a href="#coreml_fp16-56" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-209">Type Declaration<a href="#type-declaration-209" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-57">COREML_FP16<a href="#coreml_fp16-57" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt; = <code>WHISPER_BASE_EN_COREML_FP16</code></p>
 </blockquote>
@@ -2627,7 +2660,7 @@ recognition.</p>
 <blockquote>
 <p><strong>MLX_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt; = <code>WHISPER_BASE_EN_MLX_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-47">VULKAN_FP16<a href="#vulkan_fp16-47" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-48">VULKAN_FP16<a href="#vulkan_fp16-48" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt; = <code>WHISPER_BASE_EN_VULKAN_FP16</code></p>
 </blockquote>
@@ -2635,18 +2668,18 @@ recognition.</p>
 <blockquote>
 <p><strong>VULKAN_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt; = <code>WHISPER_BASE_EN_VULKAN_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-56"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-56" class="hash-link" aria-label="Direct link to xnnpack_fp32-56" title="Direct link to xnnpack_fp32-56" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-57"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-57" class="hash-link" aria-label="Direct link to xnnpack_fp32-57" title="Direct link to xnnpack_fp32-57" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt;</p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-48">Deprecated<a href="#deprecated-48" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-49">XNNPACK_INT8<a href="#xnnpack_int8-49" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-50">XNNPACK_INT8<a href="#xnnpack_int8-50" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt; = <code>WHISPER_BASE_EN_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-208">Type Declaration<a href="#type-declaration-208" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-103">DEFAULT<a href="#default-103" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-210">Type Declaration<a href="#type-declaration-210" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-104">DEFAULT<a href="#default-104" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt;</p>
 </blockquote>
@@ -2656,8 +2689,8 @@ recognition.</p>
 </blockquote>
 <p>English-only Whisper Small model. Superior accuracy for English
 transcription.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-209">Type Declaration<a href="#type-declaration-209" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-57">COREML_FP16<a href="#coreml_fp16-57" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-211">Type Declaration<a href="#type-declaration-211" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-58">COREML_FP16<a href="#coreml_fp16-58" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt; = <code>WHISPER_SMALL_EN_COREML_FP16</code></p>
 </blockquote>
@@ -2665,7 +2698,7 @@ transcription.</p>
 <blockquote>
 <p><strong>MLX_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt; = <code>WHISPER_SMALL_EN_MLX_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-48">VULKAN_FP16<a href="#vulkan_fp16-48" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-49">VULKAN_FP16<a href="#vulkan_fp16-49" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt; = <code>WHISPER_SMALL_EN_VULKAN_FP16</code></p>
 </blockquote>
@@ -2673,18 +2706,18 @@ transcription.</p>
 <blockquote>
 <p><strong>VULKAN_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt; = <code>WHISPER_SMALL_EN_VULKAN_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-57"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-57" class="hash-link" aria-label="Direct link to xnnpack_fp32-57" title="Direct link to xnnpack_fp32-57" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-58"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-58" class="hash-link" aria-label="Direct link to xnnpack_fp32-58" title="Direct link to xnnpack_fp32-58" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt;</p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-49">Deprecated<a href="#deprecated-49" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-50">XNNPACK_INT8<a href="#xnnpack_int8-50" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-51">XNNPACK_INT8<a href="#xnnpack_int8-51" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt; = <code>WHISPER_SMALL_EN_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-210">Type Declaration<a href="#type-declaration-210" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-104">DEFAULT<a href="#default-104" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-212">Type Declaration<a href="#type-declaration-212" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-105">DEFAULT<a href="#default-105" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt;</p>
 </blockquote>
@@ -2693,8 +2726,8 @@ transcription.</p>
 <p><strong>TINY</strong>: <code>object</code> &amp; <code>object</code></p>
 </blockquote>
 <p>English-only Whisper Tiny model. Fast and compact for English STT.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-211">Type Declaration<a href="#type-declaration-211" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-58">COREML_FP16<a href="#coreml_fp16-58" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-213">Type Declaration<a href="#type-declaration-213" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-59">COREML_FP16<a href="#coreml_fp16-59" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt; = <code>WHISPER_TINY_EN_COREML_FP16</code></p>
 </blockquote>
@@ -2706,7 +2739,7 @@ transcription.</p>
 <blockquote>
 <p><strong>MLX_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt; = <code>WHISPER_TINY_EN_MLX_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-49">VULKAN_FP16<a href="#vulkan_fp16-49" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-50">VULKAN_FP16<a href="#vulkan_fp16-50" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt; = <code>WHISPER_TINY_EN_VULKAN_FP16</code></p>
 </blockquote>
@@ -2714,18 +2747,18 @@ transcription.</p>
 <blockquote>
 <p><strong>VULKAN_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt; = <code>WHISPER_TINY_EN_VULKAN_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-58"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-58" class="hash-link" aria-label="Direct link to xnnpack_fp32-58" title="Direct link to xnnpack_fp32-58" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-59"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-59" class="hash-link" aria-label="Direct link to xnnpack_fp32-59" title="Direct link to xnnpack_fp32-59" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt;</p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-50">Deprecated<a href="#deprecated-50" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-51">XNNPACK_INT8<a href="#xnnpack_int8-51" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-52">XNNPACK_INT8<a href="#xnnpack_int8-52" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt; = <code>WHISPER_TINY_EN_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-212">Type Declaration<a href="#type-declaration-212" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-105">DEFAULT<a href="#default-105" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-214">Type Declaration<a href="#type-declaration-214" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-106">DEFAULT<a href="#default-106" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a>&lt;<code>&quot;en&quot;</code>&gt;</p>
 </blockquote>
@@ -2735,8 +2768,8 @@ transcription.</p>
 </blockquote>
 <p>Multilingual Whisper Small model. Best accuracy for complex
 multi-language audio.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-213">Type Declaration<a href="#type-declaration-213" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-59">COREML_FP16<a href="#coreml_fp16-59" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-215">Type Declaration<a href="#type-declaration-215" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-60">COREML_FP16<a href="#coreml_fp16-60" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a> = <code>WHISPER_SMALL_COREML_FP16</code></p>
 </blockquote>
@@ -2744,7 +2777,7 @@ multi-language audio.</p>
 <blockquote>
 <p><strong>MLX_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a> = <code>WHISPER_SMALL_MLX_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-50">VULKAN_FP16<a href="#vulkan_fp16-50" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-51">VULKAN_FP16<a href="#vulkan_fp16-51" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a> = <code>WHISPER_SMALL_VULKAN_FP16</code></p>
 </blockquote>
@@ -2752,18 +2785,18 @@ multi-language audio.</p>
 <blockquote>
 <p><strong>VULKAN_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a> = <code>WHISPER_SMALL_VULKAN_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-59"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-59" class="hash-link" aria-label="Direct link to xnnpack_fp32-59" title="Direct link to xnnpack_fp32-59" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-60"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-60" class="hash-link" aria-label="Direct link to xnnpack_fp32-60" title="Direct link to xnnpack_fp32-60" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a></p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-51">Deprecated<a href="#deprecated-51" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-52">XNNPACK_INT8<a href="#xnnpack_int8-52" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-53">XNNPACK_INT8<a href="#xnnpack_int8-53" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a> = <code>WHISPER_SMALL_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-214">Type Declaration<a href="#type-declaration-214" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-106">DEFAULT<a href="#default-106" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-216">Type Declaration<a href="#type-declaration-216" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-107">DEFAULT<a href="#default-107" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a></p>
 </blockquote>
@@ -2773,8 +2806,8 @@ multi-language audio.</p>
 </blockquote>
 <p>Multilingual Whisper Tiny model. Supporting 99+ languages. High speed
 speech recognition.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-215">Type Declaration<a href="#type-declaration-215" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-60">COREML_FP16<a href="#coreml_fp16-60" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-217">Type Declaration<a href="#type-declaration-217" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-61">COREML_FP16<a href="#coreml_fp16-61" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a> = <code>WHISPER_TINY_COREML_FP16</code></p>
 </blockquote>
@@ -2786,7 +2819,7 @@ speech recognition.</p>
 <blockquote>
 <p><strong>MLX_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a> = <code>WHISPER_TINY_MLX_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-51">VULKAN_FP16<a href="#vulkan_fp16-51" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-52">VULKAN_FP16<a href="#vulkan_fp16-52" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a> = <code>WHISPER_TINY_VULKAN_FP16</code></p>
 </blockquote>
@@ -2794,18 +2827,18 @@ speech recognition.</p>
 <blockquote>
 <p><strong>VULKAN_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a> = <code>WHISPER_TINY_VULKAN_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-60"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-60" class="hash-link" aria-label="Direct link to xnnpack_fp32-60" title="Direct link to xnnpack_fp32-60" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-61"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-61" class="hash-link" aria-label="Direct link to xnnpack_fp32-61" title="Direct link to xnnpack_fp32-61" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a></p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-52">Deprecated<a href="#deprecated-52" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-53">XNNPACK_INT8<a href="#xnnpack_int8-53" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-54">XNNPACK_INT8<a href="#xnnpack_int8-54" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a> = <code>WHISPER_TINY_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-216">Type Declaration<a href="#type-declaration-216" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-107">DEFAULT<a href="#default-107" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-218">Type Declaration<a href="#type-declaration-218" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-108">DEFAULT<a href="#default-108" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/WhisperSttModel"><code>WhisperSttModel</code></a></p>
 </blockquote>
@@ -2821,27 +2854,27 @@ artwork patterns.</p>
 </blockquote>
 <p>Fast neural style transfer model generating a vibrant, artistic &quot;Candy&quot;
 style effect.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-217">Type Declaration<a href="#type-declaration-217" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-61">COREML_FP16<a href="#coreml_fp16-61" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-219">Type Declaration<a href="#type-declaration-219" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-62">COREML_FP16<a href="#coreml_fp16-62" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a> = <code>STYLE_TRANSFER_CANDY_COREML_FP16</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-52">VULKAN_FP16<a href="#vulkan_fp16-52" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-53">VULKAN_FP16<a href="#vulkan_fp16-53" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a> = <code>STYLE_TRANSFER_CANDY_VULKAN_FP16</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-61"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-61" class="hash-link" aria-label="Direct link to xnnpack_fp32-61" title="Direct link to xnnpack_fp32-61" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-62"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-62" class="hash-link" aria-label="Direct link to xnnpack_fp32-62" title="Direct link to xnnpack_fp32-62" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a></p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-53">Deprecated<a href="#deprecated-53" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-54">XNNPACK_INT8<a href="#xnnpack_int8-54" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-55">XNNPACK_INT8<a href="#xnnpack_int8-55" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a> = <code>STYLE_TRANSFER_CANDY_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-218">Type Declaration<a href="#type-declaration-218" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-108">DEFAULT<a href="#default-108" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-220">Type Declaration<a href="#type-declaration-220" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-109">DEFAULT<a href="#default-109" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a></p>
 </blockquote>
@@ -2851,27 +2884,27 @@ style effect.</p>
 </blockquote>
 <p>Fast neural style transfer model applying a classic tile mosaic artistic
 pattern.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-219">Type Declaration<a href="#type-declaration-219" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-62">COREML_FP16<a href="#coreml_fp16-62" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-221">Type Declaration<a href="#type-declaration-221" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-63">COREML_FP16<a href="#coreml_fp16-63" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a> = <code>STYLE_TRANSFER_MOSAIC_COREML_FP16</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-53">VULKAN_FP16<a href="#vulkan_fp16-53" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-54">VULKAN_FP16<a href="#vulkan_fp16-54" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a> = <code>STYLE_TRANSFER_MOSAIC_VULKAN_FP16</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-62"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-62" class="hash-link" aria-label="Direct link to xnnpack_fp32-62" title="Direct link to xnnpack_fp32-62" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-63"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-63" class="hash-link" aria-label="Direct link to xnnpack_fp32-63" title="Direct link to xnnpack_fp32-63" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a></p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-54">Deprecated<a href="#deprecated-54" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-55">XNNPACK_INT8<a href="#xnnpack_int8-55" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-56">XNNPACK_INT8<a href="#xnnpack_int8-56" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a> = <code>STYLE_TRANSFER_MOSAIC_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-220">Type Declaration<a href="#type-declaration-220" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-109">DEFAULT<a href="#default-109" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-222">Type Declaration<a href="#type-declaration-222" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-110">DEFAULT<a href="#default-110" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a></p>
 </blockquote>
@@ -2881,27 +2914,27 @@ pattern.</p>
 </blockquote>
 <p>Fast neural style transfer model applying a painterly &quot;Rain Princess&quot; oil
 painting aesthetic.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-221">Type Declaration<a href="#type-declaration-221" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-63">COREML_FP16<a href="#coreml_fp16-63" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-223">Type Declaration<a href="#type-declaration-223" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-64">COREML_FP16<a href="#coreml_fp16-64" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a> = <code>STYLE_TRANSFER_RAIN_PRINCESS_COREML_FP16</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-54">VULKAN_FP16<a href="#vulkan_fp16-54" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-55">VULKAN_FP16<a href="#vulkan_fp16-55" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a> = <code>STYLE_TRANSFER_RAIN_PRINCESS_VULKAN_FP16</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-63"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-63" class="hash-link" aria-label="Direct link to xnnpack_fp32-63" title="Direct link to xnnpack_fp32-63" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-64"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-64" class="hash-link" aria-label="Direct link to xnnpack_fp32-64" title="Direct link to xnnpack_fp32-64" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a></p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-55">Deprecated<a href="#deprecated-55" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-56">XNNPACK_INT8<a href="#xnnpack_int8-56" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-57">XNNPACK_INT8<a href="#xnnpack_int8-57" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a> = <code>STYLE_TRANSFER_RAIN_PRINCESS_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-222">Type Declaration<a href="#type-declaration-222" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-110">DEFAULT<a href="#default-110" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-224">Type Declaration<a href="#type-declaration-224" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-111">DEFAULT<a href="#default-111" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a></p>
 </blockquote>
@@ -2911,27 +2944,27 @@ painting aesthetic.</p>
 </blockquote>
 <p>Fast neural style transfer model applying Francis Picabia&#x27;s &quot;Udnie&quot;
 abstract art style.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-223">Type Declaration<a href="#type-declaration-223" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-64">COREML_FP16<a href="#coreml_fp16-64" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-225">Type Declaration<a href="#type-declaration-225" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-65">COREML_FP16<a href="#coreml_fp16-65" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a> = <code>STYLE_TRANSFER_UDNIE_COREML_FP16</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-55">VULKAN_FP16<a href="#vulkan_fp16-55" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-56">VULKAN_FP16<a href="#vulkan_fp16-56" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a> = <code>STYLE_TRANSFER_UDNIE_VULKAN_FP16</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-64"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-64" class="hash-link" aria-label="Direct link to xnnpack_fp32-64" title="Direct link to xnnpack_fp32-64" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-65"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-65" class="hash-link" aria-label="Direct link to xnnpack_fp32-65" title="Direct link to xnnpack_fp32-65" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a></p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-56">Deprecated<a href="#deprecated-56" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-57">XNNPACK_INT8<a href="#xnnpack_int8-57" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-58">XNNPACK_INT8<a href="#xnnpack_int8-58" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a> = <code>STYLE_TRANSFER_UDNIE_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-224">Type Declaration<a href="#type-declaration-224" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-111">DEFAULT<a href="#default-111" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-226">Type Declaration<a href="#type-declaration-226" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-112">DEFAULT<a href="#default-112" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/StyleTransferModel"><code>StyleTransferModel</code></a></p>
 </blockquote>
@@ -2948,8 +2981,8 @@ representations for semantic search and RAG.</p>
 <p>Compact 384-dimensional sentence transformer mapping text to a dense
 vector space. Optimized for fast, general-purpose semantic search,
 sentence similarity, and clustering.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-225">Type Declaration<a href="#type-declaration-225" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-65">COREML_FP16<a href="#coreml_fp16-65" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-227">Type Declaration<a href="#type-declaration-227" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-66">COREML_FP16<a href="#coreml_fp16-66" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>ALL_MINILM_L6_V2_COREML_FP16</code></p>
 </blockquote>
@@ -2957,22 +2990,22 @@ sentence similarity, and clustering.</p>
 <blockquote>
 <p><strong>COREML_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>ALL_MINILM_L6_V2_COREML_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-56">VULKAN_FP16<a href="#vulkan_fp16-56" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-57">VULKAN_FP16<a href="#vulkan_fp16-57" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>ALL_MINILM_L6_V2_VULKAN_FP16</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-65"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-65" class="hash-link" aria-label="Direct link to xnnpack_fp32-65" title="Direct link to xnnpack_fp32-65" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-66"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-66" class="hash-link" aria-label="Direct link to xnnpack_fp32-66" title="Direct link to xnnpack_fp32-66" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a></p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-57">Deprecated<a href="#deprecated-57" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-58">XNNPACK_INT8<a href="#xnnpack_int8-58" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-59">XNNPACK_INT8<a href="#xnnpack_int8-59" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>ALL_MINILM_L6_V2_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-226">Type Declaration<a href="#type-declaration-226" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-112">DEFAULT<a href="#default-112" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-228">Type Declaration<a href="#type-declaration-228" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-113">DEFAULT<a href="#default-113" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a></p>
 </blockquote>
@@ -2982,8 +3015,8 @@ sentence similarity, and clustering.</p>
 </blockquote>
 <p>High-quality 768-dimensional sentence transformer model based on MPNet.
 Provides higher quality semantic embeddings compared to MiniLM.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-227">Type Declaration<a href="#type-declaration-227" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-57">VULKAN_FP16<a href="#vulkan_fp16-57" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-229">Type Declaration<a href="#type-declaration-229" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-58">VULKAN_FP16<a href="#vulkan_fp16-58" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>ALL_MPNET_BASE_V2_VULKAN_FP16</code></p>
 </blockquote>
@@ -2995,18 +3028,18 @@ Provides higher quality semantic embeddings compared to MiniLM.</p>
 <blockquote>
 <p><strong>XNNPACK_8DA4W</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>ALL_MPNET_BASE_V2_XNNPACK_8DA4W</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-66"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-66" class="hash-link" aria-label="Direct link to xnnpack_fp32-66" title="Direct link to xnnpack_fp32-66" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-67"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-67" class="hash-link" aria-label="Direct link to xnnpack_fp32-67" title="Direct link to xnnpack_fp32-67" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a></p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-58">Deprecated<a href="#deprecated-58" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-59">XNNPACK_INT8<a href="#xnnpack_int8-59" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-60">XNNPACK_INT8<a href="#xnnpack_int8-60" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>ALL_MPNET_BASE_V2_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-228">Type Declaration<a href="#type-declaration-228" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-113">DEFAULT<a href="#default-113" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-230">Type Declaration<a href="#type-declaration-230" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-114">DEFAULT<a href="#default-114" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a></p>
 </blockquote>
@@ -3018,8 +3051,8 @@ Provides higher quality semantic embeddings compared to MiniLM.</p>
 joint text-image embedding space. Used in combination with
 <code>imageEmbeddings.CLIP_VIT_BASE_PATCH32</code> for zero-shot text-to-image
 search.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-229">Type Declaration<a href="#type-declaration-229" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-66">COREML_FP16<a href="#coreml_fp16-66" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-231">Type Declaration<a href="#type-declaration-231" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-67">COREML_FP16<a href="#coreml_fp16-67" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>CLIP_VIT_BASE_PATCH32_TEXT_COREML_FP16</code></p>
 </blockquote>
@@ -3027,22 +3060,22 @@ search.</p>
 <blockquote>
 <p><strong>COREML_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>CLIP_VIT_BASE_PATCH32_TEXT_COREML_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-58">VULKAN_FP16<a href="#vulkan_fp16-58" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-59">VULKAN_FP16<a href="#vulkan_fp16-59" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>CLIP_VIT_BASE_PATCH32_TEXT_VULKAN_FP16</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-67"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-67" class="hash-link" aria-label="Direct link to xnnpack_fp32-67" title="Direct link to xnnpack_fp32-67" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-68"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-68" class="hash-link" aria-label="Direct link to xnnpack_fp32-68" title="Direct link to xnnpack_fp32-68" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a></p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-59">Deprecated<a href="#deprecated-59" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-60">XNNPACK_INT8<a href="#xnnpack_int8-60" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-61">XNNPACK_INT8<a href="#xnnpack_int8-61" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>CLIP_VIT_BASE_PATCH32_TEXT_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-230">Type Declaration<a href="#type-declaration-230" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-114">DEFAULT<a href="#default-114" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-232">Type Declaration<a href="#type-declaration-232" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-115">DEFAULT<a href="#default-115" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a></p>
 </blockquote>
@@ -3052,8 +3085,8 @@ search.</p>
 </blockquote>
 <p>Multilingual sentence transformer supporting 50+ languages, based on
 distilled Universal Sentence Encoder (512-dim output).</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-231">Type Declaration<a href="#type-declaration-231" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-67">COREML_FP16<a href="#coreml_fp16-67" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-233">Type Declaration<a href="#type-declaration-233" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-68">COREML_FP16<a href="#coreml_fp16-68" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16</code></p>
 </blockquote>
@@ -3065,7 +3098,7 @@ distilled Universal Sentence Encoder (512-dim output).</p>
 <blockquote>
 <p><strong>MLX_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-59">VULKAN_FP16<a href="#vulkan_fp16-59" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-60">VULKAN_FP16<a href="#vulkan_fp16-60" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>DISTILUSE_BASE_MULTILINGUAL_CASED_V2_VULKAN_FP16</code></p>
 </blockquote>
@@ -3073,14 +3106,14 @@ distilled Universal Sentence Encoder (512-dim output).</p>
 <blockquote>
 <p><strong>XNNPACK_8DA4W</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-68"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-68" class="hash-link" aria-label="Direct link to xnnpack_fp32-68" title="Direct link to xnnpack_fp32-68" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-69"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-69" class="hash-link" aria-label="Direct link to xnnpack_fp32-69" title="Direct link to xnnpack_fp32-69" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a></p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-60">Deprecated<a href="#deprecated-60" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_8DA4W</code>. Removed in v1.0.0.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-232">Type Declaration<a href="#type-declaration-232" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-115">DEFAULT<a href="#default-115" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-234">Type Declaration<a href="#type-declaration-234" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-116">DEFAULT<a href="#default-116" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a></p>
 </blockquote>
@@ -3091,7 +3124,7 @@ distilled Universal Sentence Encoder (512-dim output).</p>
 <p>Liquid AI LFM 2.5 350M parameter embedding model for asymmetric search
 and retrieval tasks. Prompts queries with <code>query: </code> (the default) and
 passages with <code>document: </code> via <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedder#embed">TextEmbedder.embed</a>.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-233">Type Declaration<a href="#type-declaration-233" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-235">Type Declaration<a href="#type-declaration-235" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="mlx_int4-24">MLX_INT4<a href="#mlx_int4-24" class="hash-link" aria-label="Direct link to MLX_INT4" title="Direct link to MLX_INT4" translate="no">​</a></h6>
 <blockquote>
 <p><strong>MLX_INT4</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>LFM2_5_EMBEDDING_350M_MLX_INT4</code></p>
@@ -3100,8 +3133,8 @@ passages with <code>document: </code> via <a class="" href="/react-native-execut
 <blockquote>
 <p><strong>XNNPACK_8DA4W</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>LFM2_5_EMBEDDING_350M_EMBEDDINGS</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-234">Type Declaration<a href="#type-declaration-234" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-116">DEFAULT<a href="#default-116" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-236">Type Declaration<a href="#type-declaration-236" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-117">DEFAULT<a href="#default-117" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a></p>
 </blockquote>
@@ -3111,8 +3144,8 @@ passages with <code>document: </code> via <a class="" href="/react-native-execut
 </blockquote>
 <p>384-dimensional sentence transformer fine-tuned specifically for semantic
 QA matching using cosine similarity.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-235">Type Declaration<a href="#type-declaration-235" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-68">COREML_FP16<a href="#coreml_fp16-68" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-237">Type Declaration<a href="#type-declaration-237" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-69">COREML_FP16<a href="#coreml_fp16-69" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>MULTI_QA_MINILM_L6_COS_V1_COREML_FP16</code></p>
 </blockquote>
@@ -3120,22 +3153,22 @@ QA matching using cosine similarity.</p>
 <blockquote>
 <p><strong>COREML_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>MULTI_QA_MINILM_L6_COS_V1_COREML_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-60">VULKAN_FP16<a href="#vulkan_fp16-60" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-61">VULKAN_FP16<a href="#vulkan_fp16-61" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>MULTI_QA_MINILM_L6_COS_V1_VULKAN_FP16</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-69"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-69" class="hash-link" aria-label="Direct link to xnnpack_fp32-69" title="Direct link to xnnpack_fp32-69" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-70"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-70" class="hash-link" aria-label="Direct link to xnnpack_fp32-70" title="Direct link to xnnpack_fp32-70" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a></p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-61">Deprecated<a href="#deprecated-61" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-61">XNNPACK_INT8<a href="#xnnpack_int8-61" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-62">XNNPACK_INT8<a href="#xnnpack_int8-62" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>MULTI_QA_MINILM_L6_COS_V1_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-236">Type Declaration<a href="#type-declaration-236" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-117">DEFAULT<a href="#default-117" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-238">Type Declaration<a href="#type-declaration-238" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-118">DEFAULT<a href="#default-118" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a></p>
 </blockquote>
@@ -3145,8 +3178,8 @@ QA matching using cosine similarity.</p>
 </blockquote>
 <p>768-dimensional sentence transformer fine-tuned specifically for
 question-answering matching using dot product distance.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-237">Type Declaration<a href="#type-declaration-237" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-61">VULKAN_FP16<a href="#vulkan_fp16-61" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-239">Type Declaration<a href="#type-declaration-239" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-62">VULKAN_FP16<a href="#vulkan_fp16-62" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>MULTI_QA_MPNET_BASE_DOT_V1_VULKAN_FP16</code></p>
 </blockquote>
@@ -3158,18 +3191,18 @@ question-answering matching using dot product distance.</p>
 <blockquote>
 <p><strong>XNNPACK_8DA4W</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>MULTI_QA_MPNET_BASE_DOT_V1_XNNPACK_8DA4W</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-70"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-70" class="hash-link" aria-label="Direct link to xnnpack_fp32-70" title="Direct link to xnnpack_fp32-70" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-71"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-71" class="hash-link" aria-label="Direct link to xnnpack_fp32-71" title="Direct link to xnnpack_fp32-71" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a></p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-62">Deprecated<a href="#deprecated-62" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-62">XNNPACK_INT8<a href="#xnnpack_int8-62" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-63">XNNPACK_INT8<a href="#xnnpack_int8-63" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>MULTI_QA_MPNET_BASE_DOT_V1_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-238">Type Declaration<a href="#type-declaration-238" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-118">DEFAULT<a href="#default-118" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-240">Type Declaration<a href="#type-declaration-240" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-119">DEFAULT<a href="#default-119" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a></p>
 </blockquote>
@@ -3179,8 +3212,8 @@ question-answering matching using dot product distance.</p>
 </blockquote>
 <p>384-dimensional sentence transformer supporting 50+ languages for
 cross-lingual semantic similarity.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-239">Type Declaration<a href="#type-declaration-239" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-69">COREML_FP16<a href="#coreml_fp16-69" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-241">Type Declaration<a href="#type-declaration-241" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-70">COREML_FP16<a href="#coreml_fp16-70" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_COREML_FP16</code></p>
 </blockquote>
@@ -3188,7 +3221,7 @@ cross-lingual semantic similarity.</p>
 <blockquote>
 <p><strong>COREML_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_COREML_INT8</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-62">VULKAN_FP16<a href="#vulkan_fp16-62" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-63">VULKAN_FP16<a href="#vulkan_fp16-63" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_VULKAN_FP16</code></p>
 </blockquote>
@@ -3196,14 +3229,14 @@ cross-lingual semantic similarity.</p>
 <blockquote>
 <p><strong>XNNPACK_8DA4W</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a> = <code>PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_EMBEDDINGS</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-71"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-71" class="hash-link" aria-label="Direct link to xnnpack_fp32-71" title="Direct link to xnnpack_fp32-71" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-72"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-72" class="hash-link" aria-label="Direct link to xnnpack_fp32-72" title="Direct link to xnnpack_fp32-72" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a></p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-63">Deprecated<a href="#deprecated-63" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_8DA4W</code>. Removed in v1.0.0.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-240">Type Declaration<a href="#type-declaration-240" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-119">DEFAULT<a href="#default-119" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-242">Type Declaration<a href="#type-declaration-242" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-120">DEFAULT<a href="#default-120" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/TextEmbedderModel"><code>TextEmbedderModel</code></a></p>
 </blockquote>
@@ -3219,27 +3252,27 @@ cross-lingual semantic similarity.</p>
 <p>Ultra-fast SDXS (Stable Diffusion eXtreme Speed) 512x512 text-to-image
 generation model based on DreamShaper. Generates high-quality images from
 text prompts in real time.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-241">Type Declaration<a href="#type-declaration-241" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-70">COREML_FP16<a href="#coreml_fp16-70" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-243">Type Declaration<a href="#type-declaration-243" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp16-71">COREML_FP16<a href="#coreml_fp16-71" class="hash-link" aria-label="Direct link to COREML_FP16" title="Direct link to COREML_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SdxsTextToImageModel"><code>SdxsTextToImageModel</code></a> = <code>SDXS_512_DREAMSHAPER_COREML_FP16</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-63">VULKAN_FP16<a href="#vulkan_fp16-63" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-64">VULKAN_FP16<a href="#vulkan_fp16-64" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SdxsTextToImageModel"><code>SdxsTextToImageModel</code></a> = <code>SDXS_512_DREAMSHAPER_VULKAN_FP16</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-72"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-72" class="hash-link" aria-label="Direct link to xnnpack_fp32-72" title="Direct link to xnnpack_fp32-72" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-73"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-73" class="hash-link" aria-label="Direct link to xnnpack_fp32-73" title="Direct link to xnnpack_fp32-73" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SdxsTextToImageModel"><code>SdxsTextToImageModel</code></a></p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-64">Deprecated<a href="#deprecated-64" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-63">XNNPACK_INT8<a href="#xnnpack_int8-63" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-64">XNNPACK_INT8<a href="#xnnpack_int8-64" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SdxsTextToImageModel"><code>SdxsTextToImageModel</code></a> = <code>SDXS_512_DREAMSHAPER_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-242">Type Declaration<a href="#type-declaration-242" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-120">DEFAULT<a href="#default-120" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-244">Type Declaration<a href="#type-declaration-244" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-121">DEFAULT<a href="#default-121" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SdxsTextToImageModel"><code>SdxsTextToImageModel</code></a></p>
 </blockquote>
@@ -3260,17 +3293,17 @@ the voices available for that language, nested per backend.</p>
 <blockquote>
 <p><strong>DE</strong>: <code>object</code> &amp; <code>object</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-243">Type Declaration<a href="#type-declaration-243" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-1">COREML_FP32<a href="#coreml_fp32-1" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-245">Type Declaration<a href="#type-declaration-245" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-2">COREML_FP32<a href="#coreml_fp32-2" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;df_anna&quot;</code>&gt; = <code>KOKORO_DE_COREML_FP32</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-73">XNNPACK_FP32<a href="#xnnpack_fp32-73" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-74">XNNPACK_FP32<a href="#xnnpack_fp32-74" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;df_anna&quot;</code>&gt; = <code>KOKORO_DE_XNNPACK_FP32</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-244">Type Declaration<a href="#type-declaration-244" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-121">DEFAULT<a href="#default-121" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-246">Type Declaration<a href="#type-declaration-246" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-122">DEFAULT<a href="#default-122" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;df_anna&quot;</code>&gt;</p>
 </blockquote>
@@ -3278,17 +3311,17 @@ the voices available for that language, nested per backend.</p>
 <blockquote>
 <p><strong>EN_GB</strong>: <code>object</code> &amp; <code>object</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-245">Type Declaration<a href="#type-declaration-245" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-2">COREML_FP32<a href="#coreml_fp32-2" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-247">Type Declaration<a href="#type-declaration-247" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-3">COREML_FP32<a href="#coreml_fp32-3" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;bf_emma&quot;</code> | <code>&quot;bm_daniel&quot;</code>&gt; = <code>KOKORO_EN_GB_COREML_FP32</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-74">XNNPACK_FP32<a href="#xnnpack_fp32-74" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-75">XNNPACK_FP32<a href="#xnnpack_fp32-75" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;bf_emma&quot;</code> | <code>&quot;bm_daniel&quot;</code>&gt; = <code>KOKORO_EN_GB_XNNPACK_FP32</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-246">Type Declaration<a href="#type-declaration-246" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-122">DEFAULT<a href="#default-122" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-248">Type Declaration<a href="#type-declaration-248" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-123">DEFAULT<a href="#default-123" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;bf_emma&quot;</code> | <code>&quot;bm_daniel&quot;</code>&gt;</p>
 </blockquote>
@@ -3296,17 +3329,17 @@ the voices available for that language, nested per backend.</p>
 <blockquote>
 <p><strong>EN_US</strong>: <code>object</code> &amp; <code>object</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-247">Type Declaration<a href="#type-declaration-247" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-3">COREML_FP32<a href="#coreml_fp32-3" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-249">Type Declaration<a href="#type-declaration-249" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-4">COREML_FP32<a href="#coreml_fp32-4" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;af_heart&quot;</code> | <code>&quot;af_river&quot;</code> | <code>&quot;af_sarah&quot;</code> | <code>&quot;am_adam&quot;</code> | <code>&quot;am_michael&quot;</code> | <code>&quot;am_santa&quot;</code>&gt; = <code>KOKORO_EN_US_COREML_FP32</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-75">XNNPACK_FP32<a href="#xnnpack_fp32-75" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-76">XNNPACK_FP32<a href="#xnnpack_fp32-76" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;af_heart&quot;</code> | <code>&quot;af_river&quot;</code> | <code>&quot;af_sarah&quot;</code> | <code>&quot;am_adam&quot;</code> | <code>&quot;am_michael&quot;</code> | <code>&quot;am_santa&quot;</code>&gt; = <code>KOKORO_EN_US_XNNPACK_FP32</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-248">Type Declaration<a href="#type-declaration-248" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-123">DEFAULT<a href="#default-123" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-250">Type Declaration<a href="#type-declaration-250" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-124">DEFAULT<a href="#default-124" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;af_heart&quot;</code> | <code>&quot;af_river&quot;</code> | <code>&quot;af_sarah&quot;</code> | <code>&quot;am_adam&quot;</code> | <code>&quot;am_michael&quot;</code> | <code>&quot;am_santa&quot;</code>&gt;</p>
 </blockquote>
@@ -3314,17 +3347,17 @@ the voices available for that language, nested per backend.</p>
 <blockquote>
 <p><strong>ES</strong>: <code>object</code> &amp; <code>object</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-249">Type Declaration<a href="#type-declaration-249" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-4">COREML_FP32<a href="#coreml_fp32-4" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-251">Type Declaration<a href="#type-declaration-251" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-5">COREML_FP32<a href="#coreml_fp32-5" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;ef_dora&quot;</code> | <code>&quot;em_alex&quot;</code>&gt; = <code>KOKORO_ES_COREML_FP32</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-76">XNNPACK_FP32<a href="#xnnpack_fp32-76" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-77">XNNPACK_FP32<a href="#xnnpack_fp32-77" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;ef_dora&quot;</code> | <code>&quot;em_alex&quot;</code>&gt; = <code>KOKORO_ES_XNNPACK_FP32</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-250">Type Declaration<a href="#type-declaration-250" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-124">DEFAULT<a href="#default-124" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-252">Type Declaration<a href="#type-declaration-252" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-125">DEFAULT<a href="#default-125" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;ef_dora&quot;</code> | <code>&quot;em_alex&quot;</code>&gt;</p>
 </blockquote>
@@ -3332,17 +3365,17 @@ the voices available for that language, nested per backend.</p>
 <blockquote>
 <p><strong>FR</strong>: <code>object</code> &amp; <code>object</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-251">Type Declaration<a href="#type-declaration-251" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-5">COREML_FP32<a href="#coreml_fp32-5" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-253">Type Declaration<a href="#type-declaration-253" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-6">COREML_FP32<a href="#coreml_fp32-6" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;ff_siwis&quot;</code>&gt; = <code>KOKORO_FR_COREML_FP32</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-77">XNNPACK_FP32<a href="#xnnpack_fp32-77" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-78">XNNPACK_FP32<a href="#xnnpack_fp32-78" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;ff_siwis&quot;</code>&gt; = <code>KOKORO_FR_XNNPACK_FP32</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-252">Type Declaration<a href="#type-declaration-252" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-125">DEFAULT<a href="#default-125" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-254">Type Declaration<a href="#type-declaration-254" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-126">DEFAULT<a href="#default-126" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;ff_siwis&quot;</code>&gt;</p>
 </blockquote>
@@ -3350,17 +3383,17 @@ the voices available for that language, nested per backend.</p>
 <blockquote>
 <p><strong>HI</strong>: <code>object</code> &amp; <code>object</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-253">Type Declaration<a href="#type-declaration-253" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-6">COREML_FP32<a href="#coreml_fp32-6" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-255">Type Declaration<a href="#type-declaration-255" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-7">COREML_FP32<a href="#coreml_fp32-7" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;hf_alpha&quot;</code> | <code>&quot;hm_omega&quot;</code> | <code>&quot;hm_psi&quot;</code>&gt; = <code>KOKORO_HI_COREML_FP32</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-78">XNNPACK_FP32<a href="#xnnpack_fp32-78" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-79">XNNPACK_FP32<a href="#xnnpack_fp32-79" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;hf_alpha&quot;</code> | <code>&quot;hm_omega&quot;</code> | <code>&quot;hm_psi&quot;</code>&gt; = <code>KOKORO_HI_XNNPACK_FP32</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-254">Type Declaration<a href="#type-declaration-254" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-126">DEFAULT<a href="#default-126" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-256">Type Declaration<a href="#type-declaration-256" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-127">DEFAULT<a href="#default-127" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;hf_alpha&quot;</code> | <code>&quot;hm_omega&quot;</code> | <code>&quot;hm_psi&quot;</code>&gt;</p>
 </blockquote>
@@ -3368,17 +3401,17 @@ the voices available for that language, nested per backend.</p>
 <blockquote>
 <p><strong>IT</strong>: <code>object</code> &amp; <code>object</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-255">Type Declaration<a href="#type-declaration-255" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-7">COREML_FP32<a href="#coreml_fp32-7" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-257">Type Declaration<a href="#type-declaration-257" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-8">COREML_FP32<a href="#coreml_fp32-8" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;if_sara&quot;</code> | <code>&quot;im_nicola&quot;</code>&gt; = <code>KOKORO_IT_COREML_FP32</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-79">XNNPACK_FP32<a href="#xnnpack_fp32-79" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-80">XNNPACK_FP32<a href="#xnnpack_fp32-80" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;if_sara&quot;</code> | <code>&quot;im_nicola&quot;</code>&gt; = <code>KOKORO_IT_XNNPACK_FP32</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-256">Type Declaration<a href="#type-declaration-256" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-127">DEFAULT<a href="#default-127" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-258">Type Declaration<a href="#type-declaration-258" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-128">DEFAULT<a href="#default-128" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;if_sara&quot;</code> | <code>&quot;im_nicola&quot;</code>&gt;</p>
 </blockquote>
@@ -3386,17 +3419,17 @@ the voices available for that language, nested per backend.</p>
 <blockquote>
 <p><strong>PL</strong>: <code>object</code> &amp; <code>object</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-257">Type Declaration<a href="#type-declaration-257" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-8">COREML_FP32<a href="#coreml_fp32-8" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-259">Type Declaration<a href="#type-declaration-259" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-9">COREML_FP32<a href="#coreml_fp32-9" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;pm_mateusz&quot;</code>&gt; = <code>KOKORO_PL_COREML_FP32</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-80">XNNPACK_FP32<a href="#xnnpack_fp32-80" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-81">XNNPACK_FP32<a href="#xnnpack_fp32-81" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;pm_mateusz&quot;</code>&gt; = <code>KOKORO_PL_XNNPACK_FP32</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-258">Type Declaration<a href="#type-declaration-258" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-128">DEFAULT<a href="#default-128" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-260">Type Declaration<a href="#type-declaration-260" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-129">DEFAULT<a href="#default-129" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;pm_mateusz&quot;</code>&gt;</p>
 </blockquote>
@@ -3404,17 +3437,17 @@ the voices available for that language, nested per backend.</p>
 <blockquote>
 <p><strong>PT</strong>: <code>object</code> &amp; <code>object</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-259">Type Declaration<a href="#type-declaration-259" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-9">COREML_FP32<a href="#coreml_fp32-9" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-261">Type Declaration<a href="#type-declaration-261" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-10">COREML_FP32<a href="#coreml_fp32-10" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;pf_dora&quot;</code> | <code>&quot;pm_santa&quot;</code>&gt; = <code>KOKORO_PT_COREML_FP32</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-81">XNNPACK_FP32<a href="#xnnpack_fp32-81" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-82">XNNPACK_FP32<a href="#xnnpack_fp32-82" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;pf_dora&quot;</code> | <code>&quot;pm_santa&quot;</code>&gt; = <code>KOKORO_PT_XNNPACK_FP32</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-260">Type Declaration<a href="#type-declaration-260" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-129">DEFAULT<a href="#default-129" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-262">Type Declaration<a href="#type-declaration-262" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-130">DEFAULT<a href="#default-130" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;pf_dora&quot;</code> | <code>&quot;pm_santa&quot;</code>&gt;</p>
 </blockquote>
@@ -3422,17 +3455,17 @@ the voices available for that language, nested per backend.</p>
 <blockquote>
 <p><strong>ZH</strong>: <code>object</code> &amp; <code>object</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-261">Type Declaration<a href="#type-declaration-261" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-10">COREML_FP32<a href="#coreml_fp32-10" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-263">Type Declaration<a href="#type-declaration-263" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="coreml_fp32-11">COREML_FP32<a href="#coreml_fp32-11" class="hash-link" aria-label="Direct link to COREML_FP32" title="Direct link to COREML_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>COREML_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;zf_xiaobei&quot;</code> | <code>&quot;zf_xiaoxiao&quot;</code> | <code>&quot;zf_xiaoyi&quot;</code> | <code>&quot;zm_yunjian&quot;</code> | <code>&quot;zm_yunxi&quot;</code> | <code>&quot;zm_yunxia&quot;</code> | <code>&quot;zm_yunyang&quot;</code>&gt; = <code>KOKORO_ZH_COREML_FP32</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-82">XNNPACK_FP32<a href="#xnnpack_fp32-82" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-83">XNNPACK_FP32<a href="#xnnpack_fp32-83" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;zf_xiaobei&quot;</code> | <code>&quot;zf_xiaoxiao&quot;</code> | <code>&quot;zf_xiaoyi&quot;</code> | <code>&quot;zm_yunjian&quot;</code> | <code>&quot;zm_yunxi&quot;</code> | <code>&quot;zm_yunxia&quot;</code> | <code>&quot;zm_yunyang&quot;</code>&gt; = <code>KOKORO_ZH_XNNPACK_FP32</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-262">Type Declaration<a href="#type-declaration-262" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-130">DEFAULT<a href="#default-130" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-264">Type Declaration<a href="#type-declaration-264" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-131">DEFAULT<a href="#default-131" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/KokoroTtsModel"><code>KokoroTtsModel</code></a>&lt;<code>&quot;zf_xiaobei&quot;</code> | <code>&quot;zf_xiaoxiao&quot;</code> | <code>&quot;zf_xiaoyi&quot;</code> | <code>&quot;zm_yunjian&quot;</code> | <code>&quot;zm_yunxi&quot;</code> | <code>&quot;zm_yunxia&quot;</code> | <code>&quot;zm_yunyang&quot;</code>&gt;</p>
 </blockquote>
@@ -3443,27 +3476,27 @@ the voices available for that language, nested per backend.</p>
 <p>Supertonic 3 multilingual flow-matching Text-to-Speech model. Delivers
 natural, highly expressive speech synthesis with configurable speaker
 voice presets (see <a class="" href="/react-native-executorch/docs/next/api-reference/variables/SUPERTONIC_DEFAULT_VOICE_NAMES">SUPERTONIC_DEFAULT_VOICE_NAMES</a>).</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-263">Type Declaration<a href="#type-declaration-263" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-265">Type Declaration<a href="#type-declaration-265" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="mlx_fp32">MLX_FP32<a href="#mlx_fp32" class="hash-link" aria-label="Direct link to MLX_FP32" title="Direct link to MLX_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>MLX_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SupertonicTtsModel"><code>SupertonicTtsModel</code></a>&lt;<code>&quot;F1&quot;</code> | <code>&quot;F2&quot;</code> | <code>&quot;F3&quot;</code> | <code>&quot;F4&quot;</code> | <code>&quot;F5&quot;</code> | <code>&quot;M1&quot;</code> | <code>&quot;M2&quot;</code> | <code>&quot;M3&quot;</code> | <code>&quot;M4&quot;</code> | <code>&quot;M5&quot;</code>&gt; = <code>SUPERTONIC_3_MLX_FP32</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-64">VULKAN_FP16<a href="#vulkan_fp16-64" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="vulkan_fp16-65">VULKAN_FP16<a href="#vulkan_fp16-65" class="hash-link" aria-label="Direct link to VULKAN_FP16" title="Direct link to VULKAN_FP16" translate="no">​</a></h6>
 <blockquote>
 <p><strong>VULKAN_FP16</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SupertonicTtsModel"><code>SupertonicTtsModel</code></a>&lt;<code>&quot;F1&quot;</code> | <code>&quot;F2&quot;</code> | <code>&quot;F3&quot;</code> | <code>&quot;F4&quot;</code> | <code>&quot;F5&quot;</code> | <code>&quot;M1&quot;</code> | <code>&quot;M2&quot;</code> | <code>&quot;M3&quot;</code> | <code>&quot;M4&quot;</code> | <code>&quot;M5&quot;</code>&gt; = <code>SUPERTONIC_3_VULKAN_FP16</code></p>
 </blockquote>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-83"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-83" class="hash-link" aria-label="Direct link to xnnpack_fp32-83" title="Direct link to xnnpack_fp32-83" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-84"><del>XNNPACK_FP32</del><a href="#xnnpack_fp32-84" class="hash-link" aria-label="Direct link to xnnpack_fp32-84" title="Direct link to xnnpack_fp32-84" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SupertonicTtsModel"><code>SupertonicTtsModel</code></a>&lt;<code>&quot;F1&quot;</code> | <code>&quot;F2&quot;</code> | <code>&quot;F3&quot;</code> | <code>&quot;F4&quot;</code> | <code>&quot;F5&quot;</code> | <code>&quot;M1&quot;</code> | <code>&quot;M2&quot;</code> | <code>&quot;M3&quot;</code> | <code>&quot;M4&quot;</code> | <code>&quot;M5&quot;</code>&gt;</p>
 </blockquote>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="deprecated-65">Deprecated<a href="#deprecated-65" class="hash-link" aria-label="Direct link to Deprecated" title="Direct link to Deprecated" translate="no">​</a></h6>
 <p>Use <code>XNNPACK_INT8</code>. Removed in v1.0.0.</p>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-64">XNNPACK_INT8<a href="#xnnpack_int8-64" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_int8-65">XNNPACK_INT8<a href="#xnnpack_int8-65" class="hash-link" aria-label="Direct link to XNNPACK_INT8" title="Direct link to XNNPACK_INT8" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_INT8</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SupertonicTtsModel"><code>SupertonicTtsModel</code></a>&lt;<code>&quot;F1&quot;</code> | <code>&quot;F2&quot;</code> | <code>&quot;F3&quot;</code> | <code>&quot;F4&quot;</code> | <code>&quot;F5&quot;</code> | <code>&quot;M1&quot;</code> | <code>&quot;M2&quot;</code> | <code>&quot;M3&quot;</code> | <code>&quot;M4&quot;</code> | <code>&quot;M5&quot;</code>&gt; = <code>SUPERTONIC_3_XNNPACK_INT8</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-264">Type Declaration<a href="#type-declaration-264" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-131">DEFAULT<a href="#default-131" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-266">Type Declaration<a href="#type-declaration-266" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-132">DEFAULT<a href="#default-132" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SupertonicTtsModel"><code>SupertonicTtsModel</code></a>&lt;<code>&quot;F1&quot;</code> | <code>&quot;F2&quot;</code> | <code>&quot;F3&quot;</code> | <code>&quot;F4&quot;</code> | <code>&quot;F5&quot;</code> | <code>&quot;M1&quot;</code> | <code>&quot;M2&quot;</code> | <code>&quot;M3&quot;</code> | <code>&quot;M4&quot;</code> | <code>&quot;M5&quot;</code>&gt;</p>
 </blockquote>
@@ -3490,13 +3523,13 @@ intervals in real-time audio streams.</p>
 <p>Feedforward Sequential Memory Network (FSMN) Voice Activity Detection
 model. Extremely lightweight model evaluating continuous speech
 probability chunks for live mic streaming and STT preprocessing.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-265">Type Declaration<a href="#type-declaration-265" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-84">XNNPACK_FP32<a href="#xnnpack_fp32-84" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-267">Type Declaration<a href="#type-declaration-267" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="xnnpack_fp32-85">XNNPACK_FP32<a href="#xnnpack_fp32-85" class="hash-link" aria-label="Direct link to XNNPACK_FP32" title="Direct link to XNNPACK_FP32" translate="no">​</a></h6>
 <blockquote>
 <p><strong>XNNPACK_FP32</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/FsmnVadModel"><code>FsmnVadModel</code></a> = <code>FSMN_VAD_XNNPACK_FP32</code></p>
 </blockquote>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-266">Type Declaration<a href="#type-declaration-266" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
-<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-132">DEFAULT<a href="#default-132" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="type-declaration-268">Type Declaration<a href="#type-declaration-268" class="hash-link" aria-label="Direct link to Type Declaration" title="Direct link to Type Declaration" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="default-133">DEFAULT<a href="#default-133" class="hash-link" aria-label="Direct link to DEFAULT" title="Direct link to DEFAULT" translate="no">​</a></h6>
 <blockquote>
 <p><code>readonly</code> <strong>DEFAULT</strong>: <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/FsmnVadModel"><code>FsmnVadModel</code></a></p>
 </blockquote></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_WFHX"><a href="https://github.com/software-mansion/react-native-executorch/edit/main/docs/docs/06-api-reference/variables/models.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_Z9Sw" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>Edit this page</a></div><div class="col lastUpdated_JAkA"></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="_pagination_1dyly_1 pagination-nav__link pagination-nav__link--prev" href="/react-native-executorch/docs/next/api-reference/variables/defaultWorkletRuntime"><div class="_paginationSublabel_1dyly_20 _paginationPrevious_1dyly_29"><div class="_paginationArrow_1dyly_33"><img src="data:image/svg+xml,%3csvg%20width=&#x27;13&#x27;%20height=&#x27;10&#x27;%20viewBox=&#x27;0%200%2013%2010&#x27;%20fill=&#x27;none&#x27;%20xmlns=&#x27;http://www.w3.org/2000/svg&#x27;%3e%3cpath%20d=&#x27;M1.68652%205H11.6865&#x27;%20stroke=&#x27;%23001A72&#x27;%20stroke-width=&#x27;1.5&#x27;%20stroke-linecap=&#x27;round&#x27;%20stroke-linejoin=&#x27;round&#x27;/%3e%3cpath%20d=&#x27;M5.68652%201L1.68652%205L5.68652%209&#x27;%20stroke=&#x27;%23001A72&#x27;%20stroke-width=&#x27;1.5&#x27;%20stroke-linecap=&#x27;round&#x27;%20stroke-linejoin=&#x27;round&#x27;/%3e%3c/svg%3e" class="_themedImage_hipmx_1 themedComponent_mlkZ themedComponent--light_NVdE"><img src="data:image/svg+xml,%3csvg%20width=&#x27;13&#x27;%20height=&#x27;10&#x27;%20viewBox=&#x27;0%200%2013%2010&#x27;%20fill=&#x27;none&#x27;%20xmlns=&#x27;http://www.w3.org/2000/svg&#x27;%3e%3cpath%20d=&#x27;M1.68652%205H11.6865&#x27;%20stroke=&#x27;%23C1C6E5&#x27;%20stroke-width=&#x27;1.5&#x27;%20stroke-linecap=&#x27;round&#x27;%20stroke-linejoin=&#x27;round&#x27;/%3e%3cpath%20d=&#x27;M5.68652%201L1.68652%205L5.68652%209&#x27;%20stroke=&#x27;%23C1C6E5&#x27;%20stroke-width=&#x27;1.5&#x27;%20stroke-linecap=&#x27;round&#x27;%20stroke-linejoin=&#x27;round&#x27;/%3e%3c/svg%3e" class="_themedImage_hipmx_1 themedComponent_mlkZ themedComponent--dark_xIcU"></div><div class="pagination-nav__sublabel">Previous</div></div><div class="pagination-nav__label">Variable: defaultWorkletRuntime</div></a><a class="_pagination_1dyly_1 pagination-nav__link pagination-nav__link--next" href="/react-native-executorch/docs/next/category/other"><div class="_paginationSublabel_1dyly_20 _paginationNext_1dyly_25"><div class="_paginationArrow_1dyly_33"><img src="data:image/svg+xml,%3csvg%20width=&#x27;13&#x27;%20height=&#x27;10&#x27;%20viewBox=&#x27;0%200%2013%2010&#x27;%20fill=&#x27;none&#x27;%20xmlns=&#x27;http://www.w3.org/2000/svg&#x27;%3e%3cpath%20d=&#x27;M11.6865%205H1.68652&#x27;%20stroke=&#x27;%23001A72&#x27;%20stroke-width=&#x27;1.5&#x27;%20stroke-linecap=&#x27;round&#x27;%20stroke-linejoin=&#x27;round&#x27;/%3e%3cpath%20d=&#x27;M7.68652%209L11.6865%205L7.68652%201&#x27;%20stroke=&#x27;%23001A72&#x27;%20stroke-width=&#x27;1.5&#x27;%20stroke-linecap=&#x27;round&#x27;%20stroke-linejoin=&#x27;round&#x27;/%3e%3c/svg%3e" class="_themedImage_hipmx_1 themedComponent_mlkZ themedComponent--light_NVdE"><img src="data:image/svg+xml,%3csvg%20width=&#x27;13&#x27;%20height=&#x27;10&#x27;%20viewBox=&#x27;0%200%2013%2010&#x27;%20fill=&#x27;none&#x27;%20xmlns=&#x27;http://www.w3.org/2000/svg&#x27;%3e%3cpath%20d=&#x27;M11.6865%205H1.68652&#x27;%20stroke=&#x27;%23C1C6E5&#x27;%20stroke-width=&#x27;1.5&#x27;%20stroke-linecap=&#x27;round&#x27;%20stroke-linejoin=&#x27;round&#x27;/%3e%3cpath%20d=&#x27;M7.68652%209L11.6865%205L7.68652%201&#x27;%20stroke=&#x27;%23C1C6E5&#x27;%20stroke-width=&#x27;1.5&#x27;%20stroke-linecap=&#x27;round&#x27;%20stroke-linejoin=&#x27;round&#x27;/%3e%3c/svg%3e" class="_themedImage_hipmx_1 themedComponent_mlkZ themedComponent--dark_xIcU"></div><div class="pagination-nav__sublabel">Next</div></div><div class="pagination-nav__label">Other</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><div class="TOCItemsWrapper_ahsN"><ul class="_tocItems_1hbbs_1 table-of-contents table-of-contents__left-border"><li><a href="#type-declaration" class="table-of-contents__link toc-highlight"><span>Type Declaration</span></a><ul class="_tocItems_1hbbs_1"><li><a href="#classification" class="table-of-contents__link toc-highlight"><span>classification</span></a></li><li><a href="#colbertembeddings" class="table-of-contents__link toc-highlight"><span>colbertEmbeddings</span></a></li><li><a href="#depthestimation" class="table-of-contents__link toc-highlight"><span>depthEstimation</span></a></li><li><a href="#imageembeddings" class="table-of-contents__link toc-highlight"><span>imageEmbeddings</span></a></li><li><a href="#inpainting" class="table-of-contents__link toc-highlight"><span>inpainting</span></a></li><li><a href="#instancesegmentation" class="table-of-contents__link toc-highlight"><span>instanceSegmentation</span></a></li><li><a href="#keypointdetection" class="table-of-contents__link toc-highlight"><span>keypointDetection</span></a></li><li><a href="#llm" class="table-of-contents__link toc-highlight"><span>llm</span></a></li><li><a href="#objectdetection" class="table-of-contents__link toc-highlight"><span>objectDetection</span></a></li><li><a href="#ocr" class="table-of-contents__link toc-highlight"><span>ocr</span></a></li><li><a href="#privacyfilter" class="table-of-contents__link toc-highlight"><span>privacyFilter</span></a></li><li><a href="#semanticsegmentation" class="table-of-contents__link toc-highlight"><span>semanticSegmentation</span></a></li><li><a href="#speechtotext" class="table-of-contents__link toc-highlight"><span>speechToText</span></a></li><li><a href="#styletransfer" class="table-of-contents__link toc-highlight"><span>styleTransfer</span></a></li><li><a href="#textembeddings" class="table-of-contents__link toc-highlight"><span>textEmbeddings</span></a></li><li><a href="#texttoimage" class="table-of-contents__link toc-highlight"><span>textToImage</span></a></li><li><a href="#texttospeech" class="table-of-contents__link toc-highlight"><span>textToSpeech</span></a></li><li><a href="#tokenizer" class="table-of-contents__link toc-highlight"><span>tokenizer</span></a></li><li><a href="#voiceactivitydetection" class="table-of-contents__link toc-highlight"><span>voiceActivityDetection</span></a></li></ul></li></ul><div class="_hireUsContainer_1hbbs_17"><p>We are Software Mansion.</p><div class="_buttonContainer_1hbbs_31"><a href="https://swmansion.com/contact/?utm_source=rnos-docs&amp;utm_medium=sidebar" target="_self" class="_homepageButtonLink_1pnfr_22"><div class="_homepageButton_1pnfr_1 _homepageButtonNormal_1pnfr_10 _buttonTOCStyling_1pnfr_70 _buttonTOCBorderStyling_1pnfr_88">Hire us<div class="_arrow_1pnfr_52"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="10" fill="none" viewBox="0 0 13 10"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.687 5h-10M7.687 9l4-4-4-4"></path></svg></div></div></a></div></div></div></div></div></div></div></main></div></div></div><footer class="footer"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright _footer_1mhqe_13"><a href="https://swmansion.com/" target="_blank"><div class="_footer__logo_1mhqe_52"><img src="data:image/svg+xml,%3csvg%20width=&#x27;74&#x27;%20height=&#x27;40&#x27;%20viewBox=&#x27;0%200%2074%2040&#x27;%20fill=&#x27;none&#x27;%20xmlns=&#x27;http://www.w3.org/2000/svg&#x27;%3e%3cg%20clip-path=&#x27;url(%23clip0_738_266)&#x27;%3e%3cpath%20fill-rule=&#x27;evenodd&#x27;%20clip-rule=&#x27;evenodd&#x27;%20d=&#x27;M11.9946%200.115234H12.3739H72.8476H73.7652L73.7631%201.03209L73.7025%2027.4563L73.7016%2027.8326L73.4361%2028.0993L62.1541%2039.4327L61.8857%2039.7023H61.505H1.03123H0.115723V38.7876V12.3633V11.9844L0.383869%2011.7165L11.7265%200.383161L11.9946%200.115234ZM12.7531%201.94475L3.24145%2011.4486H61.1257L70.6374%201.94475H12.7531ZM71.927%203.24346L62.4205%2012.7422V36.5707L71.8723%2027.0759L71.927%203.24346ZM1.94674%2037.8728V13.2781H60.5895V37.8728H1.94674Z&#x27;%20fill=&#x27;%23001A72&#x27;/%3e%3cpath%20d=&#x27;M16.6804%2028.1822C16.6804%2030.1822%2015.4066%2031.8792%2012.1919%2031.8792C10.7968%2031.8792%209.70498%2031.5762%208.67383%2031.1519V28.4247C9.70498%2028.9701%2010.9787%2029.2731%2012.1312%2029.2731C13.1624%2029.2731%2013.7083%2028.9701%2013.7083%2028.364C13.7083%2026.5459%208.67383%2027.0913%208.67383%2023.3337C8.67383%2021.0307%2010.5542%2019.5762%2013.1017%2019.5762C14.1935%2019.5762%2015.164%2019.8186%2016.1951%2020.4247V23.3337C14.8001%2022.4853%2013.8296%2022.1822%2013.041%2022.1822C12.0705%2022.1822%2011.5853%2022.5459%2011.5853%2023.0913C11.5853%2024.8489%2016.6804%2024.1822%2016.6804%2028.1822Z&#x27;%20fill=&#x27;%23001A72&#x27;/%3e%3cpath%20d=&#x27;M36.7575%2019.8789L32.9362%2031.6365H30.0248L27.4166%2023.5759L24.869%2031.6365H21.9575L18.1362%2019.8789H21.4116L23.5346%2027.7577L26.0215%2019.8789H28.933L31.4198%2027.7577L33.5428%2019.8789C33.5428%2019.8789%2036.7575%2019.8789%2036.7575%2019.8789Z&#x27;%20fill=&#x27;%23001A72&#x27;/%3e%3cpath%20d=&#x27;M55.0149%2023.8792V31.6368H52.1641V24.3641C52.1641%2023.0913%2051.2543%2022.3641%2050.2838%2022.3641C49.2526%2022.3641%2048.4034%2023.0913%2048.4034%2024.3641V31.6368H45.492V24.3641C45.492%2023.0913%2044.5821%2022.3641%2043.6116%2022.3641C42.5805%2022.3641%2041.7313%2023.0913%2041.7313%2024.3641V31.6368H38.8198V19.8792H41.5493V20.7277C42.3985%2019.8792%2043.3083%2019.5762%2044.4002%2019.5762C45.6133%2019.5762%2046.7051%2020.1216%2047.4329%2021.0913C48.4034%2020.061%2049.6165%2019.5762%2051.0116%2019.5762C53.3165%2019.6368%2055.0149%2021.3944%2055.0149%2023.8792Z&#x27;%20fill=&#x27;%23001A72&#x27;/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id=&#x27;clip0_738_266&#x27;%3e%3crect%20width=&#x27;74&#x27;%20height=&#x27;40&#x27;%20fill=&#x27;white&#x27;/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e" class="_themedImage_hipmx_1 themedComponent_mlkZ themedComponent--light_NVdE"><img src="data:image/svg+xml,%3csvg%20width=&#x27;74&#x27;%20height=&#x27;40&#x27;%20viewBox=&#x27;0%200%2074%2040&#x27;%20fill=&#x27;none&#x27;%20xmlns=&#x27;http://www.w3.org/2000/svg&#x27;%3e%3cg%20clip-path=&#x27;url(%23clip0_738_215)&#x27;%3e%3cpath%20fill-rule=&#x27;evenodd&#x27;%20clip-rule=&#x27;evenodd&#x27;%20d=&#x27;M11.9946%200.115234H12.3739H72.8476H73.7652L73.7631%201.03209L73.7025%2027.4563L73.7016%2027.8326L73.4361%2028.0993L62.1541%2039.4327L61.8857%2039.7023H61.505H1.03123H0.115723V38.7876V12.3633V11.9844L0.383869%2011.7165L11.7265%200.383161L11.9946%200.115234ZM12.7531%201.94475L3.24145%2011.4486H61.1257L70.6374%201.94475H12.7531ZM71.927%203.24346L62.4205%2012.7422V36.5707L71.8723%2027.0759L71.927%203.24346ZM1.94674%2037.8728V13.2781H60.5895V37.8728H1.94674Z&#x27;%20fill=&#x27;%23F8F9FF&#x27;/%3e%3cpath%20d=&#x27;M16.6804%2028.1822C16.6804%2030.1822%2015.4066%2031.8792%2012.1919%2031.8792C10.7968%2031.8792%209.70498%2031.5762%208.67383%2031.1519V28.4247C9.70498%2028.9701%2010.9787%2029.2731%2012.1312%2029.2731C13.1624%2029.2731%2013.7083%2028.9701%2013.7083%2028.364C13.7083%2026.5459%208.67383%2027.0913%208.67383%2023.3337C8.67383%2021.0307%2010.5542%2019.5762%2013.1017%2019.5762C14.1935%2019.5762%2015.164%2019.8186%2016.1951%2020.4247V23.3337C14.8001%2022.4853%2013.8296%2022.1822%2013.041%2022.1822C12.0705%2022.1822%2011.5853%2022.5459%2011.5853%2023.0913C11.5853%2024.8489%2016.6804%2024.1822%2016.6804%2028.1822Z&#x27;%20fill=&#x27;%23F8F9FF&#x27;/%3e%3cpath%20d=&#x27;M36.7575%2019.8789L32.9362%2031.6365H30.0248L27.4166%2023.5759L24.869%2031.6365H21.9575L18.1362%2019.8789H21.4116L23.5346%2027.7577L26.0215%2019.8789H28.933L31.4198%2027.7577L33.5428%2019.8789C33.5428%2019.8789%2036.7575%2019.8789%2036.7575%2019.8789Z&#x27;%20fill=&#x27;%23F8F9FF&#x27;/%3e%3cpath%20d=&#x27;M55.0149%2023.8792V31.6368H52.1641V24.3641C52.1641%2023.0913%2051.2543%2022.3641%2050.2838%2022.3641C49.2526%2022.3641%2048.4034%2023.0913%2048.4034%2024.3641V31.6368H45.492V24.3641C45.492%2023.0913%2044.5821%2022.3641%2043.6116%2022.3641C42.5805%2022.3641%2041.7313%2023.0913%2041.7313%2024.3641V31.6368H38.8198V19.8792H41.5493V20.7277C42.3985%2019.8792%2043.3083%2019.5762%2044.4002%2019.5762C45.6133%2019.5762%2046.7051%2020.1216%2047.4329%2021.0913C48.4034%2020.061%2049.6165%2019.5762%2051.0116%2019.5762C53.3165%2019.6368%2055.0149%2021.3944%2055.0149%2023.8792Z&#x27;%20fill=&#x27;%23F8F9FF&#x27;/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id=&#x27;clip0_738_215&#x27;%3e%3crect%20width=&#x27;74&#x27;%20height=&#x27;40&#x27;%20fill=&#x27;white&#x27;/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e" class="_themedImage_hipmx_1 themedComponent_mlkZ themedComponent--dark_xIcU"></div></a><p class=""><span class="_footer__brand_1mhqe_44">©<!-- --> <a href="https://swmansion.com/" target="_blank">Software Mansion</a> 2026<!-- -->.</span> All trademarks and copyrights belong to their respective owners.</p></div></div></div></footer></div>
