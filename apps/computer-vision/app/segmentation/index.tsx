@@ -28,6 +28,10 @@ const SEGMENTATION_OPTIONS: ModelOption[] = [
     value: models.semanticSegmentation.U2NETP.XNNPACK_FP32,
   },
   {
+    label: 'U²-Netp (XNNPACK INT8)',
+    value: models.semanticSegmentation.U2NETP.XNNPACK_INT8,
+  },
+  {
     label: 'U²-Netp (CoreML FP16)',
     value: models.semanticSegmentation.U2NETP.COREML_FP16,
     disabled: Platform.OS !== 'ios' || Number.parseInt(String(Platform.Version), 10) < 18,

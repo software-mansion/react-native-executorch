@@ -492,6 +492,10 @@ const U2NETP_XNNPACK_FP32: SemanticSegmenterModel<'background' | 'foreground'> =
     outInterpolation: 'linear',
   },
 };
+const U2NETP_XNNPACK_INT8: SemanticSegmenterModel<'background' | 'foreground'> = {
+  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/xnnpack/u2netp_xnnpack_int8.pte`,
+  modelOpts: U2NETP_XNNPACK_FP32.modelOpts,
+};
 const U2NETP_COREML_FP16: SemanticSegmenterModel<'background' | 'foreground'> = {
   modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/coreml/u2netp_coreml_fp16.pte`,
   modelOpts: U2NETP_XNNPACK_FP32.modelOpts,
@@ -2775,9 +2779,11 @@ export const models = {
     /**
      * Lightweight U²-Netp foreground segmentation at 320x320 for objects and
      * people. Returns a soft grayscale foreground mask for background removal.
+     * INT8 selectively quantizes convolutions for faster CPU inference.
      */
     U2NETP: variants({
       XNNPACK_FP32: U2NETP_XNNPACK_FP32,
+      XNNPACK_INT8: U2NETP_XNNPACK_INT8,
       COREML_FP16: U2NETP_COREML_FP16,
       COREML_FP32: U2NETP_COREML_FP32,
     }),
