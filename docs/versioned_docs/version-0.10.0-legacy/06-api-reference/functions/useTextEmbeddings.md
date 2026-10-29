@@ -1,0 +1,21 @@
+# Function: useTextEmbeddings()
+
+> **useTextEmbeddings**(`TextEmbeddingsProps`): [`TextEmbeddingsType`](../interfaces/TextEmbeddingsType.md)
+
+Defined in: [hooks/natural_language_processing/useTextEmbeddings.ts:14](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/hooks/natural_language_processing/useTextEmbeddings.ts#L14)
+
+React hook for managing a Text Embeddings model instance.
+
+## Parameters
+
+### TextEmbeddingsProps
+
+[`TextEmbeddingsProps`](../interfaces/TextEmbeddingsProps.md)
+
+Configuration object containing `model` source and optional `preventLoad` flag.
+
+## Returns
+
+[`TextEmbeddingsType`](../interfaces/TextEmbeddingsType.md)
+
+Ready to use Text Embeddings model.
