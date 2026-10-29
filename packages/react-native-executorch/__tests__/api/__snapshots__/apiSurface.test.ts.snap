@@ -161,6 +161,7 @@ exports[`public API surface matches the recorded export list 1`] = `
   "defaultWorkletRuntime",
   "download",
   "getRegisteredBackends",
+  "getResourceCachePath",
   "inspectModel",
   "isRnExecuTorchError",
   "llm",
