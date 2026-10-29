@@ -82,10 +82,10 @@ type TargetPlatform = 'ios' | 'android';
 
 const PLATFORM: TargetPlatform = Platform.OS === 'ios' ? 'ios' : 'android';
 
-// Accelerators lead and XNNPACK trails: a model is only exported to Core ML,
-// MLX or Vulkan once it has been shown to run better there, and XNNPACK is the
-// one backend every model exports to. Core ML sits above MLX only to make the
-// order deterministic; every group publishing both pins its winner explicitly.
+// Accelerators lead and XNNPACK trails by default. Groups whose measured
+// winner differs from this order pin a variant explicitly. Core ML sits above
+// MLX only to make the order deterministic; every group publishing both pins
+// its winner explicitly.
 //
 // The iOS simulator links the Core ML backend but cannot run it: no Neural
 // Engine, and MPSGraph refuses the compiled models. MLX only ever ships a
@@ -494,6 +494,14 @@ const U2NETP_XNNPACK_FP32: SemanticSegmenterModel<'background' | 'foreground'> =
 };
 const U2NETP_XNNPACK_INT8: SemanticSegmenterModel<'background' | 'foreground'> = {
   modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/xnnpack/u2netp_xnnpack_int8.pte`,
+  modelOpts: U2NETP_XNNPACK_FP32.modelOpts,
+};
+const U2NETP_VULKAN_FP16: SemanticSegmenterModel<'background' | 'foreground'> = {
+  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/vulkan/u2netp_vulkan_fp16.pte`,
+  modelOpts: U2NETP_XNNPACK_FP32.modelOpts,
+};
+const U2NETP_VULKAN_FP32: SemanticSegmenterModel<'background' | 'foreground'> = {
+  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/vulkan/u2netp_vulkan_fp32.pte`,
   modelOpts: U2NETP_XNNPACK_FP32.modelOpts,
 };
 const U2NETP_COREML_FP16: SemanticSegmenterModel<'background' | 'foreground'> = {
@@ -2779,14 +2787,19 @@ export const models = {
     /**
      * Lightweight U²-Netp foreground segmentation at 320x320 for objects and
      * people. Returns a soft grayscale foreground mask for background removal.
-     * INT8 selectively quantizes convolutions for faster CPU inference.
+     * INT8 and Vulkan FP16 retain sensitive operations in FP32.
      */
-    U2NETP: variants({
-      XNNPACK_FP32: U2NETP_XNNPACK_FP32,
-      XNNPACK_INT8: U2NETP_XNNPACK_INT8,
-      COREML_FP16: U2NETP_COREML_FP16,
-      COREML_FP32: U2NETP_COREML_FP32,
-    }),
+    U2NETP: variants(
+      {
+        XNNPACK_FP32: U2NETP_XNNPACK_FP32,
+        XNNPACK_INT8: U2NETP_XNNPACK_INT8,
+        COREML_FP16: U2NETP_COREML_FP16,
+        COREML_FP32: U2NETP_COREML_FP32,
+        VULKAN_FP16: U2NETP_VULKAN_FP16,
+        VULKAN_FP32: U2NETP_VULKAN_FP32,
+      },
+      { android: 'XNNPACK_FP32' }
+    ),
     /**
      * Lite R-ASPP semantic segmentation model with MobileNetV3-Large backbone
      * (21 classes, see {@link PASCAL_VOC_LABELS}). Optimized for low-latency,

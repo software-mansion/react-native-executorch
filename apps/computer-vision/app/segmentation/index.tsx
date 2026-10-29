@@ -42,6 +42,16 @@ const SEGMENTATION_OPTIONS: ModelOption[] = [
     disabled: Platform.OS !== 'ios' || Number.parseInt(String(Platform.Version), 10) < 18,
   },
   {
+    label: 'U²-Netp (Vulkan FP16)',
+    value: models.semanticSegmentation.U2NETP.VULKAN_FP16,
+    disabled: Platform.OS !== 'android',
+  },
+  {
+    label: 'U²-Netp (Vulkan FP32)',
+    value: models.semanticSegmentation.U2NETP.VULKAN_FP32,
+    disabled: Platform.OS !== 'android',
+  },
+  {
     label: 'LRASPP MobileNet V3 (INT8)',
     value: models.semanticSegmentation.LRASPP_MOBILENET_V3_LARGE.XNNPACK_INT8,
   },
