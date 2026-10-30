@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-For a complete example showing how to render bounding boxes, segmentation masks, OCR overlays, and style transfer results on top of the camera preview, see the [example app's VisionCamera tasks](https://github.com/software-mansion/react-native-executorch/tree/main/apps/computer-vision/components/vision_camera).
+For a complete example showing how to render bounding boxes, segmentation masks, OCR overlays, and style transfer results on top of the camera preview, see the [example app's VisionCamera tasks](https://github.com/software-mansion/react-native-executorch/tree/v0.8.5/apps/computer-vision/components/vision_camera).
 
 ## Handling front/back camera
 

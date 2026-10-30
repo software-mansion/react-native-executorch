@@ -5,7 +5,7 @@ title: usePoseEstimation
 Pose estimation is a computer vision technique that detects human bodies in an image and locates a fixed set of keypoints (e.g. nose, shoulders, knees) for each detected person. Unlike object detection, which produces a class label and a bounding box, pose estimation produces a structured set of named keypoints per person. React Native ExecuTorch offers a dedicated hook `usePoseEstimation` for this task.
 
 :::info
-It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-yolo26-pose). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
+It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-yolo26-pose). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/v0.10.7/packages/react-native-executorch/legacy/src/constants/modelUrls.ts) shipped with our library.
 :::
 
 ## API Reference
