@@ -325,6 +325,17 @@ describe('variant selection rules', () => {
     expect(defaultKeyOf(distiluse(registry))).toBe('XNNPACK_8DA4W');
   });
 
+  it('picks a variant naming two backends only when both are linked', () => {
+    // Qwen3-ASR's MLX file runs its audio tower on Core ML.
+    const qwen3Asr = (registry: Node): Node =>
+      ((registry.speechToText as Node).QWEN3_ASR as Node).SIZE_0_6B as Node;
+
+    expect(defaultKeyOf(qwen3Asr(registryFor({ os: 'ios' })))).toBe('MLX_COREML_INT4');
+    expect(
+      defaultKeyOf(qwen3Asr(registryFor({ os: 'ios', backends: ['XnnpackBackend', 'MLXBackend'] })))
+    ).toBe('XNNPACK_8DA4W');
+  });
+
   it('applies a pin only on the platform it names', () => {
     // The same group pins MLX for iOS only; Android resolves by its own order.
     expect(defaultKeyOf(distiluse(registryFor({ os: 'android' })))).toBe('VULKAN_FP16');
@@ -443,6 +454,13 @@ describe('feature map', () => {
       if (typeof value === 'string') {
         const match = value.match(/\/(xnnpack|coreml|mlx|vulkan)\//);
         if (match) found.add(match[1]!);
+        // A file can need a second backend, which only its name records:
+        // `mlx/qwen3_asr_0_6b_coreml_mlx_4w.pte` runs its audio tower on Core ML.
+        if (value.endsWith('.pte')) {
+          for (const part of value.split('/').pop()!.split('_')) {
+            if (/^(xnnpack|coreml|mlx|vulkan)$/.test(part)) found.add(part);
+          }
+        }
       } else if (Array.isArray(value)) value.forEach(walk);
       else if (isObject(value)) Object.values(value).forEach(walk);
     };
