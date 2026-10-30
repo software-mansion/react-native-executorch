@@ -25955,6 +25955,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/functions/createQwen3AsrSpeechToText": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/functions/createResourceScope": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -29219,6 +29231,66 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/Qwen3AsrLanguage": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/Qwen3AsrSpeechToText": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/Qwen3AsrStreamOptions": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/Qwen3AsrSttModel": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/Qwen3AsrSttOptions": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/type-aliases/RecognizeCharactersOptions": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -29832,6 +29904,30 @@
     ]
   },
   "/react-native-executorch/docs/next/api-reference/variables/PRIVACY_FILTER_OPENAI_LABELS": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/variables/QWEN3_ASR_LANGUAGES": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/variables/QWEN3_ASR_SAMPLE_RATE_HZ": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
