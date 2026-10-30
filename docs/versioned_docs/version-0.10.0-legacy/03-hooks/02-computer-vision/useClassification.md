@@ -9,7 +9,7 @@ Usually, the class with the highest probability is the one that is assigned to a
 :::
 
 :::info
-It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/classification-68d0ea49b5c7de8a3cae1e68). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
+It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/classification-68d0ea49b5c7de8a3cae1e68). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/v0.10.7/packages/react-native-executorch/legacy/src/constants/modelUrls.ts) shipped with our library.
 :::
 
 ## API Reference
@@ -104,4 +104,4 @@ function App() {
 
 | Model                                                                                                  | Number of classes | Class list                                                                                                                                              | Quantized |
 | ------------------------------------------------------------------------------------------------------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------: |
-| [efficientnet_v2_s](https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s) | 1000              | [ImageNet1k_v1](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/classification.ts) |    ✅     |
+| [efficientnet_v2_s](https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s) | 1000              | [ImageNet1k_v1](https://github.com/software-mansion/react-native-executorch/blob/v0.10.7/packages/react-native-executorch/legacy/src/constants/classification.ts) |    ✅     |

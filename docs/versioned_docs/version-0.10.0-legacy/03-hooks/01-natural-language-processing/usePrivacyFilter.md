@@ -21,7 +21,7 @@ description: "Detect personally identifiable information (PII) in text on-device
 Privacy Filter is a token-level model that scans text for personally identifiable information (PII) — names, emails, phone numbers, addresses, SSNs, secrets, and more — and returns the detected spans together with the entity type. Inference runs entirely on-device, so the input text never leaves the user's phone.
 
 :::info
-It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/privacy-filter). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
+It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/privacy-filter). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/v0.10.7/packages/react-native-executorch/legacy/src/constants/modelUrls.ts) shipped with our library.
 :::
 
 ## API Reference
