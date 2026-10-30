@@ -2263,6 +2263,12 @@ const HY_MT2_1_8B_MLX_INT8: LLMTranslatorModel = {
   tokenizerPath: `${HY_MT2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HY_MT2_BASE_URL}/tokenizer_config.json`,
 };
+const HY_MT2_1_8B_MLX_INT4: LLMTranslatorModel = {
+  name: 'hy-mt2',
+  modelPath: `${HY_MT2_BASE_URL}/mlx/hy_mt2_1_8b_mlx_int4.pte`,
+  tokenizerPath: `${HY_MT2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HY_MT2_BASE_URL}/tokenizer_config.json`,
+};
 
 // =============================================================================
 // LLMs
@@ -3982,6 +3988,7 @@ export const models = {
       XNNPACK_8DA4W: HY_MT2_1_8B_XNNPACK_8DA4W,
       XNNPACK_8DA8W: HY_MT2_1_8B_XNNPACK_8DA8W,
       MLX_INT8: HY_MT2_1_8B_MLX_INT8,
+      MLX_INT4: HY_MT2_1_8B_MLX_INT4,
     }),
   },
 
