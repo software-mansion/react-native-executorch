@@ -19,6 +19,11 @@ const MODEL_OPTIONS: ModelOption[] = [
     value: models.objectDetection.SSDLITE320_MOBILENET_V3_LARGE.XNNPACK_FP32,
   },
   {
+    label: 'SSDLite 320 MobileNet V3 Large (QNN FP16)',
+    value: models.objectDetection.SSDLITE320_MOBILENET_V3_LARGE.QNN_FP16,
+    disabled: Platform.OS !== 'android',
+  },
+  {
     label: 'RF-DETR Nano (XNNPACK INT8)',
     value: models.objectDetection.RFDETR_NANO.XNNPACK_INT8,
   },
