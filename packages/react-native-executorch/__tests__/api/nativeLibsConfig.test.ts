@@ -93,13 +93,15 @@ describe('native libs user config', () => {
     expect(findUserConfig().config).toBeUndefined();
   });
 
-  it('falls back to enabling everything when there is no block', () => {
+  it('falls back to enabling everything but opt-in qnn when there is no block', () => {
     writeManifest(root);
     const { readUserConfig, ALL_BACKENDS, ALL_LIBS } = loadWith(root);
 
     const resolved = readUserConfig();
 
-    expect(new Set(resolved.backends)).toEqual(new Set(ALL_BACKENDS));
+    expect(new Set(resolved.backends)).toEqual(
+      new Set(ALL_BACKENDS.filter((b: string) => b !== 'qnn'))
+    );
     expect(new Set(resolved.libs)).toEqual(new Set(ALL_LIBS));
   });
 

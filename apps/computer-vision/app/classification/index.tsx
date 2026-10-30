@@ -22,6 +22,16 @@ const MODEL_OPTIONS: ModelOption[] = [
     value: models.classification.EFFICIENTNET_V2_S.COREML_FP16,
     disabled: Platform.OS !== 'ios',
   },
+  {
+    label: 'EfficientNetV2-S (QNN A16W8)',
+    value: models.classification.EFFICIENTNET_V2_S.QNN_A16W8,
+    disabled: Platform.OS !== 'android',
+  },
+  {
+    label: 'EfficientNetV2-S (QNN A8W8)',
+    value: models.classification.EFFICIENTNET_V2_S.QNN_A8W8,
+    disabled: Platform.OS !== 'android',
+  },
 ];
 
 function ClassificationContent() {

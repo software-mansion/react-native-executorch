@@ -19,6 +19,11 @@ const MODEL_OPTIONS: ModelOption[] = [
     value: models.objectDetection.SSDLITE320_MOBILENET_V3_LARGE.XNNPACK_FP32,
   },
   {
+    label: 'SSDLite 320 MobileNet V3 Large (QNN FP16)',
+    value: models.objectDetection.SSDLITE320_MOBILENET_V3_LARGE.QNN_FP16,
+    disabled: Platform.OS !== 'android',
+  },
+  {
     label: 'RF-DETR Nano (XNNPACK INT8)',
     value: models.objectDetection.RFDETR_NANO.XNNPACK_INT8,
   },
@@ -50,6 +55,36 @@ const MODEL_OPTIONS: ModelOption[] = [
   {
     label: 'YOLO26 X-Large 640 (XNNPACK INT8)',
     value: models.objectDetection.YOLO26.XLARGE.SIZE_640.XNNPACK_INT8,
+  },
+  {
+    label: 'YOLO26 Nano 384 (QNN FP16)',
+    value: models.objectDetection.YOLO26.NANO.SIZE_384.QNN_FP16,
+    disabled: Platform.OS !== 'android',
+  },
+  {
+    label: 'YOLO26 Nano 640 (QNN FP16)',
+    value: models.objectDetection.YOLO26.NANO.SIZE_640.QNN_FP16,
+    disabled: Platform.OS !== 'android',
+  },
+  {
+    label: 'YOLO26 Small 640 (QNN FP16)',
+    value: models.objectDetection.YOLO26.SMALL.SIZE_640.QNN_FP16,
+    disabled: Platform.OS !== 'android',
+  },
+  {
+    label: 'YOLO26 Medium 640 (QNN FP16)',
+    value: models.objectDetection.YOLO26.MEDIUM.SIZE_640.QNN_FP16,
+    disabled: Platform.OS !== 'android',
+  },
+  {
+    label: 'YOLO26 Large 640 (QNN FP16)',
+    value: models.objectDetection.YOLO26.LARGE.SIZE_640.QNN_FP16,
+    disabled: Platform.OS !== 'android',
+  },
+  {
+    label: 'YOLO26 X-Large 640 (QNN FP16)',
+    value: models.objectDetection.YOLO26.XLARGE.SIZE_640.QNN_FP16,
+    disabled: Platform.OS !== 'android',
   },
 ];
 
