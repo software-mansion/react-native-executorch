@@ -30,6 +30,8 @@ import type { SdxsTextToImageModel } from './extensions/cv/tasks/sdxsTextToImage
 import type { TextEmbedderModel } from './extensions/nlp/tasks/textEmbedding';
 import type { ColbertEmbedderModel } from './extensions/nlp/tasks/colbertEmbedding';
 import type { PrivacyFilterModel } from './extensions/nlp/tasks/privacyFilter';
+import type { MarianTranslatorModel } from './extensions/nlp/tasks/marianTranslation';
+import type { LLMTranslatorModel } from './extensions/llm/tasks/llmTranslation';
 import type { FsmnVadModel } from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 import type { SupertonicTtsModel } from './extensions/speech/tasks/supertonicTextToSpeech';
 import type { KokoroTtsModel } from './extensions/speech/tasks/kokoroTextToSpeech';
@@ -2242,6 +2244,96 @@ const PPOCRV6_SMALL_VULKAN_FP16: PaddleOcrModel = {
 };
 
 // =============================================================================
+// Translation
+// =============================================================================
+const OPUS_MT_BASE_URL = `${BASE_URL}/opus-mt-ExecuTorch/${VERSION_TAG}`;
+
+const OPUS_MT_EN_DE_XNNPACK_INT8: MarianTranslatorModel = {
+  name: 'marian',
+  modelPath: `${OPUS_MT_BASE_URL}/en_de/xnnpack/opus_mt_en_de_xnnpack_int8.pte`,
+  tokenizerPath: `${OPUS_MT_BASE_URL}/en_de/tokenizer.json`,
+  sourceLanguage: 'en',
+  targetLanguage: 'de',
+};
+const OPUS_MT_DE_EN_XNNPACK_INT8: MarianTranslatorModel = {
+  name: 'marian',
+  modelPath: `${OPUS_MT_BASE_URL}/de_en/xnnpack/opus_mt_de_en_xnnpack_int8.pte`,
+  tokenizerPath: `${OPUS_MT_BASE_URL}/de_en/tokenizer.json`,
+  sourceLanguage: 'de',
+  targetLanguage: 'en',
+};
+const OPUS_MT_EN_ES_XNNPACK_INT8: MarianTranslatorModel = {
+  name: 'marian',
+  modelPath: `${OPUS_MT_BASE_URL}/en_es/xnnpack/opus_mt_en_es_xnnpack_int8.pte`,
+  tokenizerPath: `${OPUS_MT_BASE_URL}/en_es/tokenizer.json`,
+  sourceLanguage: 'en',
+  targetLanguage: 'es',
+};
+const OPUS_MT_ES_EN_XNNPACK_INT8: MarianTranslatorModel = {
+  name: 'marian',
+  modelPath: `${OPUS_MT_BASE_URL}/es_en/xnnpack/opus_mt_es_en_xnnpack_int8.pte`,
+  tokenizerPath: `${OPUS_MT_BASE_URL}/es_en/tokenizer.json`,
+  sourceLanguage: 'es',
+  targetLanguage: 'en',
+};
+const OPUS_MT_EN_FR_XNNPACK_INT8: MarianTranslatorModel = {
+  name: 'marian',
+  modelPath: `${OPUS_MT_BASE_URL}/en_fr/xnnpack/opus_mt_en_fr_xnnpack_int8.pte`,
+  tokenizerPath: `${OPUS_MT_BASE_URL}/en_fr/tokenizer.json`,
+  sourceLanguage: 'en',
+  targetLanguage: 'fr',
+};
+const OPUS_MT_FR_EN_XNNPACK_INT8: MarianTranslatorModel = {
+  name: 'marian',
+  modelPath: `${OPUS_MT_BASE_URL}/fr_en/xnnpack/opus_mt_fr_en_xnnpack_int8.pte`,
+  tokenizerPath: `${OPUS_MT_BASE_URL}/fr_en/tokenizer.json`,
+  sourceLanguage: 'fr',
+  targetLanguage: 'en',
+};
+
+const EUROLLM_BASE_URL = `${BASE_URL}/EuroLLM-1.7B-Instruct-ExecuTorch/${VERSION_TAG}/1_7b`;
+
+const EUROLLM_1_7B_XNNPACK_8DA8W: LLMTranslatorModel = {
+  name: 'eurollm',
+  modelPath: `${EUROLLM_BASE_URL}/xnnpack/eurollm_1_7b_xnnpack_8da8w.pte`,
+  tokenizerPath: `${EUROLLM_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${EUROLLM_BASE_URL}/tokenizer_config.json`,
+};
+const EUROLLM_1_7B_MLX_INT8: LLMTranslatorModel = {
+  name: 'eurollm',
+  modelPath: `${EUROLLM_BASE_URL}/mlx/eurollm_1_7b_mlx_int8.pte`,
+  tokenizerPath: `${EUROLLM_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${EUROLLM_BASE_URL}/tokenizer_config.json`,
+};
+
+const HY_MT2_BASE_URL = `${BASE_URL}/Hy-MT2-1.8B-ExecuTorch/${VERSION_TAG}/1_8b`;
+
+const HY_MT2_1_8B_XNNPACK_8DA4W: LLMTranslatorModel = {
+  name: 'hy-mt2',
+  modelPath: `${HY_MT2_BASE_URL}/xnnpack/hy_mt2_1_8b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${HY_MT2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HY_MT2_BASE_URL}/tokenizer_config.json`,
+};
+const HY_MT2_1_8B_XNNPACK_8DA8W: LLMTranslatorModel = {
+  name: 'hy-mt2',
+  modelPath: `${HY_MT2_BASE_URL}/xnnpack/hy_mt2_1_8b_xnnpack_8da8w.pte`,
+  tokenizerPath: `${HY_MT2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HY_MT2_BASE_URL}/tokenizer_config.json`,
+};
+const HY_MT2_1_8B_MLX_INT8: LLMTranslatorModel = {
+  name: 'hy-mt2',
+  modelPath: `${HY_MT2_BASE_URL}/mlx/hy_mt2_1_8b_mlx_int8.pte`,
+  tokenizerPath: `${HY_MT2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HY_MT2_BASE_URL}/tokenizer_config.json`,
+};
+const HY_MT2_1_8B_MLX_INT4: LLMTranslatorModel = {
+  name: 'hy-mt2',
+  modelPath: `${HY_MT2_BASE_URL}/mlx/hy_mt2_1_8b_mlx_int4.pte`,
+  tokenizerPath: `${HY_MT2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HY_MT2_BASE_URL}/tokenizer_config.json`,
+};
+
+// =============================================================================
 // LLMs
 // =============================================================================
 const MINICPM5_BASE_URL = `${BASE_URL}/MiniCPM5-2B-ExecuTorch/${VERSION_TAG}`;
@@ -3943,6 +4035,37 @@ export const models = {
     NEMOTRON: variants({
       XNNPACK_8DA4W: PRIVACY_FILTER_NEMOTRON_XNNPACK_8DA4W,
       MLX_INT8: PRIVACY_FILTER_NEMOTRON_MLX_INT8,
+    }),
+  },
+
+  /**
+   * Machine translation models. Opus-MT models each translate one language
+   * pair, a sentence at a time.
+   */
+  translation: {
+    /** Opus-MT English to German. */
+    OPUS_MT_EN_DE: variants({ XNNPACK_INT8: OPUS_MT_EN_DE_XNNPACK_INT8 }),
+    /** Opus-MT German to English. */
+    OPUS_MT_DE_EN: variants({ XNNPACK_INT8: OPUS_MT_DE_EN_XNNPACK_INT8 }),
+    /** Opus-MT English to Spanish. */
+    OPUS_MT_EN_ES: variants({ XNNPACK_INT8: OPUS_MT_EN_ES_XNNPACK_INT8 }),
+    /** Opus-MT Spanish to English. */
+    OPUS_MT_ES_EN: variants({ XNNPACK_INT8: OPUS_MT_ES_EN_XNNPACK_INT8 }),
+    /** Opus-MT English to French. */
+    OPUS_MT_EN_FR: variants({ XNNPACK_INT8: OPUS_MT_EN_FR_XNNPACK_INT8 }),
+    /** Opus-MT French to English. */
+    OPUS_MT_FR_EN: variants({ XNNPACK_INT8: OPUS_MT_FR_EN_XNNPACK_INT8 }),
+    /** EuroLLM 1.7B Instruct: any two of its 35 languages with one model. */
+    EUROLLM_1_7B: variants({
+      XNNPACK_8DA8W: EUROLLM_1_7B_XNNPACK_8DA8W,
+      MLX_INT8: EUROLLM_1_7B_MLX_INT8,
+    }),
+    /** Hy-MT2 1.8B: any two of its 38 languages and dialects with one model. */
+    HY_MT2_1_8B: variants({
+      XNNPACK_8DA4W: HY_MT2_1_8B_XNNPACK_8DA4W,
+      XNNPACK_8DA8W: HY_MT2_1_8B_XNNPACK_8DA8W,
+      MLX_INT8: HY_MT2_1_8B_MLX_INT8,
+      MLX_INT4: HY_MT2_1_8B_MLX_INT4,
     }),
   },
 
