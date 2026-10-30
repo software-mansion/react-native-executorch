@@ -5,6 +5,7 @@
 /build
 
 # Generated files
+/docs/01-fundamentals/04-supported-models.md
 .docusaurus
 .cache-loader
 
