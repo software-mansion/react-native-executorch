@@ -659,6 +659,12 @@ const SSDLITE320_MOBILENET_V3_LARGE_COREML_FP16: ObjectDetectorModel<'xyxy', Coc
   modelPath: `${BASE_URL}/SSDlite320-MobileNetV3-Large-ExecuTorch/${VERSION_TAG}/coreml/ssdlite320_mobilenet_v3_large_coreml_fp16.pte`,
   modelOpts: SSDLITE320_MOBILENET_V3_LARGE_OPTS,
 };
+// fp16 on the HTP with TopK on the CPU; 22.32 mAP50-95 against 22.40 for fp32 on an
+// S26 Ultra, and 3x faster than XNNPACK there.
+const SSDLITE320_MOBILENET_V3_LARGE_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClass> = {
+  modelPath: `${BASE_URL}/SSDlite320-MobileNetV3-Large-ExecuTorch/${VERSION_TAG}/qnn/ssdlite320_mobilenet_v3_large_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: SSDLITE320_MOBILENET_V3_LARGE_OPTS,
+};
 
 const RFDETR_NANO_DETECTOR_OPTS = {
   labels: COCO_CLASSES,
@@ -2884,6 +2890,7 @@ export const models = {
     SSDLITE320_MOBILENET_V3_LARGE: variants({
       XNNPACK_FP32: SSDLITE320_MOBILENET_V3_LARGE_XNNPACK_FP32,
       COREML_FP16: SSDLITE320_MOBILENET_V3_LARGE_COREML_FP16,
+      QNN_FP16: SSDLITE320_MOBILENET_V3_LARGE_QNN_FP16,
     }),
     /**
      * RF-DETR (Roboflow Detection Transformer) Nano variant trained on COCO
