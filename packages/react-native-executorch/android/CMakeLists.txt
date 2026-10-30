@@ -9,13 +9,6 @@ set(LIBS_DIR "${THIRD_PARTY_DIR}/android/libs")
 set(INCLUDE_DIR "${THIRD_PARTY_DIR}/include")
 set(CPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../cpp")
 
-# ==============================================================================
-# LEGACY SUPPORT (Deprecated: to be removed when react-native-executorch/legacy is dropped)
-# ==============================================================================
-set(LEGACY_CPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../legacy/cpp")
-set(LEGACY_ANDROID_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../legacy/android")
-# ==============================================================================
-
 # Feature flags forwarded from build.gradle.kts (which reads rne-build-config.json
 # written by scripts/download-libs.js). Default ON so a manual/full provisioning
 # still builds everything.
@@ -25,13 +18,6 @@ option(RNE_ENABLE_XNNPACK "Link the XNNPACK backend shared library" ON)
 option(RNE_ENABLE_VULKAN "Link the Vulkan backend shared library" ON)
 
 find_package(ReactAndroid REQUIRED CONFIG)
-
-# ==============================================================================
-# LEGACY SUPPORT: fbjni required by legacy ETInstallerModule
-# (Remove when react-native-executorch/legacy is dropped)
-# ==============================================================================
-find_package(fbjni REQUIRED CONFIG)
-# ==============================================================================
 
 # --- Source groups ---
 # core/math/nlp are backend-agnostic and always compiled. OPENCV_SOURCES is the
@@ -43,33 +29,6 @@ file(GLOB NLP_SOURCES    ${CPP_DIR}/extensions/nlp/*.cpp)
 file(GLOB SPEECH_SOURCES ${CPP_DIR}/extensions/speech/*.cpp)
 file(GLOB LLM_SOURCES    ${CPP_DIR}/extensions/llm/*.cpp)
 file(GLOB OPENCV_SOURCES ${CPP_DIR}/extensions/cv/*.cpp)
-
-# ==============================================================================
-# LEGACY SUPPORT: sources for legacy API (ETInstaller, ada, pfft, runner)
-# (Remove when react-native-executorch/legacy is dropped)
-# ==============================================================================
-file(GLOB_RECURSE LEGACY_CPP_SOURCES
-    ${LEGACY_CPP_DIR}/rnexecutorch/*.cpp
-    ${LEGACY_CPP_DIR}/ada/*.cpp
-    ${LEGACY_CPP_DIR}/pfft/*.c
-    ${LEGACY_CPP_DIR}/runner/*.cpp
-)
-list(FILTER LEGACY_CPP_SOURCES EXCLUDE REGEX "/tests/")
-# The legacy TTS models are the one part of the legacy tree that needs phonemis,
-# so they follow the same toggle as the current phonemizer rather than being
-# compiled unconditionally against a library that is not there.
-if(NOT RNE_ENABLE_PHONEMIS)
-  list(FILTER LEGACY_CPP_SOURCES EXCLUDE REGEX "/models/text_to_speech/")
-endif()
-# Same story for opencv: the legacy vision models, the image/frame helpers they
-# share and the multimodal LLM's vision encoder all compile against opencv2.
-# Only the sources are dropped - the Types.h headers next to them are
-# opencv-free and JsiConversions.h includes them unconditionally.
-if(NOT RNE_ENABLE_OPENCV)
-  list(FILTER LEGACY_CPP_SOURCES EXCLUDE REGEX
-      "/data_processing/ImageProcessing\\.cpp$|/models/VisionModel\\.cpp$|/utils/Frame[^/]*\\.cpp$|/encoders/vision_encoder\\.cpp$|/models/(classification|embeddings/image|instance_segmentation|object_detection|ocr|pose_estimation|semantic_segmentation|style_transfer|text_to_image|vertical_ocr)/")
-endif()
-# ==============================================================================
 
 set(PHONEMIS_SOURCES ${CPP_DIR}/extensions/speech/phonemizer.cpp)
 list(FILTER SPEECH_SOURCES EXCLUDE REGEX "/phonemizer\\.cpp$")
@@ -83,16 +42,6 @@ set(RNE_SOURCES
     ${LLM_SOURCES}
     cpp-adapter.cpp
 )
-
-# ==============================================================================
-# LEGACY SUPPORT: append legacy sources to the library
-# (Remove when react-native-executorch/legacy is dropped)
-# ==============================================================================
-list(APPEND RNE_SOURCES
-    ${LEGACY_CPP_SOURCES}
-    ${LEGACY_ANDROID_DIR}/ETInstallerModule.cpp
-)
-# ==============================================================================
 
 if(RNE_ENABLE_OPENCV)
   list(APPEND RNE_SOURCES ${OPENCV_SOURCES})
@@ -134,16 +83,6 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${INCLUDE_DIR}/executorch/extension/llm/tokenizers/third-party/re2
     ${INCLUDE_DIR}/executorch/extension/llm/tokenizers/third-party/abseil-cpp
 )
-
-# ==============================================================================
-# LEGACY SUPPORT: include paths for legacy headers
-# (Remove when react-native-executorch/legacy is dropped)
-# ==============================================================================
-target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    ${LEGACY_CPP_DIR}
-    ${LEGACY_ANDROID_DIR}
-)
-# ==============================================================================
 
 # ------- ExecuTorch core (always required) -------
 add_library(executorch SHARED IMPORTED)
@@ -200,17 +139,6 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     executorch
     z
 )
-
-# ==============================================================================
-# LEGACY SUPPORT: link fbjni, reactnative (for CallInvoker), and android for legacy ETInstallerModule
-# (Remove when react-native-executorch/legacy is dropped)
-# ==============================================================================
-target_link_libraries(${CMAKE_PROJECT_NAME}
-    ReactAndroid::reactnative
-    fbjni::fbjni
-    android
-)
-# ==============================================================================
 
 if(RNE_ENABLE_PHONEMIS)
   target_link_libraries(${CMAKE_PROJECT_NAME} phonemis)

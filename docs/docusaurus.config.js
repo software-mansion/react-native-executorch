@@ -36,7 +36,7 @@ const config = {
           editUrl: 'https://github.com/software-mansion/react-native-executorch/edit/main/docs',
           lastVersion: '0.11.x',
           versions: {
-            // === LEGACY SUPPORT ===: versioned docs for the legacy API (remove when legacy API is dropped)
+            // Keep the archived legacy API documentation available for existing releases.
             '0.10.0-legacy': {
               label: '0.10.0-legacy',
               banner: 'unmaintained',
