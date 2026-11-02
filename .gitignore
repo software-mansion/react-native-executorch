@@ -104,6 +104,7 @@ Makefile
 
 .agents/*
 !.agents/skills/
+!.agents/scripts/
 .claude
 skills-lock.json
 

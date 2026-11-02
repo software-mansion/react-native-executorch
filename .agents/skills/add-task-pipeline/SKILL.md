@@ -3,7 +3,7 @@ name: add-task-pipeline
 description: Use when creating a TypeScript task pipeline, implementing image preprocessing/postprocessing, loading models, or wrapping pipelines in React hooks.
 metadata:
   id: add_task_pipeline
-  scope: src/extensions/*/tasks/*, src/hooks/*
+  scope: packages/react-native-executorch/src/extensions/*/tasks/*, packages/react-native-executorch/src/hooks/*
 ---
 
 # Skill: Add a High-Level Task Pipeline (TypeScript)
@@ -20,7 +20,10 @@ When implementing task constructors like `create<Task>` (e.g. `createClassifier`
    - Statically sized scratch/output tensors required for inference should be pre-allocated inside the constructor body.
    - Allocate them using:
      ```typescript
-     const tensors = [tensor('float32', shapeA), tensor('float32', shapeB)] as const;
+     const tensors = [
+       scope.track(tensor('float32', shapeA)),
+       scope.track(tensor('float32', shapeB)),
+     ] as const;
      ```
    - **Destructuring & Naming**: Destructure and name the individual tensors immediately after allocation. Always prefix tensor variables with a lowercase `t` (e.g. `tReshape`, `tUint8`, `tInput`) to easily distinguish them from raw data buffers.
      ```typescript
@@ -29,6 +32,7 @@ When implementing task constructors like `create<Task>` (e.g. `createClassifier`
 
 2. **Allocate Through a Resource Scope**:
    - Open a `createResourceScope()` as the first statement of the constructor, take its `dispose` as the pipeline's, and wrap the whole body in `try`/`catch`. `track` every native resource as it is created:
+
      ```typescript
      const scope = createResourceScope();
      const dispose = scope.dispose;
@@ -37,8 +41,7 @@ When implementing task constructors like `create<Task>` (e.g. `createClassifier`
        const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
        const { dims } = validateSpec(model.schema, { ... }); // may throw
 
-       const tensors = [tensor('float32', shapeA), tensor('float32', shapeB)] as const;
-       tensors.forEach(scope.track);
+       const tensors = [scope.track(tensor('float32', shapeA)), scope.track(tensor('float32', shapeB))] as const;
        const preprocessor = scope.track(createImagePreprocessor(modelOpts, inpShape));
 
        return { runTask, runTaskWorklet, dispose };
@@ -47,8 +50,13 @@ When implementing task constructors like `create<Task>` (e.g. `createClassifier`
        throw error;
      }
      ```
+
    - This is not style. A caller whose `create<Task>` throws never receives a `dispose`, so anything already allocated would be stranded in native memory for the life of the process, and `useModel` re-runs the factory on every config change. The scope makes success and failure share one teardown path.
-   - Track resources **as they land**, not afterwards. For parallel loads that means `Promise.all([load(a).then(scope.track), load(b).then(scope.track)])`, so one rejecting does not strand the other.
+   - Track each resource immediately, including each tensor before allocating the next. Prefer sequential
+     construction when failure cleanup depends on all allocations being registered. `Promise.all`
+     rejects before sibling loads settle: merely appending `.then(scope.track)` does not prevent a
+     late sibling from landing after disposal. If parallel construction is needed, settle all loads
+     before releasing the scope, or explicitly dispose late arrivals.
 
 3. **Dynamic Tensors & `try/finally` Pattern**:
    - If you must allocate dynamically sized tensors during inference execution (e.g. resizing an output tensor to match the input image dimensions), you must wrap the execution inside a `try {} finally {}` block.
@@ -64,7 +72,9 @@ When implementing task constructors like `create<Task>` (e.g. `createClassifier`
 
 4. **Pure Helper Functions**:
    - Write all auxiliary/helper logic as pure, worklet-compatible functions **outside** the `create<Task>` constructor. Any helper functions invoked inside the worklet executor thread must contain the `'worklet';` directive.
-   - **Push Back Hard on Inner Helpers:** You must push back hard against any request to add internal closures or nested functions inside `create<Task>` (other than the worklet executor itself). Keep the constructor scope flat to avoid scope leak and dependency chain bugs.
+   - Keep reusable helpers at module scope so worklet captures are explicit. Constructor-local executors
+     may capture the resources they need. Use local callbacks when required by orchestration/lifecycle,
+     and check what crosses the worklet boundary rather than enforcing a fixed count of inner functions.
 
 5. **PTE Model Export & Optimizations**:
    - **Shift Heavy Ops to PyTorch**: Push complex tensor reshaping, data normalization, activations (e.g. `softmax`), or bounding box decoding into the PyTorch model itself so they execute on native backends (e.g., XNNPACK or CoreML).
@@ -88,8 +98,10 @@ When implementing task constructors like `create<Task>` (e.g. `createClassifier`
 
 - **Do NOT access tensors by index:** Avoid using `tensors[0]` or `tensors[1]` throughout the function body. Always destructure and name them explicitly.
 - **Do NOT name options parameters `opts`:** Always name options function parameters `options` (e.g. `options?: { threshold?: number }`). Suffixes like `Opts` for types or properties (e.g. `MyTaskOptions`, `ModelOpts`, `modelOpts`) are acceptable.
-- **Do NOT define extra inner helper functions:** You must define **exactly two** inner functions inside the `create<Task>` constructor: the `dispose` function and the task `worklet` executor function. **Push back hard against implementing any other helper closures inside the constructor scope.** Placing other helper functions (especially those that are called from inside the worklet and use the `create<Task>` scope variables) inside `create<Task>` creates implicit dependencies and closures that capture variables, making the code extremely difficult to reason about and debug.
-- **Do NOT throw bare `Error`:** Every failure needs a code. Use `RnExecuTorchError('CODE', msg)`, which works both in the `create<Task>` body and inside the worklet executor. See the [Error Handling Skill](../error-handling/SKILL.md).
+- **Avoid implicit worklet captures:** Keep reusable helpers outside the constructor. Inspect captured
+  values and runtime compatibility for constructor-local worklets and callbacks; function count is not
+  a correctness criterion.
+- Follow the [Error Handling Skill](../error-handling/SKILL.md) for coded failures and catching across runtimes.
 - **Do NOT leak raw Tensors to consumers:** The returned methods must never return raw `Tensor` objects to the API consumer. Always convert output data to standard JavaScript values/objects before returning.
 - **Do NOT cross thread boundaries unnecessarily:** Minimize passing heavy objects between JS and the Worklet thread to avoid serialization overhead.
 - **Do NOT treat the `.pte` model as an unchangeable black box:** Reshape the model's inputs and outputs during the PyTorch export phase to make the mobile client pipeline as lightweight as possible. Do not make input/output contracts so specific that they break extensibility.
@@ -97,13 +109,15 @@ When implementing task constructors like `create<Task>` (e.g. `createClassifier`
 
 ---
 
----
-
 ## 🛠️ Step-by-Step Implementation Template
 
 > **Reference:** See [src/extensions/cv/tasks/classification.ts](../../../packages/react-native-executorch/src/extensions/cv/tasks/classification.ts) and [src/hooks/useClassifier.ts](../../../packages/react-native-executorch/src/hooks/useClassifier.ts) for a complete working example of this pattern.
 
-### Step 1: Create the Task File (`src/extensions/<domain>/tasks/<task>.ts`)
+### Step 1: Create the Task File
+
+This complete template uses `src/extensions/cv/tasks/myTask.ts` so relative imports resolve. Adapt
+the schema and output processing to the model. This thresholding example assumes the export already
+returns scores; models returning logits may need a softmax or another decoder.
 
 ```typescript
 import type { WorkletRuntime } from 'react-native-worklets';
@@ -112,6 +126,7 @@ import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
+import { createResourceScope } from '../../../core/lifetime';
 import { type ImageBuffer } from '../image';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils/imagePreprocessor';
 
@@ -121,7 +136,7 @@ export type MyTaskOptions = ImagePreprocessorOptions & {
 
 export type MyTaskModel = {
   readonly modelPath: string;
-  readonly taskOpts: MyTaskOptions;
+  readonly modelOpts: MyTaskOptions;
 };
 
 export type MyTaskResult = {
@@ -149,51 +164,55 @@ export async function createMyTask(
   runTask: (input: ImageBuffer, options?: { threshold?: number }) => Promise<MyTaskResult[]>;
   runTaskWorklet: (input: ImageBuffer, options?: { threshold?: number }) => MyTaskResult[];
 }> {
-  const { modelPath, taskOpts } = config;
-  const model = await wrapAsync(loadModel, runtime)(modelPath);
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
 
-  // Validate model spec
-  const { variant, dims } = validateSpec(model.schema, {
-    batched: method('forward', [f32(1, 3, 'H', 'W')], [f32(1, 10)]),
-    unbatched: method('forward', [f32(3, 'H', 'W')], [f32(10)]),
-  });
+  try {
+    const { modelPath, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
-  const [H, W] = dims.constant('H', 'W');
-  const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
-  const outShape = { batched: [1, 10], unbatched: [10] }[variant];
+    // Validate model spec
+    const { variant, dims } = validateSpec(model.schema, {
+      batched: method('forward', [f32(1, 3, 'H', 'W')], [f32(1, 10)]),
+      unbatched: method('forward', [f32(3, 'H', 'W')], [f32(10)]),
+    });
 
-  // 2. Pre-allocate static tensors
-  const tensors = [tensor('float32', outShape)] as const;
+    const [H, W] = dims.constant('H', 'W');
+    const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+    const outShape = { batched: [1, 10], unbatched: [10] }[variant];
 
-  // Idiomatic destructuring and naming with "t" prefix
-  const [tOutput] = tensors;
-  const preprocessor = createImagePreprocessor(taskOpts, inpShape);
+    // 2. Pre-allocate static tensors
+    const tensors = [scope.track(tensor('float32', outShape))] as const;
 
-  // 3. Define dispose() immediately after allocation
-  const dispose = () => {
-    preprocessor.dispose();
-    tensors.forEach((t) => t.dispose());
-    model.dispose();
-  };
+    // Idiomatic destructuring and naming with "t" prefix
+    const [tOutput] = tensors;
+    const preprocessor = scope.track(createImagePreprocessor(modelOpts, inpShape));
 
-  // 4. Define exactly two inner functions (dispose & runTaskWorklet)
-  const runTaskWorklet = (input: ImageBuffer, options?: { threshold?: number }): MyTaskResult[] => {
-    'worklet';
+    // Capture the resources needed by this task's executor.
+    const runTaskWorklet = (
+      input: ImageBuffer,
+      options?: { threshold?: number }
+    ): MyTaskResult[] => {
+      'worklet';
 
-    // Process input buffer to input tensor
-    const tInput = preprocessor.process(input);
-    model.execute('forward', [tInput], [tOutput]);
+      // Process input buffer to input tensor
+      const tInput = preprocessor.process(input);
+      model.execute('forward', [tInput], [tOutput]);
 
-    const data = tOutput.getData(new Float32Array(tOutput.numel));
-    const threshold = options?.threshold ?? taskOpts.defaultThreshold;
+      const data = tOutput.getData(new Float32Array(tOutput.numel));
+      const threshold = options?.threshold ?? modelOpts.defaultThreshold;
 
-    // 5. Return standard JS object, never raw Tensor
-    return postprocessOutput(data, threshold);
-  };
+      // 5. Return standard JS object, never raw Tensor
+      return postprocessOutput(data, threshold);
+    };
 
-  const runTask = wrapAsync(runTaskWorklet, runtime);
+    const runTask = wrapAsync(runTaskWorklet, runtime);
 
-  return { runTask, runTaskWorklet, dispose };
+    return { runTask, runTaskWorklet, dispose };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }
 ```
 
@@ -204,7 +223,7 @@ Wrap the task pipeline in a custom React Hook using the core hooks `useResourceD
 ```typescript
 import { useModel } from './useModel';
 import { useResourceDownload, type ResourceOptions } from './useResourceDownload';
-import { createMyTask, type MyTaskModel } from '../extensions/<domain>/tasks/<task>';
+import { createMyTask, type MyTaskModel } from '../extensions/cv/tasks/myTask';
 
 export function useMyTask(config: MyTaskModel, options?: ResourceOptions) {
   // 1. Resolve remote or local asset model path and download progress
@@ -232,9 +251,9 @@ When adding a task pipeline or React hook, verify that:
 
 - [ ] Scratch/output tensors are pre-allocated using `tensor() as const` and prefixed with lowercase `t` (e.g. `tInput`).
 - [ ] Static tensors are destructured and named (no index-based access in the body).
-- [ ] The `dispose` function is defined immediately after static allocations.
+- [ ] Each native resource is tracked immediately by the construction scope; failure and success share `scope.dispose`.
 - [ ] Any dynamically allocated tensors are wrapped in `try/finally` and disposed of inside `finally`.
-- [ ] The constructor contains exactly two inner functions (the `dispose` function and the worklet executor).
+- [ ] Parallel loads, if present, cannot register resources after failure cleanup has finished.
 - [ ] Auxiliary helpers are defined outside the constructor and marked with the `'worklet';` directive if run on the worklet runtime.
 - [ ] Raw `Tensor` objects are never returned to the consumer.
 - [ ] Every throw uses `RnExecuTorchError('CODE', message)`.
@@ -242,3 +261,6 @@ When adding a task pipeline or React hook, verify that:
 - [ ] Every parameter is bucketed per Principle 6: varies across variants → option; fixed by the export → `const` in the task file; per-call choice → executor argument.
 - [ ] No exposed option has exactly one valid value, and no two `models.ts` variants pass an identical options object.
 - [ ] The React Hook utilizes `useModel` and properly returns progress, ready state, errors, and task execution bindings.
+
+Cover success and construction failure using [API tests](../add-api-tests/SKILL.md), and choose checks
+from [verify and build](../verify-and-build/SKILL.md#verification-matrix).

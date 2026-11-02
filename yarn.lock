@@ -12976,6 +12976,7 @@ __metadata:
     prettier-plugin-jsdoc: "npm:^1.3.0"
     react-native-worklets: "npm:0.13.0"
     typescript: "npm:~5.9.2"
+    yaml: "npm:^2.7.1"
   languageName: unknown
   linkType: soft
 

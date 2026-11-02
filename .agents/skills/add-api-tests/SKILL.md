@@ -8,10 +8,12 @@ metadata:
 
 # Skill: Add TypeScript API Tests
 
-Every change under `src/` belongs in the Jest suites at
+Behavior changes under `src/` should be covered by the Jest suites at
 [`packages/react-native-executorch/__tests__/`](../../../packages/react-native-executorch/__tests__/README.md).
 They run on a laptop or a CI runner — no simulator, no device, no `.pte` — and
-finish in a few seconds.
+finish in a few seconds. Reuse existing coverage for comments or changes with no observable behavior;
+do not add tests that merely restate the implementation. Fake-runtime tests exercise TypeScript logic,
+not production C++ or actual delegated model inference.
 
 ```bash
 yarn workspace react-native-executorch test
@@ -19,7 +21,9 @@ yarn workspace react-native-executorch test __tests__/tasks   # one directory
 yarn workspace react-native-executorch test -u                # update snapshots
 ```
 
-Types come along for free: `yarn typecheck` already covers `__tests__/`.
+From the repository root, `yarn workspace react-native-executorch typecheck` includes `__tests__/`.
+Root `yarn typecheck` also builds and checks other workspaces; see the
+[verification matrix](../verify-and-build/SKILL.md#verification-matrix).
 
 ---
 
@@ -49,19 +53,19 @@ expect(await runner.runTask(imageBuffer(8, 8))).toEqual(/* ... */);
 
 Key helpers:
 
-| Helper | Use |
-| :--- | :--- |
-| `fakeJsi.registerModel(path, program)` | Make `loadModel(path)` succeed with a given schema and `execute` |
-| `fakeJsi.registerTokenizer(path, vocabulary)` | Same for `loadTokenizer` |
-| `fakeJsi.registerLLMRunner(path, program)` | Same for `createLLMRunner`: a context window and the responses to generate, one per `generate` call |
-| `fakePhonemizer.serve(text, phonemes)` | Script the native grapheme-to-phoneme converter |
-| `fakeFs.write(path, contents)` | Put a file where a pipeline will read it (a charset, a `tokenizer_config.json`, a voice matrix) |
-| `exported(spec)` | Reinterpret a spec built with `method`/`f32`/`i64` as an *exported* one (it verifies no symbolic dims are left) |
-| `writesOutputs(...)`, `copiesInputToOutput()` | Ready-made `execute` implementations |
-| `tracked(pipeline)` | Auto-dispose at the end of the test |
-| `imageBuffer(w, h, format)` | A deterministic input image |
-| `cachePathFor(url)` | Where the fetcher will download a URL, so a hook test can register its model up front |
-| `fakeNet.serve(url, route)` | Script the server: status, body, `Range` support, and a `gate` to hold a download open |
+| Helper                                        | Use                                                                                                             |
+| :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------- |
+| `fakeJsi.registerModel(path, program)`        | Make `loadModel(path)` succeed with a given schema and `execute`                                                |
+| `fakeJsi.registerTokenizer(path, vocabulary)` | Same for `loadTokenizer`                                                                                        |
+| `fakeJsi.registerLLMRunner(path, program)`    | Same for `createLLMRunner`: a context window and the responses to generate, one per `generate` call             |
+| `fakePhonemizer.serve(text, phonemes)`        | Script the native grapheme-to-phoneme converter                                                                 |
+| `fakeFs.write(path, contents)`                | Put a file where a pipeline will read it (a charset, a `tokenizer_config.json`, a voice matrix)                 |
+| `exported(spec)`                              | Reinterpret a spec built with `method`/`f32`/`i64` as an _exported_ one (it verifies no symbolic dims are left) |
+| `writesOutputs(...)`, `copiesInputToOutput()` | Ready-made `execute` implementations                                                                            |
+| `tracked(pipeline)`                           | Auto-dispose at the end of the test                                                                             |
+| `imageBuffer(w, h, format)`                   | A deterministic input image                                                                                     |
+| `cachePathFor(url)`                           | Where the fetcher will download a URL, so a hook test can register its model up front                           |
+| `fakeNet.serve(url, route)`                   | Script the server: status, body, `Range` support, and a `gate` to hold a download open                          |
 
 ---
 
@@ -70,7 +74,7 @@ Key helpers:
 1. **Schema acceptance** — one test per variant the pipeline declares
    (`batched`, `unbatched`, ...), asserting the factory resolves.
 2. **Schema rejection** — a model that matches no variant, asserting the error
-   names the mismatch (`Rank mismatch`, `inconsistent bindings`, ...). A caller
+   has code `SCHEMA_MISMATCH` and describes the mismatch (`Rank mismatch`, `inconsistent bindings`, ...). A caller
    should learn what is wrong from the message.
 3. **Configuration mismatch** — e.g. a `labels` array that disagrees with the
    model's output dimension.
@@ -80,14 +84,14 @@ Key helpers:
 5. **Options** — every default in `modelOpts`, and every per-call override.
 6. **Disposal** — `dispose()` leaves `fakeJsi.liveTensors()` at 0 and
    `fakeJsi.liveModels()` empty, and repeated calls do not accumulate scratch
-   tensors. The same has to hold when construction *fails*: allocate through a
+   tensors. The same has to hold when construction _fails_: allocate through a
    `createResourceScope()` and wrap the factory body in `try`/`catch` so a
    schema mismatch releases the model instead of stranding it. Add the factory
    to `__tests__/tasks/constructionFailure.test.ts`, which drives every one of
    them.
 7. **Sync/async parity** — `runTaskWorklet(x)` equals `await runTask(x)`.
 
-Only the *weights* are out of scope, not the pipeline that runs on them. Before
+Only the _weights_ are out of scope, not the pipeline that runs on them. Before
 settling for schema-acceptance-and-disposal, check what is actually TypeScript:
 a decode loop, a sliding window, a chunker, an argument check, a streaming
 generator and a disposal path all run fine over a scripted `execute`. Reach for

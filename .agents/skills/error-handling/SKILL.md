@@ -3,7 +3,7 @@ name: error-handling
 description: Use when throwing, catching, or classifying errors anywhere in the library (TypeScript, worklets, C++/JSI), or when adding a new error code.
 metadata:
   id: error_handling
-  scope: src/core/error.ts, cpp/core/error.*
+  scope: packages/react-native-executorch/src/core/error.ts, packages/react-native-executorch/cpp/core/error.*
 ---
 
 # Skill: Error Handling

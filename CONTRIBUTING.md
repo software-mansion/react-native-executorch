@@ -1,5 +1,10 @@
 Thank you for your interest in contributing to react-native-executorch!
 
+For repository layout, task-specific contributor skills and verification commands, see
+[AGENTS.md](./AGENTS.md). When changing an API, build command or established pattern, update affected
+guidance alongside the code. Run `yarn check:guidance` after editing contributor instructions or skills;
+it validates metadata and local file links, not the behavior of code examples.
+
 # Ways to contribute
 
 There are several ways you can contribute to react-native-executorch:

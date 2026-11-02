@@ -2,6 +2,11 @@
 
 This directory contains specialized skills (recipes) to guide contributors and AI coding assistants in extending the codebase cleanly and consistently.
 
+Start with [the repository contributor entry point](../../AGENTS.md) for setup and task routing.
+Load only the relevant skills. Package-relative `src/` and `cpp/` paths refer to
+`packages/react-native-executorch/`; metadata scopes describe relevance and do not automatically load
+instructions. Run `yarn check:guidance` from the repository root after edits.
+
 ## Available Skills
 
 - [Core Guidelines](./core-guidelines/SKILL.md) — Symmetrical architecture, conventions, and model rules.

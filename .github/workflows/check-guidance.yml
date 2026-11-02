@@ -1,0 +1,28 @@
+name: Check contributor guidance
+
+on:
+  pull_request:
+    paths:
+      - 'AGENTS.md'
+      - '.agents/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.github/actions/setup/**'
+      - '.github/workflows/check-guidance.yml'
+      # Renaming source files can break links from otherwise unchanged skills.
+      - 'packages/react-native-executorch/**'
+      - 'docs/README.md'
+  push:
+    branches: [main]
+  merge_group:
+    types: [checks_requested]
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup
+      - run: yarn check:guidance
