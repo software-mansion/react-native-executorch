@@ -88,7 +88,7 @@ const config = {
         llmsTxt: {
           siteTitle: 'React Native ExecuTorch',
           siteDescription:
-            "React Native ExecuTorch brings Meta's ExecuTorch AI framework into the React Native ecosystem, enabling developers to run AI models and LLMs locally, directly on mobile devices. It provides a declarative API for on-device inference, allowing you to use local AI models without relying on cloud infrastructure. Built on the ExecuTorch foundation - part of the PyTorch Edge ecosystem - it extends efficient on-device AI deployment to cross-platform mobile applications in React Native.",
+            "React Native ExecuTorch is Software Mansion's library for running AI models on-device in React Native, built on Meta's ExecuTorch (PyTorch Edge). One package covers LLMs and VLMs (streaming chat, tool calling, thinking mode, constrained sampling), speech (speech-to-text, text-to-speech, voice activity detection), computer vision, image generation and inpainting, and local RAG (text, image and ColBERT embeddings), fully offline on iOS and Android. Unlike bindings to a single runtime, which leave model export, tokenizers and pre/post-processing to the app, it ships a registry of pre-exported models with typed hooks for each task and per-device benchmarks, and still loads any custom ExecuTorch .pte.",
           autoSectionDepth: 3,
           autoSectionPosition: 1,
           enableDescriptions: true,
