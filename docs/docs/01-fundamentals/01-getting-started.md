@@ -16,6 +16,8 @@ keywords:
 description: 'Get started with React Native ExecuTorch — high-performance, privacy-first on-device AI inference for React Native.'
 ---
 
+<!-- cspell:ignore Podfile -->
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -32,6 +34,8 @@ computer vision, language models, text-to-speech, transcription, and more — al
 [HuggingFace collection](https://huggingface.co/software-mansion/collections)
 and ready to use out of the box. You can also bring your own models and
 plug them into existing pipelines or build entirely custom ones from scratch.
+
+Building with a coding agent? See [AI Tools](./05-ai-tools.md) for consumer guidance, version selection, and Markdown documentation.
 
 ## What is ExecuTorch?
 
@@ -86,7 +90,7 @@ React Native ExecuTorch requires:
 - **New Architecture** enabled
 - **React Native 0.83+** or **Expo SDK 55+** with [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/) (**Expo Go is not supported** due to custom C++ native libraries)
 - **`react-native-worklets` 0.10 or newer** (`>=0.10.0 <0.14.0`)
-- **iOS 17.0+** / **Android 13+** (`minSdkVersion` >= 26); a bare app's
+- **iOS 17.0+** / **Android 8.0+** (`minSdkVersion` >= 26); a bare app's
   `Podfile` needs `platform :ios, '17.0'`
 - **`tar` on `PATH`** — the install-time download extracts with it; macOS, Linux
   and Windows 10 1803+ all ship one. Windows and Linux hosts can build for

@@ -16,7 +16,7 @@ keywords:
 
 # Exporting Custom Models
 
-React Native ExecuTorch runs any ExecuTorch `.pte` file, not just the models in
+React Native ExecuTorch runs compatible ExecuTorch `.pte` files, including models outside
 our [HuggingFace collection](https://huggingface.co/software-mansion/collections).
 Getting your own model running takes two things:
 
@@ -30,6 +30,35 @@ The export step is plain ExecuTorch and is documented thoroughly upstream, so th
 page links out for it and focuses on the second part — integrating a custom model,
 into a built-in pipeline or one you build yourself — which is where the
 library-specific work lives.
+
+## Choose your integration level
+
+| Starting point                                                             | Integration                                                                         |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| A supported task and a model from the catalog fit your goal                | Use a [pre-exported model and task hook](../01-fundamentals/04-supported-models.md) |
+| Your own model matches a built-in task's schema and preprocessing contract | Supply a custom configuration to that task's hook or factory                        |
+| Your model needs different inputs, outputs or orchestration                | Build a custom TypeScript pipeline on the model, tensor and worklet primitives      |
+
+You can mix these approaches in one application. A custom model does not have to be contributed to the
+library registry, and a custom pipeline generally does not require app-specific C++.
+
+## Keep export and mobile integration in agreement
+
+Carry these artifacts from PyTorch through export to the app:
+
+- The `.pte` and every required tokenizer, vocabulary, label map or other auxiliary asset.
+- Exported method names, ordered inputs/outputs, data types, layouts, shapes and dynamic bounds.
+- Preprocessing and output-decoding rules, such as normalization, image resize/padding or sample rate.
+- The export/runtime version, backend requirements, and representative inputs with reference outputs.
+
+Use an ExecuTorch export version and operators compatible with the native runtime shipped by the
+installed React Native ExecuTorch package. Match its enabled backends and target hardware; a `.pte`
+extension or successful schema inspection alone does not establish execution compatibility. See
+[Native Libraries](./08-native-libraries.md) for app backend selection.
+
+Whether exporting manually or using a project-provided harness, preserve that same contract. Follow
+only the harness's published commands and version pins. Compare exported outputs against the PyTorch
+reference before moving to mobile, with tolerances appropriate to the selected precision/backend.
 
 ## Exporting to `.pte`
 
@@ -358,6 +387,10 @@ Before wiring a custom model into a screen, confirm two things on the device:
   [native library configuration](./08-native-libraries.md).
 
 Once both check out, load the model into the target pipeline and run it.
+
+Compare a known inference result with the PyTorch/exported reference on the actual target backend.
+Also verify preprocessing, repeated calls, cancellation where supported, and resource cleanup. Export,
+inspection, a TypeScript build and device inference establish different parts of the workflow.
 
 ## Where to go next
 

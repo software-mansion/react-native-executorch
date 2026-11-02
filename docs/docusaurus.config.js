@@ -81,11 +81,16 @@ const config = {
       ({
         markdown: {
           enableFiles: true,
-          excludeRoutes: ['**/react-native-executorch/search', '**/api-reference/**'],
-          includeVersionedDocs: false,
+          excludeRoutes: ['**/react-native-executorch/search'],
+          includeVersionedDocs: true,
+          includeGeneratedIndex: false,
           relativePaths: false,
         },
         llmsTxt: {
+          // Postbuild replaces the generated index with one compact version-aware router.
+          // Markdown pages retain the site's existing release/Next routes.
+          includeVersionedDocs: true,
+          includeGeneratedIndex: false,
           siteTitle: 'React Native ExecuTorch',
           siteDescription:
             "React Native ExecuTorch is Software Mansion's library for running AI models on-device in React Native, built on Meta's ExecuTorch (PyTorch Edge). One package covers LLMs and VLMs (streaming chat, tool calling, thinking mode, constrained sampling), speech (speech-to-text, text-to-speech, voice activity detection), computer vision, image generation and inpainting, and local RAG (text, image and ColBERT embeddings), fully offline on iOS and Android. Unlike bindings to a single runtime, which leave model export, tokenizers and pre/post-processing to the app, it ships a registry of pre-exported models with typed hooks for each task and per-device benchmarks, and still loads any custom ExecuTorch .pte.",

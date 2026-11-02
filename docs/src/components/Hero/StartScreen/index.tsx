@@ -15,8 +15,8 @@ const StartScreen = () => {
               <span>ExecuTorch</span>
             </h1>
             <h2 className={styles.subheadingLabel}>
-              Declarative way to run AI models and LLMs in React Native on
-              device, powered by ExecuTorch.
+              Declarative way to run AI models and LLMs in React Native on device, powered by
+              ExecuTorch.
             </h2>
           </div>
           <BrowserOnly>{() => <Logo />}</BrowserOnly>
@@ -28,6 +28,12 @@ const StartScreen = () => {
               title="Get started"
             />
           </div>
+          <p>
+            <a href="/react-native-executorch/docs/next/fundamentals/ai-tools">
+              Build with an AI coding agent
+            </a>
+            {' — choose a ready-made task or bring your own model.'}
+          </p>
         </div>
       </div>
     </section>

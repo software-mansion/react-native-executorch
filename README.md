@@ -70,8 +70,8 @@ pnpm add react-native-executorch react-native-worklets react-native-blob-util
 > React Native ExecuTorch requires:
 > - **New Architecture** enabled
 > - **React Native 0.83+** or **Expo SDK 55+** with [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/) (**Expo Go is not supported** due to custom C++ native libraries)
-> - **`react-native-worklets` 0.10 or newer** (`>=0.10.0 <0.13.0`)
-> - **iOS 17.0+** / **Android 13+** (`minSdkVersion` >= 26)
+> - **`react-native-worklets` 0.10 or newer** (`>=0.10.0 <0.14.0`)
+> - **iOS 17.0+** / **Android 8.0+** (`minSdkVersion` >= 26)
 > - **`react-native-worklets/plugin`** as the last entry in your Babel `plugins`
 >
 > Downloads of our pre-exported models send an anonymous download event; call `setTelemetryEnabled(false)` to opt out.
@@ -111,6 +111,10 @@ export function App() {
 ```
 
 ## Documentation
+
+**Building with an AI coding agent?** See [AI Tools](https://docs.swmansion.com/react-native-executorch/docs/next/fundamentals/ai-tools)
+for the consumer skill, version selection, and [Markdown documentation](https://docs.swmansion.com/react-native-executorch/llms.txt).
+Choose a pre-exported model with a task hook, or bring your own `.pte` and build a custom TypeScript pipeline.
 
 Full documentation, guides, architecture deep dives, and API references are available at:
 **[docs.swmansion.com/react-native-executorch](https://docs.swmansion.com/react-native-executorch/)**

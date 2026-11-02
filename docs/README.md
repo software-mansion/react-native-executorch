@@ -1,5 +1,7 @@
 # React Native ExecuTorch Documentation
 
+<!-- cspell:ignore postbuild -->
+
 This directory contains the source code for the documentation website of React Native ExecuTorch, built with [Docusaurus](https://docusaurus.io/).
 
 ## Getting Started
@@ -80,19 +82,44 @@ We use Docusaurus versioning to "freeze" documentation for older releases.
 
 ### Creating a New Version
 
-When you release a new npm version (e.g., `1.0.0`), you must snapshot the documentation. Run this command from the `docs/` folder:
+When introducing a documentation release line (for example, `1.0.x`), snapshot the documentation.
+Run this command from the `docs/` folder after generating the current API reference with `yarn build`:
 
 ```bash
-yarn docs:version 1.0.0
+yarn docs:version 1.0.x
 ```
 ### Why is this important?
 
-1. It copies the current contents of `docs/` (including the **currently generated API reference**) into `versioned_docs/version-1.0.0`.
-2. This ensures that if the TypeScript API changes in the future, the docs for v1.0.0 remain accurate to that version.
+1. It copies the current contents of `docs/` (including the **currently generated API reference** and
+   generated Supported Models page) into `versioned_docs/version-1.0.x`.
+2. It pins GitHub `/blob/main/` links to the snapshot commit. Later TypeScript changes affect Next,
+   not the snapshot. Correct a released line's documentation in its own snapshot when needed.
+3. Set `lastVersion` in `docusaurus.config.js` when that line becomes the default released docs.
+   Existing release lines are listed in `versions.json`; do not create a snapshot for every npm patch.
 
 ### Working on "Next"
 
-Edit files in `docs/` as usual. These changes appear in the "Next" version of the site (the default view), reflecting the current `main` branch.
+Edit files in `docs/` as usual. They appear under `/docs/next/`, labeled **Next**, and reflect the
+development source. The default `/docs/` routes currently serve the `0.11.x` snapshot selected by
+`lastVersion`; older lines retain `/docs/<release-line>/` routes. A development package version such
+as `1.0.0` does not change the default documentation line automatically.
+
+## Agent documentation
+
+The LLM plugin emits `.md` representations for all documentation versions, including API symbols.
+`scripts/postbuild.mjs` then reads Docusaurus's generated `globalData.json` version/route metadata and
+creates one compact `/llms.txt` router for both integration paths and documentation versions.
+Model catalogs remain in each version's Supported Models page; the stable index never reads the
+development model registry. Every Markdown page identifies its documentation version.
+
+The post-build step fails when a documented page or generated index target is missing/empty. The normal
+`yarn build` runs this validation, including in documentation CI. Verify the stable, Next and historical
+routes when changing the plugin or Docusaurus, because the generator depends on its route metadata.
+
+The consumer skill under `../skills/react-native-executorch/` is prepared for a separate PR to
+`software-mansion-labs/skills`. Publish that skill before changing the AI Tools page's pending status
+to advertise an available installation. It is separate from the internal `.agents/skills` and is not
+bundled into the npm package.
 
 ## Troubleshooting
 
