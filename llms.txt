@@ -1,7 +1,146 @@
 # React Native ExecuTorch
 
-> React Native ExecuTorch brings Meta's ExecuTorch AI framework into the React Native ecosystem, enabling developers to run AI models and LLMs locally, directly on mobile devices. It provides a declarative API for on-device inference, allowing you to use local AI models without relying on cloud infrastructure. Built on the ExecuTorch foundation - part of the PyTorch Edge ecosystem - it extends efficient on-device AI deployment to cross-platform mobile applications in React Native.
+> Latest stable release: v0.11.x (npm `react-native-executorch`); this file was generated 2026-11-02.
+> 74 pre-exported models across 18 tasks, listed under "Supported Models" below.
+> Backends: XNNPACK (CPU, iOS and Android), Core ML (iOS), MLX (iOS), Vulkan (Android GPU). Precisions: fp32, fp16, bf16, int8, 8da8w, 8da4w, int4, spinquant, coreml_int4.
+> New in v0.11.x: `models.llm.MINICPM5_2B`, `models.llm.LFM2_5_2_6B`, `models.colbertEmbeddings.LFM2_5_COLBERT_350M`, `models.keypointDetection.FACEMESH`, `models.depthEstimation.DEPTH_ANYTHING_V2_SMALL`, `models.depthEstimation.DEPTH_ANYTHING_V3_SMALL`, `models.depthEstimation.ZIPDEPTH_BASE`, `models.inpainting.MIGAN`.
+>
+> React Native ExecuTorch is Software Mansion's library for running AI models on-device in React Native, built on Meta's ExecuTorch (PyTorch Edge). One package covers LLMs and VLMs (streaming chat, tool calling, thinking mode, constrained sampling), speech (speech-to-text, text-to-speech, voice activity detection), computer vision, image generation and inpainting, and local RAG (text, image and ColBERT embeddings), fully offline on iOS and Android. Unlike bindings to a single runtime, which leave model export, tokenizers and pre/post-processing to the app, it ships a registry of pre-exported models with typed hooks for each task and per-device benchmarks, and still loads any custom ExecuTorch .pte.
 
+
+## Supported Models
+
+Generated from the library's `models` registry. Full table: [Supported Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/supported-models). Any other ExecuTorch `.pte` can be loaded too.
+
+### LLMs & VLMs ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/llm-chat-and-generation), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#llm-chat--text-generation))
+
+Chat sessions stream tokens and support tool calling, a thinking-mode switch, Jinja chat templates, constrained sampling and image/audio inputs on multimodal models.
+
+- `models.llm.MINICPM5_2B`: OpenBMB MiniCPM5 2B chat model with an 8K context window. Backends: XNNPACK, MLX. Added in v0.11.0.
+- `models.llm.LFM2_5_1_2B`: Liquid AI LFM 2.5 1.2B general-purpose hybrid language model. Backends: XNNPACK, MLX. Added in v0.8.0.
+- `models.llm.LFM2_5_2_6B`: Liquid AI LFM 2.5 2.6B hybrid language model post-trained for instruction following and agentic workloads. Backends: XNNPACK, MLX. Added in v0.11.0.
+- `models.llm.LFM2_5_350M`: Liquid AI LFM 2.5 350M ultra-compact hybrid language model. Backends: XNNPACK, MLX. Added in v0.8.1.
+- `models.llm.LFM2_5_VL_450M`: Liquid AI LFM 2.5 VL 450M lightweight multimodal vision-language model. Inputs: text, image. Backends: XNNPACK, MLX, Vulkan. Added in v0.8.4.
+- `models.llm.LFM2_5_VL_1_6B`: Liquid AI LFM 2.5 VL 1.6B high-capacity vision-language model. Inputs: text, image. Backends: XNNPACK, MLX, Vulkan. Added in v0.8.4.
+- `models.llm.LFM3_1_7B`: Liquid AI LFM 3 1.7B hybrid language model (gated short convolutions, sliding-window and global attention). Backends: XNNPACK, MLX. Added in the next release.
+- `models.llm.LFM3_VL_2B`: Liquid AI LFM 3 VL 2B vision-language model on the LFM 3 backbone with a hybrid convolution/attention vision encoder. Inputs: text, image. Backends: XNNPACK, MLX. Added in the next release.
+- `models.llm.LFM3_AUDIO_2B`: Liquid AI LFM 3 Audio 2B speech-understanding model on the LFM 3 backbone with a causal audio encoder (16 kHz, up to 30 s per encoder call). Inputs: text, audio. Backends: XNNPACK, MLX. Added in the next release.
+- `models.llm.BIELIK_V3_1_5B`: Bielik v3 1.5B bilingual Polish & English language model, developed by SpeakLeash. Backends: XNNPACK. Added in v0.9.0.
+- `models.llm.LLAMA3_2_1B`: Meta Llama 3.2 1B lightweight instruction-tuned multilingual model. Backends: XNNPACK, MLX. Added in v0.1.0.
+- `models.llm.LLAMA3_2_3B`: Meta Llama 3.2 3B instruction-tuned multilingual language model. Backends: XNNPACK, MLX. Added in v0.1.0.
+- `models.llm.SMOLLM2_135M`: Hugging Face SmolLM2 135M ultra-compact language model. Backends: XNNPACK, MLX. Added in v0.4.1.
+- `models.llm.SMOLLM2_360M`: Hugging Face SmolLM2 360M compact instruction-tuned model. Backends: XNNPACK, MLX. Added in v0.4.1.
+- `models.llm.SMOLLM2_1_7B`: Hugging Face SmolLM2 1.7B language model trained on curated educational, synthetic, and web data. Backends: XNNPACK, MLX. Added in v0.4.1.
+- `models.llm.HAMMER2_1_0_5B`: Hammer 2.1 0.5B specialized function-calling model. Backends: XNNPACK, MLX. Added in v0.4.1.
+- `models.llm.HAMMER2_1_1_5B`: Hammer 2.1 1.5B function-calling language model. Backends: XNNPACK, MLX. Added in v0.4.1.
+- `models.llm.HAMMER2_1_3B`: Hammer 2.1 3B high-capacity function-calling model. Backends: XNNPACK, MLX. Added in v0.4.1.
+- `models.llm.PHI4_MINI`: Microsoft Phi-4 Mini 3.8B high-density reasoning model. Backends: XNNPACK, MLX. Added in v0.4.1.
+- `models.llm.QWEN2_5_0_5B`: Alibaba Qwen 2.5 0.5B ultra-lightweight multilingual model. Backends: XNNPACK, MLX. Added in v0.4.1.
+- `models.llm.QWEN2_5_1_5B`: Alibaba Qwen 2.5 1.5B multilingual instruction model. Backends: XNNPACK, MLX. Added in v0.4.1.
+- `models.llm.QWEN2_5_3B`: Alibaba Qwen 2.5 3B high-capability multilingual model. Backends: XNNPACK, MLX. Added in v0.4.1.
+- `models.llm.QWEN3_0_6B`: Alibaba Qwen 3 0.6B next-generation compact language model. Backends: XNNPACK, MLX. Added in v0.4.1.
+- `models.llm.QWEN3_1_7B`: Alibaba Qwen 3 1.7B next-generation multilingual language model. Backends: XNNPACK, MLX. Added in v0.4.1.
+- `models.llm.QWEN3_4B`: Alibaba Qwen 3 4B high-capacity generative model. Backends: XNNPACK, MLX. Added in v0.4.1.
+- `models.llm.GEMMA4_E2B`: Google Gemma 4 E2B generative language model. Backends: XNNPACK, MLX, Vulkan. Added in v0.9.1.
+- `models.llm.GEMMA4_OMNI_E2B`: Google Gemma 4 E2B multimodal (omni) language model supporting text, image, and audio inputs. Inputs: text, image, audio. Backends: XNNPACK, MLX, Vulkan. Added in v0.9.1.
+
+### Text Embeddings ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/text-embeddings), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#text-embeddings))
+
+- `models.textEmbeddings.ALL_MINILM_L6_V2`: Compact 384-dimensional sentence transformer mapping text to a dense vector space. Backends: XNNPACK, Core ML, Vulkan. Added in v0.4.1.
+- `models.textEmbeddings.ALL_MPNET_BASE_V2`: High-quality 768-dimensional sentence transformer model based on MPNet. Backends: XNNPACK, Vulkan. Added in v0.4.1.
+- `models.textEmbeddings.MULTI_QA_MINILM_L6_COS_V1`: 384-dimensional sentence transformer fine-tuned specifically for semantic QA matching using cosine similarity. Backends: XNNPACK, Core ML, Vulkan. Added in v0.4.1.
+- `models.textEmbeddings.MULTI_QA_MPNET_BASE_DOT_V1`: 768-dimensional sentence transformer fine-tuned specifically for question-answering matching using dot product distance. Backends: XNNPACK, Vulkan. Added in v0.4.1.
+- `models.textEmbeddings.PARAPHRASE_MULTILINGUAL_MINILM_L12_V2`: 384-dimensional sentence transformer supporting 50+ languages for cross-lingual semantic similarity. Backends: XNNPACK, Core ML, Vulkan. Added in v0.9.0.
+- `models.textEmbeddings.DISTILUSE_BASE_MULTILINGUAL_CASED_V2`: Multilingual sentence transformer supporting 50+ languages, based on distilled Universal Sentence Encoder (512-dim output). Backends: XNNPACK, Core ML, MLX, Vulkan. Added in v0.9.0.
+- `models.textEmbeddings.CLIP_VIT_BASE_PATCH32_TEXT`: CLIP text encoder (ViT-B/32) mapping text queries into a 512-dimensional joint text-image embedding space. Backends: XNNPACK, Core ML, Vulkan. Added in v0.3.4.
+- `models.textEmbeddings.LFM2_5_EMBEDDING_350M`: Liquid AI LFM 2.5 350M parameter embedding model for asymmetric search and retrieval tasks. Backends: XNNPACK, MLX. Added in v0.10.0.
+
+### ColBERT Retrieval ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/colbert-retrieval), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#colbert-embeddings))
+
+- `models.colbertEmbeddings.LFM2_5_COLBERT_350M`: Liquid AI LFM 2.5 350M ColBERT model: 128-dimensional token vectors, multilingual (11 languages), 32-token queries and documents of up to 512 tokens. Backends: XNNPACK, MLX. Added in v0.11.0.
+
+### Privacy Filter (PII detection) ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/privacy-filter), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#privacy-filter))
+
+- `models.privacyFilter.OPENAI`: OpenAI-style detector covering 8 common PII types (name, email, phone, address, and similar). Backends: XNNPACK, MLX. Added in v0.9.0.
+- `models.privacyFilter.NEMOTRON`: Nemotron-based detector covering 55 fine-grained PII types. Backends: XNNPACK, MLX. Added in v0.9.0.
+
+### Speech to Text ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/speech-to-text), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#speech-to-text))
+
+- `models.speechToText.WHISPER`: OpenAI Whisper automatic speech recognition model family with integrated Voice Activity Detection. Variants: TINY, BASE, SMALL, EN.TINY, EN.BASE, EN.SMALL. Backends: XNNPACK, Core ML, MLX, Vulkan. Added in v0.3.0.
+- `models.speechToText.QWEN3_ASR`: Qwen3-ASR speech recognition with integrated Voice Activity Detection. Backends: XNNPACK, MLX. Added in the next release.
+
+### Text to Speech ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/text-to-speech), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#text-to-speech))
+
+- `models.textToSpeech.SUPERTONIC`: Supertonic 3 multilingual flow-matching Text-to-Speech model. Backends: XNNPACK, MLX, Vulkan. Added in v0.10.0.
+- `models.textToSpeech.KOKORO`: Kokoro — a lightweight phoneme-driven Text-to-Speech model. Variants: EN_US, EN_GB, ES, FR, IT, PT, HI, PL, DE, ZH. Backends: XNNPACK, Core ML. Added in v0.7.0.
+
+### Voice Activity Detection ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/voice-activity-detection), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#voice-activity-detection))
+
+- `models.voiceActivityDetection.FSMN_VAD`: Feedforward Sequential Memory Network (FSMN) Voice Activity Detection model. Backends: XNNPACK. Added in v0.6.0.
+
+### Image Classification ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/image-classification), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#image-classification))
+
+- `models.classification.EFFICIENTNET_V2_S`: EfficientNetV2-S image classification model pre-trained on ImageNet-1k (1000 categories, see `IMAGENET1K_LABELS`). Backends: XNNPACK, Core ML. Added in v0.2.0.
+
+### Object Detection ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/object-detection), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#object-detection))
+
+- `models.objectDetection.SSDLITE320_MOBILENET_V3_LARGE`: SSDLite object detector with MobileNetV3-Large backbone trained on COCO (see `COCO_CLASSES`) at 320x320 resolution. Backends: XNNPACK, Core ML. Added in v0.2.0.
+- `models.objectDetection.RFDETR_NANO`: RF-DETR (Roboflow Detection Transformer) Nano variant trained on COCO (see `COCO_CLASSES`). Backends: XNNPACK, Core ML, Vulkan. Added in v0.8.0.
+- `models.objectDetection.YOLO26`: Ultralytics YOLO26 real-time object detection models trained on COCO (80 classes, see `COCO_CLASSES_YOLO`). Variants: NANO, SMALL, MEDIUM, LARGE, XLARGE (each SIZE_384, SIZE_512, SIZE_640). Backends: XNNPACK, Core ML, Vulkan. Added in v0.8.0.
+
+### Instance Segmentation ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/instance-segmentation), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#instance-segmentation))
+
+- `models.instanceSegmentation.FASTSAM`: Fast Segment Anything Model (FastSAM) for promptable or global object instance mask segmentation. Variants: S, X. Backends: XNNPACK, Core ML, Vulkan. Added in v0.9.0.
+- `models.instanceSegmentation.RFDETR_NANO`: RF-DETR (Roboflow Detection Transformer) Nano instance segmentation model predicting COCO class masks and bounding boxes (see `COCO_CLASSES`). Backends: XNNPACK, Core ML, Vulkan. Added in v0.8.0.
+- `models.instanceSegmentation.YOLO26`: YOLO26 instance segmentation models predicting COCO class instance masks and bounding boxes (see `COCO_CLASSES_YOLO`). Variants: NANO, SMALL, MEDIUM, LARGE, XLARGE (each SIZE_384, SIZE_512, SIZE_640). Backends: XNNPACK, Core ML, Vulkan. Added in v0.8.0.
+
+### Semantic Segmentation ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/semantic-segmentation), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#semantic-segmentation))
+
+- `models.semanticSegmentation.SELFIE_SEGMENTATION`: Lightweight portrait selfie segmentation model for real-time person vs background separation. Backends: XNNPACK, Core ML. Added in v0.8.0.
+- `models.semanticSegmentation.SELFIE_SEGMENTATION_LANDSCAPE`: MediaPipe Selfie Segmentation, landscape orientation. Backends: XNNPACK, Core ML. Added in v0.10.0.
+- `models.semanticSegmentation.U2NETP`: Lightweight U²-Netp foreground segmentation at 320x320 for objects and people. Backends: XNNPACK, Core ML, Vulkan. Added in the next release.
+- `models.semanticSegmentation.LRASPP_MOBILENET_V3_LARGE`: Lite R-ASPP semantic segmentation model with MobileNetV3-Large backbone (21 classes, see `PASCAL_VOC_LABELS`). Backends: XNNPACK, Core ML. Added in v0.8.0.
+- `models.semanticSegmentation.DEEPLAB_V3_RESNET50`: DeepLabV3 semantic segmentation model with ResNet-50 backbone (21 classes, see `PASCAL_VOC_LABELS`). Backends: XNNPACK, Core ML. Added in v0.4.1.
+- `models.semanticSegmentation.DEEPLAB_V3_RESNET101`: DeepLabV3 semantic segmentation model with ResNet-101 backbone (21 classes, see `PASCAL_VOC_LABELS`). Backends: XNNPACK, Core ML. Added in v0.8.0.
+- `models.semanticSegmentation.DEEPLAB_V3_MOBILENET_V3_LARGE`: DeepLabV3 semantic segmentation model with MobileNetV3-Large backbone (21 classes, see `PASCAL_VOC_LABELS`). Backends: XNNPACK, Core ML. Added in v0.8.0.
+- `models.semanticSegmentation.FCN_RESNET50`: Fully Convolutional Network (FCN) semantic segmentation model with ResNet-50 backbone (21 classes, see `PASCAL_VOC_LABELS`). Backends: XNNPACK, Core ML. Added in v0.8.0.
+- `models.semanticSegmentation.FCN_RESNET101`: Fully Convolutional Network (FCN) semantic segmentation model with ResNet-101 backbone (21 classes, see `PASCAL_VOC_LABELS`). Backends: XNNPACK, Core ML. Added in v0.8.0.
+
+### Pose & Keypoints ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/pose-and-keypoints), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#pose--keypoints))
+
+- `models.keypointDetection.BLAZEFACE`: MediaPipe BlazeFace lightweight face detection and 6-point facial landmark locator (eyes, nose, mouth, ears, see `BLAZEFACE_LANDMARKS`). Backends: XNNPACK, Vulkan. Added in v0.10.0.
+- `models.keypointDetection.FACEMESH`: MediaPipe Face Mesh: a dense 468-point 3-D mesh (see `FACEMESH_LANDMARKS`) and a face-presence score, regressed from a 192x192 crop of one face. Backends: XNNPACK, Core ML. Added in v0.11.0.
+- `models.keypointDetection.YOLO26_POSE`: YOLO26 human pose estimation model predicting 17 COCO body keypoints (see `COCO_LANDMARKS`). Variants: SIZE_384, SIZE_512, SIZE_640. Backends: XNNPACK, Core ML, Vulkan. Added in v0.9.0.
+- `models.keypointDetection.RFDETR_KEYPOINT`: RF-DETR (Roboflow Detection Transformer) pose keypoint detector predicting 17 COCO body keypoints (see `COCO_LANDMARKS`). Backends: XNNPACK, Core ML, Vulkan. Added in v0.9.2.
+
+### Depth Estimation ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/depth-estimation), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#depth-estimation))
+
+- `models.depthEstimation.DEPTH_ANYTHING_V2_SMALL`: Depth Anything V2 Small with a ViT-S/14 backbone. Backends: XNNPACK, Core ML, Vulkan. Added in v0.11.0.
+- `models.depthEstimation.DEPTH_ANYTHING_V3_SMALL`: Depth Anything 3 Small, exported for single-image relative depth. Backends: XNNPACK, Core ML, Vulkan. Added in v0.11.0.
+- `models.depthEstimation.ZIPDEPTH_BASE`: ZipDepth Base NPU with a 384 × 384 input for low-latency depth estimation. Backends: XNNPACK, Core ML, Vulkan. Added in v0.11.0.
+
+### OCR ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/optical-character-recognition), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#ocr))
+
+- `models.ocr.PADDLE`: PP-OCRv6 small — DBNet detector plus an SVTR recognizer, one model for every language. Backends: XNNPACK, Core ML, Vulkan. Added in v0.10.0.
+
+### Image Embeddings ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/image-embeddings), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#image-embeddings))
+
+- `models.imageEmbeddings.CLIP_VIT_BASE_PATCH32`: CLIP vision encoder (ViT-B/32) mapping images into a 512-dimensional shared text-image space. Backends: XNNPACK, Core ML, MLX, Vulkan. Added in v0.5.0.
+
+### Image Inpainting ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/image-inpainting), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#image-inpainting))
+
+- `models.inpainting.MIGAN`: MI-GAN, a mobile inpainting GAN trained on Places2 (scenes) and FFHQ (faces). Variants: SIZE_512, SIZE_256, FACES_256. Backends: XNNPACK, Core ML, Vulkan. Added in v0.11.0.
+
+### Text to Image ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/text-to-image), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#text-to-image))
+
+- `models.textToImage.SDXS_512_DREAMSHAPER`: Ultra-fast SDXS (Stable Diffusion eXtreme Speed) 512x512 text-to-image generation model based on DreamShaper. Backends: XNNPACK, Core ML, Vulkan. Added in v0.10.0.
+
+### Style Transfer ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/style-transfer), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#style-transfer))
+
+- `models.styleTransfer.CANDY`: Fast neural style transfer model generating a vibrant, artistic "Candy" style effect. Backends: XNNPACK, Core ML, Vulkan. Added in v0.2.0.
+- `models.styleTransfer.MOSAIC`: Fast neural style transfer model applying a classic tile mosaic artistic pattern. Backends: XNNPACK, Core ML, Vulkan. Added in v0.2.0.
+- `models.styleTransfer.RAIN_PRINCESS`: Fast neural style transfer model applying a painterly "Rain Princess" oil painting aesthetic. Backends: XNNPACK, Core ML, Vulkan. Added in v0.2.0.
+- `models.styleTransfer.UDNIE`: Fast neural style transfer model applying Francis Picabia's "Udnie" abstract art style. Backends: XNNPACK, Core ML, Vulkan. Added in v0.2.0.
 
 ## Core And Advanced
 
@@ -41,6 +180,7 @@
 - [Downloading Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/downloading-models.md): How model files reach the device — the pre-exported model registry, automatic download and caching in hooks, and the imperative download API with progress and cancellation.
 - [Getting Started](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/getting-started.md): Get started with React Native ExecuTorch — high-performance, privacy-first on-device AI inference for React Native.
 - [Migrating from v0.9.x](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/migrating-from-v0-9.md): Step-by-step migration guide from legacy v0.9.x to the new v0.10.0 architecture in React Native ExecuTorch.
+- [Supported Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/supported-models.md): Every pre-exported model in the React Native ExecuTorch registry, by task: LLMs and VLMs, speech, computer vision, embeddings and retrieval, with backends and precisions.
 
 ## Other
 
