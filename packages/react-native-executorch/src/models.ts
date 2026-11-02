@@ -691,6 +691,12 @@ const RFDETR_NANO_DETECTOR_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClass> =
   modelPath: `${BASE_URL}/rf-detr-nano-ExecuTorch/${VERSION_TAG}/vulkan/rfdetr_nano_vulkan_fp16.pte`,
   modelOpts: RFDETR_NANO_DETECTOR_OPTS,
 };
+// fp16 on the HTP; 50.05 mAP50-95 against 50.08 for fp32 on an S26 Ultra, and
+// 12x faster than XNNPACK int8 there.
+const RFDETR_NANO_DETECTOR_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClass> = {
+  modelPath: `${BASE_URL}/rf-detr-nano-ExecuTorch/${VERSION_TAG}/qnn/rfdetr_nano_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: RFDETR_NANO_DETECTOR_OPTS,
+};
 
 const YOLO26_DETECTOR_OPTS = {
   labels: COCO_CLASSES_YOLO,
@@ -2903,6 +2909,7 @@ export const models = {
       XNNPACK_FP32: deprecated(RFDETR_NANO_DETECTOR_XNNPACK_FP32, 'XNNPACK_INT8'),
       COREML_FP16: RFDETR_NANO_DETECTOR_COREML_FP16,
       VULKAN_FP16: RFDETR_NANO_DETECTOR_VULKAN_FP16,
+      QNN_FP16: RFDETR_NANO_DETECTOR_QNN_FP16,
     }),
     /**
      * Ultralytics YOLO26 real-time object detection models trained on COCO (80
