@@ -33,6 +33,11 @@ const MODEL_OPTIONS: ModelOption[] = [
     disabled: Platform.OS !== 'ios',
   },
   {
+    label: 'RF-DETR Nano (QNN FP16)',
+    value: models.objectDetection.RFDETR_NANO.QNN_FP16,
+    disabled: Platform.OS !== 'android',
+  },
+  {
     label: 'YOLO26 Nano 384 (XNNPACK INT8)',
     value: models.objectDetection.YOLO26.NANO.SIZE_384.XNNPACK_INT8,
   },
