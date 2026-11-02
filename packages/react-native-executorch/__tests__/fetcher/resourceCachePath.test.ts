@@ -32,13 +32,15 @@ describe('getResourceCachePath', () => {
     );
   });
 
-  it('passes through local paths without filesystem or network work', () => {
-    expect(getResourceCachePath('file:///local/model.pte')).toBe('/local/model.pte');
-    expect(getResourceCachePath('/local/model.pte')).toBe('/local/model.pte');
-    getResourceCachePath('https://example.com/model.pte');
-    expect(fakeFs.paths()).toHaveLength(0);
-    expect(fakeNet.requests()).toHaveLength(0);
-  });
+  it.each(['file:///local/model.pte', '/local/model.pte'])(
+    'passes through %s unchanged, matching the downloader without filesystem or network work',
+    async (source) => {
+      expect(getResourceCachePath(source)).toBe(source);
+      expect(await download(source)).toBe(getResourceCachePath(source));
+      expect(fakeFs.paths()).toHaveLength(0);
+      expect(fakeNet.requests()).toHaveLength(0);
+    }
+  );
 
   it('returns the same path as the downloader', async () => {
     const source = 'https://example.com/model.pte';

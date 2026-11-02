@@ -60,13 +60,14 @@ const isRemote = (source: string): boolean => /^https?:\/\//.test(source);
 /**
  * Returns the persistent resource path used by {@link download} without downloading
  * or checking whether it exists. Repository aliases and query parameters use the
- * same cache identity as downloads. Local paths lose any `file://` prefix.
+ * same cache identity as downloads. Local paths are returned unchanged, including
+ * any `file://` prefix, matching {@link download}.
  * @category Utils / Functions
  * @param source The remote resource URL or local file path.
  * @returns The persistent cache path or the supplied local path.
  */
 export function getResourceCachePath(source: string): string {
-  if (!isRemote(source)) return source.replace(/^file:\/\//, '');
+  if (!isRemote(source)) return source;
   const url = source;
   const urlWithoutQuery = url.split('?')[0]!;
   const basename = urlWithoutQuery.split('/').pop() || 'model';
