@@ -37,6 +37,7 @@ To explore all on-device capabilities in an interactive showcase app, check out 
 
 - [Key Features](#key-features)
 - [Quickstart](#quickstart)
+  - [Using an AI coding agent?](#using-an-ai-coding-agent)
   - [1. Installation](#1-installation)
   - [2. Run the Model](#2-run-the-model)
 - [Documentation](#documentation)
@@ -53,6 +54,20 @@ To explore all on-device capabilities in an interactive showcase app, check out 
 - **Pre-Exported Model Catalog**: Access verified models directly via the `models` registry and the [Software Mansion Hugging Face Collections](https://huggingface.co/software-mansion/collections).
 
 ## Quickstart
+
+### Using an AI coding agent?
+
+The consumer skill helps your agent choose ready-made models and task hooks, integrate a custom
+`.pte`, or build a custom TypeScript pipeline.
+
+**Pending publication:** once the skill is available in the Software Mansion skills repository, install it with:
+
+```bash
+npx skills add software-mansion-labs/skills -s react-native-executorch
+```
+
+See [AI Tools](https://docs.swmansion.com/react-native-executorch/docs/next/fundamentals/ai-tools)
+for version selection and Markdown documentation.
 
 ### 1. Installation
 

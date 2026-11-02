@@ -35,7 +35,18 @@ computer vision, language models, text-to-speech, transcription, and more — al
 and ready to use out of the box. You can also bring your own models and
 plug them into existing pipelines or build entirely custom ones from scratch.
 
-Building with a coding agent? See [AI Tools](./05-ai-tools.md) for consumer guidance, version selection, and Markdown documentation.
+:::tip Using an AI coding agent?
+The consumer skill helps your agent choose ready-made models and task hooks, integrate a custom
+`.pte`, or build a custom TypeScript pipeline.
+
+**Pending publication:** once the skill is available in the Software Mansion skills repository, install it with:
+
+```bash
+npx skills add software-mansion-labs/skills -s react-native-executorch
+```
+
+See [AI Tools](./05-ai-tools.md) for version selection and Markdown documentation.
+:::
 
 ## What is ExecuTorch?
 
@@ -95,6 +106,8 @@ React Native ExecuTorch requires:
 - **`tar` on `PATH`** — the install-time download extracts with it; macOS, Linux
   and Windows 10 1803+ all ship one. Windows and Linux hosts can build for
   Android; iOS builds need macOS.
+
+Worklets 0.13 requires React Native 0.86–0.88; use a compatible 0.10–0.12 release on React Native 0.83–0.85.
 
 For supported React Native versions, see the [Compatibility
 table](../05-other/01-compatibility.mdx). If an install or a build fails, see
