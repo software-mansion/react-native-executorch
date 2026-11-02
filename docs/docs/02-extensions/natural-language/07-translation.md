@@ -62,7 +62,7 @@ const result = await translator.translate('How are you? I am fine.', languages, 
 });
 ```
 
-Call [`translateStop()`](../../06-api-reference/type-aliases/Translator.md#translatestop) to cancel; [`translate()`](../../06-api-reference/type-aliases/Translator.md#translate) then resolves with the text translated so far.
+Call [`translateStop()`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Translator.md#translatestop) to cancel; [`translate()`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/Translator.md#translate) then resolves with the text translated so far.
 
 ## How Input Is Processed
 
@@ -128,12 +128,12 @@ The models are available in [`models.translation`](../../06-api-reference/variab
 
 ### Types
 
-- [`Translator`](../../06-api-reference/type-aliases/Translator.md) — Translator runner interface ([`translate`](../../06-api-reference/type-aliases/Translator.md#translate), [`translateStop`](../../06-api-reference/type-aliases/Translator.md#translatestop)).
-- [`TranslationLanguages`](../../06-api-reference/type-aliases/TranslationLanguages.md) — Source and target language of one call.
+- [`nlp.TranslationLanguages`](../../06-api-reference/react-native-executorch/namespaces/nlp/type-aliases/TranslationLanguages.md) — Source and target language of one call.
 - [`TranslatorModel`](../../06-api-reference/type-aliases/TranslatorModel.md) — Any translation model configuration.
 - [`MarianTranslator`](../../06-api-reference/type-aliases/MarianTranslator.md) — Opus-MT runner, which adds [`translateWorklet`](../../06-api-reference/type-aliases/MarianTranslator.md#translateworklet).
 - [`MarianTranslatorModel`](../../06-api-reference/type-aliases/MarianTranslatorModel.md) — Opus-MT configuration with model path, tokenizer path, and language pair.
-- [`LLMTranslatorModel`](../../06-api-reference/type-aliases/LLMTranslatorModel.md) — EuroLLM or Hy-MT2 configuration with model, tokenizer, and tokenizer config paths.
+- [`LLMTranslator`](../../06-api-reference/type-aliases/LLMTranslator.md) — EuroLLM and Hy-MT2 runner.
+- [`LLMTranslatorModel`](../../06-api-reference/type-aliases/LLMTranslatorModel.md) — EuroLLM or Hy-MT2 configuration with model, tokenizer, and tokenizer config paths and the translation prompt.
 
 ### Model Presets
 

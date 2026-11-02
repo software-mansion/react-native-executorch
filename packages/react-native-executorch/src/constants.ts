@@ -1435,3 +1435,138 @@ export const PRIVACY_FILTER_NEMOTRON_LABELS = bioesLabels([
  * @category NLP / Types
  */
 export type PrivacyFilterNemotronLabel = (typeof PRIVACY_FILTER_NEMOTRON_LABELS)[number];
+
+/**
+ * Languages EuroLLM-1.7B-Instruct translates between, keyed by ISO 639-1 code,
+ * with the English names its prompt uses.
+ * @category NLP / Constants
+ */
+export const EUROLLM_LANGUAGES: Readonly<Record<string, string>> = {
+  ar: 'Arabic',
+  bg: 'Bulgarian',
+  ca: 'Catalan',
+  cs: 'Czech',
+  da: 'Danish',
+  de: 'German',
+  el: 'Greek',
+  en: 'English',
+  es: 'Spanish',
+  et: 'Estonian',
+  fi: 'Finnish',
+  fr: 'French',
+  ga: 'Irish',
+  gl: 'Galician',
+  hi: 'Hindi',
+  hr: 'Croatian',
+  hu: 'Hungarian',
+  it: 'Italian',
+  ja: 'Japanese',
+  ko: 'Korean',
+  lt: 'Lithuanian',
+  lv: 'Latvian',
+  mt: 'Maltese',
+  nl: 'Dutch',
+  no: 'Norwegian',
+  pl: 'Polish',
+  pt: 'Portuguese',
+  ro: 'Romanian',
+  ru: 'Russian',
+  sk: 'Slovak',
+  sl: 'Slovenian',
+  sv: 'Swedish',
+  tr: 'Turkish',
+  uk: 'Ukrainian',
+  zh: 'Chinese',
+};
+
+/**
+ * Languages Hy-MT2 translates between, keyed by ISO 639 code, with the English
+ * names its prompt uses.
+ * @category NLP / Constants
+ */
+export const HY_MT2_LANGUAGES: Readonly<Record<string, string>> = {
+  'ar': 'Arabic',
+  'bn': 'Bengali',
+  'bo': 'Tibetan',
+  'cs': 'Czech',
+  'de': 'German',
+  'en': 'English',
+  'es': 'Spanish',
+  'fa': 'Persian',
+  'fr': 'French',
+  'gu': 'Gujarati',
+  'he': 'Hebrew',
+  'hi': 'Hindi',
+  'id': 'Indonesian',
+  'it': 'Italian',
+  'ja': 'Japanese',
+  'kk': 'Kazakh',
+  'km': 'Khmer',
+  'ko': 'Korean',
+  'mn': 'Mongolian',
+  'mr': 'Marathi',
+  'ms': 'Malay',
+  'my': 'Burmese',
+  'nl': 'Dutch',
+  'pl': 'Polish',
+  'pt': 'Portuguese',
+  'ru': 'Russian',
+  'ta': 'Tamil',
+  'te': 'Telugu',
+  'th': 'Thai',
+  'tl': 'Filipino',
+  'tr': 'Turkish',
+  'ug': 'Uyghur',
+  'uk': 'Ukrainian',
+  'ur': 'Urdu',
+  'vi': 'Vietnamese',
+  'yue': 'Cantonese',
+  'zh': 'Chinese',
+  'zh-Hant': 'Traditional Chinese',
+};
+
+/**
+ * The Chinese names of {@link HY_MT2_LANGUAGES}, which Hy-MT2's Chinese prompt
+ * uses.
+ * @category NLP / Constants
+ */
+export const HY_MT2_LANGUAGES_ZH: Readonly<Record<string, string>> = {
+  'ar': '阿拉伯语',
+  'bn': '孟加拉语',
+  'bo': '藏语',
+  'cs': '捷克语',
+  'de': '德语',
+  'en': '英语',
+  'es': '西班牙语',
+  'fa': '波斯语',
+  'fr': '法语',
+  'gu': '古吉拉特语',
+  'he': '希伯来语',
+  'hi': '印地语',
+  'id': '印尼语',
+  'it': '意大利语',
+  'ja': '日语',
+  'kk': '哈萨克语',
+  'km': '高棉语',
+  'ko': '韩语',
+  'mn': '蒙古语',
+  'mr': '马拉地语',
+  'ms': '马来语',
+  'my': '缅甸语',
+  'nl': '荷兰语',
+  'pl': '波兰语',
+  'pt': '葡萄牙语',
+  'ru': '俄语',
+  'ta': '泰米尔语',
+  'te': '泰卢固语',
+  'th': '泰语',
+  'tl': '菲律宾语',
+  'tr': '土耳其语',
+  'ug': '维吾尔语',
+  'uk': '乌克兰语',
+  'ur': '乌尔都语',
+  'vi': '越南语',
+  'yue': '粤语',
+  'zh': '中文',
+  'zh-Hant': '繁体中文',
+};

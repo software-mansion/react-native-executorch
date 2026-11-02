@@ -59,8 +59,7 @@ export function useTranslator<C extends TranslatorModel>(
     switch (translatorConfig.name) {
       case 'marian':
         return createMarianTranslator(translatorConfig);
-      case 'eurollm':
-      case 'hy-mt2':
+      case 'llm':
         return createLLMTranslator(translatorConfig);
     }
   };

@@ -10,6 +10,7 @@ import { fakeJsi } from '../support/fakeJsi';
 import { fakeFs } from '../support/blobUtilMock';
 import { tracked } from '../support/lifetime';
 import { registerFakeLLM, type FakeGeneration } from '../support/fakeLLM';
+import { models } from '../../src/models';
 
 const MODEL_PATH = '/models/eurollm.pte';
 const TOKENIZER_PATH = '/models/tokenizer.json';
@@ -20,11 +21,15 @@ const EOS = '<|im_end|>';
 const CHAT_TEMPLATE =
   "{% if not add_generation_prompt is defined %}{% set add_generation_prompt = false %}{% endif %}<|im_start|>system\n{% if messages[0]['role'] == 'system' %}{{ messages[0]['content'] }}{% endif %}<|im_end|>\n{% for message in messages %}{% if message['role'] != 'system' %}<|im_start|>{{ message['role'] }}\n{{ message['content'] }}<|im_end|>\n{% endif %}{% endfor %}{% if add_generation_prompt %}<|im_start|>assistant\n{% endif %}";
 
-const config = {
-  name: 'eurollm' as const,
+const paths = {
   modelPath: MODEL_PATH,
   tokenizerPath: TOKENIZER_PATH,
   tokenizerConfigPath: TOKENIZER_CONFIG_PATH,
+};
+// The published preset with local paths, so the tests check its prompt.
+const config = {
+  ...models.translation.EUROLLM_1_7B.XNNPACK_8DA8W,
+  ...paths,
 };
 
 const EN_DE = { sourceLanguage: 'en', targetLanguage: 'de' };
@@ -82,6 +87,14 @@ describe('createLLMTranslator', () => {
     expect(promptsSent()).toEqual([userTurn('Polish', 'English', 'Dzień dobry.')]);
   });
 
+  it('sends placeholders in the text as written', async () => {
+    const translator = tracked(await createLLMTranslator(config));
+
+    await translator.translate('{target}', EN_DE);
+
+    expect(promptsSent()).toEqual([userTurn('English', 'German', '{target}')]);
+  });
+
   it('drops the whitespace the reply starts with', async () => {
     script(' Hallo');
     const translator = tracked(await createLLMTranslator(config));
@@ -127,7 +140,7 @@ describe('createLLMTranslator with Hy-MT2', () => {
   // Hy-MT2-1.8B's chat_template.jinja, which the published tokenizer_config.json carries.
   const HY_CHAT_TEMPLATE =
     "{% if messages[0]['role'] == 'system' %}{% set loop_messages = messages[1:] %}{% set system_message = messages[0]['content'] %}<｜hy_begin▁of▁sentence｜>{{ system_message }}<｜hy_place▁holder▁no▁3｜>{% else %}{% set loop_messages = messages %}<｜hy_begin▁of▁sentence｜>{% endif %}{% for message in loop_messages %}{% if message['role'] == 'user' %}<｜hy_User｜>{{ message['content'] }}{% elif message['role'] == 'assistant' %}<｜hy_Assistant｜>{{ message['content'] }}<｜hy_place▁holder▁no▁2｜>{% endif %}{% endfor %}{% if add_generation_prompt %}<｜hy_Assistant｜>{% else %}<｜hy_place▁holder▁no▁8｜>{% endif %}";
-  const hyConfig = { ...config, name: 'hy-mt2' as const };
+  const hyConfig = { ...models.translation.HY_MT2_1_8B.XNNPACK_8DA4W, ...paths };
   const hyTurn = (content: string) =>
     squash(`<｜hy_begin▁of▁sentence｜><｜hy_User｜>${content}<｜hy_Assistant｜>`);
 

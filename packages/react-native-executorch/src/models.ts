@@ -54,6 +54,9 @@ import {
   SUPERTONIC_DEFAULT_VOICE_NAMES,
   PRIVACY_FILTER_OPENAI_LABELS,
   PRIVACY_FILTER_NEMOTRON_LABELS,
+  EUROLLM_LANGUAGES,
+  HY_MT2_LANGUAGES,
+  HY_MT2_LANGUAGES_ZH,
   type PrivacyFilterOpenaiLabel,
   type PrivacyFilterNemotronLabel,
   type ImageNet1KLabel,
@@ -2230,44 +2233,58 @@ const OPUS_MT_FR_EN_XNNPACK_INT8: MarianTranslatorModel = {
 
 const EUROLLM_BASE_URL = `${BASE_URL}/EuroLLM-1.7B-Instruct-ExecuTorch/${VERSION_TAG}/1_7b`;
 
+const EUROLLM_PROMPT = {
+  template:
+    'Translate the following {source} source text to {target}:\n{source}: {text} \n{target}: ',
+  languageNames: EUROLLM_LANGUAGES,
+};
+
 const EUROLLM_1_7B_XNNPACK_8DA8W: LLMTranslatorModel = {
-  name: 'eurollm',
+  name: 'llm',
   modelPath: `${EUROLLM_BASE_URL}/xnnpack/eurollm_1_7b_xnnpack_8da8w.pte`,
   tokenizerPath: `${EUROLLM_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${EUROLLM_BASE_URL}/tokenizer_config.json`,
+  prompt: EUROLLM_PROMPT,
 };
 const EUROLLM_1_7B_MLX_INT8: LLMTranslatorModel = {
-  name: 'eurollm',
+  name: 'llm',
   modelPath: `${EUROLLM_BASE_URL}/mlx/eurollm_1_7b_mlx_int8.pte`,
   tokenizerPath: `${EUROLLM_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${EUROLLM_BASE_URL}/tokenizer_config.json`,
+  prompt: EUROLLM_PROMPT,
 };
 
 const HY_MT2_BASE_URL = `${BASE_URL}/Hy-MT2-1.8B-ExecuTorch/${VERSION_TAG}/1_8b`;
 
+// The model card names only the target. Pairs with Chinese take its Chinese
+// prompt, with Chinese language names.
+const HY_MT2_PROMPT_ZH = {
+  template: '将以下文本翻译为{target}，注意只需要输出翻译后的结果，不要额外解释：\n\n{text}',
+  languageNames: HY_MT2_LANGUAGES_ZH,
+};
+const HY_MT2_PROMPTS = {
+  prompt: {
+    template:
+      'Translate the following text into {target}. Note that you should only output ' +
+      'the translated result without any additional explanation:\n\n{text}',
+    languageNames: HY_MT2_LANGUAGES,
+  },
+  promptOverrides: { 'zh': HY_MT2_PROMPT_ZH, 'zh-Hant': HY_MT2_PROMPT_ZH, 'yue': HY_MT2_PROMPT_ZH },
+};
+
 const HY_MT2_1_8B_XNNPACK_8DA4W: LLMTranslatorModel = {
-  name: 'hy-mt2',
+  name: 'llm',
   modelPath: `${HY_MT2_BASE_URL}/xnnpack/hy_mt2_1_8b_xnnpack_8da4w.pte`,
   tokenizerPath: `${HY_MT2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HY_MT2_BASE_URL}/tokenizer_config.json`,
-};
-const HY_MT2_1_8B_XNNPACK_8DA8W: LLMTranslatorModel = {
-  name: 'hy-mt2',
-  modelPath: `${HY_MT2_BASE_URL}/xnnpack/hy_mt2_1_8b_xnnpack_8da8w.pte`,
-  tokenizerPath: `${HY_MT2_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${HY_MT2_BASE_URL}/tokenizer_config.json`,
+  ...HY_MT2_PROMPTS,
 };
 const HY_MT2_1_8B_MLX_INT8: LLMTranslatorModel = {
-  name: 'hy-mt2',
+  name: 'llm',
   modelPath: `${HY_MT2_BASE_URL}/mlx/hy_mt2_1_8b_mlx_int8.pte`,
   tokenizerPath: `${HY_MT2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HY_MT2_BASE_URL}/tokenizer_config.json`,
-};
-const HY_MT2_1_8B_MLX_INT4: LLMTranslatorModel = {
-  name: 'hy-mt2',
-  modelPath: `${HY_MT2_BASE_URL}/mlx/hy_mt2_1_8b_mlx_int4.pte`,
-  tokenizerPath: `${HY_MT2_BASE_URL}/tokenizer.json`,
-  tokenizerConfigPath: `${HY_MT2_BASE_URL}/tokenizer_config.json`,
+  ...HY_MT2_PROMPTS,
 };
 
 // =============================================================================
@@ -3986,9 +4003,7 @@ export const models = {
     /** Hy-MT2 1.8B: any two of its 38 languages and dialects with one model. */
     HY_MT2_1_8B: variants({
       XNNPACK_8DA4W: HY_MT2_1_8B_XNNPACK_8DA4W,
-      XNNPACK_8DA8W: HY_MT2_1_8B_XNNPACK_8DA8W,
       MLX_INT8: HY_MT2_1_8B_MLX_INT8,
-      MLX_INT4: HY_MT2_1_8B_MLX_INT4,
     }),
   },
 

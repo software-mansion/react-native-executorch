@@ -9,12 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import {
-  useTranslator,
-  models,
-  type TranslationLanguages,
-  type TranslatorModel,
-} from 'react-native-executorch';
+import { useTranslator, models, type nlp, type TranslatorModel } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
@@ -32,7 +27,7 @@ const SAMPLES: Record<string, string> = {
 };
 /* cspell:enable */
 
-type Pair = { label: string; languages: TranslationLanguages };
+type Pair = { label: string; languages: nlp.TranslationLanguages };
 const pair = (sourceLanguage: string, targetLanguage: string): Pair => ({
   label: `${sourceLanguage.toUpperCase()} → ${targetLanguage.toUpperCase()}`,
   languages: { sourceLanguage, targetLanguage },
