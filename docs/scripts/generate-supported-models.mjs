@@ -47,10 +47,10 @@ function render(tasks, addedIn) {
   ];
   for (const task of tasks) {
     lines.push(`## ${task.title}`, '');
-    lines.push(
-      `[Guide](../${task.doc}) · [Benchmarks](../04-benchmarks/01-benchmarks.mdx#${task.bench})`,
-      ''
-    );
+    const bench = task.bench
+      ? ` · [Benchmarks](../04-benchmarks/01-benchmarks.mdx#${task.bench})`
+      : '';
+    lines.push(`[Guide](../${task.doc})${bench}`, '');
     if (task.note) lines.push(task.note, '');
     lines.push(
       `| Model | Description | Backends | Precisions |${addedIn ? ' Added in |' : ''}`,

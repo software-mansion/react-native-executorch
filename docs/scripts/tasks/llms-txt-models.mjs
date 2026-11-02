@@ -82,10 +82,8 @@ function renderModels(tasks, addedIn) {
     '',
   ];
   for (const task of tasks) {
-    lines.push(
-      `### ${task.title} ([guide](${DOCS_URL}${readDocSlug(task.doc)}), [benchmarks](${DOCS_URL}/benchmarks#${task.bench}))`,
-      ''
-    );
+    const bench = task.bench ? `, [benchmarks](${DOCS_URL}/benchmarks#${task.bench})` : '';
+    lines.push(`### ${task.title} ([guide](${DOCS_URL}${readDocSlug(task.doc)})${bench})`, '');
     if (task.note) lines.push(task.note, '');
     for (const model of task.models) {
       const parts = [model.description];
