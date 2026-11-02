@@ -132,7 +132,8 @@ const FEATURE_MAP = {
   multimodalLLM: { backends: ['xnnpack', 'mlx', 'vulkan'], libs: ['opencv'] },
   // Privacy filter classifiers ship xnnpack + an MLX iOS export.
   privacyFilter: { backends: ['xnnpack', 'mlx'], libs: [] },
-  // Whisper ships xnnpack, coreml, an MLX iOS export and a Vulkan Android one.
+  // Whisper ships xnnpack, coreml, an MLX iOS export and a Vulkan Android one;
+  // Qwen3-ASR's MLX file also needs coreml, which runs its audio tower.
   speechToText: { backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'], libs: [] },
   // Kokoro ships xnnpack + coreml; Supertonic adds an MLX iOS export and a
   // Vulkan Android one.
@@ -158,12 +159,10 @@ const FEATURE_MAP = {
   objectDetection: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
   // Keypoint detection (#1280): BlazeFace + YOLO26-pose ship xnnpack; RF-DETR
   // keypoint and the face mesh (#1140) add coreml, and BlazeFace, YOLO26-pose
-  // and RF-DETR keypoint add vulkan Android exports → union. mlx stays for the
-  // legacy API, whose RF_DETR_KEYPOINT_PREVIEW_MLX_FP32_MODEL outlived the new
-  // registry's MLX keypoint export (dropped in #1418).
+  // and RF-DETR keypoint add vulkan Android exports → union.
   // (Named to track the useKeypointDetector hook; main calls this poseEstimation.)
   keypointDetection: {
-    backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'],
+    backends: ['xnnpack', 'coreml', 'vulkan'],
     libs: ['opencv'],
   },
   // Depth Anything V2, V3 and ZipDepth ship xnnpack, coreml and vulkan.

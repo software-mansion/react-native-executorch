@@ -20,7 +20,7 @@ description: "Learn how to use speech-to-text models in your React Native applic
 Speech to text (STT) converts spoken audio into written text. This hook allows you to implement features like voice assistants, real-time transcription, and audio file processing directly on-device.
 
 :::info
-We recommend using our optimized models available on [Hugging Face](https://huggingface.co/collections/software-mansion/speech-to-text-68d0ec99ed794250491b8bbe). You can also use pre-defined [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) included in the library.
+We recommend using our optimized models available on [Hugging Face](https://huggingface.co/collections/software-mansion/speech-to-text-68d0ec99ed794250491b8bbe). You can also use pre-defined [constants](https://github.com/software-mansion/react-native-executorch/blob/v0.10.7/packages/react-native-executorch/legacy/src/constants/modelUrls.ts) included in the library.
 :::
 
 ## API Reference

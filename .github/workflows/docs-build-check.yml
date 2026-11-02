@@ -39,6 +39,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          # The Supported Models page dates each model from the release tags;
+          # blobs are fetched only for the files it reads.
+          fetch-depth: 0
+          filter: blob:none
       - name: Use Node.js 24
         uses: actions/setup-node@v6
         with:

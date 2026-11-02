@@ -7,6 +7,8 @@ if [ -z "$VERSION" ]; then
   exit 1
 fi
 
+# The Supported Models page is generated, so freeze the current registry's.
+yarn generate-models
 yarn docusaurus docs:version $VERSION
 
 find versioned_docs/version-$VERSION -type f \( -name "*.md" -o -name "*.mdx" \) \

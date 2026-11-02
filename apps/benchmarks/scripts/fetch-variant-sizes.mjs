@@ -51,10 +51,6 @@ function loadRegistry() {
       )
       .replace("} from './extensions/speech/tasks/whisperSpeechToText';", "} from './_stub.ts';")
       .replace("} from './constants';", "} from './constants.ts';")
-      .replace(
-        "import { registerDeprecation } from './deprecation';",
-        "import { registerDeprecation } from './_stub.ts';"
-      )
       // Type-only imports name files that are not copied into the scratch dir.
       // Node strips the annotations but still resolves the specifier, so they
       // have to go.
@@ -74,7 +70,6 @@ function loadRegistry() {
         "export const getRegisteredBackends = () => ['XnnpackBackend', 'CoreMLBackend', 'MLXBackend', 'VulkanBackend'];",
         "export const WHISPER_LANGUAGES = ['en'];",
         'export const WhisperSttModel = undefined;',
-        'export const registerDeprecation = () => {};',
         '',
       ].join('\n')
     );

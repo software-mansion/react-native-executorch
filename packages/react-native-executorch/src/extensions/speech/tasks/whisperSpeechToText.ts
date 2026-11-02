@@ -90,6 +90,8 @@ export type WhisperStreamOptions<L extends WhisperLanguage = WhisperLanguage> =
  * @category Speech / Types
  */
 export type WhisperSttModel<L extends WhisperLanguage = WhisperLanguage> = {
+  /** Pipeline tag, which tells {@link useSpeechToText} which runner to build. */
+  readonly name?: 'whisper';
   /** Local path or remote URL of the `.pte` model. */
   readonly modelPath: string;
   /** Local path or remote URL of the tokenizer file. */

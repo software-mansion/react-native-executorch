@@ -33,11 +33,6 @@ const modelPathsOf = (config: Node): string =>
         .sort()
         .join('|');
 
-const modelUrlsOf = (config: Node): string[] =>
-  typeof config.modelPath === 'string'
-    ? [config.modelPath]
-    : Object.values(config.modelPaths as Node).map(String);
-
 const isUpperKey = (key: string) => /^[A-Z0-9_]+$/.test(key);
 
 /** Every group that names a `DEFAULT`, with the dotted path it sits at. */
@@ -325,82 +320,20 @@ describe('variant selection rules', () => {
     expect(defaultKeyOf(distiluse(registry))).toBe('XNNPACK_8DA4W');
   });
 
+  it('picks a variant naming two backends only when both are linked', () => {
+    // Qwen3-ASR's MLX file runs its audio tower on Core ML.
+    const qwen3Asr = (registry: Node): Node =>
+      ((registry.speechToText as Node).QWEN3_ASR as Node).SIZE_0_6B as Node;
+
+    expect(defaultKeyOf(qwen3Asr(registryFor({ os: 'ios' })))).toBe('MLX_COREML_INT4');
+    expect(
+      defaultKeyOf(qwen3Asr(registryFor({ os: 'ios', backends: ['XnnpackBackend', 'MLXBackend'] })))
+    ).toBe('XNNPACK_8DA4W');
+  });
+
   it('applies a pin only on the platform it names', () => {
     // The same group pins MLX for iOS only; Android resolves by its own order.
     expect(defaultKeyOf(distiluse(registryFor({ os: 'android' })))).toBe('VULKAN_FP16');
-  });
-});
-
-describe('deprecated variants', () => {
-  /** The devices a `DEFAULT` can resolve differently on. */
-  const devices = [
-    { os: 'ios' as const },
-    { os: 'android' as const },
-    { os: 'ios' as const, isEmulator: true },
-    { os: 'ios' as const, backends: ['XnnpackBackend'] },
-    { os: 'android' as const, backends: ['XnnpackBackend'] },
-  ];
-
-  /**
-   * Every group of the registry as resolved on `device`, with the notices of
-   * the variants it deprecates. Read from the deprecation module the reloaded
-   * registry registered them in.
-   */
-  function deprecationsFor(device: Parameters<typeof registryFor>[0]) {
-    const registry = registryFor(device);
-    const { deprecationOf } = require('../../src/deprecation') as {
-      deprecationOf: (modelPath: string) => string | undefined;
-    };
-    return variantGroups(registry).map(({ label, group }) => ({
-      label,
-      group,
-      notices: new Map(
-        namedVariants(group).flatMap(([key, config]) => {
-          const notice = modelUrlsOf(config)
-            .map(deprecationOf)
-            .find((n) => n !== undefined);
-          return notice === undefined ? [] : [[key, notice] as const];
-        })
-      ),
-    }));
-  }
-
-  it('finds deprecated variants to check', () => {
-    const count = deprecationsFor({ os: 'android' }).reduce(
-      (n, { notices }) => n + notices.size,
-      0
-    );
-    expect(count).toBeGreaterThan(0);
-  });
-
-  it('never defaults to a deprecated variant, on any device', () => {
-    const offenders = devices.flatMap((device) =>
-      deprecationsFor(device)
-        .filter(({ group, notices }) => notices.has(defaultKeyOf(group) ?? ''))
-        .map(({ label, group }) => `${JSON.stringify(device)} ${label}: ${defaultKeyOf(group)}`)
-    );
-
-    expect(offenders).toEqual([]);
-  });
-
-  it('points every deprecated variant at a supported sibling', () => {
-    const offenders = deprecationsFor({ os: 'android' }).flatMap(({ label, group, notices }) =>
-      [...notices].flatMap(([key, notice]) => {
-        const prefix = `models.${label}.`;
-        const named = notice.match(/^(\S+) is deprecated.* Use (\S+), which/);
-        const replacement = named?.[2]?.startsWith(prefix)
-          ? named[2].slice(prefix.length)
-          : undefined;
-        const ok =
-          named?.[1] === `${prefix}${key}` &&
-          replacement !== undefined &&
-          isConfig(group[replacement]) &&
-          !notices.has(replacement);
-        return ok ? [] : [`${label}.${key}: ${notice}`];
-      })
-    );
-
-    expect(offenders).toEqual([]);
   });
 });
 
@@ -444,50 +377,17 @@ describe('feature map', () => {
       if (typeof value === 'string') {
         const match = value.match(/\/(xnnpack|coreml|mlx|vulkan)\//);
         if (match) found.add(match[1]!);
+        // A file can need a second backend, which only its name records:
+        // `mlx/qwen3_asr_0_6b_coreml_mlx_4w.pte` runs its audio tower on Core ML.
+        if (value.endsWith('.pte')) {
+          for (const part of value.split('/').pop()!.split('_')) {
+            if (/^(xnnpack|coreml|mlx|vulkan)$/.test(part)) found.add(part);
+          }
+        }
       } else if (Array.isArray(value)) value.forEach(walk);
       else if (isObject(value)) Object.values(value).forEach(walk);
     };
     walk(node);
-    return found;
-  }
-
-  /** The Hugging Face repo slugs a registry category's URLs point at. */
-  function repoSlugs(node: unknown): Set<string> {
-    const found = new Set<string>();
-    const walk = (value: unknown): void => {
-      if (typeof value === 'string') {
-        const match = value.match(/huggingface\.co\/software-mansion\/([^/]+)\//);
-        if (match) found.add(match[1]!);
-      } else if (Array.isArray(value)) value.forEach(walk);
-      else if (isObject(value)) Object.values(value).forEach(walk);
-    };
-    walk(node);
-    return found;
-  }
-
-  // `features` provisions for the whole package, and the legacy API keeps model
-  // URLs the new registry has since dropped: the RF-DETR keypoint MLX export
-  // removed in #1418 is still reachable as
-  // RF_DETR_KEYPOINT_PREVIEW_MLX_FP32_MODEL. Those count as published, matched
-  // to a feature through the repo slug they share with the new registry; a
-  // legacy-only slug cannot be classified that way and is skipped.
-  const legacyBackendsBySlug = (() => {
-    const source = readFileSync(join(__dirname, '../../legacy/src/constants/modelUrls.ts'), 'utf8');
-    const bySlug = new Map<string, Set<string>>();
-    for (const [, slug, backend] of source.matchAll(
-      /\$\{URL_PREFIX\}\/([^/`]+)\/[^`]*?\/(xnnpack|coreml|mlx|vulkan)\//g
-    )) {
-      if (!bySlug.has(slug!)) bySlug.set(slug!, new Set());
-      bySlug.get(slug!)!.add(backend!);
-    }
-    return bySlug;
-  })();
-
-  /** New-registry exports for a category, plus the legacy ones for its repos. */
-  function allPublishedBackends(node: unknown): Set<string> {
-    const found = publishedBackends(node);
-    for (const slug of repoSlugs(node))
-      for (const backend of legacyBackendsBySlug.get(slug) ?? []) found.add(backend);
     return found;
   }
 
@@ -529,7 +429,7 @@ describe('feature map', () => {
     for (const [category, node] of Object.entries(registry)) {
       const feature = FEATURE_OF_CATEGORY[category]!;
       const published = publishedByFeature.get(feature) ?? new Set<string>();
-      for (const backend of allPublishedBackends(node)) published.add(backend);
+      for (const backend of publishedBackends(node)) published.add(backend);
       publishedByFeature.set(feature, published);
     }
 

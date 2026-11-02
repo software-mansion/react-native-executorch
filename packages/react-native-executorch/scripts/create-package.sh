@@ -20,7 +20,7 @@ PHONEMIS_DIR="third-party/common/phonemis"
 
 # npm only picks up a LICENSE that sits in the package directory, and ours
 # lives at the repo root, so the published tarball carried no license text at
-# all. Several of the notices it now reproduces (ExecuTorch, pffft, OpenCV)
+# all. Several of the notices it now reproduces (ExecuTorch, OpenCV)
 # require that in a redistribution. Copy it in for the pack and drop it again
 # so the working tree stays clean.
 cp "$(git rev-parse --show-toplevel)/LICENSE" LICENSE
@@ -59,8 +59,7 @@ if [ $# -ge 1 ] && [ "$1" = "generate_nightly_version" ]; then
   set_version "$VERSION-nightly-${GIT_COMMIT:0:7}-$DATE"
 fi
 
-# `prepare` builds both outputs the "files" list ships: lib/ via bob and the
-# legacy entry points via tsc. `bob build` alone leaves legacy/ unbuilt.
+# Build the module bundle and type declarations before packing.
 yarn prepare
 
 npm pack

@@ -44,8 +44,3 @@
 
 # Keep AsrCallback interface methods (invoked from native code).
 -keep interface org.pytorch.executorch.extension.asr.AsrCallback { *; }
-
-# --- react-native-executorch rules (not from upstream) ---
-
-# RNE's own JNI entry point, resolved by literal descriptor from C++.
--keep class com.swmansion.rnexecutorch.ETInstaller { *; }
