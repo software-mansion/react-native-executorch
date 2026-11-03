@@ -144,7 +144,7 @@ const matches = store.query(await embedder.embed('How do I change my password?')
 // [{ id, score, metadata: { text } }, ...] — most similar first
 ```
 
-The store is in memory and searches exhaustively, which takes a few milliseconds for tens of thousands of vectors. `remove`, `get`, `has` and per-query `filter`/`minScore` are also available. Nothing is persisted.
+The store is in memory and searches exhaustively, which takes a few milliseconds for tens of thousands of vectors. `remove`, `get`, `has` and per-query `filter`/`minScore` are also available. Nothing is persisted. For a persistent store, document splitting and retrieval-augmented generation with an [LLM](./02-llm-chat-and-generation.md), see [React Native RAG](https://github.com/software-mansion-labs/react-native-rag).
 
 ## Asymmetric Retrieval & Prompt Prefixes
 
