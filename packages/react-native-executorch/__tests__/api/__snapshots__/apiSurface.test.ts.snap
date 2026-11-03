@@ -22,6 +22,7 @@ exports[`public API surface exports one hook per user-facing task 1`] = `
   "useTextToImage",
   "useTextToSpeech",
   "useTokenizer",
+  "useTranslator",
   "useVoiceActivityDetector",
 ]
 `;
@@ -76,6 +77,7 @@ exports[`public API surface matches the recorded contents of each namespace 1`] 
     "labelEntityType",
     "loadTokenizer",
     "piiSegments",
+    "splitSentences",
     "viterbiDecode",
   ],
   "schema": [
@@ -121,8 +123,11 @@ exports[`public API surface matches the recorded export list 1`] = `
   "COCO_CLASSES",
   "COCO_CLASSES_YOLO",
   "COCO_LANDMARKS",
+  "EUROLLM_LANGUAGES",
   "FACEMESH_LANDMARKS",
   "FSMN_VAD_SAMPLE_RATE_HZ",
+  "HY_MT2_LANGUAGES",
+  "HY_MT2_LANGUAGES_ZH",
   "IMAGENET1K_LABELS",
   "IMAGENET_NORM",
   "KOKORO_SAMPLE_RATE",
@@ -147,6 +152,8 @@ exports[`public API surface matches the recorded export list 1`] = `
   "createKeypointDetector",
   "createKokoroTextToSpeech",
   "createLLMChatSession",
+  "createLLMTranslator",
+  "createMarianTranslator",
   "createObjectDetector",
   "createPaddleOcr",
   "createPrivacyFilter",
@@ -197,6 +204,7 @@ exports[`public API surface matches the recorded export list 1`] = `
   "useTextToImage",
   "useTextToSpeech",
   "useTokenizer",
+  "useTranslator",
   "useVoiceActivityDetector",
   "wrapAsync",
 ]

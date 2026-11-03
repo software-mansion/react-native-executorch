@@ -572,7 +572,9 @@ describe('createLLMMultimodalRunner — execution & KV cache lifecycle', () => {
 
     expect(stats.numTokens).toBe(3);
     expect(tokens.length).toBe(3);
-    expect(tokens).toEqual(['hello', 'hello', 'hello']);
+    // Each piece is decoded after the previous one, so the pieces add up to
+    // the decode of the whole sequence (this vocabulary joins words with spaces).
+    expect(tokens).toEqual(['hello', ' hello', ' hello']);
   });
 
   it('stops generation early when stop() is called', async () => {
@@ -813,7 +815,9 @@ describe('createLLMGemmaRunner — execution & multimodal prefill', () => {
 
     expect(stats.numTokens).toBe(3);
     expect(tokens.length).toBe(3);
-    expect(tokens).toEqual(['hello', 'hello', 'hello']);
+    // Each piece is decoded after the previous one, so the pieces add up to
+    // the decode of the whole sequence (this vocabulary joins words with spaces).
+    expect(tokens).toEqual(['hello', ' hello', ' hello']);
   });
 
   it('resets KV cache and disposes cleanly', async () => {

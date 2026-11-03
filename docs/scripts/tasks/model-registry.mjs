@@ -21,7 +21,7 @@ const REGISTRY_PATH = join(DOCS_DIR, '..', REGISTRY_REPO_PATH);
 
 // Every registry category, in the order the docs present them. `doc` is the
 // task's page under docs/docs and `bench` the heading anchor of its chart on
-// the benchmarks page. A category the registry gains without an entry here
+// the benchmarks page, if it has one. A category the registry gains without an entry here
 // fails the build, so the generated lists cannot silently drop a task.
 const TASKS = {
   llm: {
@@ -44,6 +44,10 @@ const TASKS = {
     title: 'Privacy Filter (PII detection)',
     doc: '02-extensions/natural-language/04-privacy-filter.md',
     bench: 'privacy-filter',
+  },
+  translation: {
+    title: 'Translation',
+    doc: '02-extensions/natural-language/07-translation.md',
   },
   tokenizer: { skip: true },
   speechToText: {

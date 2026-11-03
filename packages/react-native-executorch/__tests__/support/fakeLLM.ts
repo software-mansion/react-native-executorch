@@ -38,6 +38,8 @@ export type FakeLLMProgram = {
    * the turns it cares about.
    */
   generations?: readonly FakeGeneration[];
+  /** Whether the tokenizer strips a leading space off every decode. */
+  stripStart?: boolean;
 };
 
 /** A prompt the model read: the text of one prefill, and where it started. */
@@ -53,7 +55,7 @@ const VOCAB_SIZE = 4096;
  * @returns Accessors for what the model was asked to read.
  */
 export function registerFakeLLM(modelPath: string, tokenizerPath: string, program: FakeLLMProgram) {
-  const { maxSeqLen = 128, maxContextLen = 1024, eosToken, generations = [] } = program;
+  const { maxSeqLen = 128, maxContextLen = 1024, eosToken, generations = [], stripStart } = program;
 
   const tokens: string[] = [];
   const idOf = (token: string): number => {
@@ -159,7 +161,7 @@ export function registerFakeLLM(modelPath: string, tokenizerPath: string, progra
     },
   });
 
-  fakeJsi.registerTokenizer(tokenizerPath, { tokens, open: true });
+  fakeJsi.registerTokenizer(tokenizerPath, { tokens, open: true, concat: true, stripStart });
 
   return {
     /** @returns Every prompt the model read, prefill by prefill, in order. */

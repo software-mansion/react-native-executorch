@@ -360,6 +360,7 @@ describe('feature map', () => {
     textEmbeddings: 'textEmbeddings',
     colbertEmbeddings: 'textEmbeddings',
     privacyFilter: 'privacyFilter',
+    translation: 'translation',
     imageEmbeddings: 'imageEmbeddings',
     textToImage: 'textToImage',
     inpainting: 'inpainting',

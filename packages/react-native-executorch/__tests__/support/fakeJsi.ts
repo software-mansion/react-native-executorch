@@ -103,6 +103,17 @@ export type FakeVocabulary = {
    * array is mutated in place, which lets a test resolve the ids it was given.
    */
   open?: boolean;
+  /**
+   * Decodes by concatenating token strings, which then carry their own
+   * whitespace, as BPE and SentencePiece vocabularies do. Without it tokens
+   * are words and decode joins them with spaces.
+   */
+  concat?: boolean;
+  /**
+   * Strips one leading space from every decoded string, like a SentencePiece
+   * decoder chain ending in `Strip(start=1)` (e.g. EuroLLM).
+   */
+  stripStart?: boolean;
 };
 
 const vocabularies = new Map<string, FakeVocabulary>();
@@ -147,10 +158,11 @@ function createFakeTokenizer(path: string, vocabulary: FakeVocabulary) {
         return undefined;
       }
     }
-    return ids
+    const text = ids
       .map((id) => vocabulary.tokens[id] ?? '')
       .filter(Boolean)
-      .join(' ');
+      .join(vocabulary.concat ? '' : ' ');
+    return vocabulary.stripStart ? text.replace(/^ /, '') : text;
   };
 
   return {

@@ -7,6 +7,7 @@ import { f32, i64, method, DynamicDim as Dyn, validateSpec } from '../../../core
 
 import type { Tokenizer } from '../../nlp';
 import { sample } from '../sampler';
+import { decodeStreamed } from '../utils/streamDecoding';
 
 import type {
   LLMGenerationConfig,
@@ -196,6 +197,8 @@ export function createLLMTextRunner(
 
     let numTokens = 0;
     let decodeOffset = 0;
+    // The token group streamed last, decoded as context for the next one.
+    let streamedGroup: Int32Array | undefined;
     let curPos = pos.getBlocking();
 
     try {
@@ -213,9 +216,11 @@ export function createLLMTextRunner(
 
         if (onToken) {
           const pendingTokens = Int32Array.from(generatedTokens.slice(decodeOffset));
-          const text = tokenizer.tryDecode(pendingTokens, /* skipSpecialTokens= */ false);
+          // prettier-ignore
+          const text = decodeStreamed(tokenizer, streamedGroup, pendingTokens, /* skipSpecialTokens= */ false);
           if (text !== undefined) {
             decodeOffset = generatedTokens.length;
+            streamedGroup = pendingTokens;
             onToken(text);
           }
         }
