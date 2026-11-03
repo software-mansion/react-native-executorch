@@ -69,7 +69,7 @@ npx skills add software-mansion-labs/skills -s react-native-executorch
 ```
 
 See [AI Tools](https://docs.swmansion.com/react-native-executorch/docs/next/fundamentals/ai-tools)
-for version selection and Markdown documentation.
+for the consumer skill and a starter prompt.
 
 ### 1. Installation
 
@@ -130,7 +130,7 @@ export function App() {
 ## Documentation
 
 **Building with an AI coding agent?** See [AI Tools](https://docs.swmansion.com/react-native-executorch/docs/next/fundamentals/ai-tools)
-for the consumer skill, version selection, and [Markdown documentation](https://docs.swmansion.com/react-native-executorch/llms.txt).
+for the consumer skill and a starter prompt.
 Choose a pre-exported model with a task hook, or bring your own `.pte` and build a custom TypeScript pipeline.
 
 Full documentation, guides, architecture deep dives, and API references are available at:

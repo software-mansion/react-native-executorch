@@ -45,7 +45,7 @@ Install the consumer skill from the Software Mansion skills repository:
 npx skills add software-mansion-labs/skills -s react-native-executorch
 ```
 
-See [AI Tools](./05-ai-tools.md) for version selection and Markdown documentation.
+See [AI Tools](./05-ai-tools.md) for the consumer skill and a starter prompt.
 :::
 
 ## What is ExecuTorch?

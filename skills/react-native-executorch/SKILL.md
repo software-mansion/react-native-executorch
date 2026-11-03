@@ -28,16 +28,16 @@ The examples in this skill target **0.11.x**. Inspect the app's installed versio
 React Native/Expo version, target platforms, architecture, and relevant peers before choosing APIs.
 Do not upgrade the app solely to fit these examples.
 
-Use the [documentation index](https://docs.swmansion.com/react-native-executorch/llms.txt) to select the
-matching release line. Docusaurus routes have specific meanings:
+Use the documentation site's version menu to select the matching release line.
+Docusaurus routes have specific meanings:
 
 - `/react-native-executorch/docs/...` is the default **released** line; check its version badge because
   that line changes as releases advance.
 - `/react-native-executorch/docs/next/...` is **unreleased development** documentation.
 - `/react-native-executorch/docs/<line>/...` contains older snapshots, such as `0.10.x`.
 
-Append `.md` to a page URL after removing any trailing slash, preserving its version segment. Read the
-matching API reference or installed declarations for exact signatures. For older versions, consult their
+Use Markdown where available, preserving the page's version segment; otherwise read the HTML page.
+Read the matching API reference or installed declarations for exact signatures. For older versions, consult their
 migration docs before applying examples. Older `useLLM` examples and model constants may use a different
 API; do not combine them with `useLLMChatSession` or the nested registry shown here.
 
