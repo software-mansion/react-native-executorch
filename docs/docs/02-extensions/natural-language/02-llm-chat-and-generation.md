@@ -117,6 +117,10 @@ function MyChatComponent() {
 See [`src/app/(screens)/llm-chat.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/llm-chat.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable chat UI with token streaming, token/sec benchmarking, and message history.
 :::
 
+:::tip Answering From Your Own Documents
+[React Native RAG](https://github.com/software-mansion-labs/react-native-rag) combines these LLMs with [Text Embeddings](./03-text-embeddings.md) and a vector store for on-device retrieval-augmented generation.
+:::
+
 ## Understanding the Output & Turn Result
 
 When you call [`sendMessage()`](../../06-api-reference/type-aliases/LLMChatSession.md#sendmessage), the promise resolves to an [`LLMChatTurnResult`](../../06-api-reference/type-aliases/LLMChatTurnResult.md) describing what happened during that turn:

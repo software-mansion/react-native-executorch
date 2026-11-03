@@ -183,8 +183,8 @@ The library provides mixed-precision fused PP-OCRv6 models from the [Software Ma
 | :----------------- | :----------------------------------------------------------------------- | :--------------- | :----------------------------------------------- | :--------------------------------------------------------------------------- |
 | **PP-OCRv6 Small** | [See](../../06-api-reference/variables/models.md#ocrpaddleppocrv6_small) | 7.9 MB – 25.0 MB | XNNPACK (CPU), Core ML (Apple), Vulkan (Android) | Full end-to-end on-device text detection & recognition in a single pipeline. |
 
-:::note Legacy CRAFT Models & Future EasyOCR Package
-The HuggingFace OCR collection may also list legacy **CRAFT** text detector models. Direct CRAFT support has been deprecated in core `react-native-executorch` in favor of the significantly faster and lighter fused **PP-OCRv6** pipeline. Advanced EasyOCR-style recognition features will be introduced in a dedicated companion package.
+:::note Legacy CRAFT Models & EasyOCR
+The HuggingFace OCR collection may also list legacy **CRAFT** text detector models. Direct CRAFT support has been deprecated in core `react-native-executorch` in favor of the significantly faster and lighter fused **PP-OCRv6** pipeline. EasyOCR alphabets, vertical text and document features (layout, tables, dewarping) are available in the companion [React Native OCR](https://github.com/software-mansion-labs/react-native-ocr) package.
 :::
 
 :::tip Using Custom Models

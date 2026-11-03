@@ -127,6 +127,11 @@ React Native ExecuTorch powers [Private Mind](https://privatemind.swmansion.com/
 
 <img width="2620" height="985" alt="Private Mind promo" src="https://raw.githubusercontent.com/software-mansion-labs/private-mind/main/promo/promo.png" />
 
+It also powers these libraries:
+
+- [React Native RAG](https://github.com/software-mansion-labs/react-native-rag): private, on-device retrieval-augmented generation for your own documents.
+- [React Native OCR](https://github.com/software-mansion-labs/react-native-ocr): on-device document OCR with page layout, tables, dewarping and vertical text.
+
 ## Created by Software Mansion
 
 Since 2012, [Software Mansion](https://swmansion.com) has been building mobile and web apps, contributing to open-source software, and dealing with all kinds of React Native challenges. We are Core React Native Contributors. We can help you build your next AI product – [Hire us](https://swmansion.com/contact?utm_source=react-native-executorch&utm_medium=readme).
