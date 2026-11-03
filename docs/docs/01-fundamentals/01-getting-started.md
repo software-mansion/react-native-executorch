@@ -39,7 +39,7 @@ plug them into existing pipelines or build entirely custom ones from scratch.
 The consumer skill helps your agent choose ready-made models and task hooks, integrate a custom
 `.pte`, or build a custom TypeScript pipeline.
 
-**Pending publication:** once the skill is available in the Software Mansion skills repository, install it with:
+Install the consumer skill from the Software Mansion skills repository:
 
 ```bash
 npx skills add software-mansion-labs/skills -s react-native-executorch

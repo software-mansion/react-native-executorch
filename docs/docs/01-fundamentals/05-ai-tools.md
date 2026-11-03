@@ -23,55 +23,25 @@ without rewriting the application when the input/output contract stays compatibl
 ## Consumer skill
 
 The consumer skill teaches an agent how to choose between these paths, prepare a React Native app,
-handle native resources, and verify model behavior. It uses the same distribution approach as the
-TypeGPU skill in the [Software Mansion skills repository](https://github.com/software-mansion-labs/skills).
-
-The React Native ExecuTorch skill is being prepared for that repository. Once published, install it with:
+handle native resources, and verify model behavior. Install it from the
+[Software Mansion skills repository](https://github.com/software-mansion-labs/skills).
 
 ```bash
 npx skills add software-mansion-labs/skills -s react-native-executorch
 ```
 
-Until it is published, give your agent the versioned documentation links below. The skill is optional;
-the library and its documentation work independently of skill installation.
+The skill is optional; the library and its documentation work independently of skill installation.
 
-## Select the documentation version
-
-Inspect the version installed in the application, including its lockfile. Documentation is organized by
-release line, not by every npm patch:
-
-- `/react-native-executorch/docs/...` is the **default released line**, selected by the site's version menu.
-- `/react-native-executorch/docs/next/...` is **Next**, the unreleased development documentation.
-- `/react-native-executorch/docs/<release-line>/...` contains older snapshots, for example `0.10.x`.
-
-Use the version menu or the [agent documentation index](https://docs.swmansion.com/react-native-executorch/llms.txt) to find the
-matching line. The default line changes as releases advance. Do not combine an older installed package
-with examples from Next, or assume a development checkout's package version is the current npm release.
-
-## Markdown and focused context
-
-Each documentation page, including API reference pages, has a Markdown representation. Append `.md`
-to its URL, keeping the version segment. For example:
-
-```text
-https://docs.swmansion.com/react-native-executorch/docs/fundamentals/getting-started.md
-https://docs.swmansion.com/react-native-executorch/docs/next/fundamentals/getting-started.md
-```
-
-Use **Copy Page → View Markdown** for the page you are reading. The
-[root index](https://docs.swmansion.com/react-native-executorch/llms.txt) links the default release, Next and historical
-documentation. Start with a relevant guide and fetch API details as needed.
+For existing apps, use documentation matching the installed react-native-executorch version.
 
 ## A prompt to start with
 
-```text
-Help me build with react-native-executorch. First inspect my installed package version,
-React Native/Expo setup, and target platform, then use the matching documentation.
-Determine whether a pre-exported model and task hook fits my goal. If I have a custom
-PyTorch or .pte model, inspect its input/output contract and choose either an existing
-task or a custom TypeScript pipeline. Verify export/runtime/backend compatibility,
-resource cleanup, and a representative inference result on the target device.
-```
+> Create a new React Native app using the latest stable react-native-executorch release and its
+> matching documentation. Help me build [describe the feature]. Choose a pre-exported model and task
+> hook if one fits; otherwise use
+> [ExecuTorch Export Recipes](https://github.com/software-mansion-labs/executorch-export-recipes)
+> to export my custom model and build the mobile pipeline. Configure the required native dependencies
+> and verify inference on the target device.
 
 For a custom model, provide its PyTorch definition or exported `.pte`, sample inputs and expected
 outputs, preprocessing/tokenizer assets, and target devices. Use

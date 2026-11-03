@@ -27,6 +27,8 @@
 
 The library ships with a curated set of pre-exported models covering computer vision, language models, text-to-speech, transcription, and more — all available in our [Hugging Face collection](https://huggingface.co/software-mansion/collections) and ready to use out of the box. You can also bring your own `.pte` models and plug them into existing pipelines or build entirely custom ones from scratch.
 
+To export your own PyTorch models to `.pte`, use [ExecuTorch Export Recipes](https://github.com/software-mansion-labs/executorch-export-recipes), our export harness with model recipes and agent skills.
+
 To explore all on-device capabilities in an interactive showcase app, check out the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery).
 
 [![npm version](https://img.shields.io/npm/v/react-native-executorch?color=00008B)](https://www.npmjs.com/package/react-native-executorch)
@@ -60,7 +62,7 @@ To explore all on-device capabilities in an interactive showcase app, check out 
 The consumer skill helps your agent choose ready-made models and task hooks, integrate a custom
 `.pte`, or build a custom TypeScript pipeline.
 
-**Pending publication:** once the skill is available in the Software Mansion skills repository, install it with:
+Install the consumer skill from the Software Mansion skills repository:
 
 ```bash
 npx skills add software-mansion-labs/skills -s react-native-executorch
