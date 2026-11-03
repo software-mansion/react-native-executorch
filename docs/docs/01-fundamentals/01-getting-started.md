@@ -107,8 +107,6 @@ React Native ExecuTorch requires:
   and Windows 10 1803+ all ship one. Windows and Linux hosts can build for
   Android; iOS builds need macOS.
 
-Worklets 0.13 requires React Native 0.86–0.88; use a compatible 0.10–0.12 release on React Native 0.83–0.85.
-
 For supported React Native versions, see the [Compatibility
 table](../05-other/01-compatibility.mdx). If an install or a build fails, see
 [Troubleshooting](../05-other/02-troubleshooting.md) — most of it comes down to

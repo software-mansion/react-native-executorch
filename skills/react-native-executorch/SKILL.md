@@ -24,34 +24,31 @@ task unnecessarily.
 
 ## Version and environment first
 
-The examples in this skill target **0.11.x**. Inspect the app's installed version and lockfile,
-React Native/Expo version, target platforms, architecture, and relevant peers before choosing APIs.
-Do not upgrade the app solely to fit these examples.
+For a new app, use the latest stable release and its matching documentation. For an existing app,
+inspect its installed version, lockfile, React Native/Expo setup, target platforms and relevant peers.
+Preserve the existing release unless an upgrade is needed for the user's task.
 
-Use the documentation site's version menu to select the matching release line.
-Docusaurus routes have specific meanings:
+Use the [documentation site's](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/getting-started)
+version menu to select the matching release line. Default `/docs/...` links serve released docs;
+`/docs/next/...` describes unreleased development, and `/docs/<release-line>/...` serves older snapshots.
+Use Markdown where available, preserving the version segment; otherwise read the HTML page.
 
-- `/react-native-executorch/docs/...` is the default **released** line; check its version badge because
-  that line changes as releases advance.
-- `/react-native-executorch/docs/next/...` is **unreleased development** documentation.
-- `/react-native-executorch/docs/<line>/...` contains older snapshots, such as `0.10.x`.
-
-Use Markdown where available, preserving the page's version segment; otherwise read the HTML page.
-Read the matching API reference or installed declarations for exact signatures. For older versions, consult their
-migration docs before applying examples. Older `useLLM` examples and model constants may use a different
-API; do not combine them with `useLLMChatSession` or the nested registry shown here.
+This skill provides integration guidance. Look up exact API signatures, model identifiers, platform
+requirements and dependency ranges in the matching docs and installed declarations. Consult migration
+guides for older apps rather than combining APIs from different releases.
 
 ## Load references for the selected path
 
 | Task                                                                                | Read                                                  |
 | ----------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| Install, configure Expo/bare RN, resolve downloads or manage lifecycle              | [setup.md](references/setup.md)                       |
+| Set up Expo/bare RN, install dependencies, provision binaries or manage downloads   | [setup.md](references/setup.md)                       |
 | Select pre-exported models and use hooks for chat, vision, speech or retrieval      | [ready-made-tasks.md](references/ready-made-tasks.md) |
 | Export a PyTorch model, inspect a `.pte`, reuse a task, or implement a new pipeline | [custom-models.md](references/custom-models.md)       |
 | Diagnose setup, schema, execution, memory or output problems                        | [troubleshooting.md](references/troubleshooting.md)   |
 
-For custom models, read `custom-models.md` before selecting an integration. Fetch the relevant
-version's detailed schema/backend/task docs as needed; do not load every API page or model catalog.
+For installation or native setup, start with `setup.md`. For custom models, read `custom-models.md`
+before selecting an integration. Fetch the relevant version's detailed schema/backend/task docs as
+needed; do not load every API page or model catalog.
 
 ## Working approach
 
@@ -60,11 +57,11 @@ version's detailed schema/backend/task docs as needed; do not load every API pag
   retrieval and more. Consult the version's Supported Models page for exact available configurations.
 - Prefer a hook inside React components. Use `download` plus `create<Task>` when manual lifetime or
   execution outside React is needed. Use primitives when the task contract does not fit.
-- Model configurations are objects: `models.llm.LFM2_5_1_2B.DEFAULT`, not accessor calls. Nested model
-  families have additional keys. Verify identifiers and backends rather than guessing names.
-- Hooks expose `isReady`, `error`, `downloadProgress` (0–100), and methods that are undefined before
-  loading finishes. Handle readiness and async errors, serialize conflicting runs, and stop work before
-  disposing resources. Imperative pipelines require explicit `dispose()`.
+- Select model configuration objects from the documented registry. Verify identifiers and backends
+  rather than guessing names or assuming every model has the same variants.
+- Handle readiness, download progress and async errors before invoking inference. Serialize conflicting
+  runs and stop work before disposing resources. Hooks manage React lifecycle; imperative pipelines
+  require explicit disposal. Read the selected hook or factory documentation for its exact interface.
 - A `.pte` alone may be insufficient. Tokenizers, chat templates, labels, normalization, audio formats,
   tensor layouts and preprocessing/postprocessing are part of the model's contract.
 - Match the exported ExecuTorch format/operators and backend to the runtime shipped in the installed

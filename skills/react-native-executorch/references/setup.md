@@ -1,68 +1,68 @@
-# Setup, downloads and lifetime
+# Set up an app and provision native binaries
 
-These examples target 0.11.x. Select the matching documentation as described in `SKILL.md`.
+Use this workflow for a new React Native/Expo app, adding the library to an existing app, or repairing
+an installation with missing native artifacts. Select the app's documentation release as described in
+`SKILL.md`; use its requirements and commands rather than assuming fixed dependency or OS versions.
 
-## Installation
+## 1. Check the app and install dependencies
 
-Read the installed package's peer dependencies and the matching Getting Started/Compatibility pages.
-For 0.11.x the documented baseline is New Architecture, React Native 0.83+ (or a compatible Expo SDK
-with a development build), iOS 17+, and `react-native-worklets >=0.10.0 <0.14.0`. Verify Android's API
-floor against the installed native build configuration: API 26 is Android 8.0, not Android 13. Backend,
-ABI and hardware requirements can be stricter than the OS floor.
+Read [Getting Started](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/getting-started)
+and [Compatibility](https://docs.swmansion.com/react-native-executorch/docs/other/compatibility).
+Inspect the app's package manager, workspace layout, installed React Native/Expo and Worklets/Reanimated
+versions, target devices and architecture. Resolve compatible peers using the installed package's
+manifest and these guides. Preserve existing app configuration where it already satisfies requirements.
 
-Use the application's package manager. A typical installation is:
+Install the library and its required peers with the app's package manager. Use the setup guide for Babel
+configuration, deployment targets and platform tools. Expo Go cannot load the custom native libraries;
+use a development build. Do not upgrade unrelated dependencies to match a copied example.
 
-```bash
-npm install react-native-executorch react-native-worklets react-native-blob-util
-```
+## 2. Select and download native binaries
 
-Resolve peer versions with existing worklets/Reanimated dependencies. Expo's recommended bundled
-worklets version may be older than this library requires; do not force an incompatible pair or blindly
-accept `expo install`'s choice. Consult the release's compatibility table.
+Follow [Native Libraries](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/native-libraries)
+for available backends, optional libraries, configuration and provisioning behavior.
 
-Put `react-native-worklets/plugin` last in Babel's `plugins`, using the app's existing preset. Reset
-Metro after Babel changes. Expo Go cannot load these custom native libraries: create/rebuild a
-development app. Bare iOS apps need the correct deployment target and pods. Rebuild the native app
-after changing native dependencies or backend selection; reloading JavaScript is insufficient.
+- The package's postinstall downloads native artifacts separately from the npm package. Check install
+  logs to confirm that the hook ran and the selected artifacts were downloaded successfully.
+- The default installation provisions the available libraries. Configure a smaller selection only when
+  needed. For custom models, include the backend and operators required by the export; selecting a
+  named task does not make an arbitrary model compatible.
+- In a monorepo, verify which manifest the installer actually reads. Check the resolved build
+  configuration and artifacts rather than assuming an app-local setting was used.
+- If the package manager blocked lifecycle scripts or downloads failed, follow the matching
+  [installation troubleshooting guide](https://docs.swmansion.com/react-native-executorch/docs/other/troubleshooting#build-input-files-cannot-be-found-after-install)
+  to permit the package's hook or rerun its downloader. Use the installed package's script and version;
+  do not disable script policies globally or substitute binaries from a different release.
+- After changing native-library selection, rerun the documented provisioning step before rebuilding.
 
-The package's postinstall provisions native binaries. If the package manager suppresses lifecycle
-scripts, follow the library's documented provisioning steps for that release. Do not disable script
-policies globally or assume reinstalling JS rebuilt the app.
+Native binaries and model files are separate downloads. Successfully provisioning the runtime does
+not mean that a model's weights and auxiliary assets are already cached.
 
-## Choosing native libraries
+## 3. Build and verify the native app
 
-The default install includes the available native libraries. An application's `react-native-executorch`
-package.json block can select `features`, `backends` and `libs` to reduce them. For custom `.pte` files,
-include the backend and operators actually required by the export; selecting a named feature does not
-make every arbitrary custom model compatible. Follow the release's Native Libraries page.
+Follow the platform steps in Getting Started: configure Babel/worklets, install iOS pods as needed,
+and build or rebuild the development app. Reset Metro after Babel changes. Changes to native peers,
+binaries or backend selection require a native rebuild; reloading JavaScript is insufficient.
 
-## Downloads and input paths
+Confirm native initialization, then run a small inference on the intended device/backend. Report native
+build success separately from actual inference. If the build fails, use its concrete native error with
+[Troubleshooting](https://docs.swmansion.com/react-native-executorch/docs/other/troubleshooting)
+before deleting caches or changing dependency versions.
 
-- Hooks download remote assets recursively through the config, cache them persistently and resolve
-  local paths. Initial setup/download needs network access; inference can run offline once assets exist.
-- Imperative task factories expect local asset paths. Call `download(config)` before construction when
-  the config contains URLs. `inspectModel` accepts a remote URL or local path.
-- File loaders expect absolute filesystem paths, not `file://` or document-provider `content://` URIs.
-  Resolve or copy picker assets using the app's filesystem integration. Do not just remove a URI scheme
-  when doing so does not produce a readable path.
-- Progress is 0–100 from hooks and 0–1 in the imperative downloader's `onProgress` callback.
-- Pre-exported model downloads emit an anonymous event by default. `setTelemetryEnabled(false)` opts
-  out. Distinguish download/telemetry traffic from on-device inference when explaining privacy.
+## Model downloads and input paths
 
-## Lifetime
+Use [Downloading Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/downloading-models)
+for cache behavior, progress units and local/remote input support of the selected API.
 
-Hooks manage model cleanup on unmount/config changes. Keep execution out of render and handle methods
-being undefined until ready. Do not run overlapping calls against shared scratch tensors or a chat
-session; track busy state and support cancellation where provided.
+- Hooks manage downloads and React lifetime; imperative factories generally need resolved local assets.
+- Download every required asset, including tokenizers or labels, before expecting offline inference.
+- Distinguish readable filesystem paths from picker/provider URIs. Resolve or copy assets through the
+  app's filesystem integration rather than blindly removing a URI scheme.
+- Pre-exported model downloads can emit anonymous telemetry. Check the documented opt-out when
+  requested, and distinguish download traffic from on-device inference.
 
-Imperative `create<Task>` results own native memory. Wait for active calls to finish or stop them, then
-dispose in `finally`. For custom factories, track each allocation in `createResourceScope` immediately,
-dispose on construction failure and return that same disposal function. Native memory is not managed
-by JavaScript GC. Read the complete custom example in `custom-models.md`.
+## Resource lifetime
 
-Documentation entry points (select the installed release line before using these default-release URLs):
-
-- [Getting Started](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/getting-started)
-- [Compatibility](https://docs.swmansion.com/react-native-executorch/docs/other/compatibility)
-- [Downloading Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/downloading-models)
-- [Native Libraries](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/native-libraries)
+Keep inference out of render and handle readiness before invoking methods. Serialize calls sharing
+scratch buffers or a session; stop or await active work before disposal. Hooks manage React cleanup.
+Imperative pipelines require explicit disposal, including after partial construction failures; native
+memory is not managed by JavaScript garbage collection. See [custom-models.md](custom-models.md).
