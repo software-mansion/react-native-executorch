@@ -50,7 +50,6 @@ Read only relevant skills. Start with core guidelines when learning the architec
 Choose checks using the [verification matrix](.agents/skills/verify-and-build/SKILL.md#verification-matrix).
 Commands below run from the repository root unless stated otherwise:
 
-- `yarn check:guidance`: contributor metadata and local link validation.
 - `yarn workspace react-native-executorch typecheck`: package types, including API tests.
 - `yarn workspace react-native-executorch test`: TypeScript API tests against a fake native runtime.
 - `yarn workspace react-native-executorch prepare`: build published JS and declaration outputs.

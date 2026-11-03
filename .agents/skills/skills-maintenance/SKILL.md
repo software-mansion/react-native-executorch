@@ -43,14 +43,12 @@ Use this guide when you introduce, modify, or deprecate core codebase patterns, 
      avoid turning a single failure into an unrelated universal restriction.
 
 5. **Validate the Changed Guidance**:
-   - Run `yarn check:guidance` from the repository root. It checks YAML, required names/descriptions,
-     directory/name agreement, metadata value types and local file links in `AGENTS.md` and skill
-     Markdown. It ignores fenced examples and does not fetch external URLs or validate anchors.
+   - Review skill names/descriptions, root routing and local links after moving or renaming guidance.
    - Format changed files with the repository's Prettier. Typecheck complete TypeScript templates
      against their intended package paths; distinguish those from schematic snippets containing
      placeholders. Review shell commands and source references against current scripts.
-   - The validator cannot establish semantic correctness or agent behavior. For substantial workflow
-     changes, try representative contributor requests (a TS-only task, a native op, and a prose-only
+   - For substantial workflow changes, try representative contributor requests (a TS-only task,
+     a native op, and a prose-only
      edit) and inspect whether routing and verification choices are appropriate. Keep these checks
      scoped to available prerequisites; do not provision a device merely to validate prose.
 
@@ -65,5 +63,5 @@ When introducing or refactoring a pattern, verify that:
 - [ ] You updated the corresponding checklists to enforce the new conventions.
 - [ ] The updated skill files are valid markdown and keep lines reasonably short.
 - [ ] Root routing still reaches the relevant skills without loading unrelated procedures.
-- [ ] `yarn check:guidance` passes, and changed complete examples were checked against actual APIs.
+- [ ] Local links resolve, and changed complete examples were checked against actual APIs.
 - [ ] The PR identifies verification performed and any remaining limitations.

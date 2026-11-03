@@ -16,7 +16,7 @@ for prose edits. Report missing prerequisites and skipped suites separately from
 
 | Change                                 | Checks                                                                                | Limits and additional verification                                                     |
 | -------------------------------------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Contributor guidance or skills         | `yarn check:guidance`; Prettier on changed Markdown; inspect examples against source  | Typecheck complete changed TS examples; review schematic snippets against source       |
+| Contributor guidance or skills         | Prettier on changed Markdown; review local links and inspect examples against source  | Typecheck complete changed TS examples; review schematic snippets against source       |
 | Library TypeScript behavior            | Package typecheck, relevant Jest suites and package build; lint changed code          | Broaden tests for shared APIs; fake JSI does not verify production C++ or model output |
 | Public exports or model registry       | Package typecheck/build, API surface or model registry suites                         | Inspect export snapshot diffs; verify new models/backends on the relevant device       |
 | C++/JSI                                | Native static checks and relevant host C++ suites; API tests for changed TS contracts | Rebuild affected platforms; host tests do not execute delegated inference              |
