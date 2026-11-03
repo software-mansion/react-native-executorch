@@ -390,6 +390,12 @@ const DEPTH_ANYTHING_V2_SMALL_VULKAN_FP16: DepthEstimatorModel = {
   modelPath: `${BASE_URL}/Depth-Anything-V2-ExecuTorch/${VERSION_TAG}/small/vulkan/depth_anything_v2_small_vulkan_fp16.pte`,
   modelOpts: DEPTH_ANYTHING_OPTS,
 };
+// fp16 on the HTP; NYUv2 AbsRel 6.24% against 6.22% for fp32 on an S26 Ultra,
+// 9x faster than the XNNPACK int8 and Vulkan exports there.
+const DEPTH_ANYTHING_V2_SMALL_QNN_FP16: DepthEstimatorModel = {
+  modelPath: `${BASE_URL}/Depth-Anything-V2-ExecuTorch/${VERSION_TAG}/small/qnn/depth_anything_v2_small_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelOpts: DEPTH_ANYTHING_OPTS,
+};
 
 const DEPTH_ANYTHING_V3_SMALL_XNNPACK_INT8: DepthEstimatorModel = {
   modelPath: `${BASE_URL}/Depth-Anything-3-Small-ExecuTorch/${VERSION_TAG}/small/xnnpack/depth_anything_v3_small_xnnpack_int8.pte`,
@@ -405,6 +411,12 @@ const DEPTH_ANYTHING_V3_SMALL_COREML_FP16: DepthEstimatorModel = {
 };
 const DEPTH_ANYTHING_V3_SMALL_VULKAN_FP16: DepthEstimatorModel = {
   modelPath: `${BASE_URL}/Depth-Anything-3-Small-ExecuTorch/${VERSION_TAG}/small/vulkan/depth_anything_v3_small_vulkan_fp16.pte`,
+  modelOpts: DEPTH_ANYTHING_OPTS,
+};
+// fp16 on the HTP; NYUv2 AbsRel 8.50% against 8.49% for fp32 on an S26 Ultra,
+// 5.6x faster than the Vulkan export there.
+const DEPTH_ANYTHING_V3_SMALL_QNN_FP16: DepthEstimatorModel = {
+  modelPath: `${BASE_URL}/Depth-Anything-3-Small-ExecuTorch/${VERSION_TAG}/small/qnn/depth_anything_v3_small_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: DEPTH_ANYTHING_OPTS,
 };
 
@@ -425,6 +437,12 @@ const ZIPDEPTH_BASE_COREML_FP32: DepthEstimatorModel = {
 };
 const ZIPDEPTH_BASE_VULKAN_FP16: DepthEstimatorModel = {
   modelPath: `${BASE_URL}/ZipDepth-ExecuTorch/${VERSION_TAG}/base/vulkan/zipdepth_base_384_vulkan_fp16.pte`,
+  modelOpts: ZIPDEPTH_OPTS,
+};
+// fp16 on the HTP; NYUv2 AbsRel 13.56% against 13.55% for fp32 on an S26 Ultra,
+// 3.8x faster than the Vulkan export there.
+const ZIPDEPTH_BASE_QNN_FP16: DepthEstimatorModel = {
+  modelPath: `${BASE_URL}/ZipDepth-ExecuTorch/${VERSION_TAG}/base/qnn/zipdepth_base_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: ZIPDEPTH_OPTS,
 };
 
@@ -2730,6 +2748,7 @@ export const models = {
       XNNPACK_FP32: DEPTH_ANYTHING_V2_SMALL_XNNPACK_FP32,
       COREML_FP16: DEPTH_ANYTHING_V2_SMALL_COREML_FP16,
       VULKAN_FP16: DEPTH_ANYTHING_V2_SMALL_VULKAN_FP16,
+      QNN_FP16: DEPTH_ANYTHING_V2_SMALL_QNN_FP16,
     }),
     /**
      * Depth Anything 3 Small, exported for single-image relative depth.
@@ -2740,6 +2759,7 @@ export const models = {
       XNNPACK_FP32: DEPTH_ANYTHING_V3_SMALL_XNNPACK_FP32,
       COREML_FP16: DEPTH_ANYTHING_V3_SMALL_COREML_FP16,
       VULKAN_FP16: DEPTH_ANYTHING_V3_SMALL_VULKAN_FP16,
+      QNN_FP16: DEPTH_ANYTHING_V3_SMALL_QNN_FP16,
     }),
     /**
      * ZipDepth Base NPU with a 384 × 384 input for low-latency depth estimation.
@@ -2749,6 +2769,7 @@ export const models = {
       XNNPACK_FP32: ZIPDEPTH_BASE_XNNPACK_FP32,
       COREML_FP32: ZIPDEPTH_BASE_COREML_FP32,
       VULKAN_FP16: ZIPDEPTH_BASE_VULKAN_FP16,
+      QNN_FP16: ZIPDEPTH_BASE_QNN_FP16,
     }),
   },
 
