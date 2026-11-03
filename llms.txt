@@ -1,7 +1,7 @@
 # React Native ExecuTorch
 
-> Latest stable release: v0.11.x (npm `react-native-executorch`); this file was generated 2026-11-02.
-> 74 pre-exported models across 18 tasks, listed under "Supported Models" below.
+> Latest stable release: v0.11.x (npm `react-native-executorch`); this file was generated 2026-11-03.
+> 82 pre-exported models across 19 tasks, listed under "Supported Models" below.
 > Backends: XNNPACK (CPU, iOS and Android), Core ML (iOS), MLX (iOS), Vulkan (Android GPU). Precisions: fp32, fp16, bf16, int8, 8da8w, 8da4w, int4, spinquant, coreml_int4.
 > New in v0.11.x: `models.llm.MINICPM5_2B`, `models.llm.LFM2_5_2_6B`, `models.colbertEmbeddings.LFM2_5_COLBERT_350M`, `models.keypointDetection.FACEMESH`, `models.depthEstimation.DEPTH_ANYTHING_V2_SMALL`, `models.depthEstimation.DEPTH_ANYTHING_V3_SMALL`, `models.depthEstimation.ZIPDEPTH_BASE`, `models.inpainting.MIGAN`.
 >
@@ -63,6 +63,17 @@ Chat sessions stream tokens and support tool calling, a thinking-mode switch, Ji
 
 - `models.privacyFilter.OPENAI`: OpenAI-style detector covering 8 common PII types (name, email, phone, address, and similar). Backends: XNNPACK, MLX. Added in v0.9.0.
 - `models.privacyFilter.NEMOTRON`: Nemotron-based detector covering 55 fine-grained PII types. Backends: XNNPACK, MLX. Added in v0.9.0.
+
+### Translation ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/translation))
+
+- `models.translation.OPUS_MT_EN_DE`: Opus-MT English to German. Backends: XNNPACK. Added in the next release.
+- `models.translation.OPUS_MT_DE_EN`: Opus-MT German to English. Backends: XNNPACK. Added in the next release.
+- `models.translation.OPUS_MT_EN_ES`: Opus-MT English to Spanish. Backends: XNNPACK. Added in the next release.
+- `models.translation.OPUS_MT_ES_EN`: Opus-MT Spanish to English. Backends: XNNPACK. Added in the next release.
+- `models.translation.OPUS_MT_EN_FR`: Opus-MT English to French. Backends: XNNPACK. Added in the next release.
+- `models.translation.OPUS_MT_FR_EN`: Opus-MT French to English. Backends: XNNPACK. Added in the next release.
+- `models.translation.EUROLLM_1_7B`: EuroLLM 1.7B Instruct: any two of its 35 languages with one model. Backends: XNNPACK, MLX. Added in the next release.
+- `models.translation.HY_MT2_1_8B`: Hy-MT2 1.8B: any two of its 38 languages and dialects with one model. Backends: XNNPACK, MLX. Added in the next release.
 
 ### Speech to Text ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/speech-to-text), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#speech-to-text))
 
