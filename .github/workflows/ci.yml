@@ -68,9 +68,9 @@ jobs:
           # set this job provably cannot be affected by", so a path nobody
           # thought of runs the job instead of silently skipping it.
 
-          # eslint, tsc and jest read none of the C++ trees or contributor/docs
-          # Markdown. Contributor guidance has its own validation workflow.
-          ts_irrelevant='^(docs/|\.agents/|[^/]+\.md$|packages/react-native-executorch/cpp/)'
+          # eslint, tsc and jest read none of the C++ trees, and none of the
+          # documentation.
+          ts_irrelevant='^(docs/|[^/]+\.md$|packages/react-native-executorch/cpp/)'
           if echo "$files" | grep -qvE "$ts_irrelevant"; then ts=true; else ts=false; fi
 
           # The C++ suite compiles cpp/ only (cpp/tests/CMakeLists.txt globs
