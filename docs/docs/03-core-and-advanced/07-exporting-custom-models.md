@@ -20,16 +20,15 @@ React Native ExecuTorch runs compatible ExecuTorch `.pte` files, including model
 our [HuggingFace collection](https://huggingface.co/software-mansion/collections).
 Getting your own model running takes two things:
 
-1. **Export it to `.pte`** with a hardware backend — the standard ExecuTorch
-   workflow.
+1. **Export it to `.pte`** for your target backend using
+   [ExecuTorch Export Recipes](https://github.com/software-mansion-labs/executorch-export-recipes).
 2. **Integrate it** — either feed it into a built-in pipeline by matching that
    pipeline's contract, or build your own pipeline around it, where you define the
    contract. Both come down to the model's schema.
 
-The export step is plain ExecuTorch and is documented thoroughly upstream, so this
-page links out for it and focuses on the second part — integrating a custom model,
-into a built-in pipeline or one you build yourself — which is where the
-library-specific work lives.
+The exporter provides model recipes, pinned environments and agent skills for the
+PyTorch → ExecuTorch step. This guide connects that workflow to integrating the
+result in a built-in pipeline or one you build yourself.
 
 ## Choose your integration level
 
@@ -56,19 +55,21 @@ installed React Native ExecuTorch package. Match its enabled backends and target
 extension or successful schema inspection alone does not establish execution compatibility. See
 [Native Libraries](./08-native-libraries.md) for app backend selection.
 
-Whether exporting manually or using a project-provided harness, preserve that same contract. Follow
-only the harness's published commands and version pins. Compare exported outputs against the PyTorch
-reference before moving to mobile, with tolerances appropriate to the selected precision/backend.
+Preserve that contract when exporting. Compare exported outputs against the PyTorch reference before
+moving to mobile, with tolerances appropriate to the selected precision/backend.
 
 ## Exporting to `.pte`
 
-Producing the `.pte` is the standard PyTorch → ExecuTorch path:
-[`torch.export`](https://docs.pytorch.org/docs/2.14/user_guide/torch_compiler/export.html),
-then lowering to a backend (XNNPACK, Core ML, Vulkan, …) with
-[`to_edge_transform_and_lower`](https://docs.pytorch.org/executorch/stable/export-to-executorch-api-reference.html#executorch.exir.to_edge_transform_and_lower).
-It is not specific to this library, so follow the official
-[ExecuTorch documentation](https://docs.pytorch.org/executorch/stable/index.html)
-for the details, including which backend to target for your model and platform.
+Use [ExecuTorch Export Recipes](https://github.com/software-mansion-labs/executorch-export-recipes),
+our export harness, model recipes and agent skills. Its
+[README](https://github.com/software-mansion-labs/executorch-export-recipes/blob/docs/public-repo-foundations/README.md)
+covers setup and exporting; its repository instructions and skills guide agents through adding recipes,
+choosing a backend and validating outputs. Follow those instructions for your model and target device,
+and check compatibility with the native runtime shipped by your installed React Native ExecuTorch package.
+
+For the underlying PyTorch → ExecuTorch APIs, see the official
+[ExecuTorch documentation](https://docs.pytorch.org/executorch/stable/index.html).
+Once validated, bring the `.pte` and the assets listed above into your React Native app.
 
 What matters here is the **contract** the resulting `.pte` exposes: the input and
 output shapes, data types, and any dynamic dimensions or dimension relationships.

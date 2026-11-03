@@ -74,6 +74,8 @@ resource cleanup, and a representative inference result on the target device.
 ```
 
 For a custom model, provide its PyTorch definition or exported `.pte`, sample inputs and expected
-outputs, preprocessing/tokenizer assets, and target devices. The current export path uses the official
-ExecuTorch tooling linked from [Exporting Custom Models](../03-core-and-advanced/07-exporting-custom-models.md).
-An agent should use only published, documented exporter commands.
+outputs, preprocessing/tokenizer assets, and target devices. Use
+[ExecuTorch Export Recipes](https://github.com/software-mansion-labs/executorch-export-recipes) and its
+agent skills for the export step, then follow
+[Exporting Custom Models](../03-core-and-advanced/07-exporting-custom-models.md) to integrate and verify
+the result in your app.

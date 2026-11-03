@@ -14,19 +14,17 @@ Before exporting, collect:
 - Target devices/backends and the ExecuTorch runtime version used by the installed library's native
   artifacts. The JavaScript package version is not the ExecuTorch version.
 
-The currently documented path is PyTorch `torch.export`, ExecuTorch lowering to a selected backend,
-then serialization to `.pte`. Follow the version-compatible upstream export docs linked from the
-library's Exporting Custom Models guide. Unsupported operators, delegates or serialization versions
-require an export/runtime change; renaming a file to `.pte` does not convert it.
+## Export with ExecuTorch Export Recipes
 
-If the user supplies an auto-exporter harness, read its real README/CLI and pinned dependencies. Use
-its actual outputs rather than inventing flags or treating an unpublished tool as installed. An export
-handoff should include the `.pte`, auxiliary assets, schema/method contract, preprocessing metadata,
-runtime/backend requirements and reference inputs/outputs. These same artifacts drive mobile integration
-whether produced manually or by a future published harness.
+Use [ExecuTorch Export Recipes](https://github.com/software-mansion-labs/executorch-export-recipes),
+Software Mansion's export harness, model recipes and agent skills. Follow its
+[README](https://github.com/software-mansion-labs/executorch-export-recipes/blob/docs/public-repo-foundations/README.md),
+`AGENTS.md` and relevant skills for setup, adding or adapting recipes, backend selection and validation.
+Check export/runtime compatibility with the app's installed React Native ExecuTorch version.
 
-Compare exported-model outputs to the PyTorch reference before debugging the app. Account for
-quantization tolerances and backend-specific numerical differences.
+Hand off the `.pte`, auxiliary assets, schema/method contract, preprocessing metadata,
+runtime/backend requirements and reference inputs/outputs to the app integration. Compare exported
+outputs against the PyTorch reference before moving to mobile.
 
 ## Inspect before integrating
 

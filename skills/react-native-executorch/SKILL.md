@@ -70,9 +70,9 @@ version's detailed schema/backend/task docs as needed; do not load every API pag
 - Match the exported ExecuTorch format/operators and backend to the runtime shipped in the installed
   library. Inspect registered backends on the device; a successful download or schema inspection does
   not establish executable inference.
-- For a supplied export harness, inspect its actual documentation and version pins before running it.
-  No automatic exporter command is assumed by this skill. Preserve the contract between export and app
-  integration so a published harness can later provide the `.pte`, assets and schema directly.
+- For PyTorch → `.pte`, use [ExecuTorch Export Recipes](https://github.com/software-mansion-labs/executorch-export-recipes).
+  Follow its repository instructions, relevant export/backend skills and per-model dependency pins;
+  see `custom-models.md` for the workflow. Validate outputs before integrating the artifact in the app.
 
 ## Finish with evidence
 
