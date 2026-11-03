@@ -1,5 +1,6 @@
 require "fileutils"
 require "json"
+require_relative "third-party/common/phonemis/phonemis_sources"
 
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
@@ -99,10 +100,10 @@ Pod::Spec.new do |s|
 
   # phonemis is built from in-tree source (third-party/common/phonemis submodule);
   # its runner entrypoint is excluded so only the library sources compile.
+  phonemis_root = "third-party/common/phonemis"
   phonemis_source_files = [
     "cpp/extensions/speech/phonemizer.{cpp,h}",
-    "third-party/common/phonemis/src/**/*.{cpp,hpp,h}",
-  ]
+  ] + PhonemisSources.source_files(phonemis_root)
 
   source_files = [
     "ios/**/*.{h,m,mm}",
@@ -114,8 +115,7 @@ Pod::Spec.new do |s|
   # cpp/tests holds the host GoogleTest suites, built by cpp/tests/CMakeLists.txt
   # and never by the app: `cpp/**` above sweeps them in, and the pod carries no
   # googletest headers, so an app build fails on <gmock/gmock.h>.
-  exclude_files = [
-    "third-party/common/phonemis/src/phonemis/main.cpp",
+  exclude_files = PhonemisSources.exclude_files(phonemis_root) + [
     "cpp/tests/**/*",
   ]
   exclude_files += opencv_source_files unless enable_opencv
@@ -253,7 +253,7 @@ Pod::Spec.new do |s|
       "$(inherited)",
       "EXECUTORCH_ENABLE_EXECUTION_PROFILING=1",
     ].join(' '),
-    "HEADER_SEARCH_PATHS" => [
+    "HEADER_SEARCH_PATHS" => ([
       "\"$(PODS_TARGET_SRCROOT)/cpp\"",
       "\"$(PODS_TARGET_SRCROOT)/#{third_party_include}\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/cpuinfo\"",
@@ -262,10 +262,7 @@ Pod::Spec.new do |s|
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/json/include\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/re2\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/abseil-cpp\"",
-      "\"$(PODS_TARGET_SRCROOT)/third-party/common/phonemis/src\"",
-      # phonemis's vendored xsimd includes itself as `xsimd/...` (its CMakeLists adds this too).
-      "\"$(PODS_TARGET_SRCROOT)/third-party/common/phonemis/src/third-party\"",
-    ].join(' '),
+    ] + PhonemisSources.header_search_paths(phonemis_root).map { |p| "\"$(PODS_TARGET_SRCROOT)/#{p}\"" }).join(' '),
     "WARNING_CFLAGS" => "-Wno-documentation",
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
   }

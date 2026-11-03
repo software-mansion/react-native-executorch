@@ -6,7 +6,7 @@ set -euo pipefail
 # from packages/react-native-executorch.
 
 # Phonemis is a git submodule whose sources the podspec compiles directly
-# (see third-party/common/phonemis/src in react-native-executorch.podspec).
+# (listed by third-party/common/phonemis/phonemis_sources.rb, which the podspec requires).
 # Init it explicitly so the files are present in the packed tarball.
 # Run from repo root so the submodule path resolves regardless of cwd.
 git -C "$(git rev-parse --show-toplevel)" submodule update --init --recursive \

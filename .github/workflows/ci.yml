@@ -186,7 +186,7 @@ jobs:
       - name: Check out the submodules the tests build
         run: |
           git submodule update --init --depth 1 third-party/googletest
-          GIT_LFS_SKIP_SMUDGE=1 git submodule update --init --depth 1 \
+          GIT_LFS_SKIP_SMUDGE=1 git submodule update --init --recursive --depth 1 \
             packages/react-native-executorch/third-party/common/phonemis
         working-directory: ${{ github.workspace }}
 

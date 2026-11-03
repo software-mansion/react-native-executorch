@@ -3,5 +3,5 @@
 	url = https://github.com/google/googletest.git
 [submodule "packages/react-native-executorch/third-party/common/phonemis"]
 	path = packages/react-native-executorch/third-party/common/phonemis
-	url = https://github.com/IgorSwat/Phonemis
+	url = https://github.com/software-mansion-labs/Phonemis
 	branch = main

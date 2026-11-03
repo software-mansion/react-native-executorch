@@ -27,7 +27,7 @@ jobs:
           # The phonemis submodule carries headers that cpp/extensions/speech
           # includes; without it those sources fail to parse and clang-tidy
           # reports misleading findings on the broken AST.
-          submodules: true
+          submodules: recursive
 
       - name: Setup
         uses: ./.github/actions/setup

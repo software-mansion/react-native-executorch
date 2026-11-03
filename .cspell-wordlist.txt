@@ -7,6 +7,7 @@ RNET
 libexecutorch
 libxnnpack
 libvulkan
+verbalis
 xcframework
 metallib
 ASPP
