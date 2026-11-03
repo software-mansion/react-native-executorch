@@ -21,12 +21,13 @@ import { getImage, skImageToBuffer } from '../../utils';
 const DEPTH_MODELS = models.depthEstimation.DEPTH_ANYTHING_V2_SMALL;
 const DEPTH_V3_MODELS = models.depthEstimation.DEPTH_ANYTHING_V3_SMALL;
 const ZIPDEPTH_MODELS = models.depthEstimation.ZIPDEPTH_BASE;
-type Backend = 'xnnpack' | 'coreml' | 'vulkan';
+type Backend = 'xnnpack' | 'coreml' | 'vulkan' | 'qnn';
 type DepthModelOption = ModelOption & { family: 'v2' | 'v3' | 'zipdepth' };
 const BACKEND_OPTIONS: ModelOption[] = [
   { label: 'XNNPACK', value: 'xnnpack' },
   { label: 'Core ML', value: 'coreml', disabled: Platform.OS !== 'ios' },
   { label: 'Vulkan', value: 'vulkan', disabled: Platform.OS !== 'android' },
+  { label: 'QNN', value: 'qnn', disabled: Platform.OS !== 'android' },
 ];
 const MODEL_OPTIONS: Record<Backend, DepthModelOption[]> = {
   xnnpack: [
@@ -45,6 +46,11 @@ const MODEL_OPTIONS: Record<Backend, DepthModelOption[]> = {
     { label: 'Depth Anything V2 Small (FP16)', family: 'v2', value: DEPTH_MODELS.VULKAN_FP16 },
     { label: 'Depth Anything V3 Small (FP16)', family: 'v3', value: DEPTH_V3_MODELS.VULKAN_FP16 },
     { label: 'ZipDepth Base (FP16)', family: 'zipdepth', value: ZIPDEPTH_MODELS.VULKAN_FP16 },
+  ],
+  qnn: [
+    { label: 'Depth Anything V2 Small (FP16)', family: 'v2', value: DEPTH_MODELS.QNN_FP16 },
+    { label: 'Depth Anything V3 Small (FP16)', family: 'v3', value: DEPTH_V3_MODELS.QNN_FP16 },
+    { label: 'ZipDepth Base (FP16)', family: 'zipdepth', value: ZIPDEPTH_MODELS.QNN_FP16 },
   ],
 };
 
