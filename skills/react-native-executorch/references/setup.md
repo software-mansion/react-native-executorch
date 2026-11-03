@@ -6,8 +6,8 @@ an installation with missing native artifacts. Select the app's documentation re
 
 ## 1. Check the app and install dependencies
 
-Read [Getting Started](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/getting-started)
-and [Compatibility](https://docs.swmansion.com/react-native-executorch/docs/other/compatibility).
+Read [Getting Started](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/getting-started.md)
+and [Compatibility](https://docs.swmansion.com/react-native-executorch/docs/other/compatibility.md).
 Inspect the app's package manager, workspace layout, installed React Native/Expo and Worklets/Reanimated
 versions, target devices and architecture. Resolve compatible peers using the installed package's
 manifest and these guides. Preserve existing app configuration where it already satisfies requirements.
@@ -18,7 +18,7 @@ use a development build. Do not upgrade unrelated dependencies to match a copied
 
 ## 2. Select and download native binaries
 
-Follow [Native Libraries](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/native-libraries)
+Follow [Native Libraries](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/native-libraries.md)
 for available backends, optional libraries, configuration and provisioning behavior.
 
 - The package's postinstall downloads native artifacts separately from the npm package. Check install
@@ -29,7 +29,7 @@ for available backends, optional libraries, configuration and provisioning behav
 - In a monorepo, verify which manifest the installer actually reads. Check the resolved build
   configuration and artifacts rather than assuming an app-local setting was used.
 - If the package manager blocked lifecycle scripts or downloads failed, follow the matching
-  [installation troubleshooting guide](https://docs.swmansion.com/react-native-executorch/docs/other/troubleshooting#build-input-files-cannot-be-found-after-install)
+  [installation troubleshooting guide](https://docs.swmansion.com/react-native-executorch/docs/other/troubleshooting.md#build-input-files-cannot-be-found-after-install)
   to permit the package's hook or rerun its downloader. Use the installed package's script and version;
   do not disable script policies globally or substitute binaries from a different release.
 - After changing native-library selection, rerun the documented provisioning step before rebuilding.
@@ -45,12 +45,12 @@ binaries or backend selection require a native rebuild; reloading JavaScript is 
 
 Confirm native initialization, then run a small inference on the intended device/backend. Report native
 build success separately from actual inference. If the build fails, use its concrete native error with
-[Troubleshooting](https://docs.swmansion.com/react-native-executorch/docs/other/troubleshooting)
+[Troubleshooting](https://docs.swmansion.com/react-native-executorch/docs/other/troubleshooting.md)
 before deleting caches or changing dependency versions.
 
 ## Model downloads and input paths
 
-Use [Downloading Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/downloading-models)
+Use [Downloading Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/downloading-models.md)
 for cache behavior, progress units and local/remote input support of the selected API.
 
 - Hooks manage downloads and React lifetime; imperative factories generally need resolved local assets.

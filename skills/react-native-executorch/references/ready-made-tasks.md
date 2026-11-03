@@ -5,7 +5,7 @@ fit the user's goal. For a different model or task, read [custom-models.md](cust
 
 ## Choose a model and integration
 
-1. Read [Supported Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/supported-models)
+1. Read [Supported Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/supported-models.md)
    for the app's release. Check languages, modalities, license, assets, device benchmarks and memory needs.
 2. Select a configuration from the installed `models` registry. Inspect available variants and required
    backends rather than copying a model identifier from another release.
@@ -22,12 +22,12 @@ Choose from the current catalog rather than assuming that a task or backend exis
 
 - **Vision:** distinguish compressed image files from decoded pixel buffers and camera frames.
   Follow the task's image layout, color, orientation and preprocessing requirements. Use the documented
-  [camera integration](https://docs.swmansion.com/react-native-executorch/docs/extensions/camera-integration)
+  [camera integration](https://docs.swmansion.com/react-native-executorch/docs/extensions/camera-integration.md)
   for frame handling.
 - **Speech:** distinguish encoded audio containers from decoded samples. Check channel count,
   sample rate and streaming lifecycle for the chosen pipeline.
 - **Language models:** follow the
-  [chat and generation guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/llm-chat-and-generation)
+  [chat and generation guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/llm-chat-and-generation.md)
   for session management, streaming, history and cancellation. Tool use and multimodal capabilities
   depend on the chosen model and assets.
 - **Embeddings:** keep query and document vectors in the same model/vector space and follow its

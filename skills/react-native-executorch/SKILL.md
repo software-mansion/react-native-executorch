@@ -28,10 +28,11 @@ For a new app, use the latest stable release and its matching documentation. For
 inspect its installed version, lockfile, React Native/Expo setup, target platforms and relevant peers.
 Preserve the existing release unless an upgrade is needed for the user's task.
 
-Use the [documentation site's](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/getting-started)
-version menu to select the matching release line. Default `/docs/...` links serve released docs;
+Read [Getting Started](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/getting-started.md)
+and use the site's version menu to select the matching release line. Default `/docs/...` links serve released docs;
 `/docs/next/...` describes unreleased development, and `/docs/<release-line>/...` serves older snapshots.
-Use Markdown where available, preserving the version segment; otherwise read the HTML page.
+Guide links in this skill use Markdown; the API reference links to HTML. Preserve the version segment
+when selecting another release; if its Markdown page is unavailable, use the corresponding HTML page.
 
 This skill provides integration guidance. Look up exact API signatures, model identifiers, platform
 requirements and dependency ranges in the matching docs and installed declarations. Consult migration

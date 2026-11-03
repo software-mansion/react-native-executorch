@@ -25,5 +25,5 @@ Collect native Xcode/logcat output when execution crashes. A TypeScript typechec
 linkage or delegate execution. Rebuild only the affected native setup and avoid deleting unrelated
 caches or upgrading the whole app without evidence.
 
-- [Troubleshooting](https://docs.swmansion.com/react-native-executorch/docs/other/troubleshooting)
-- [Error Handling](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/error-handling)
+- [Troubleshooting](https://docs.swmansion.com/react-native-executorch/docs/other/troubleshooting.md)
+- [Error Handling](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/error-handling.md)

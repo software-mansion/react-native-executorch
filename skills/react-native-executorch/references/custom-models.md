@@ -29,7 +29,7 @@ outputs against the PyTorch reference before moving to mobile.
 ## Inspect before integrating
 
 Use the inspection API documented in
-[Exporting Custom Models](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/exporting-custom-models)
+[Exporting Custom Models](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/exporting-custom-models.md)
 to inspect exported methods, tensor schemas and required backends. Compare these with the app's
 registered backends and shipped runtime. Inspection can succeed even when delegated execution cannot run.
 
@@ -46,9 +46,9 @@ to disable.
 
 ## Build a custom TypeScript pipeline
 
-Use [Models & Tensors](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/models-and-tensors)
+Use [Models & Tensors](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/models-and-tensors.md)
 for loading, allocation and execution, and
-[Worklets & Threading](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/worklets-and-threading)
+[Worklets & Threading](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/worklets-and-threading.md)
 for moving inference off the JavaScript thread. Follow the API reference for exact helper signatures.
 
 - Define the expected method/input/output contract and validate it when loading the model.
@@ -63,7 +63,7 @@ for moving inference off the JavaScript thread. Follow the API reference for exa
 
 ## Dynamic shapes
 
-Read [Schema Validation](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/schema-validation)
+Read [Schema Validation](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/schema-validation.md)
 and the custom export guide before handling variable dimensions. Distinguish an unknown static shape
 from dimensions that change between runs. Carry dynamic bounds and runtime constraints from export
 into schema validation and buffer allocation; do not infer them from symbolic names alone.
@@ -75,7 +75,7 @@ construction-failure cleanup, disposal and the actual target platform/backend. F
 compare preprocessing/tokenizer behavior as well as output numbers. Distinguish successful export,
 successful inspection and successful device inference in the result you report.
 
-- [Exporting Custom Models](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/exporting-custom-models)
-- [Models & Tensors](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/models-and-tensors)
-- [Schema Validation](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/schema-validation)
-- [Worklets & Threading](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/worklets-and-threading)
+- [Exporting Custom Models](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/exporting-custom-models.md)
+- [Models & Tensors](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/models-and-tensors.md)
+- [Schema Validation](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/schema-validation.md)
+- [Worklets & Threading](https://docs.swmansion.com/react-native-executorch/docs/core-and-advanced/worklets-and-threading.md)
