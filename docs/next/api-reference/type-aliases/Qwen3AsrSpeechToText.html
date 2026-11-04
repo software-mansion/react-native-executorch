@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.d6f52d15.css">
-<script src="/react-native-executorch/assets/js/runtime~main.b106a349.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.c78eafb2.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.2ee7d5ce.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.ac2d053e.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -89,8 +89,8 @@ return. Safe to call even when streaming is not active.</p>
 <p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/speech/tasks/qwen3AsrSpeechToText.ts#L156" target="_blank" rel="noopener noreferrer" class="">extensions/speech/tasks/qwen3AsrSpeechToText.ts:156</a></p>
 <p>Asynchronously transcribes a pre-recorded mono waveform sampled at
 <a class="" href="/react-native-executorch/docs/next/api-reference/variables/QWEN3_ASR_SAMPLE_RATE_HZ">QWEN3_ASR_SAMPLE_RATE_HZ</a>. Audio of any length is accepted; long
-recordings are split at quiet points into pieces the model can take in
-one pass.</p>
+recordings are split at pauses the VAD finds into pieces the model can
+take in one pass, and silence is skipped.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-2">Parameters<a href="#parameters-2" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="audio">audio<a href="#audio" class="hash-link" aria-label="Direct link to audio" title="Direct link to audio" translate="no">​</a></h5>
 <p><code>Float32Array</code></p>
