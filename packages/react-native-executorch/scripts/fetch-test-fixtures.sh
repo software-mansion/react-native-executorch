@@ -12,9 +12,11 @@
 #   * A HuggingFace tokenizer.json, which the nlp extension loads through
 #     ExecuTorch's HFTokenizer. Whisper tiny.en's is a plain BPE vocabulary,
 #     ~2.4 MB.
-#   * Kokoro's en-us phonemizer data, the tagger and lexicon the app ships
-#     (~8.4 MB together). With them phonemis produces real phonemes, so the
-#     phonemizer's text normalization and word locating are pinned end to end.
+#   * Kokoro's phonemizer data for the languages it phonemizes without a
+#     neural model: the en-us tagger (en-gb's is the same file), the en-us and
+#     en-gb lexicons, and the zh segmenter and lexicon (~26 MB together). With
+#     them phonemis produces real phonemes, so the phonemizer's text
+#     normalization and word locating are pinned end to end.
 #
 # All are pinned to an exact Hugging Face revision and verified against a
 # recorded sha256, so a re-tag upstream cannot silently change what the tests
@@ -92,3 +94,24 @@ fetch_fixture \
   "4836d50e0fa48d7cdd415210f6c2c0e1acba5acb" \
   "phonemizer/en-us/lexicon.json" \
   "b29e9c13190cf211979e8d9c38258cc1cb8e701e5ca1102a0c1f00acd4f55f8e"
+
+fetch_fixture \
+  "phonemizer/en-gb/lexicon.json" \
+  "software-mansion/Kokoro-82M-ExecuTorch" \
+  "4836d50e0fa48d7cdd415210f6c2c0e1acba5acb" \
+  "phonemizer/en-gb/lexicon.json" \
+  "f4ad98b7725c681be79df533288e20df71db40a89d0cfdead2192f0d61449399"
+
+fetch_fixture \
+  "phonemizer/zh/segmenter.json" \
+  "software-mansion/Kokoro-82M-ExecuTorch" \
+  "4836d50e0fa48d7cdd415210f6c2c0e1acba5acb" \
+  "phonemizer/zh/segmenter.json" \
+  "4079bc04a9028e7fb0e7b015a327b5c65301feb3069d4ba391ff823fa357c200"
+
+fetch_fixture \
+  "phonemizer/zh/lexicon.json" \
+  "software-mansion/Kokoro-82M-ExecuTorch" \
+  "4836d50e0fa48d7cdd415210f6c2c0e1acba5acb" \
+  "phonemizer/zh/lexicon.json" \
+  "f43304c9c2426545f8491c89ba235bab9e5bd740fdd42c4eeaca6df216f20735"

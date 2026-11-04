@@ -325,17 +325,20 @@ else()
     "  scripts/fetch-test-fixtures.sh")
 endif()
 
-# With Kokoro's en-us tagger and lexicon, phonemis produces real phonemes, so
-# what it outputs can be pinned, not only how it is called. Same story again.
-set(PHONEMIZER_FIXTURE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/fixtures/phonemizer/en-us")
-if(RNE_TESTS_ENABLE_PHONEMIS AND EXISTS "${PHONEMIZER_FIXTURE_DIR}/lexicon.json"
-   AND EXISTS "${PHONEMIZER_FIXTURE_DIR}/tags.json")
-  set(RNE_HAVE_PHONEMIZER_FIXTURE ON)
+# With Kokoro's tagger, segmenter and lexicons, phonemis produces real
+# phonemes, so what it outputs can be pinned, not only how it is called. Same
+# story again.
+set(PHONEMIZER_FIXTURE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/fixtures/phonemizer")
+set(RNE_HAVE_PHONEMIZER_FIXTURE ${RNE_TESTS_ENABLE_PHONEMIS})
+foreach(file en-us/tags.json en-us/lexicon.json en-gb/lexicon.json zh/segmenter.json zh/lexicon.json)
+  if(NOT EXISTS "${PHONEMIZER_FIXTURE_DIR}/${file}")
+    set(RNE_HAVE_PHONEMIZER_FIXTURE OFF)
+  endif()
+endforeach()
+if(RNE_HAVE_PHONEMIZER_FIXTURE)
   target_compile_definitions(rne_test_support PUBLIC
-    RNE_PHONEMIZER_EN_US_LEXICON="${PHONEMIZER_FIXTURE_DIR}/lexicon.json"
-    RNE_PHONEMIZER_EN_US_TAGGER="${PHONEMIZER_FIXTURE_DIR}/tags.json")
+    RNE_PHONEMIZER_FIXTURE_DIR="${PHONEMIZER_FIXTURE_DIR}")
 elseif(RNE_TESTS_ENABLE_PHONEMIS)
-  set(RNE_HAVE_PHONEMIZER_FIXTURE OFF)
   message(WARNING
     "Phonemizer fixtures missing, skipping the PhonemizerOutputTest suite. Fetch them with:\n"
     "  scripts/fetch-test-fixtures.sh")
@@ -363,7 +366,7 @@ if(RNE_TESTS_ENABLE_OPENCV)
 endif()
 
 if(RNE_TESTS_ENABLE_PHONEMIS)
-  list(APPEND TEST_SUITES extensions/PhonemizerTest.cpp)
+  list(APPEND TEST_SUITES extensions/PhonemizerTest.cpp extensions/PreprocessingTest.cpp)
 endif()
 
 if(RNE_HAVE_MODEL_FIXTURE)

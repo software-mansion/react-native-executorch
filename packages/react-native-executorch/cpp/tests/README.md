@@ -45,7 +45,7 @@ rather than a lookalike.
 | `support/JsiTestEnv.*` | Fixture owning a Hermes runtime with the module installed, plus `eval*` helpers and the `isCodedError` / `throwsCoded` assertions |
 | `core/` | `dtype`, `error`, `conversions`, `tensor`, `schema`, `model`, `utils` |
 | `extensions/` | `math`, `speech`, `nlp` (tokenizer), `llm`, and — behind OpenCV — `cv` and `ocr` ops; `phonemizer` behind phonemis |
-| `fixtures/` | Downloaded `.pte` program, `tokenizer.json` and en-us phonemizer data (gitignored) |
+| `fixtures/` | Downloaded `.pte` program, `tokenizer.json` and phonemizer data (gitignored) |
 
 One binary per suite, so a crash in one area cannot take the run down with it
 and `ctest -R MathOpsTest` targets a single suite.
@@ -121,9 +121,11 @@ automatically; they land in `fixtures/` and are gitignored rather than committed
   publishes. Anything reading ExecuTorch `MethodMeta` needs a real program.
 - A **tokenizer.json** — Whisper tiny.en's, ~2.4 MB. A plain BPE vocabulary, so
   the nlp extension's encode/decode path runs for real.
-- Kokoro's **en-us phonemizer data** — the tagger and lexicon the app ships,
-  ~8.4 MB together. `PhonemizerOutputTest` pins the phonemes and word locations
-  phonemis produces with them.
+- Kokoro's **phonemizer data** for en-us, en-gb and zh, the tagger, segmenter
+  and lexicons the app ships, ~26 MB together. `PhonemizerOutputTest` pins the
+  phonemes and word locations phonemis produces with them. The other languages
+  need a neural model, so `PreprocessingTest` pins only the text phonemis feeds
+  it, which needs no data.
 
 The useful part is that this needs **no XNNPACK delegate**, even though the
 fixture is XNNPACK-delegated. `ModelHostObject`'s constructor only calls
