@@ -27,6 +27,8 @@
 
 The library ships with a curated set of pre-exported models covering computer vision, language models, text-to-speech, transcription, and more — all available in our [Hugging Face collection](https://huggingface.co/software-mansion/collections) and ready to use out of the box. You can also bring your own `.pte` models and plug them into existing pipelines or build entirely custom ones from scratch.
 
+To export your own PyTorch models to `.pte`, use [ExecuTorch Export Recipes](https://github.com/software-mansion-labs/executorch-export-recipes), our export harness with model recipes and agent skills.
+
 To explore all on-device capabilities in an interactive showcase app, check out the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery).
 
 [![npm version](https://img.shields.io/npm/v/react-native-executorch?color=00008B)](https://www.npmjs.com/package/react-native-executorch)
@@ -54,6 +56,19 @@ To explore all on-device capabilities in an interactive showcase app, check out 
 
 ## Quickstart
 
+> [!TIP]
+> **Using an AI coding agent?** The consumer skill helps your agent choose ready-made models and task
+> hooks, integrate a custom `.pte`, or build a custom TypeScript pipeline.
+>
+> Install the consumer skill from the Software Mansion skills repository:
+>
+> ```bash
+> npx skills add software-mansion-labs/skills -s react-native-executorch
+> ```
+>
+> See [AI Tools](https://docs.swmansion.com/react-native-executorch/docs/next/fundamentals/ai-tools)
+> for model-selection guidance and an example prompt.
+
 ### 1. Installation
 
 Install `react-native-executorch` alongside its required peer dependencies:
@@ -70,8 +85,8 @@ pnpm add react-native-executorch react-native-worklets react-native-blob-util
 > React Native ExecuTorch requires:
 > - **New Architecture** enabled
 > - **React Native 0.83+** or **Expo SDK 55+** with [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/) (**Expo Go is not supported** due to custom C++ native libraries)
-> - **`react-native-worklets` 0.10 or newer** (`>=0.10.0 <0.13.0`)
-> - **iOS 17.0+** / **Android 13+** (`minSdkVersion` >= 26)
+> - **`react-native-worklets` 0.10 or newer** (`>=0.10.0 <0.14.0`)
+> - **iOS 17.0+** / **Android 8.0+** (`minSdkVersion` >= 26)
 > - **`react-native-worklets/plugin`** as the last entry in your Babel `plugins`
 >
 > Downloads of our pre-exported models send an anonymous download event; call `setTelemetryEnabled(false)` to opt out.
@@ -111,6 +126,10 @@ export function App() {
 ```
 
 ## Documentation
+
+**Building with an AI coding agent?** See [AI Tools](https://docs.swmansion.com/react-native-executorch/docs/next/fundamentals/ai-tools)
+for model-selection guidance and an example prompt.
+Choose a pre-exported model with a task hook, or bring your own `.pte` and build a custom TypeScript pipeline.
 
 Full documentation, guides, architecture deep dives, and API references are available at:
 **[docs.swmansion.com/react-native-executorch](https://docs.swmansion.com/react-native-executorch/)**
