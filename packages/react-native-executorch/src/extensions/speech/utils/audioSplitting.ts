@@ -79,3 +79,37 @@ export function splitAtSpeechGaps(
   }
   return pieces;
 }
+
+/**
+ * Splits the piece `[start, end)` in two: in the middle of the speech gap
+ * nearest its center, or at the quietest 100 ms around the center when no gap
+ * lies within its middle half.
+ * @param audio Input waveform, 16 kHz mono.
+ * @param speech Speech segments in `audio`, in seconds, as the VAD reports them.
+ * @param start First sample of the piece.
+ * @param end Sample after the last one of the piece.
+ * @returns The two halves as `[start, end)` sample ranges.
+ */
+export function halveAtSpeechGap(
+  audio: Float32Array,
+  speech: VadSegment[],
+  start: number,
+  end: number
+): [number, number][] {
+  'worklet';
+  const middle = (start + end) / 2;
+  const reach = (end - start) / 4;
+  let cut = -1;
+  for (let i = 1; i < speech.length; i++) {
+    const gap = Math.round(((speech[i - 1]!.end + speech[i]!.start) / 2) * SAMPLE_RATE_HZ);
+    const distance = Math.abs(gap - middle);
+    if (distance <= reach && (cut < 0 || distance < Math.abs(cut - middle))) cut = gap;
+  }
+  if (cut < 0) {
+    cut = quietestCut(audio, start, Math.min(end, Math.round(middle + SPLIT_SEARCH_SAMPLES / 2)));
+  }
+  return [
+    [start, cut],
+    [cut, end],
+  ];
+}

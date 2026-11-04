@@ -202,7 +202,7 @@ describe('createQwen3AsrSpeechToText', () => {
   });
 
   it('splits long audio at the pause the VAD finds, not at the length limit', async () => {
-    const calls = register(['<asr_text>', '<|im_end|>']);
+    const calls = register(['<asr_text>', '<|im_end|>', '<asr_text>', '<|im_end|>']);
     registerVad();
     const stt = await createQwen3AsrSpeechToText(config);
 
@@ -222,6 +222,23 @@ describe('createQwen3AsrSpeechToText', () => {
       { width: 800, valid: 104 },
       { width: 300, valid: 27 },
     ]);
+    stt.dispose();
+  });
+
+  it('transcribes a long piece again in halves when the decode derails', async () => {
+    const calls = register([
+      '<|im_end|>', // the 20 s piece stops before writing anything
+      '<asr_text>',
+      'hello',
+      '<|im_end|>',
+      '<asr_text>',
+      'world',
+      '<|im_end|>',
+    ]);
+    const stt = await createQwen3AsrSpeechToText(config);
+
+    expect(await stt.transcribe(seconds(20))).toBe('hello world');
+    expect(calls.decoder.filter((c) => c.position === 0)).toHaveLength(3);
     stt.dispose();
   });
 

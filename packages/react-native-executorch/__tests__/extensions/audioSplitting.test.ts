@@ -3,7 +3,10 @@
  * fits the model, at the quietest 100 ms when one stretch of speech is too
  * long, and never through silence the VAD found nothing in.
  */
-import { splitAtSpeechGaps } from '../../src/extensions/speech/utils/audioSplitting';
+import {
+  halveAtSpeechGap,
+  splitAtSpeechGaps,
+} from '../../src/extensions/speech/utils/audioSplitting';
 
 const SR = 16000;
 const seconds = (s: number) => new Float32Array(s * SR).fill(0.5);
@@ -59,6 +62,33 @@ describe('splitAtSpeechGaps', () => {
       [0, at(3)],
       [at(4), at(13) + 800],
       [at(13) + 800, at(18)],
+    ]);
+  });
+});
+
+describe('halveAtSpeechGap', () => {
+  it('cuts in the middle of the gap nearest the center', () => {
+    const speech = [
+      { start: 0, end: 4 },
+      { start: 5, end: 13 },
+      { start: 14, end: 20 },
+    ];
+    expect(halveAtSpeechGap(seconds(20), speech, 0, at(20))).toEqual([
+      [0, at(13.5)],
+      [at(13.5), at(20)],
+    ]);
+  });
+
+  it('ignores gaps outside the middle half and cuts at the quietest 100 ms', () => {
+    const audio = seconds(20);
+    audio.fill(0, at(9), at(9) + 1600);
+    const speech = [
+      { start: 0, end: 2 },
+      { start: 3, end: 20 },
+    ];
+    expect(halveAtSpeechGap(audio, speech, 0, at(20))).toEqual([
+      [0, at(9) + 800],
+      [at(9) + 800, at(20)],
     ]);
   });
 });

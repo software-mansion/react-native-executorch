@@ -25,7 +25,7 @@ import {
   type FsmnVadModel,
   type VadStreamOptions,
 } from './fsmnVoiceActivityDetection';
-import { splitAtSpeechGaps } from '../utils/audioSplitting';
+import { halveAtSpeechGap, splitAtSpeechGaps } from '../utils/audioSplitting';
 import { RnExecuTorchError } from '../../../core/error';
 import { createResourceScope } from '../../../core/lifetime';
 
@@ -41,6 +41,7 @@ const CHUNK_FRAMES = 100; // the encoder convolves 1 s chunks independently
 const TOKENS_PER_CHUNK = 13; // audio tokens per full chunk
 const WINDOW_FRAMES = 800; // the encoder attends within 8 s windows
 const MIN_SAMPLES = QWEN3_ASR_SAMPLE_RATE_HZ / 2; // shorter audio is zero padded, like the reference
+const RETRY_MIN_SAMPLES = 5 * QWEN3_ASR_SAMPLE_RATE_HZ; // shortest derailed piece transcribed again in halves
 const STRIDE_SIZE = 1 * QWEN3_ASR_SAMPLE_RATE_HZ; // streaming: new samples before re-transcribing
 
 /**
@@ -432,7 +433,7 @@ export async function createQwen3AsrSpeechToText(
       audio: Float32Array,
       forcedLanguage: string | undefined,
       onToken?: (token: string) => void
-    ): string => {
+    ): string | undefined => {
       'worklet';
       if (audio.length < MIN_SAMPLES) {
         const padded = new Float32Array(MIN_SAMPLES);
@@ -471,6 +472,11 @@ export async function createQwen3AsrSpeechToText(
         nextToken = decodeStep(nextToken, position);
         position++;
       }
+      // Stopping at once, before the `language <Name>` header or a forced
+      // transcript, is a derailed decode rather than an answer.
+      if (forcedLanguage ? generated.length === 0 : !inTranscript && generated.length <= 1) {
+        return undefined;
+      }
       // No `<asr_text>` tag at all: the whole output is the transcript, which
       // is how the reference parses it.
       if (!inTranscript && onToken && generated.length > 0) {
@@ -495,7 +501,17 @@ export async function createQwen3AsrSpeechToText(
       for (const [start, end] of splitAtSpeechGaps(audio, speech, maxSamples)) {
         if (isCancelled.getBlocking()) break;
         const part = transcribePiece(audio.subarray(start, end), language, onToken);
-        if (part !== '') parts.push(part);
+        if (part === undefined && end - start >= RETRY_MIN_SAMPLES) {
+          // The model now and then derails on a long piece the VAD heard
+          // speech in; its halves transcribe.
+          for (const [s, e] of halveAtSpeechGap(audio, speech, start, end)) {
+            if (isCancelled.getBlocking()) break;
+            const half = transcribePiece(audio.subarray(s, e), language, onToken);
+            if (half) parts.push(half);
+          }
+        } else if (part) {
+          parts.push(part);
+        }
       }
       return parts.join(' ').trim();
     };
