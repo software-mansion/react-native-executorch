@@ -28,13 +28,13 @@ VERBALIS_DIR="$PHONEMIS_DIR/third-party/verbalis"
 cp "$(git rev-parse --show-toplevel)/LICENSE" LICENSE
 
 cleanup() {
-  git -C "$PHONEMIS_DIR" checkout -- data test scripts requirements.txt 2>/dev/null || true
+  git -C "$PHONEMIS_DIR" checkout -- . 2>/dev/null || true
   git -C "$VERBALIS_DIR" checkout -- . 2>/dev/null || true
   rm -f LICENSE
 }
 trap cleanup EXIT
-rm -rf "$PHONEMIS_DIR/data" "$PHONEMIS_DIR/test" "$PHONEMIS_DIR/scripts"
-rm -f "$PHONEMIS_DIR/requirements.txt"
+rm -rf "$PHONEMIS_DIR/data" "$PHONEMIS_DIR/test" "$PHONEMIS_DIR/scripts" "$PHONEMIS_DIR/assets"
+rm -f "$PHONEMIS_DIR/requirements.txt" "$PHONEMIS_DIR/readme.source.md"
 find "$VERBALIS_DIR" -mindepth 1 -maxdepth 1 \
   ! -name .git ! -name cpp ! -name LICENSE ! -name licenses ! -name THIRD_PARTY_NOTICES.md \
   -exec rm -rf {} +
