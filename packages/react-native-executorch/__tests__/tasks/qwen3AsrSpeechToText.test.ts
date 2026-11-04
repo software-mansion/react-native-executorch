@@ -83,6 +83,22 @@ const register = (script: string[], schema = spec()) => {
 };
 
 const seconds = (s: number) => new Float32Array(s * 16000);
+const speech = (s: number) => seconds(s).map((_, i) => (i % 2 ? 0.5 : -0.5));
+
+/** Registers a VAD that hears speech in every frame that is not all zeros. */
+const registerVad = () =>
+  fakeJsi.registerModel(VAD_PATH, {
+    schema: VAD_SCHEMA,
+    execute: (_, inputs, outputs) => {
+      const frames = inputs[0] as FakeTensor;
+      const [rows, width] = frames.shape as [number, number];
+      for (let r = 0; r < rows; r++) {
+        let silent = true;
+        for (let c = 0; c < width && silent; c++) silent = frames.getElement(r * width + c) === 0;
+        outputs[0]!.setElement(r * 2, silent ? 1 : 0);
+      }
+    },
+  });
 
 describe('createQwen3AsrSpeechToText', () => {
   it('strips the detected-language header from the transcript', async () => {
@@ -167,10 +183,45 @@ describe('createQwen3AsrSpeechToText', () => {
     const calls = register(['<asr_text>', '<|im_end|>']);
     const stt = await createQwen3AsrSpeechToText(config);
 
-    await stt.transcribe(new Float32Array(1000));
+    await stt.transcribe(new Float32Array(4800));
 
     // 0.5 s = 50 frames = 7 tokens.
     expect(calls.encoder).toEqual([{ width: 100, valid: 7 }]);
+    stt.dispose();
+  });
+
+  it('skips audio the VAD finds no speech in', async () => {
+    const calls = register(['hello', '<|im_end|>']);
+    registerVad();
+    const stt = await createQwen3AsrSpeechToText(config);
+
+    expect(await stt.transcribe(seconds(3))).toBe('');
+    expect(calls.encoder).toEqual([]);
+    expect(calls.decoder).toEqual([]);
+    stt.dispose();
+  });
+
+  it('splits long audio at the pause the VAD finds, not at the length limit', async () => {
+    const calls = register(['<asr_text>', '<|im_end|>']);
+    registerVad();
+    const stt = await createQwen3AsrSpeechToText(config);
+
+    // 20 s of speech, a 2 s pause, then 18 s more: 40 s exceeds the 30 s limit.
+    const audio = speech(40);
+    audio.fill(0, 20 * 16000, 22 * 16000);
+    await stt.transcribe(audio);
+
+    expect(calls.decoder.filter((c) => c.position === 0)).toHaveLength(2);
+    // Each piece is its stretch of speech padded by 30 ms: 0-20.03 s
+    // (2003 frames) and 21.95-40 s (1805 frames); the pause is not encoded.
+    expect(calls.encoder).toEqual([
+      { width: 800, valid: 104 },
+      { width: 800, valid: 104 },
+      { width: 500, valid: 53 },
+      { width: 800, valid: 104 },
+      { width: 800, valid: 104 },
+      { width: 300, valid: 27 },
+    ]);
     stt.dispose();
   });
 
