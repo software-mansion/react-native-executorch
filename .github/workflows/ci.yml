@@ -287,6 +287,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      # The podspec suites evaluate the podspec, which requires phonemis'
+      # phonemis_sources.rb. Nothing reads phonemis' Git LFS `data/`.
+      - name: Check out phonemis
+        run: |
+          GIT_LFS_SKIP_SMUDGE=1 git submodule update --init --depth 1 \
+            packages/react-native-executorch/third-party/common/phonemis
+
       - name: Setup
         uses: ./.github/actions/setup
 

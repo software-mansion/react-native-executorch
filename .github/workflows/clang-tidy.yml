@@ -23,11 +23,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        with:
-          # The phonemis submodule carries headers that cpp/extensions/speech
-          # includes; without it those sources fail to parse and clang-tidy
-          # reports misleading findings on the broken AST.
-          submodules: recursive
+
+      # cpp/extensions/speech includes phonemis' headers, and through them
+      # Verbalis'; without them those sources fail to parse and clang-tidy
+      # reports misleading findings on the broken AST. phonemis' `data/` is
+      # Git LFS that nothing here reads, so the checkout skips it.
+      - name: Check out phonemis
+        run: |
+          GIT_LFS_SKIP_SMUDGE=1 git submodule update --init --recursive --depth 1 \
+            packages/react-native-executorch/third-party/common/phonemis
 
       - name: Setup
         uses: ./.github/actions/setup

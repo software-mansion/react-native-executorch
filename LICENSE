@@ -32,13 +32,17 @@ its own license, reproduced in full further down this file.
   OpenCV              Apache-2.0     vision pipelines and multimodal LLMs
   KleidiCV            Apache-2.0     OpenCV Arm HAL, Android only
   phonemis            MIT            grapheme-to-phoneme for text-to-speech
+  Verbalis            MIT            text preprocessing for phonemis
   MLX                 MIT            MLX backend, iOS only
 
 Which of these end up in an application binary depends on the backends and
 libraries it enables; see the Native Libraries documentation. ExecuTorch in
 turn bundles further components, among them XNNPACK, pthreadpool, cpuinfo,
 the tokenizers library and PCRE2, each under its own permissive license and
-covered by the notices shipped with the ExecuTorch distribution.
+covered by the notices shipped with the ExecuTorch distribution. Likewise,
+Verbalis bundles a port of cn2an (MIT) for Chinese numbers, and phonemis and
+Verbalis list their own components in the THIRD_PARTY_NOTICES.md files under
+third-party/common/phonemis.
 
 
 ===============================================================================
@@ -87,6 +91,31 @@ phonemis, MIT
 ===============================================================================
 
 Copyright (c) 2026 IgorSwat
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+===============================================================================
+Verbalis, MIT
+===============================================================================
+
+Copyright (c) 2026 Software Mansion <swmansion.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

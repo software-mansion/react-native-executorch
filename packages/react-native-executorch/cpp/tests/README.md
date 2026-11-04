@@ -62,7 +62,7 @@ RNET_HEADERS_ONLY=1 node scripts/download-libs.js
 # 2. The submodules the tests compile. phonemis' `data/` is Git LFS and nothing
 #    here reads it, so the checkout skips it.
 git submodule update --init --depth 1 ../../third-party/googletest
-GIT_LFS_SKIP_SMUDGE=1 git submodule update --init --depth 1 third-party/common/phonemis
+GIT_LFS_SKIP_SMUDGE=1 git submodule update --init --recursive --depth 1 third-party/common/phonemis
 
 # 3. Hermes + a minimal ExecuTorch host build (several minutes, cached afterwards)
 scripts/build-native-test-deps.sh
