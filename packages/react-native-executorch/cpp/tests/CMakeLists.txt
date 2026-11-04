@@ -325,6 +325,22 @@ else()
     "  scripts/fetch-test-fixtures.sh")
 endif()
 
+# With Kokoro's en-us tagger and lexicon, phonemis produces real phonemes, so
+# what it outputs can be pinned, not only how it is called. Same story again.
+set(PHONEMIZER_FIXTURE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/fixtures/phonemizer/en-us")
+if(RNE_TESTS_ENABLE_PHONEMIS AND EXISTS "${PHONEMIZER_FIXTURE_DIR}/lexicon.json"
+   AND EXISTS "${PHONEMIZER_FIXTURE_DIR}/tags.json")
+  set(RNE_HAVE_PHONEMIZER_FIXTURE ON)
+  target_compile_definitions(rne_test_support PUBLIC
+    RNE_PHONEMIZER_EN_US_LEXICON="${PHONEMIZER_FIXTURE_DIR}/lexicon.json"
+    RNE_PHONEMIZER_EN_US_TAGGER="${PHONEMIZER_FIXTURE_DIR}/tags.json")
+elseif(RNE_TESTS_ENABLE_PHONEMIS)
+  set(RNE_HAVE_PHONEMIZER_FIXTURE OFF)
+  message(WARNING
+    "Phonemizer fixtures missing, skipping the PhonemizerOutputTest suite. Fetch them with:\n"
+    "  scripts/fetch-test-fixtures.sh")
+endif()
+
 # --- Test binaries ----------------------------------------------------------
 enable_testing()
 include(GoogleTest)
@@ -356,6 +372,10 @@ endif()
 
 if(RNE_HAVE_TOKENIZER_FIXTURE)
   list(APPEND TEST_SUITES extensions/TokenizerTest.cpp)
+endif()
+
+if(RNE_HAVE_PHONEMIZER_FIXTURE)
+  list(APPEND TEST_SUITES extensions/PhonemizerOutputTest.cpp)
 endif()
 
 foreach(suite_path IN LISTS TEST_SUITES)

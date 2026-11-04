@@ -12,8 +12,11 @@
 #   * A HuggingFace tokenizer.json, which the nlp extension loads through
 #     ExecuTorch's HFTokenizer. Whisper tiny.en's is a plain BPE vocabulary,
 #     ~2.4 MB.
+#   * Kokoro's en-us phonemizer data, the tagger and lexicon the app ships
+#     (~8.4 MB together). With them phonemis produces real phonemes, so the
+#     phonemizer's text normalization and word locating are pinned end to end.
 #
-# Both are pinned to an exact Hugging Face revision and verified against a
+# All are pinned to an exact Hugging Face revision and verified against a
 # recorded sha256, so a re-tag upstream cannot silently change what the tests
 # assert. Idempotent: a no-op when a fixture is already present and matches.
 #
@@ -43,7 +46,7 @@ fetch_fixture() {
     return
   fi
 
-  mkdir -p "$FIXTURE_DIR"
+  mkdir -p "$(dirname "$target")"
   local url="https://huggingface.co/${repo}/resolve/${revision}/${path}"
   echo "↓ ${url}"
   curl -fsSL -o "${target}.tmp" "$url"
@@ -75,3 +78,17 @@ fetch_fixture \
   "c99612ff807ef223f6316f33a4be7c587835a5ce" \
   "tokenizer.json" \
   "5eb60cec1e77aeeb6869a2bb5a8e01a84c3fe5d072d75369343021fe6f5310d0"
+
+fetch_fixture \
+  "phonemizer/en-us/tags.json" \
+  "software-mansion/Kokoro-82M-ExecuTorch" \
+  "4836d50e0fa48d7cdd415210f6c2c0e1acba5acb" \
+  "phonemizer/en-us/tags.json" \
+  "028f7d6a0ee7638d91fab27ef8809c0b36de312e6409b6b8e844bffd0871e3e7"
+
+fetch_fixture \
+  "phonemizer/en-us/lexicon.json" \
+  "software-mansion/Kokoro-82M-ExecuTorch" \
+  "4836d50e0fa48d7cdd415210f6c2c0e1acba5acb" \
+  "phonemizer/en-us/lexicon.json" \
+  "b29e9c13190cf211979e8d9c38258cc1cb8e701e5ca1102a0c1f00acd4f55f8e"
