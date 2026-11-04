@@ -284,7 +284,7 @@ if(RNE_TESTS_ENABLE_OPENCV)
 endif()
 
 # --- Test support -----------------------------------------------------------
-add_library(rne_test_support STATIC support/JsiTestEnv.cpp)
+add_library(rne_test_support STATIC support/JsiTestEnv.cpp support/Snapshots.cpp)
 target_link_libraries(rne_test_support PUBLIC rne_under_test gtest gmock)
 target_include_directories(rne_test_support PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
@@ -293,6 +293,11 @@ target_include_directories(rne_test_support PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}"
 # path; it is in the tree, no provisioning involved.
 target_compile_definitions(rne_test_support PUBLIC
   RNE_ERROR_TS_SOURCE="${PACKAGE_DIR}/src/core/error.ts")
+
+# Snapshots of what third-party code produces, committed and updated with
+# RNE_UPDATE_SNAPSHOTS=1 (support/Snapshots.h).
+target_compile_definitions(rne_test_support PUBLIC
+  RNE_SNAPSHOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/snapshots")
 
 # --- Model fixture ----------------------------------------------------------
 # Suites that read ExecuTorch MethodMeta need a real .pte. It is downloaded

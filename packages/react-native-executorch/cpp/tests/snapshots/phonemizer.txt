@@ -1,0 +1,133 @@
+# What phonemis produces on Kokoro's shipped en-us, en-gb and zh data
+# (PhonemizerOutputTest). Format and update command: support/Snapshots.h.
+# The neural fallback isn't loaded, so inputs stick to words the lexicon knows.
+
+en-us | Hello world.
+  preprocessed: Hello world.
+  phonemes: həlˈO wˈɜɹld.
+  words: Hello:həlˈO|world.:wˈɜɹld.
+en-us | I have 25 cats.
+  preprocessed: I have twenty-five cats.
+  phonemes: ˌI hæv twˈɛntifˈIv kˈæts.
+  words: I:ˌI|have:hæv|25:twˈɛntifˈIv|cats.:kˈæts.
+en-us | It happened in 1999.
+  preprocessed: It happened in nineteen ninety-nine.
+  phonemes: ˌɪt hˈæpənd ɪn nˌIntˈin nˈIndinˈIn.
+  words: It:ˌɪt|happened:hˈæpənd|in:ɪn|1999.:nˌIntˈin nˈIndinˈIn.
+en-us | The 21st century began.
+  preprocessed: The twenty-first century began.
+  phonemes: ðə twˈɛntifˈɜɹst sˈɛnʧəɹi bəɡˈæn.
+  words: The:ðə|21st:twˈɛntifˈɜɹst|century:sˈɛnʧəɹi|began.:bəɡˈæn.
+en-us | Pi is roughly 3.14.
+  preprocessed: Pi is roughly three point one four.
+  phonemes: pˈI ɪz ɹˈʌfli θɹˈi pˈYnt wˈʌn fˈɔɹ.
+  words: Pi:pˈI|is:ɪz|roughly:ɹˈʌfli|3.14.:θɹˈi pˈYnt wˈʌn fˈɔɹ.
+en-us | We sold 1,000,000 copies.
+  preprocessed: We sold one million copies.
+  phonemes: wˌi sˈOld wˈʌn mˈɪljᵊn kˈɑpiz.
+  words: We:wˌi|sold:sˈOld|1,000,000:wˈʌn mˈɪljᵊn|copies.:kˈɑpiz.
+en-us | Chapter IV starts here.
+  preprocessed: Chapter four starts here.
+  phonemes: ʧˈæptəɹ fˈɔɹ stˈɑɹts hˈɪɹ.
+  words: Chapter:ʧˈæptəɹ|IV:fˈɔɹ|starts:stˈɑɹts|here.:hˈɪɹ.
+en-us | Call 555-1234 now.
+  preprocessed: Call five five five, one two three four now.
+  phonemes: kˈɔl fˈIv fˈIv fˈIv, wˈʌn tˈu θɹˈi fˈɔɹ nˈW.
+  words: Call:kˈɔl|555-1234:fˈIv fˈIv fˈIv, wˈʌn tˈu θɹˈi fˈɔɹ|now.:nˈW.
+en-us | It costs $4.50 today.
+  preprocessed: It costs four dollars and fifty cents today.
+  phonemes: ˌɪt kˈɔsts fˈɔɹ dˈɑləɹz ænd fˈɪfti sˈɛnts tədˈA.
+  words: It:ˌɪt|costs:kˈɔsts|$4.50:fˈɔɹ dˈɑləɹz ænd fˈɪfti sˈɛnts|today.:tədˈA.
+en-us | About 50% of people agree.
+  preprocessed: About fifty percent of people agree.
+  phonemes: əbˈWt fˈɪfti pəɹsˈɛnt ʌv pˈipᵊl əɡɹˈi.
+  words: About:əbˈWt|50%:fˈɪfti pəɹsˈɛnt|of:ʌv|people:pˈipᵊl|agree.:əɡɹˈi.
+en-us | On 12/25/2024 we left.
+  preprocessed: On December twenty-fifth twenty twenty-four we left.
+  phonemes: ˈɔn disˈɛmbəɹ twˈɛntifˈɪfθ twˈɛnti twˈɛntifˈɔɹ wi lˈɛft.
+  words: On:ˈɔn|12/25/2024:disˈɛmbəɹ twˈɛntifˈɪfθ twˈɛnti twˈɛntifˈɔɹ|we:wi|left.:lˈɛft.
+en-us | Born on May 5, 2024.
+  preprocessed: Born on May fifth, twenty twenty-four.
+  phonemes: bˈɔɹn ˌɔn mˈA fˈɪfθ, twˈɛnti twˈɛntifˈɔɹ.
+  words: Born:bˈɔɹn|on:ˌɔn|May:mˈA|5,:fˈɪfθ,|2024.:twˈɛnti twˈɛntifˈɔɹ.
+en-us | Dr. Smith lives on Main St.
+  preprocessed: Doctor Smith lives on Main Street.
+  phonemes: dˈɑktəɹ smˈɪθ lˈIvz ˌɔn mˈAn stɹˈit.
+  words: Dr.:dˈɑktəɹ|Smith:smˈɪθ|lives:lˈIvz|on:ˌɔn|Main:mˈAn|St.:stɹˈit.
+en-us | Bring fruit, e.g. apples.
+  preprocessed: Bring fruit, for example apples.
+  phonemes: bɹˈɪŋ fɹˈut, fɔɹ ɪɡzˈæmpəl ˈæpᵊlz.
+  words: Bring:bɹˈɪŋ|fruit,:fɹˈut,|e.g.:fɔɹ ɪɡzˈæmpəl|apples.:ˈæpᵊlz.
+en-us | Rock & roll.
+  preprocessed: Rock and roll.
+  phonemes: ɹˈɑk ænd ɹˈOl.
+  words: Rock:ɹˈɑk|&:ænd|roll.:ɹˈOl.
+# A time or a measure is read as one phrase, so it is located as one word.
+en-us | Meet me at 3:30 pm.
+  preprocessed: Meet me at three thirty p.m.
+  phonemes: mˈit mˌi æt θɹˈi θˈɜɹɾi pˈiˈɛm.
+  words: Meet:mˈit|me:mˌi|at:æt|3:30 pm.:θɹˈi θˈɜɹɾi pˈiˈɛm.
+en-us | She ran 5 km.
+  preprocessed: She ran five kilometers.
+  phonemes: ʃˌi ɹˈæn fˈIv kəlˈɑməɾəɹz.
+  words: She:ʃˌi|ran:ɹˈæn|5 km.:fˈIv kəlˈɑməɾəɹz.
+
+en-gb | It costs £4.50 today.
+  preprocessed: It costs four pounds and fifty pence today.
+  phonemes: ˌɪt kˈɒsts fˈɔː pˈWndz and fˈɪfti pˈɛns tədˈA.
+  words: It:ˌɪt|costs:kˈɒsts|£4.50:fˈɔː pˈWndz and fˈɪfti pˈɛns|today.:tədˈA.
+en-gb | On 24/12/2024 we left.
+  preprocessed: On the twenty-fourth of December twenty twenty-four we left.
+  phonemes: ˈɒn ðə twˈɛntifˈɔːθ ɒv dɪsˈɛmbə twˈɛnti twˈɛntifˈɔː wiː lˈɛft.
+  words: On:ˈɒn|24/12/2024:ðə twˈɛntifˈɔːθ ɒv dɪsˈɛmbə twˈɛnti twˈɛntifˈɔː|we:wiː|left.:lˈɛft.
+en-gb | The 21st century.
+  preprocessed: The twenty-first century.
+  phonemes: ðə twˈɛntifˈɜːst sˈɛnʧʊɹi.
+  words: The:ðə|21st:twˈɛntifˈɜːst|century.:sˈɛnʧʊɹi.
+en-gb | About 50% agree.
+  preprocessed: About fifty percent agree.
+  phonemes: əbˈWt fˈɪfti pəsˈɛnt əɡɹˈiː.
+  words: About:əbˈWt|50%:fˈɪfti pəsˈɛnt|agree.:əɡɹˈiː.
+en-gb | Meet me at 3:30 pm.
+  preprocessed: Meet me at three thirty p.m.
+  phonemes: mˈiːt mˌiː at θɹˈiː θˈɜːti pˈiːˈɛm.
+  words: Meet:mˈiːt|me:mˌiː|at:at|3:30 pm.:θɹˈiː θˈɜːti pˈiːˈɛm.
+en-gb | Dr. Smith ran 5 km.
+  preprocessed: Doctor Smith ran five kilometers.
+  phonemes: dˈɒktə smˈɪθ ɹˈan fˈIv kˈɪləmˌiːtəz.
+  words: Dr.:dˈɒktə|Smith:smˈɪθ|ran:ɹˈan|5 km.:fˈIv kˈɪləmˌiːtəz.
+# Wrong: 946 should be read digit by digit (Verbalis#8).
+en-gb | Call 0207 946 0018 now.
+  preprocessed: Call zero two zero seven nine hundred forty-six zero zero one eight now.
+  phonemes: kˈɔːl zˈɪəɹQ tˈuː zˈɪəɹQ sˈɛvᵊn nˈIn hˈʌndɹəd fˈɔːtisˈɪks zˈɪəɹQ zˈɪəɹQ wˈʌn ˈAt nˈW.
+  words: Call:kˈɔːl|0207:zˈɪəɹQ tˈuː zˈɪəɹQ sˈɛvᵊn|946:nˈIn hˈʌndɹəd fˈɔːtisˈɪks|0018:zˈɪəɹQ zˈɪəɹQ wˈʌn ˈAt|now.:nˈW.
+
+# zh segments the text into words, so a located word can span several characters.
+zh | 我有25只猫。
+  preprocessed: 我有二十五只猫.
+  phonemes: wo↓ jou↓ ɚ↘ʂɨ↗u↓ ꭧɨ↓ mau→.
+  words: 我:wo↓|有:jou↓|25:ɚ↘ʂɨ↗u↓|只:ꭧɨ↓|猫。:mau→.
+zh | 价格是4.50元。
+  preprocessed: 价格是四点五零元.
+  phonemes: ʨja↘kɤ↗ ʂɨ↘ sɨ↘tjɛ↓n u↓li↗ŋ ɥɛ↗n.
+  words: 价格:ʨja↘kɤ↗|是:ʂɨ↘|4.50:sɨ↘tjɛ↓n u↓li↗ŋ|元。:ɥɛ↗n.
+zh | 2024年12月24日我们走了。
+  preprocessed: 二零二四年十二月二十四日我们走了.
+  phonemes: ɚ↘li↗ŋɚ↘ sɨ↘njɛ↗n ʂɨ↗ɚ↘ɥe↘ ɚ↘ʂɨ↗sɨ↘ɻɨ↘ wo↓mən ʦou↓ lɤ.
+  words: 2024年12月24日:ɚ↘li↗ŋɚ↘ sɨ↘njɛ↗n ʂɨ↗ɚ↘ɥe↘ ɚ↘ʂɨ↗sɨ↘ɻɨ↘|我们:wo↓mən|走:ʦou↓|了。:lɤ.
+zh | 下午3:30见。
+  preprocessed: 下午三点三十分见.
+  phonemes: ɕja↘u↓ sa→ntjɛ↓n sa→nʂɨ↗fə→n ʨjɛ↘n.
+  words: 下午:ɕja↘u↓|3:30:sa→ntjɛ↓n sa→nʂɨ↗fə→n|见。:ʨjɛ↘n.
+zh | 第3天。
+  preprocessed: 第三天.
+  phonemes: ti↘sa→ntʰjɛ→n.
+  words: 第3天。:ti↘sa→ntʰjɛ→n.
+zh | 大约50%的人同意。
+  preprocessed: 大约百分之五十的人同意.
+  phonemes: ta↘ɥe→ pai↓fə→nꭧɨ→u↓ʂɨ↗ tɤ ɻə↗n tʰʊ↗ŋi↘.
+  words: 大约:ta↘ɥe→|50%:pai↓fə→nꭧɨ→u↓ʂɨ↗|的:tɤ|人:ɻə↗n|同意。:tʰʊ↗ŋi↘.
+zh | 1999年。
+  preprocessed: 一九九九年.
+  phonemes: i→ʨjou↓ʨjou↓ʨjou↓njɛ↗n.
+  words: 1999年。:i→ʨjou↓ʨjou↓ʨjou↓njɛ↗n.

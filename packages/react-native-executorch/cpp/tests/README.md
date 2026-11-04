@@ -46,6 +46,7 @@ rather than a lookalike.
 | `core/` | `dtype`, `error`, `conversions`, `tensor`, `schema`, `model`, `utils` |
 | `extensions/` | `math`, `speech`, `nlp` (tokenizer), `llm`, and — behind OpenCV — `cv` and `ocr` ops; `phonemizer` behind phonemis |
 | `fixtures/` | Downloaded `.pte` program, `tokenizer.json` and phonemizer data (gitignored) |
+| `snapshots/` | Committed outputs of phonemis, see below |
 
 One binary per suite, so a crash in one area cannot take the run down with it
 and `ctest -R MathOpsTest` targets a single suite.
@@ -122,10 +123,25 @@ automatically; they land in `fixtures/` and are gitignored rather than committed
 - A **tokenizer.json** — Whisper tiny.en's, ~2.4 MB. A plain BPE vocabulary, so
   the nlp extension's encode/decode path runs for real.
 - Kokoro's **phonemizer data** for en-us, en-gb and zh, the tagger, segmenter
-  and lexicons the app ships, ~26 MB together. `PhonemizerOutputTest` pins the
-  phonemes and word locations phonemis produces with them. The other languages
-  need a neural model, so `PreprocessingTest` pins only the text phonemis feeds
-  it, which needs no data.
+  and lexicons the app ships, ~26 MB together. `PhonemizerOutputTest` runs
+  phonemis on them. The other languages need a neural model, so
+  `PreprocessingTest` covers only the text phonemis feeds it.
+
+## Snapshots
+
+What phonemis reads a text as changes with every phonemis or Verbalis bump, so
+those readings are not hard-coded in the tests. `snapshots/*.txt` lists the
+inputs and their committed outputs; a bump that changes one fails
+`MatchesTheSnapshot` with the old and new value. Accept the change and review
+the diff in the PR:
+
+```bash
+RNE_UPDATE_SNAPSHOTS=1 scripts/run-native-tests.sh -R 'PhonemizerOutput|Preprocessing'
+```
+
+To add a case, add its `<lang> | <input>` line and run the same command. The
+`LeavesNoDigitsOrSymbols` and `LocatesEveryWordOfTheInput` checks hold across
+versions and have no snapshot: a failure there is a real regression.
 
 The useful part is that this needs **no XNNPACK delegate**, even though the
 fixture is XNNPACK-delegated. `ModelHostObject`'s constructor only calls
