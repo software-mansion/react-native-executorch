@@ -11,16 +11,10 @@
       ]
     },
     {
-      "type": "category",
+      "type": "doc",
+      "id": "benchmarks/benchmarks",
       "label": "Benchmarks",
-      "className": "hide-api-items",
-      "collapsible": true,
-      "collapsed": true,
-      "link": {
-        "type": "doc",
-        "id": "benchmarks/benchmarks"
-      },
-      "items": []
+      "className": "sidebar-category-link"
     },
     {
       "type": "category",

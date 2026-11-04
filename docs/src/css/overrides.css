@@ -184,6 +184,21 @@ table thead tr {
   width: 100%;
 }
 
+/* A top-level doc link styled like a category header */
+.sidebar-category-link {
+  margin-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+.sidebar-category-link > .menu__link {
+  font-family: var(--swm-title-font);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ifm-font-color-base);
+  margin: 8px 0;
+  padding: 6px 0;
+  text-decoration: none;
+}
+
 /* Hide the children of the API section even when active */
 .hide-api-items .menu__list {
   display: none !important;
