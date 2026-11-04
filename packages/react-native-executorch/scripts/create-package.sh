@@ -6,7 +6,7 @@ set -euo pipefail
 # from packages/react-native-executorch.
 
 # Phonemis is a git submodule whose sources the podspec compiles directly
-# (see third-party/common/phonemis/src in react-native-executorch.podspec).
+# (listed by third-party/common/phonemis/phonemis_sources.rb, which the podspec requires).
 # Init it explicitly so the files are present in the packed tarball.
 # Run from repo root so the submodule path resolves regardless of cwd.
 git -C "$(git rev-parse --show-toplevel)" submodule update --init --recursive \
@@ -17,6 +17,8 @@ git -C "$(git rev-parse --show-toplevel)" submodule update --init --recursive \
 # `!scripts/build*` which npm-packlist honors and re-includes those files
 # despite our exclusion rules. Restore on exit so the working tree stays clean.
 PHONEMIS_DIR="third-party/common/phonemis"
+# Of Verbalis, the podspec compiles only cpp/; keep it and the license files.
+VERBALIS_DIR="$PHONEMIS_DIR/third-party/verbalis"
 
 # npm only picks up a LICENSE that sits in the package directory, and ours
 # lives at the repo root, so the published tarball carried no license text at
@@ -26,12 +28,16 @@ PHONEMIS_DIR="third-party/common/phonemis"
 cp "$(git rev-parse --show-toplevel)/LICENSE" LICENSE
 
 cleanup() {
-  git -C "$PHONEMIS_DIR" checkout -- data test scripts requirements.txt 2>/dev/null || true
+  git -C "$PHONEMIS_DIR" checkout -- . 2>/dev/null || true
+  git -C "$VERBALIS_DIR" checkout -- . 2>/dev/null || true
   rm -f LICENSE
 }
 trap cleanup EXIT
-rm -rf "$PHONEMIS_DIR/data" "$PHONEMIS_DIR/test" "$PHONEMIS_DIR/scripts"
-rm -f "$PHONEMIS_DIR/requirements.txt"
+rm -rf "$PHONEMIS_DIR/data" "$PHONEMIS_DIR/test" "$PHONEMIS_DIR/scripts" "$PHONEMIS_DIR/assets"
+rm -f "$PHONEMIS_DIR/requirements.txt" "$PHONEMIS_DIR/readme.source.md"
+find "$VERBALIS_DIR" -mindepth 1 -maxdepth 1 \
+  ! -name .git ! -name cpp ! -name LICENSE ! -name licenses ! -name THIRD_PARTY_NOTICES.md \
+  -exec rm -rf {} +
 
 # The publish workflow installs before calling this script, so it sets
 # RNE_SKIP_INSTALL to avoid a second pass. A local run still installs.

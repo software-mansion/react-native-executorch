@@ -9,7 +9,8 @@ Native ExecuTorch artifacts are split into **committed source** and
   static archives into `ExecutorchLib.xcframework` (used only when (re)building
   the iOS release artifacts).
 - `common/phonemis` — git submodule (TTS phonemizer), built from source. Run
-  `git submodule update --init` to fetch it.
+  `git submodule update --init --recursive` to fetch it with Verbalis, its nested
+  submodule.
 
 ## Downloaded on demand (NOT committed)
 

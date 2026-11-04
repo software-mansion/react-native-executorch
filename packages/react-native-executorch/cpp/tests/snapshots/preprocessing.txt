@@ -1,0 +1,121 @@
+# The text phonemis feeds the neural model of each language Kokoro phonemizes
+# without a lexicon (PreprocessingTest). Format and update command:
+# support/Snapshots.h.
+
+de | Ich habe 25 Katzen.
+  preprocessed: Ich habe fünfundzwanzig Katzen.
+de | Es kostet 4,50 €.
+  preprocessed: Es kostet vier Euro fünfzig.
+de | Am 24.12.2024 fuhren wir.
+  preprocessed: Am vierundzwanzigsten Dezember zweitausendvierundzwanzig fuhren wir.
+de | Um 15:30 Uhr.
+  preprocessed: Um fünfzehn Uhr dreißig.
+de | Der 3. Mai.
+  preprocessed: Der dritte Mai.
+de | Dr. Müller lief z. B. 3,5 km.
+  preprocessed: Doktor Müller lief zum Beispiel drei Komma fünf Kilometer.
+de | Etwa 50 % stimmen zu.
+  preprocessed: Etwa fünfzig Prozent stimmen zu.
+de | Im Jahr 1999.
+  preprocessed: Im Jahr neunzehnhundertneunundneunzig.
+
+fr | J'ai 25 chats.
+  preprocessed: J'ai vingt-cinq chats.
+fr | Ça coûte 4,50 €.
+  preprocessed: Ça coûte quatre euros cinquante.
+fr | Le 24/12/2024 nous sommes partis.
+  preprocessed: Le vingt-quatre décembre deux mille vingt-quatre nous sommes partis.
+fr | À 15h30.
+  preprocessed: À quinze heures trente.
+fr | Le 3e jour.
+  preprocessed: Le troisième jour.
+fr | M. Dupont a couru 3,5 km.
+  preprocessed: monsieur Dupont a couru trois virgule cinq kilomètres.
+fr | Environ 50 % sont d'accord.
+  preprocessed: Environ cinquante pour cent sont d'accord.
+fr | En 1999.
+  preprocessed: En mille neuf cent quatre-vingt-dix-neuf.
+
+es | Tengo 25 gatos.
+  preprocessed: Tengo veinticinco gatos.
+es | Cuesta 4,50 €.
+  preprocessed: Cuesta cuatro euros con cincuenta.
+es | El 24/12/2024 salimos.
+  preprocessed: El veinticuatro de diciembre de dos mil veinticuatro salimos.
+es | A las 15:30.
+  preprocessed: A las quince y media.
+# Wrong: should be "tercer" (Verbalis#8).
+es | El 3.º día.
+  preprocessed: El tercero día.
+es | El Sr. García corrió 3,5 km.
+  preprocessed: El señor García corrió tres coma cinco kilómetros.
+es | Un 50 % está de acuerdo.
+  preprocessed: Un cincuenta por ciento está de acuerdo.
+es | En 1999.
+  preprocessed: En mil novecientos noventa y nueve.
+
+it | Ho 25 gatti.
+  preprocessed: Ho venticinque gatti.
+it | Costa 4,50 €.
+  preprocessed: Costa quattro euro e cinquanta centesimi.
+it | Il 24/12/2024 siamo partiti.
+  preprocessed: Il ventiquattro dicembre duemilaventiquattro siamo partiti.
+it | Alle 15:30.
+  preprocessed: Alle quindici e trenta.
+it | Il 3° giorno.
+  preprocessed: Il terzo giorno.
+it | Il Sig. Rossi ha corso 3,5 km.
+  preprocessed: Il signor Rossi ha corso tre virgola cinque chilometri.
+it | Il 50% è d'accordo.
+  preprocessed: Il cinquanta per cento è d'accordo.
+it | Nel 1999.
+  preprocessed: Nel millenovecentonovantanove.
+
+pl | Mam 25 kotów.
+  preprocessed: Mam dwadzieścia pięć kotów.
+pl | Kosztuje 4,50 zł.
+  preprocessed: Kosztuje cztery złote pięćdziesiąt groszy.
+pl | Dnia 24.12.2024 wyjechaliśmy.
+  preprocessed: Dnia dwudziestego czwartego grudnia dwa tysiące dwudziestego czwartego wyjechaliśmy.
+pl | O 15:30.
+  preprocessed: O piętnastej trzydzieści.
+pl | 3 maja.
+  preprocessed: trzeciego maja.
+pl | Dr Kowalski przebiegł np. 3,5 km.
+  preprocessed: Doktor Kowalski przebiegł na przykład trzy i pół kilometra.
+pl | Około 50% się zgadza.
+  preprocessed: Około pięćdziesięciu procent się zgadza.
+pl | W 1999 roku.
+  preprocessed: W tysiąc dziewięćset dziewięćdziesiątym dziewiątym roku.
+
+pt | Tenho 25 gatos.
+  preprocessed: Tenho vinte e cinco gatos.
+pt | Custa R$ 4,50.
+  preprocessed: Custa quatro reais e cinquenta centavos.
+pt | Em 24/12/2024 partimos.
+  preprocessed: Em vinte e quatro de dezembro de dois mil e vinte e quatro partimos.
+pt | Às 15h30.
+  preprocessed: Às quinze horas e trinta.
+pt | O 3.º dia.
+  preprocessed: O terceiro dia.
+# Wrong: "Sr." should be "senhor" (Verbalis#8).
+pt | O Sr. Silva correu 3,5 km.
+  preprocessed: O Sr. Silva correu três vírgula cinco quilômetros.
+pt | Cerca de 50% concordam.
+  preprocessed: Cerca de cinquenta por cento concordam.
+pt | Em 1999.
+  preprocessed: Em mil novecentos e noventa e nove.
+
+hi | मेरे पास 25 बिल्लियाँ हैं।
+  preprocessed: मेरे पास पच्चीस बिल्लियाँ हैं।
+hi | इसकी कीमत ₹4.50 है।
+  preprocessed: इसकी कीमत चार रुपये पचास पैसे है।
+hi | 24/12/2024 को हम गए।
+  preprocessed: चौबीस दिसंबर दो हज़ार चौबीस को हम गए।
+# Wrong: says बजे twice (Verbalis#8).
+hi | 3:30 बजे।
+  preprocessed: तीन बजकर तीस मिनट बजे।
+hi | 50% लोग सहमत हैं।
+  preprocessed: पचास प्रतिशत लोग सहमत हैं।
+hi | 1999 में।
+  preprocessed: एक हज़ार नौ सौ निन्यानवे में।
