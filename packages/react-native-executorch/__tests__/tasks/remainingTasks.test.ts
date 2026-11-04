@@ -21,6 +21,7 @@ import { createSdxsTextToImage } from '../../src/extensions/cv/tasks/sdxsTextToI
 import { createFsmnVoiceActivityDetector } from '../../src/extensions/speech/tasks/fsmnVoiceActivityDetection';
 import { createWhisperSpeechToText } from '../../src/extensions/speech/tasks/whisperSpeechToText';
 import { fakeJsi } from '../support/fakeJsi';
+import type { FakeTensor } from '../support/fakeTensor';
 import { tracked } from '../support/lifetime';
 import { STRETCH_PREPROCESSING, exported, imageBuffer, writesOutputs } from '../support/fixtures';
 
@@ -413,6 +414,51 @@ describe('createWhisperSpeechToText', () => {
     fakeJsi.registerTokenizer(TOKENIZER_PATH, { tokens: ['hello'] });
 
     await expect(createWhisperSpeechToText(config)).rejects.toThrow(/<\|endoftext\|>/);
+  });
+
+  it('encodes each stretch of speech the VAD finds, skipping the pause between', async () => {
+    register();
+    const encoded: number[] = [];
+    fakeJsi.registerModel(MODEL_PATH, {
+      schema: exported({
+        ...method('encode', [f32(AUDIO_SAMPLES)], [f32(1, 1500, 384)]),
+        ...method('decode', [i64(1, 1), i64(1), f32(1, 1500, 384)], [f32(1, 1, 51865)]),
+      }),
+      execute: (name, inputs) => {
+        if (name === 'encode') encoded.push((inputs[0] as FakeTensor).numel);
+      },
+    });
+    // Speech in every frame that is not all zeros.
+    fakeJsi.registerModel(VAD_PATH, {
+      schema: VAD_SCHEMA,
+      execute: (_, inputs, outputs) => {
+        const frames = inputs[0] as FakeTensor;
+        const [rows, width] = frames.shape as [number, number];
+        for (let r = 0; r < rows; r++) {
+          let silent = true;
+          for (let c = 0; c < width && silent; c++) silent = frames.getElement(r * width + c) === 0;
+          outputs[0]!.setElement(r * 2, silent ? 1 : 0);
+        }
+      },
+    });
+    fakeJsi.registerTokenizer(TOKENIZER_PATH, {
+      tokens: ['<|endoftext|>', '<|startoftranscript|>', '<|notimestamps|>'],
+      specialIds: [0, 1, 2],
+    });
+    const stt = await createWhisperSpeechToText(config);
+
+    // 40 s with a 2 s pause at 20 s: cut there, not at 29 s. Pieces carry the
+    // 30 ms VAD padding, plus 20 ms where a 25 ms frame overlaps the speech.
+    const audio = new Float32Array(40 * 16000).map((_, i) => (i % 2 ? 0.5 : -0.5));
+    audio.fill(0, 20 * 16000, 22 * 16000);
+    await stt.transcribe(audio, { language: 'en' });
+    expect(encoded).toEqual([20.03 * 16000, 18.05 * 16000]);
+
+    // Pure silence is not transcribed at all.
+    encoded.length = 0;
+    expect(await stt.transcribe(new Float32Array(5 * 16000), { language: 'en' })).toBe('');
+    expect(encoded).toEqual([]);
+    stt.dispose();
   });
 });
 

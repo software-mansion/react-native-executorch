@@ -17,6 +17,7 @@ import {
   type FsmnVadModel,
   type VadStreamOptions,
 } from './fsmnVoiceActivityDetection';
+import { splitAtSpeechGaps } from '../utils/audioSplitting';
 import { RnExecuTorchError } from '../../../core/error';
 import { createResourceScope } from '../../../core/lifetime';
 
@@ -115,7 +116,9 @@ export type WhisperSpeechToText<L extends WhisperLanguage = WhisperLanguage> = {
 
   /**
    * Asynchronously transcribes a pre-recorded mono waveform sampled at
-   * {@link WHISPER_SAMPLE_RATE_HZ}.
+   * {@link WHISPER_SAMPLE_RATE_HZ}. Audio of any length is accepted; long
+   * recordings are split at pauses the VAD finds into pieces of at most
+   * 29 s, and silence is skipped.
    * @param audio Raw 16 kHz mono PCM audio samples (Float32Array).
    * @param options Transcription options. See {@link WhisperSttOptions}.
    * @param onToken Optional callback fired on the RN thread for each decoded
@@ -205,6 +208,7 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
     const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
     const voiceDetector = scope.track(await createFsmnVoiceActivityDetector(vadModel, runtime));
+    const { detectVoiceWorklet } = voiceDetector;
 
     const eotToken = tokenizer.tokenToId('<|endoftext|>')!;
     const isEnglishOnly = supportedLanguages.length === 1 && supportedLanguages[0] === 'en';
@@ -274,15 +278,13 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
       const maxNewTokens = MAX_SEQ_LEN - promptTokens.length;
 
       let text = '';
-      let offset = 0;
+      const speech = detectVoiceWorklet(audio);
 
-      while (offset < audio.length) {
+      for (const [start, end] of splitAtSpeechGaps(audio, speech, BUFFER_SIZE)) {
         if (isCancelled.getBlocking()) break;
 
-        const audioChunk = audio.slice(offset, Math.min(offset + BUFFER_SIZE, audio.length));
-        if (audioChunk.length < MIN_CHUNK_SIZE) {
-          break;
-        }
+        const audioChunk = audio.slice(start, end);
+        if (audioChunk.length < MIN_CHUNK_SIZE) continue;
 
         const tAudioInput = tensor('float32', [audioChunk.length], audioChunk);
         try {
@@ -306,7 +308,6 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
         }
 
         text += tokenizer.decode(Int32Array.from(generated));
-        offset += BUFFER_SIZE;
       }
 
       return text.trim();

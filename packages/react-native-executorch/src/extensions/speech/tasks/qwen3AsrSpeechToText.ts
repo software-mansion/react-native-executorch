@@ -25,6 +25,7 @@ import {
   type FsmnVadModel,
   type VadStreamOptions,
 } from './fsmnVoiceActivityDetection';
+import { halveAtSpeechGap, splitAtSpeechGaps } from '../utils/audioSplitting';
 import { RnExecuTorchError } from '../../../core/error';
 import { createResourceScope } from '../../../core/lifetime';
 
@@ -40,8 +41,7 @@ const CHUNK_FRAMES = 100; // the encoder convolves 1 s chunks independently
 const TOKENS_PER_CHUNK = 13; // audio tokens per full chunk
 const WINDOW_FRAMES = 800; // the encoder attends within 8 s windows
 const MIN_SAMPLES = QWEN3_ASR_SAMPLE_RATE_HZ / 2; // shorter audio is zero padded, like the reference
-const SPLIT_SEARCH_SAMPLES = 5 * QWEN3_ASR_SAMPLE_RATE_HZ; // how far back to look for a quiet cut
-const ENERGY_WINDOW_SAMPLES = QWEN3_ASR_SAMPLE_RATE_HZ / 10; // 100 ms energy window for the cut
+const RETRY_MIN_SAMPLES = 5 * QWEN3_ASR_SAMPLE_RATE_HZ; // shortest derailed piece transcribed again in halves
 const STRIDE_SIZE = 1 * QWEN3_ASR_SAMPLE_RATE_HZ; // streaming: new samples before re-transcribing
 
 /**
@@ -125,7 +125,7 @@ export type Qwen3AsrSttModel = {
   readonly modelPath: string;
   /** Local path or remote URL of the `tokenizer.json` file. */
   readonly tokenizerPath: string;
-  /** VAD model configuration used for speech segmentation while streaming. */
+  /** VAD model configuration used for speech segmentation. */
   readonly vadModel: FsmnVadModel;
 };
 
@@ -142,8 +142,8 @@ export type Qwen3AsrSpeechToText = {
   /**
    * Asynchronously transcribes a pre-recorded mono waveform sampled at
    * {@link QWEN3_ASR_SAMPLE_RATE_HZ}. Audio of any length is accepted; long
-   * recordings are split at quiet points into pieces the model can take in
-   * one pass.
+   * recordings are split at pauses the VAD finds into pieces the model can
+   * take in one pass, and silence is skipped.
    * @param audio Raw 16 kHz mono PCM audio samples (Float32Array).
    * @param options Transcription options. See {@link Qwen3AsrSttOptions}.
    * @param onToken Optional callback fired on the RN thread for each decoded
@@ -223,43 +223,6 @@ function audioTokenCount(frames: number): number {
 }
 
 /**
- * Splits `audio` into pieces of at most `maxSamples`, cutting each at the
- * quietest 100 ms within the last 5 s before the limit, so a word is rarely
- * cut in half.
- * @param audio Input waveform.
- * @param maxSamples Longest piece the model accepts.
- * @returns `[start, end)` sample ranges covering `audio` without gaps.
- */
-function splitAtQuietPoints(audio: Float32Array, maxSamples: number): [number, number][] {
-  'worklet';
-  const pieces: [number, number][] = [];
-  let start = 0;
-  while (audio.length - start > maxSamples) {
-    const limit = start + maxSamples;
-    const from = Math.max(start + ENERGY_WINDOW_SAMPLES, limit - SPLIT_SEARCH_SAMPLES);
-    let energy = 0;
-    for (let i = from - ENERGY_WINDOW_SAMPLES; i < from; i++) energy += audio[i]! * audio[i]!;
-    let best = from;
-    let bestEnergy = energy;
-    for (let end = from + 1; end <= limit; end++) {
-      const enter = audio[end - 1]!;
-      const leave = audio[end - 1 - ENERGY_WINDOW_SAMPLES]!;
-      energy += enter * enter - leave * leave;
-      if (energy < bestEnergy) {
-        bestEnergy = energy;
-        best = end;
-      }
-    }
-    // Cut in the middle of the quietest window.
-    const cut = best - ENERGY_WINDOW_SAMPLES / 2;
-    pieces.push([start, cut]);
-    start = cut;
-  }
-  pieces.push([start, audio.length]);
-  return pieces;
-}
-
-/**
  * Maps the language code in `options` to the name the model emits.
  * @param options Transcription options.
  * @returns The language name, or `undefined` to let the model detect it.
@@ -325,6 +288,7 @@ export async function createQwen3AsrSpeechToText(
     const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
     const voiceDetector = scope.track(await createFsmnVoiceActivityDetector(vadModel, runtime));
+    const { detectVoiceWorklet } = voiceDetector;
 
     const match = validateSpec(model.schema, {
       dynamic: qwen3AsrSpec(Dyn('MelFrames'), Dyn('AudioTokens')),
@@ -469,7 +433,7 @@ export async function createQwen3AsrSpeechToText(
       audio: Float32Array,
       forcedLanguage: string | undefined,
       onToken?: (token: string) => void
-    ): string => {
+    ): string | undefined => {
       'worklet';
       if (audio.length < MIN_SAMPLES) {
         const padded = new Float32Array(MIN_SAMPLES);
@@ -508,6 +472,11 @@ export async function createQwen3AsrSpeechToText(
         nextToken = decodeStep(nextToken, position);
         position++;
       }
+      // Stopping at once, before the `language <Name>` header or a forced
+      // transcript, is a derailed decode rather than an answer.
+      if (forcedLanguage ? generated.length === 0 : !inTranscript && generated.length <= 1) {
+        return undefined;
+      }
       // No `<asr_text>` tag at all: the whole output is the transcript, which
       // is how the reference parses it.
       if (!inTranscript && onToken && generated.length > 0) {
@@ -528,10 +497,21 @@ export async function createQwen3AsrSpeechToText(
       const language = resolveLanguage(options);
 
       const parts: string[] = [];
-      for (const [start, end] of splitAtQuietPoints(audio, maxSamples)) {
+      const speech = detectVoiceWorklet(audio);
+      for (const [start, end] of splitAtSpeechGaps(audio, speech, maxSamples)) {
         if (isCancelled.getBlocking()) break;
         const part = transcribePiece(audio.subarray(start, end), language, onToken);
-        if (part !== '') parts.push(part);
+        if (part === undefined && end - start >= RETRY_MIN_SAMPLES) {
+          // The model now and then derails on a long piece the VAD heard
+          // speech in; its halves transcribe.
+          for (const [s, e] of halveAtSpeechGap(audio, speech, start, end)) {
+            if (isCancelled.getBlocking()) break;
+            const half = transcribePiece(audio.subarray(s, e), language, onToken);
+            if (half) parts.push(half);
+          }
+        } else if (part) {
+          parts.push(part);
+        }
       }
       return parts.join(' ').trim();
     };
