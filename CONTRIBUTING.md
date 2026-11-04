@@ -7,6 +7,7 @@ There are several ways you can contribute to react-native-executorch:
 - Submit issues related to bugs or desired new features.
 - Fix outstanding issues with the existing code.
 - Export new models to ET format.
+- Improve existing export recipes or add a backend to a supported model.
 - Contribute to examples or to the documentation.
 
 ## Submitting a bug-related issue or feature request
@@ -38,7 +39,20 @@ If you found an issue you would like to tackle and it is not assigned to anyone 
 
 ## Export new models to ET format
 
-Found a model you would like to use in your app but it is not currently supplied by us and got it exported and working with ExecuTorch? We would love you to create a PR on our [🤗 huggingface](https://huggingface.co/spaces/software-mansion/README/discussions?status=open&type=pull_request&sort=recently-created).
+Found a model you would like to use in your app but it is not currently supplied by us? Every model we ship is exported from [executorch-export-recipes](https://github.com/software-mansion-labs/executorch-export-recipes), so a model contribution is two PRs:
+
+1. A PR to [executorch-export-recipes](https://github.com/software-mansion-labs/executorch-export-recipes) with the export recipe. Follow [Adding an export](https://github.com/software-mansion-labs/executorch-export-recipes/blob/main/skills/adding-a-new-export/SKILL.md) and the [model conventions](https://github.com/software-mansion-labs/executorch-export-recipes/blob/main/skills/model-conventions/SKILL.md), and put the export command plus validation and benchmark results in the model's `NOTES.md`. We review the recipe and its exports, then publish them on our [🤗 Hugging Face](https://huggingface.co/software-mansion).
+2. A PR here that adds the model to the library, linking the recipes PR.
+
+Before you start, read the recipes [quick start](https://github.com/software-mansion-labs/executorch-export-recipes#quick-start): recipes use `uv`, Git LFS and Python 3.10, the locks target macOS on Apple Silicon, and Vulkan and some MLX recipes need a source-built ExecuTorch fork. A `.pte` that exports is not proof it is correct; check it against reference outputs with the [validation skill](https://github.com/software-mansion-labs/executorch-export-recipes/blob/main/skills/validate-and-optimize/SKILL.md) and on a device.
+
+## Improve existing export recipes
+
+Fixes to existing export scripts (accuracy, speed, dependency bumps) and new backends for models we already support also go as PRs to [executorch-export-recipes](https://github.com/software-mansion-labs/executorch-export-recipes). Include the same validation and benchmark evidence as for a new model.
+
+## When ExecuTorch doesn't work out of the box
+
+If an export or runtime failure comes from ExecuTorch itself, open a PR with a minimal reproducer and a regression test to our [ExecuTorch fork](https://github.com/software-mansion-labs/executorch). If the bug also exists on upstream [pytorch/executorch](https://github.com/pytorch/executorch) `main`, submit the fix there too and link both PRs in the model's `NOTES.md`. See [Export recovery](https://github.com/software-mansion-labs/executorch-export-recipes/blob/main/skills/recover-export/SKILL.md#executorch-runtime-fixes-fork-and-upstream) for details.
 
 ## Contributing to examples or documentation
 
