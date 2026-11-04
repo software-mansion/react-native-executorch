@@ -1,9 +1,9 @@
 ---
 name: skills-maintenance
-description: Use when introducing new patterns, refactoring core primitives, adding helper utilities, or changing standard idioms to ensure the workspace skills remain up-to-date.
+description: Use when APIs, build/test commands, shared helpers, architecture or contributor instructions change and affected skills need review or updates.
 metadata:
   id: skills_maintenance
-  scope: general development
+  scope: AGENTS.md, .agents, packages/react-native-executorch
 ---
 
 # Skill: Skills Maintenance & Documentation Integrity
@@ -32,8 +32,25 @@ Use this guide when you introduce, modify, or deprecate core codebase patterns, 
    - Ensure all code blocks and examples in updated skills compile/work and match actual usage in the repository.
    - Do not leave references to deprecated fields, functions, or old workflows.
 
-4. **Update the Checklist**:
-   - If a new verification rule is introduced (e.g., "must use helper X instead of manual code Y"), update the **Verification Checklist** section at the bottom of the relevant skill's `SKILL.md`.
+4. **Keep Each Rule in One Place**:
+   - Architecture and exports belong in [core guidelines](../core-guidelines/SKILL.md), resource
+     ownership in [task pipelines](../add-task-pipeline/SKILL.md), coded errors in
+     [error handling](../error-handling/SKILL.md), and check selection in
+     [verify and build](../verify-and-build/SKILL.md). Link to the owning skill from related procedures.
+   - Keep [AGENTS.md](../../../AGENTS.md) as the short contributor entry point. Add routing when a task
+     needs different guidance; do not copy every skill into the root file.
+   - Retain concrete invariants and their reasons. Remove outdated examples or conflicting checklists;
+     avoid turning a single failure into an unrelated universal restriction.
+
+5. **Validate the Changed Guidance**:
+   - Review skill names/descriptions, root routing and local links after moving or renaming guidance.
+   - Format changed files with the repository's Prettier. Typecheck complete TypeScript templates
+     against their intended package paths; distinguish those from schematic snippets containing
+     placeholders. Review shell commands and source references against current scripts.
+   - For substantial workflow changes, try representative contributor requests (a TS-only task,
+     a native op, and a prose-only
+     edit) and inspect whether routing and verification choices are appropriate. Keep these checks
+     scoped to available prerequisites; do not provision a device merely to validate prose.
 
 ---
 
@@ -45,3 +62,6 @@ When introducing or refactoring a pattern, verify that:
 - [ ] You updated all examples and templates to reflect the new, correct APIs and idioms.
 - [ ] You updated the corresponding checklists to enforce the new conventions.
 - [ ] The updated skill files are valid markdown and keep lines reasonably short.
+- [ ] Root routing still reaches the relevant skills without loading unrelated procedures.
+- [ ] Local links resolve, and changed complete examples were checked against actual APIs.
+- [ ] The PR identifies verification performed and any remaining limitations.

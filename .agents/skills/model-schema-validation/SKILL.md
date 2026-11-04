@@ -3,7 +3,7 @@ name: model-schema-validation
 description: Use when defining model spec constraints, validating ExecuTorch model shapes, checking method signatures, or resolving dimension symbols.
 metadata:
   id: model_schema_validation
-  scope: src/core/schema.ts, src/extensions/*/tasks/*
+  scope: packages/react-native-executorch/src/core/schema.ts, packages/react-native-executorch/src/extensions/*/tasks/*
 ---
 
 # Skill: Model Schema Validation Guide
@@ -179,7 +179,7 @@ const { dims } = validateSpec(model.schema, {
 const [H, W] = dims.constant('H', 'W');
 ```
 
-### 3. Object Detection (Dynamic Box Count)
+### 3. Object Detection (Export-Specific Static Box Count)
 
 Accepts an image tensor, and outputs boxes, scores, and class labels for `N` detections:
 
@@ -190,6 +190,10 @@ const { dims } = validateSpec(model.schema, {
 
 const [N, H, W] = dims.constant('N', 'H', 'W');
 ```
+
+Here `'N'` binds an unknown-at-authoring-time **constant** from the exported schema. For an export
+whose box count varies at runtime, use `DynamicDim('N')`, inspect `dims.range`/`dims.enum`, and design
+allocation and output decoding around that domain rather than treating it as a constant.
 
 ### 4. Single-Model Pipeline (Fully Static Export)
 
@@ -214,7 +218,9 @@ const { dims } = validateSpec(model.schema, {
 ## 🚫 Avoid / Anti-Patterns
 
 - **Do NOT write manual imperative shape/type checks:** Always use declarative `validateSpec` variants which report unified, readable mismatch errors.
-- **Do NOT use hardcoded integers for dynamic dimensions:** Use string symbols (like `'H'`, `'W'`, `'N'`) for dynamic dimensions. Conversely, fixed export dimensions should be integers.
+- Use integers for exact static requirements, strings such as `'H'` for static wildcard dimensions,
+  and `DynamicDim('S')` for runtime-varying domains. Repeated dynamic symbols match domains, not runtime
+  equality; declare runtime constraints when equality is required.
 - **Do NOT skip validation at startup:** Validate `model.schema` before allocating static tensors.
 - **Do NOT skip validation for single-model pipelines:** Single-model pipelines should still validate against task shape constants.
 
@@ -234,7 +240,7 @@ raises `INVALID_ARGUMENT`, not `SCHEMA_MISMATCH`: the model is fine, the call is
 When specifying model schema validations, verify that:
 
 - [ ] Schema validation is performed immediately after model loading and before tensor initialization using `validateSpec(model.schema, { ... })`.
-- [ ] Dynamic dimensions are defined as string symbols, while fixed dimensions are plain integers.
+- [ ] Static wildcard symbols and runtime-dynamic domains are distinguished; exact fixed requirements use integers.
 - [ ] Symbol values are extracted using `dims.constant(...)`, `dims.range(...)`, or `dims.enum(...)`.
 - [ ] Multiple shape variants (e.g. `batched` vs `unbatched`) are provided when supported.
 - [ ] Input and output constraints map accurately to model specifications.

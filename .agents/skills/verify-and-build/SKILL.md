@@ -1,206 +1,159 @@
 ---
 name: verify-and-build
-description: Use when compiling TS/C++, rebuilding iOS pods, troubleshooting JSI runtime errors, debugging native crashes, or sync'ing Android Gradle.
+description: Use when selecting verification for library changes, building TypeScript or C++, rebuilding native apps, or troubleshooting JSI and device runtime failures.
 metadata:
   id: verify_and_build
-  scope: general development, apps/
+  scope: packages/react-native-executorch, apps, docs
 ---
 
-# Skill: Verification, Compilation & Troubleshooting
+# Verification, builds and runtime debugging
 
-Use this guide to compile, test, verify, and troubleshoot your modifications to the library (both JS/TS and native C++).
+Run root commands from the repository root and package commands from
+`packages/react-native-executorch/`. Select checks for the behavior changed; do not run native builds
+for prose edits. Report missing prerequisites and skipped suites separately from passed checks.
 
----
+## Verification matrix
 
-## 🛠️ Verification & Compilation Workflows
+| Change                                 | Checks                                                                                | Limits and additional verification                                                     |
+| -------------------------------------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Contributor guidance or skills         | Prettier on changed Markdown; review local links and inspect examples against source  | Typecheck complete changed TS examples; review schematic snippets against source       |
+| Library TypeScript behavior            | Package typecheck, relevant Jest suites and package build; lint changed code          | Broaden tests for shared APIs; fake JSI does not verify production C++ or model output |
+| Public exports or model registry       | Package typecheck/build, API surface or model registry suites                         | Inspect export snapshot diffs; verify new models/backends on the relevant device       |
+| C++/JSI                                | Native static checks and relevant host C++ suites; API tests for changed TS contracts | Rebuild affected platforms; host tests do not execute delegated inference              |
+| Native build/configuration             | Affected platform build; installation/artifact checks where applicable                | Pods/Gradle and binary provisioning depend on what changed                             |
+| Docs pages, generators or API comments | `yarn build` from `docs/`; inspect relevant generated output                          | Site checks do not prove code samples run on-device                                    |
 
-### 1. Build and Typecheck TypeScript
+For cross-workspace changes, use root `yarn typecheck` and relevant app checks. Repeat or broaden checks
+when additional changes, failures or remaining uncertainty justify it.
 
-To check types and compile the TypeScript source code:
+## TypeScript checks
 
-- **Verify Types (Fast)**:
-  ```bash
-  yarn typecheck
-  ```
-- **Run the TypeScript API Tests**:
-  ```bash
-  yarn workspace react-native-executorch test
-  ```
-  _Jest suites over the public `src/` surface — hooks, task pipelines, core
-  primitives, the fetcher and the model registry — running against a fake
-  native runtime, so they need no simulator, device or `.pte` file. See the
-  [Add API Tests skill](../add-api-tests/SKILL.md)._
-- **Build Bundles**:
-  ```bash
-  yarn prepare
-  ```
-  _This cleans target directories and builds modules into the `lib/` directory using `react-native-builder-bob`._
-- **When**: After adding/updating TypeScript files under `src/`.
-- **Verification**: Ensure no compiler or type-checking errors are raised.
-
-### 2. Native Rebuilding
-
-#### iOS Development
-
-Whenever you modify native files under `cpp/` or update `.podspec`:
+From the repository root:
 
 ```bash
-pushd apps/<domain-app>/ios && pod install && popd
+yarn workspace react-native-executorch typecheck
+yarn workspace react-native-executorch test
+yarn workspace react-native-executorch prepare
 ```
 
-- **Rebuilding**: Re-run the app from within the appropriate app folder:
-  ```bash
-  cd apps/<domain-app>
-  yarn run ios
-  ```
-- **Clean Build**: If files aren't being picked up:
-  - In Xcode: `Product` > `Clean Build Folder` (Cmd + Shift + K).
+The package typecheck includes `__tests__/`. Target suites by path for focused iteration, for example
+`yarn workspace react-native-executorch test __tests__/tasks`. See
+[API tests](../add-api-tests/SKILL.md) for fixtures, lifecycle and construction-failure assertions.
 
-#### Android Development
+`prepare` runs `react-native-builder-bob` to produce JS and declaration outputs. Root `yarn prepare`
+runs workspace preparation; root `yarn typecheck` runs preparation first and then checks workspace types.
+Avoid running the same build again solely because it has a different entry command.
 
-Android compiles C++ source files on-demand during application builds:
+Root `yarn lint` runs workspace lint scripts; some app scripts use `--fix`, so inspect resulting changes.
+For focused library linting, run ESLint on changed files from the package directory.
 
-```bash
-cd apps/<domain-app>
-yarn run android
-```
+## C++ static checks
 
-- **Clean Build**: If caching issues occur:
-  ```bash
-  pushd apps/<domain-app>/android && ./gradlew clean && popd
-  ```
+Run both checks for C++ changes when prerequisites are available. The warning checker may exit 0 after
+skipping work: read its output rather than reporting that as a successful compilation.
 
----
+### clang-tidy
 
-## 🧹 C++ Static Analysis
-
-Two complementary checks gate C++ quality. Always run both before committing.
-
-### 1. `lint:cpp` — clang-tidy
-
-Runs the project's `.clang-tidy` ruleset (bugprone / performance / clang-analyzer / llvm-include-order) over all `cpp/` sources.
+From the repository root on macOS with Homebrew LLVM:
 
 ```bash
-# clang-tidy must be installed from Homebrew LLVM — the Xcode bundled version is too old:
 CLANG_TIDY=$(brew --prefix llvm)/bin/clang-tidy yarn workspace react-native-executorch lint:cpp
 ```
 
-- Requires ExecuTorch headers provisioned under `third-party/include` and `yarn install` (for JSI headers).
-- Any finding fails the run (`--warnings-as-errors`). Suppress a deliberate, reviewed finding with `// NOLINTNEXTLINE(check-name)` rather than relaxing the shared config.
-- **Homebrew LLVM is newer than CI's clang-tidy and reports checks CI does not have.** Before "fixing" a local finding, copy the unmodified base-branch version of the file in under a temp name and lint that too. A finding that also fires there is pre-existing and is not yours to fix in your PR.
-- **A local macOS-only syntax check cannot see platform-conditional code.** Anything inside `#if defined(__ANDROID__)` / `#elif defined(__APPLE__)` compiles locally and can still fail CI on another target. Check by eye that new includes and `using` declarations sit at file scope, outside every preprocessor branch.
+On other hosts, use `yarn workspace react-native-executorch lint:cpp` with compatible `clang-tidy` on
+PATH, or set `CLANG_TIDY` to its executable. The Xcode toolchain does not supply the required checker.
+Requires JSI and provisioned third-party headers. See
+[third-party setup](../../../packages/react-native-executorch/third-party/README.md).
 
-### 2. `check-cpp-warnings.sh` — clangd warning set
+Local LLVM can report findings absent from CI. Compare a finding against unchanged base code before
+expanding scope. Keep platform-independent includes and namespace aliases outside platform branches;
+a macOS check cannot validate Android-only compilation.
 
-Compiles staged (or explicitly passed) `cpp/` sources with the same flags clangd uses in the editor (from `compile_flags.txt` + `-W` flags in `.clangd`), so the editor and CI stay in sync. Run from the package root (`packages/react-native-executorch/`):
+### Compiler warnings
+
+From the package directory, pass changed files explicitly, for example:
 
 ```bash
-# The script takes file paths as positional arguments and exits 0 immediately
-# with none — it has no built-in file discovery. Pass files explicitly:
+./scripts/check-cpp-warnings.sh cpp/core/tensor.cpp
+```
+
+For all production sources:
+
+```bash
 find cpp/ -path cpp/tests -prune -o \( -name '*.cpp' -o -name '*.h' \) -print | \
   xargs ./scripts/check-cpp-warnings.sh
 ```
 
-The script skips gracefully (exit 0) when no compiler, `compile_flags.txt`, `.clangd`, or provisioned headers are found — it never blocks contributors who don't build the native code.
+The script has no file discovery and does nothing with no arguments. It skips when the compiler,
+configuration or headers are missing. It uses `compile_flags.txt` and `.clangd`, not the mobile app's
+entire platform build configuration.
 
----
+## Host C++ tests
 
-## 🔍 Debugging & Log Access
+The [C++ test README](../../../packages/react-native-executorch/cpp/tests/README.md) owns dependency,
+submodule and fixture provisioning. From the package directory after provisioning:
 
-### 1. TypeScript & Worklet Logging
+```bash
+scripts/run-native-tests.sh
+scripts/run-native-tests.sh -R MathOpsTest
+```
 
-Logging inside worklets (functions annotated with `'worklet';`) behaves slightly differently as they run on a separate runtime thread.
+These suites use Hermes and an ExecuTorch host build to test real JSI contracts. They require CMake,
+Ninja, headers and pinned native dependencies. Optional OpenCV/phonemis support and downloaded fixtures
+affect which suites run. Inspect CMake/CTest output and report disabled or omitted coverage. Provisioning
+can take several minutes; do not repeatedly rebuild unchanged dependencies.
 
-- Use standard `console.log(...)` inside worklets.
-- **Caution**: Worklet logs are piped back to the JS console, but passing complex circular objects to `console.log` from a worklet can fail or freeze. Stringify or log specific primitive properties instead.
+Host tests do not establish model execution with mobile delegates, LLM generation quality, or actual
+phoneme output. Use device/emulator integration for those behaviors.
 
-### 2. Native C++ Debugging
+## Native app verification
 
-Native JSI crashes, standard outputs, or ExecuTorch errors can be caught in the native log streams:
+Choose the relevant app (`computer-vision`, `nlp` or `speech`) and inspect its current native setup.
+Provision matching native libraries before rebuilding. If iOS native projects already exist, run
+`pod install` in the app's `ios/` directory when dependencies, podspec files or source discovery change.
+C++ source edits require recompilation, not necessarily pod reinstallation. Do not assume generated
+`ios/` or `android/` directories exist in a fresh Expo checkout.
 
-- **iOS**: Watch outputs directly inside the Xcode Console while running the app target.
-- **Android**: Use Android Studio's logcat or run:
-  ```bash
-  adb logcat *:S ReactNative:V ReactNativeJS:V rnexecutorch:V
-  ```
+From the selected app directory:
 
----
+```bash
+yarn ios
+# or
+yarn android
+```
 
-## 🚦 Common JSI Troubleshooting
+The app scripts use Expo native build commands. iOS needs macOS/Xcode and CocoaPods; Android needs its
+SDK/NDK and a suitable device/emulator. Clear build caches only when stale output explains a failure.
+For changes shared by both platforms, verify both or record which remains unverified.
 
-### Symptom: `Error: JSI global object '__rnexecutorch_jsi__' is not registered.`
+## JSI and worklet troubleshooting
 
-- **Cause 1**: The native code wasn't linked or JSI installation failed during loading.
-  - _Fix_: Verify that you have registered your new extension/module in [cpp/RnExecutorch.cpp](../../../packages/react-native-executorch/cpp/RnExecutorch.cpp).
-  - _Fix_: Re-run `pod install` (for iOS) or perform a Gradle sync/clean (for Android) to ensure your C++ changes compiled.
-- **Cause 2**: The bridge did not invoke the native installation.
-  - _Fix_: Ensure the JS entrypoint triggers the load (see [src/native/bridge.ts](../../../packages/react-native-executorch/src/native/bridge.ts)).
+- **JSI global not registered:** inspect
+  [the bridge](../../../packages/react-native-executorch/src/native/bridge.ts) and native linkage;
+  confirm the rebuilt app includes the module. Native installation is wired in
+  [RnExecutorch.cpp](../../../packages/react-native-executorch/cpp/RnExecutorch.cpp).
+- **Missing domain/operator:** compare the domain `install.cpp`, bridge wrapper and TypeScript exports.
+  Adding an operator to an existing domain usually needs no new top-level domain registration.
+- **Native crash or execution error:** collect Xcode console or Android logcat output and the model,
+  platform, backend and input schema. Use coded failures as described in
+  [error handling](../error-handling/SKILL.md).
+- **Worklet logging:** log primitives or selected properties. Passing circular/native resource objects
+  to the logger can freeze or fail across runtimes.
 
-### Symptom: `TypeError: Cannot read property '<extension>' of undefined`
+For Android logs:
 
-- **Cause**: You added an extension in C++ but forgot to register it in your TypeScript bridge bindings.
-  - _Fix_: Check that `module.setProperty(rt, "<extension>", subModule)` is called in your native `install.cpp` and that your TS wrapper exports and references it under `rnexecutorchJsi.<extension>`.
+```bash
+adb logcat '*:S' ReactNative:V ReactNativeJS:V rnexecutorch:V
+```
 
----
+## Model downloads and registry changes
 
-## 📂 Model Hosting & Download Caching
+Inspect [the fetcher](../../../packages/react-native-executorch/src/fetcher/fetcher.ts) and
+[useResourceDownload](../../../packages/react-native-executorch/src/hooks/useResourceDownload.ts)
+before debugging downloads. The hook resolves URLs throughout a nested config, delegates to `download`,
+and reports progress from 0 to 100. Storage uses `react-native-blob-util`: persistent document storage
+on iOS and the configured Android storage path, not `RNFS.CachesDirectoryPath`.
 
-This project does **not** bundle local `.pte` model files inside the React Native application package. Instead, the standard workflow is:
-
-1. **Upload to Hugging Face**:
-   - Upload compiled/exported `.pte` models directly to our Hugging Face repository bucket.
-   - **Naming Convention**: All `.pte` files must follow the strict name contract:
-     `modelname_optionalsize_backend_precision.pte`
-     - _Example_: `efficientnet_v2_s_xnnpack_int8.pte`
-     - _Example_: `style_transfer_candy_xnnpack_fp32.pte`
-
-2. **Define in Models Manifest** ([src/models.ts](../../../packages/react-native-executorch/src/models.ts)):
-   - **Single Export Registry Rule**: Define the new model configuration as an internal (private) `const` inside `models.ts`. **Do not** export individual model configuration constants. Instead, expose them solely by registering them under the appropriate category nested inside the main `models` registry object, which is the only exported symbol from `models.ts`.
-   - _Example_:
-
-     ```typescript
-     // Defined internally (private)
-     const MY_MODEL_XNNPACK_FP32: MyTaskModel = { ... };
-
-     // Registered in the exported models object
-     export const models = {
-       ...
-       myTask: {
-         MY_MODEL: {
-           XNNPACK_FP32: MY_MODEL_XNNPACK_FP32,
-         }
-       }
-     };
-     ```
-
-3. **Runtime Downloading & Caching**:
-   - The custom hook `useResourceDownload(config.modelPath)` handles checks automatically:
-     - If the model file is not already in the device cache directory, it downloads it from the Hugging Face URL to `RNFS.CachesDirectoryPath`.
-     - If the model file exists in the cache, it bypasses the download and returns the cached local path immediately to load the model.
-
----
-
-## 🚫 Avoid / Anti-Patterns
-
-- **Do NOT run code without verification:** Do not test TypeScript changes in the app without first running `yarn typecheck` (verify types), `yarn workspace react-native-executorch test` (API suites) and `yarn prepare` (build target bundles).
-- **Do NOT skip native rebuilds after C++ edits:** If any C++ files or config bindings are added/modified, do not attempt to run the app without executing `pod install` (for iOS) or letting Gradle sync (for Android).
-- **Do NOT run `lint:cpp` with the system `clang-tidy`**: Use the Homebrew LLVM binary: `CLANG_TIDY=$(brew --prefix llvm)/bin/clang-tidy yarn workspace react-native-executorch lint:cpp`.
-- **Do NOT trust a green macOS-only syntax check for platform-conditional C++:** see the clang-tidy notes above.
-- **Do NOT log complex objects inside worklets:** Avoid passing complex circular objects directly to `console.log()` inside functions annotated with `'worklet';` as it can hang or crash the worklet runtime thread.
-- **Do NOT bundle local `.pte` files in the repository:** Do not commit heavy model binaries to the git repository. Always host them on Hugging Face and register their metadata in `src/models.ts`.
-
----
-
-## 📋 Verification Checklist
-
-When verifying or compiling your modifications, check that:
-
-- [ ] TypeScript typechecking passes without errors (`yarn typecheck`).
-- [ ] The TypeScript API tests pass (`yarn workspace react-native-executorch test`), and any new `src/` behavior is covered by them.
-- [ ] Bundles compile successfully (`yarn prepare`).
-- [ ] `pod install` has been run inside `apps/<domain-app>/ios/` after any native C++ edits.
-- [ ] `lint:cpp` passes cleanly: `CLANG_TIDY=$(brew --prefix llvm)/bin/clang-tidy yarn workspace react-native-executorch lint:cpp`.
-- [ ] `check-cpp-warnings.sh` passes cleanly (run via `find cpp/ -name '*.cpp' -o -name '*.h' | xargs ./scripts/check-cpp-warnings.sh` from the package root).
-- [ ] No `.pte` files are staged or added to git history.
-- [ ] Model configurations are registered inside the single `models` object registry in `src/models.ts`.
-- [ ] Native runtime issues have been investigated using Xcode Console or `adb logcat`.
+Registry URL/revision/filename/default invariants are checked by the model registry API tests. Use
+[core guidelines](../core-guidelines/SKILL.md) for registry ownership. Do not commit downloaded `.pte`
+binaries; use pinned hosted assets or the existing checksum-verified test fixture mechanism.
