@@ -162,6 +162,23 @@ describe('createLLMChatSession — construction', () => {
     expect(promptsSent().join('')).not.toContain('<think>');
   });
 
+  it('keeps the session default for a per-turn option passed as undefined', async () => {
+    writeTokenizerConfig({
+      // eslint-disable-next-line camelcase
+      chat_template: CHAT_TEMPLATE.replace(
+        '<|assistant|>',
+        '<|assistant|>{% if enable_thinking is not defined or enable_thinking %}<think>\n{% else %}DIRECT{% endif %}'
+      ),
+    });
+    const session = tracked(
+      await createLLMChatSession(config, { generationConfig: { enableThinking: false } })
+    );
+
+    await session.sendMessage('hi', undefined, { enableThinking: undefined });
+
+    expect(promptsSent()).toContain('<|assistant|>DIRECT');
+  });
+
   it.each(SPECIAL_TOKEN_CONFIGS)(
     'passes configured special tokens to the template (%#)',
     async (tokens) => {
