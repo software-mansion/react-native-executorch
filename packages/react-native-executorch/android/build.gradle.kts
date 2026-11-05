@@ -75,12 +75,13 @@ fun requireNativeArtifacts() {
           ${libsDir.absolutePath}
 
         They are downloaded by this package's postinstall hook, which your
-        package manager did not run. pnpm 10 and later block dependency build
-        scripts by default ("Ignored build scripts"), npm 12 skips install
-        scripts not listed in `allowScripts`, and `--ignore-scripts` does the
-        same. Re-run the hook:
+        package manager did not run. pnpm 10 and later, and bun, block
+        dependency build scripts by default ("Ignored build scripts"), npm 12
+        skips install scripts not listed in `allowScripts`, and
+        `--ignore-scripts` does the same. Re-run the hook:
 
-          pnpm approve-builds react-native-executorch   # pnpm
+          pnpm approve-builds                           # pnpm, select it
+          bun pm trust react-native-executorch          # bun
           npm approve-scripts react-native-executorch   # npm 12+, then:
           npm rebuild react-native-executorch           # npm
           node node_modules/react-native-executorch/scripts/download-libs.js

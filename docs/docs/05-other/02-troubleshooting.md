@@ -21,7 +21,9 @@ The native artifacts are not in the npm tarball. They are downloaded by a
 **postinstall** hook, and your package manager skipped it:
 
 - **pnpm 10 and later block dependency build scripts by default** and print
-  `Ignored build scripts: react-native-executorch` during install.
+  `Ignored build scripts: react-native-executorch` during install. Installing
+  with `--allow-build=react-native-executorch` avoids it.
+- **bun** does the same for any package not in `trustedDependencies`.
 - **npm 12 and later** (and npm 11.16+ with `strict-allow-scripts=true`) skip
   install scripts of packages not listed in `allowScripts`, with only a warning.
 - `--ignore-scripts`, and `npm ci --ignore-scripts`, do the same.
@@ -32,7 +34,8 @@ for the file. Recent versions fail during `pod install` (and during the Android
 configure phase) with this fix in the message instead. Re-run the hook:
 
 ```bash
-pnpm approve-builds react-native-executorch   # pnpm
+pnpm approve-builds                           # pnpm, select it
+bun pm trust react-native-executorch          # bun
 npm approve-scripts react-native-executorch   # npm 12+, then:
 npm rebuild react-native-executorch           # npm
 node node_modules/react-native-executorch/scripts/download-libs.js
@@ -72,9 +75,9 @@ turns that off again.
 statically linked binaries: (.../opencv-rne/opencv2.xcframework)
 ```
 
-`use_frameworks!` with no argument means **dynamic** linkage, which CocoaPods
-refuses to combine with a statically linked dependency. Ask for static
-frameworks instead:
+Versions before 0.11 could not be built with **dynamic** frameworks, which
+`use_frameworks!` with no argument means and which `@react-native-firebase` 27+
+requires. Update the library; on an older version, ask for static frameworks:
 
 ```ruby
 use_frameworks! :linkage => :static
@@ -136,11 +139,33 @@ image. Use an Apple silicon machine, or a physical device.
 ```
 
 This is a **warning**, so `pod install` still succeeds and the failure surfaces
-later. The library needs iOS 17. In an Expo app, set it explicitly — the default
-is lower:
+later. On the bare template, whose default is iOS 15.1, `pod install` fails
+instead: `required a higher minimum deployment target`. The library needs iOS
+17: set `platform :ios, '17.0'` in the `Podfile`, or in an Expo app:
 
 ```json
 ["expo-build-properties", { "ios": { "deploymentTarget": "17.0" } }]
+```
+
+## `deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 11.0`
+
+```
+error: The iOS Simulator deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set
+to 11.0, but the range of supported deployment target versions is 15.0 to 27.2.x.
+(in target 'react-native-blob-util-ReactNativeBlobUtilPrivacyInfo')
+```
+
+`react-native-blob-util` 0.25 declares iOS 11, which Xcode 27 rejects. Expo SDK
+56 and later fix this up for you; elsewhere raise its targets in the `Podfile`:
+
+```ruby
+post_install do |installer|
+  installer.pods_project.targets.each do |t|
+    t.build_configurations.each do |c|
+      c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1' if c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 15.0
+    end
+  end
+end
 ```
 
 ## The `react-native-executorch` config block is ignored
