@@ -17,7 +17,7 @@
     "appearance": "dark",
     "inference": "Actual on-device model inference. Recording-only adapters supply deterministic photo, video and PCM audio inputs; text presets are entered without focusing the keyboard. These adapters are not shipped in the gallery.",
     "videoAudio": "Showcase exports are muted.",
-    "editing": "Idle lead-ins and excess final pauses trimmed; static results held for reading. Camera clips use short continuous loops. Model processing remains at recorded speed."
+    "editing": "Idle lead-ins and excess final pauses trimmed; completed result screenshots from the same capture held for reading in OCR, translation and multimodal input. Translation loops are six seconds on both platforms. Camera clips use short continuous loops. Model processing remains at recorded speed."
   },
   "fixtures": {
     "camera": {
@@ -39,6 +39,18 @@
     "speech": {
       "origin": "Synthetic speech generated locally with macOS Samantha voice, with leading/trailing silence.",
       "text": "Welcome to the React Native ExecuTorch Gallery. Everything you see runs right on this device. Your words stay private, even when you are offline."
+    },
+    "multimodal": {
+      "model": "LFM3 VL 2B",
+      "photo": "Generated courtyard sample documented above",
+      "prompt": "What is the man doing? Answer in one short sentence.",
+      "response": "The man is juggling oranges.",
+      "formats": ["mp4", "gif"]
     }
+  },
+  "frames": {
+    "style": "Schematic frames with shared height and original capture aspect ratios. Button positions scale with the frame, following manufacturer front-view diagrams.",
+    "iosReference": "https://support.apple.com/guide/iphone/iph15f87b8cf/ios",
+    "androidReference": "https://support.google.com/pixelphone/answer/7157629?hl=en"
   }
 }

@@ -145,6 +145,10 @@ If you use a custom model whose Jinja template dynamically rewires earlier turns
 
 ## Multimodal Inputs
 
+<TaskShowcase task="llm-multimodal-input" format="gif" />
+
+The gallery’s [image descriptions screen](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/image-description.tsx>) sends a photo and a question in one message, then streams the model’s answer. The showcase uses LFM3 VL 2B to describe the performer in the sample photo.
+
 Vision-Language Models (such as Liquid AI's [`LFM2_5_VL_450M`](../../06-api-reference/variables/models.md#llmlfm2_5_vl_450m) and [`LFM2_5_VL_1_6B`](../../06-api-reference/variables/models.md#llmlfm2_5_vl_1_6b)) process interleaved text and visual payloads:
 
 ```typescript
