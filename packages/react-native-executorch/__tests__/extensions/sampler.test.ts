@@ -67,4 +67,43 @@ describe('sample — options merging', () => {
       logits.dispose();
     }
   });
+
+  it('falls back to the defaults for options passed as undefined', () => {
+    const logits = tensor('float32', [1, 10]);
+    try {
+      sample(
+        logits,
+        { generatedTokens: new Int32Array(0) },
+        {
+          temperature: undefined,
+          topK: undefined,
+          topP: undefined,
+          minP: undefined,
+          repetitionPenalty: undefined,
+          penaltyLastN: undefined,
+          dry: { multiplier: 0.8, base: undefined, allowedLength: undefined },
+          xtc: { probability: 0.5, threshold: undefined },
+        }
+      );
+
+      expect(llm.lastSampleOptions()).toMatchObject({
+        temperature: 0.8,
+        repetitionPenalty: 1.0,
+        penaltyLastN: -1,
+        topK: 40,
+        topP: 0.95,
+        minP: 0.05,
+        dry: {
+          multiplier: 0.8,
+          base: 1.75,
+          allowedLength: 2,
+          penaltyLastN: -1,
+          sequenceBreakers: new Int32Array(0),
+        },
+        xtc: { probability: 0.5, threshold: 0.1 },
+      });
+    } finally {
+      logits.dispose();
+    }
+  });
 });
