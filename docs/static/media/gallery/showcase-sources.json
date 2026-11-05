@@ -1,0 +1,44 @@
+{
+  "recordedAt": "2026-11-05",
+  "libraryCommit": "4b7d6fd6fea10f9b3422121d6e439ccf88df93b2",
+  "devices": {
+    "ios": {
+      "model": "iPhone 17",
+      "os": "iOS 26.6",
+      "captureResolution": [1206, 2622]
+    },
+    "android": {
+      "model": "Pixel 10",
+      "os": "Android 17",
+      "captureResolution": [1080, 2424]
+    }
+  },
+  "capture": {
+    "appearance": "dark",
+    "inference": "Actual on-device model inference. Recording-only adapters supply deterministic photo, video and PCM audio inputs; text presets are entered without focusing the keyboard. These adapters are not shipped in the gallery.",
+    "videoAudio": "Showcase exports are muted.",
+    "editing": "Idle lead-ins and excess final pauses trimmed; static results held for reading. Camera clips use short continuous loops. Model processing remains at recorded speed."
+  },
+  "fixtures": {
+    "camera": {
+      "title": "Skateboarding with a Dog in Urban Park",
+      "author": "Chris Zhou",
+      "source": "https://www.pexels.com/video/skateboarding-with-a-dog-in-urban-park-37368575/",
+      "license": "Pexels License",
+      "licenseUrl": "https://www.pexels.com/license/",
+      "verifiedAt": "2026-11-05",
+      "processing": "Muted 30 fps native video preview and synchronized 30 fps sampled inputs. Detection runs at device speed, skips stale frames, and yields between synchronous calls to keep overlays responsive. These clips are edited demonstrations, not end-to-end camera performance benchmarks."
+    },
+    "photo": {
+      "origin": "AI-generated using imagegen, 2026-11-05",
+      "prompt": "Use case: photorealistic-natural. Asset type: a striking portrait sample photograph for on-device computer-vision demos, not a UI mockup. Create one polished, believable editorial photograph of a joyful young adult street performer in a mustard jacket and teal trousers, standing with one foot on the pedal of a stationary scarlet vintage bicycle while juggling three bright oranges in a sunlit Mediterranean courtyard. A charming corgi wearing a small cobalt-blue bandana sits prominently in the foreground beside the bicycle; a mint-green flower cart with overflowing pink and yellow flowers and one open striped caf\u00e9 umbrella sit in the middle distance. Playful and a little cinematic, tactile real-life materials, tasteful saturated colors, golden-hour light, a pale peach wall and climbing greenery. Composition: portrait 3:4, the performer's entire body and both hands and feet fully visible, clear arms and legs, bicycle fully visible, corgi fully visible with clear facial features; breathing room around all subjects. Well-separated recognizable objects with strong silhouettes for object detection and segmentation: one person, one bicycle, one dog, oranges, flowers in pots, umbrella. Several clear foreground/midground/background depth layers. Include one isolated small blue ceramic cup on the stone pavement toward the lower right, with uncluttered pavement around it, suitable for an inpainting demo. Keep the person, dog, and bicycle central enough to stay visible in a portrait phone preview. Natural realistic anatomy and plausible shadows, no illustration or miniature look, no screenshots, no overlays, no bounding boxes, no text, no logos, no watermark."
+    },
+    "ocr": {
+      "origin": "Original recipe card generated for this showcase."
+    },
+    "speech": {
+      "origin": "Synthetic speech generated locally with macOS Samantha voice, with leading/trailing silence.",
+      "text": "Welcome to the React Native ExecuTorch Gallery. Everything you see runs right on this device. Your words stay private, even when you are offline."
+    }
+  }
+}

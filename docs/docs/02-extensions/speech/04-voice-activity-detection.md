@@ -16,6 +16,8 @@ keywords:
   ]
 ---
 
+import TaskShowcase from '@site/src/components/TaskShowcase';
+
 # Voice Activity Detection (VAD)
 
 The Voice Activity Detection extension detects speech presence and segments audio into spoken and silent intervals directly on-device using a lightweight Feedforward Sequential Memory Network (FSMN-VAD) model.
@@ -25,47 +27,9 @@ The pipeline supports two primary workflows:
 - [**Live Microphone Event Stream**](#live-microphone-streaming): Processes incoming audio chunks from a microphone recorder in real time, firing `'speechStart'` and `'speechEnd'` transitions.
 - [**Batch Audio Segmentation**](#batch-audio-segmentation): Analyzes an entire recorded audio buffer and returns an array of timestamped speech segments in seconds.
 
-<table className="showcase-table">
-  <thead>
-    <tr>
-      <th>iOS</th>
-      <th>Android</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-        <div className="device-phone iphone-chassis">
-          <div className="device-screen iphone-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/voice-activity-detection-ios.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-      <td>
-        <div className="device-phone s24-chassis">
-          <div className="s24-camera-hole"></div>
-          <div className="device-screen s24-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/voice-activity-detection-android.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<TaskShowcase task="voice-activity-detection" />
+
+The showcase streams a fixed speech-and-silence sample through the on-device model for repeatable results.
 
 ## Quick Start
 

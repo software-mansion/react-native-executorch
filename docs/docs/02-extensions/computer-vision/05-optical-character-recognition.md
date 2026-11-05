@@ -14,53 +14,17 @@ keywords:
   ]
 ---
 
+<!-- cspell:ignore dewarping -->
+
+import TaskShowcase from '@site/src/components/TaskShowcase';
+
 # Optical Character Recognition (OCR)
 
 Optical Character Recognition (OCR) detects and extracts text from images. The pipeline identifies text regions with oriented quadrilateral boundaries ([`Quad`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/Quad.md)) and transcribes their characters in reading order (top-to-bottom, left-to-right columns).
 
 It is used for document digitizing, receipt scanning, license plate reading, sign translation, and invoice processing. Because inference runs entirely on-device with zero network latency, sensitive documents never leave the phone.
 
-<table className="showcase-table">
-  <thead>
-    <tr>
-      <th>iOS</th>
-      <th>Android</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-        <div className="device-phone iphone-chassis">
-          <div className="device-screen iphone-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/optical-character-recognition-ios.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-      <td>
-        <div className="device-phone s24-chassis">
-          <div className="s24-camera-hole"></div>
-          <div className="device-screen s24-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/optical-character-recognition-android.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<TaskShowcase task="optical-character-recognition" />
 
 ## Quick Start
 

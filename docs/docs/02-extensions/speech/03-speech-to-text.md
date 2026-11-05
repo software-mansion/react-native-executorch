@@ -19,6 +19,8 @@ keywords:
   ]
 ---
 
+import TaskShowcase from '@site/src/components/TaskShowcase';
+
 # Speech-to-Text (STT)
 
 The Speech-to-Text extension transcribes spoken audio into text directly on-device using OpenAI's Whisper or Alibaba's [Qwen3-ASR](https://huggingface.co/Qwen/Qwen3-ASR-0.6B) paired with an integrated FSMN Voice Activity Detector (VAD).
@@ -28,47 +30,9 @@ The pipeline supports two primary workflows:
 - [**Live Microphone Streaming**](#output-format--live-streaming): Streams real-time audio straight from the microphone. As the user speaks, Whisper continuously returns draft transcripts and automatically commits finalized sentences upon pauses.
 - [**Pre-recorded Audio Transcription**](#pre-recorded-audio-transcription): Transcribes pre-recorded audio buffers or audio files in a single pass, with optional token-by-token streaming callbacks.
 
-<table className="showcase-table">
-  <thead>
-    <tr>
-      <th>iOS</th>
-      <th>Android</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-        <div className="device-phone iphone-chassis">
-          <div className="device-screen iphone-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/speech-to-text-ios.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-      <td>
-        <div className="device-phone s24-chassis">
-          <div className="s24-camera-hole"></div>
-          <div className="device-screen s24-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/speech-to-text-android.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<TaskShowcase task="speech-to-text" />
+
+The showcase streams a fixed speech-and-silence sample through the on-device model for repeatable results.
 
 ## Quick Start
 

@@ -1,0 +1,137 @@
+.showcase {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2rem;
+  margin-block: 2rem;
+}
+
+.device {
+  margin: 0;
+  max-width: 100%;
+  text-align: center;
+}
+
+.device figcaption {
+  margin-bottom: 0.85rem;
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-800);
+}
+
+.phone {
+  position: relative;
+  box-sizing: border-box;
+  width: 216px;
+  max-width: 100%;
+  padding: 6px;
+  border: 2px solid #747b83;
+  background: #17191c;
+  box-shadow:
+    0 12px 36px rgb(0 0 0 / 30%),
+    0 2px 8px rgb(0 0 0 / 20%);
+}
+
+.screen {
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+
+.screen video {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.iphone {
+  border-radius: 40px;
+}
+
+.iphone .screen {
+  aspect-ratio: 1206 / 2622;
+  border-radius: 32px;
+}
+
+.iphone::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 80px;
+  width: 3px;
+  height: 18px;
+  border-radius: 2px;
+  background: #747b83;
+  box-shadow:
+    0 36px #747b83,
+    0 66px #747b83;
+}
+
+.iphone::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 115px;
+  width: 3px;
+  height: 38px;
+  border-radius: 2px;
+  background: #747b83;
+}
+
+/* Pixel 10: rounded corners, centered camera, power above the volume rocker. */
+.pixel {
+  border-radius: 33px;
+  border-color: #8c9296;
+}
+
+.pixel .screen {
+  aspect-ratio: 1080 / 2424;
+  border-radius: 25px;
+}
+
+.pixel::before,
+.pixel::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  width: 3px;
+  border-radius: 2px;
+  background: #8c9296;
+}
+
+.pixel::before {
+  top: 110px;
+  height: 28px;
+}
+
+.pixel::after {
+  top: 166px;
+  height: 48px;
+}
+
+.camera {
+  position: absolute;
+  top: 13px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #000;
+  pointer-events: none;
+}
+
+.island {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  width: 62px;
+  height: 18px;
+  transform: translateX(-50%);
+  border-radius: 12px;
+  background: #000;
+  pointer-events: none;
+}

@@ -15,6 +15,10 @@ keywords:
   ]
 ---
 
+<!-- cspell:ignore Zhou Pexels -->
+
+import TaskShowcase from '@site/src/components/TaskShowcase';
+
 # Real-Time Camera Processing
 
 React Native ExecuTorch models can process live camera streams directly on-device with zero cloud dependencies. By combining [VisionCamera v5](https://visioncamera.margelo.com), [VisionCamera Resizer](https://github.com/mrousavy/react-native-vision-camera/tree/main/packages/react-native-vision-camera-resizer), and [`react-native-worklets`](https://docs.swmansion.com/react-native-worklets/), live camera frames are scaled and converted on the GPU directly into an [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md), processed synchronously inside the camera frame processor worklet, and dispatched back to the React JavaScript thread via [`scheduleOnRN`](https://docs.swmansion.com/react-native-worklets/docs/threading/scheduleOnRN/) with zero thread-switching or promise overhead.
@@ -22,47 +26,9 @@ React Native ExecuTorch models can process live camera streams directly on-devic
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-<table className="showcase-table">
-  <thead>
-    <tr>
-      <th>iOS</th>
-      <th>Android</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-        <div className="device-phone iphone-chassis">
-          <div className="device-screen iphone-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/camera-integration-ios.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-      <td>
-        <div className="device-phone s24-chassis">
-          <div className="s24-camera-hole"></div>
-          <div className="device-screen s24-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/camera-integration-android.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<TaskShowcase task="camera-integration" />
+
+The showcase runs on-device inference on prerecorded sample video of skaters and a corgi: [video by Chris Zhou on Pexels](https://www.pexels.com/video/skateboarding-with-a-dog-in-urban-park-37368575/), used under the [Pexels License](https://www.pexels.com/license/). The screen implementation below uses the live camera frame pipeline.
 
 ## Quick Start
 
