@@ -2,7 +2,7 @@
  * DBNet contour tracing and text quad extraction utilities for PP-OCRv6.
  */
 
-import { rnexecutorchJsi } from '../../../native/bridge';
+import { cvJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
 import { RnExecuTorchError } from '../../../core/error';
 import type { Quad } from '../ops/quad';
@@ -60,6 +60,6 @@ export type DbnetDecodeOptions = {
  */
 export function extractDbnetTextQuads(probabilityMap: Tensor, options: DbnetDecodeOptions): Quad[] {
   'worklet';
-  const flat = rnexecutorchJsi.cv.extractDbnetTextQuads(probabilityMap, options) as Float32Array;
+  const flat = cvJsi().extractDbnetTextQuads(probabilityMap, options) as Float32Array;
   return quadsFromFlat(flat);
 }

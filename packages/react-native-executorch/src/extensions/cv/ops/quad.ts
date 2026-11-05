@@ -3,7 +3,7 @@
  * utilities.
  */
 
-import { rnexecutorchJsi } from '../../../native/bridge';
+import { cvJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
 import { RnExecuTorchError } from '../../../core/error';
 import { distance, scalePoint, type Point } from './point';
@@ -180,7 +180,7 @@ export function rectifyQuad(
   'worklet';
   // The native op takes the corners as a flat [x0,y0,..,x3,y3] array.
   const flat = quad.flatMap((p) => [p.x, p.y]);
-  return rnexecutorchJsi.cv.rectifyQuad(src, dst, flat, {
+  return cvJsi().rectifyQuad(src, dst, flat, {
     contentWidth: options.contentWidth,
     align: options.align ?? 'left',
     padValue: options.padValue ?? 0,

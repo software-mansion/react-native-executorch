@@ -3,7 +3,7 @@
  * Suppression (NMS).
  */
 
-import { rnexecutorchJsi } from '../../../native/bridge';
+import { cvJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
 import type { ResizeMode } from './image';
 import { scalePoint } from './point';
@@ -187,7 +187,7 @@ export function nms(
 ): number[][];
 export function nms(boxes: Tensor, scores: Tensor, options: NmsOptions): number[] | number[][] {
   'worklet';
-  return rnexecutorchJsi.cv.nms(boxes, scores, options);
+  return cvJsi().nms(boxes, scores, options);
 }
 
 /**
@@ -223,5 +223,5 @@ export function restrictToBox(src: Tensor, dst: Tensor, box: BoundingBox<BoxForm
       [a, b, c, d] = [box.cx, box.cy, box.w, box.h];
       break;
   }
-  return rnexecutorchJsi.cv.restrictToBox(src, dst, [a, b, c, d], box.format);
+  return cvJsi().restrictToBox(src, dst, [a, b, c, d], box.format);
 }
