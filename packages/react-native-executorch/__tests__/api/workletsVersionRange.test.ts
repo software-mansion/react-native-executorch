@@ -62,6 +62,15 @@ describe('react-native-worklets peer range', () => {
     expect(satisfies(installed.version, range)).toBe(true);
   });
 
+  it('is also declared as our own react-native peer (#1623)', () => {
+    // Without it an older app fails on worklets' peer instead, and the error
+    // never names this package or its floor.
+    const rnRange: string = manifest.peerDependencies['react-native'];
+    expect(minVersion(rnRange)!.version).toBe('0.83.0');
+    expect(satisfies('0.82.1', rnRange)).toBe(false);
+    expect(satisfies('0.88.1', rnRange)).toBe(true);
+  });
+
   it('matches the React Native floor the docs promise', () => {
     // Worklets declares which React Native versions it accepts; ours cannot be
     // lower than what the oldest worklets we allow will run on. That is
