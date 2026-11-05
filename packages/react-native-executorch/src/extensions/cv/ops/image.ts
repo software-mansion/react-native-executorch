@@ -228,11 +228,10 @@ export function toChannelsLast(src: Tensor, dst: Tensor): Tensor {
  */
 export function normalize(src: Tensor, dst: Tensor, options?: NormalizeOptions): Tensor {
   'worklet';
-  const defaultNormalizeOptions = {
-    alpha: 1 / 255.0,
-    beta: 0.0,
-  } as const;
-  return rnexecutorchJsi.cv.normalize(src, dst, { ...defaultNormalizeOptions, ...options });
+  return rnexecutorchJsi.cv.normalize(src, dst, {
+    alpha: options?.alpha ?? 1 / 255.0,
+    beta: options?.beta ?? 0.0,
+  });
 }
 
 /**

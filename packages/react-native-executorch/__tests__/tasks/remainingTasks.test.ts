@@ -333,6 +333,26 @@ describe('createFsmnVoiceActivityDetector', () => {
     expect(await vad.detectVoice(new Float32Array(100))).toEqual([]);
     vad.dispose();
   });
+
+  it('falls back to the default options for fields passed as undefined', async () => {
+    // Every frame scores 0 non-speech probability, so the defaults find speech.
+    fakeJsi.registerModel(VAD_PATH, { schema: VAD_SCHEMA });
+
+    const vad = await createFsmnVoiceActivityDetector(VAD_CONFIG);
+    const waveform = new Float32Array(16000);
+    const expected = await vad.detectVoice(waveform);
+    expect(expected.length).toBeGreaterThan(0);
+    expect(
+      await vad.detectVoice(waveform, {
+        speechThreshold: undefined,
+        minSpeechDurationMs: undefined,
+        minSilenceDurationMs: undefined,
+        speechPadMs: undefined,
+        mergeGapMs: undefined,
+      })
+    ).toEqual(expected);
+    vad.dispose();
+  });
 });
 
 // ============================================================================

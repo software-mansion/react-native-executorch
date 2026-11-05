@@ -256,7 +256,11 @@ export async function createLLMChatSession(
         throw RnExecuTorchError('RESOURCE_BUSY', 'sendMessage: A turn is already in progress.');
       }
 
-      const turnGenConfig = { ...defaultGenerationConfig, ...genConfig };
+      // Drop fields passed as `undefined` so they keep the session default.
+      const turnOverrides = Object.fromEntries(
+        Object.entries(genConfig ?? {}).filter(([, value]) => value !== undefined)
+      );
+      const turnGenConfig: LLMGenerationConfig = { ...defaultGenerationConfig, ...turnOverrides };
       const prefillOptions = { enableThinking: turnGenConfig.enableThinking, addGenPrompt: false };
       const renderOptions = { ...prefillOptions, addGenPrompt: true };
       const generationOpts = { genConfig: turnGenConfig, stopTokens, stopRegex, onToken };
