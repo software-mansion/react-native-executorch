@@ -171,11 +171,25 @@ const DEFAULT_XTC_OPTIONS = {
  */
 export function sample(logits: Tensor, ctx: SamplingContext, config: SamplingConfig = {}): number {
   'worklet';
+  // `??` rather than spreading the defaults, so a field passed as `undefined`
+  // falls back to its default instead of reaching the native sampler unset.
+  const { dry, xtc } = config;
   const options = {
-    ...DEFAULT_SAMPLING_OPTIONS,
     ...config,
-    dry: config.dry && { ...DEFAULT_DRY_OPTIONS, ...config.dry },
-    xtc: config.xtc && { ...DEFAULT_XTC_OPTIONS, ...config.xtc },
+    temperature: config.temperature ?? DEFAULT_SAMPLING_OPTIONS.temperature,
+    repetitionPenalty: config.repetitionPenalty ?? DEFAULT_SAMPLING_OPTIONS.repetitionPenalty,
+    penaltyLastN: config.penaltyLastN ?? DEFAULT_SAMPLING_OPTIONS.penaltyLastN,
+    topK: config.topK ?? DEFAULT_SAMPLING_OPTIONS.topK,
+    topP: config.topP ?? DEFAULT_SAMPLING_OPTIONS.topP,
+    minP: config.minP ?? DEFAULT_SAMPLING_OPTIONS.minP,
+    dry: dry && {
+      ...dry,
+      base: dry.base ?? DEFAULT_DRY_OPTIONS.base,
+      allowedLength: dry.allowedLength ?? DEFAULT_DRY_OPTIONS.allowedLength,
+      penaltyLastN: dry.penaltyLastN ?? DEFAULT_DRY_OPTIONS.penaltyLastN,
+      sequenceBreakers: dry.sequenceBreakers ?? DEFAULT_DRY_OPTIONS.sequenceBreakers,
+    },
+    xtc: xtc && { ...xtc, threshold: xtc.threshold ?? DEFAULT_XTC_OPTIONS.threshold },
   };
   return rnexecutorchJsi.llm.sample(logits, ctx, options);
 }
