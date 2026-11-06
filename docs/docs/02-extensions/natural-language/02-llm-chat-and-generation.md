@@ -147,7 +147,7 @@ If you use a custom model whose Jinja template dynamically rewires earlier turns
 
 <TaskShowcase task="llm-multimodal-input" />
 
-The gallery’s [image descriptions screen](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/image-description.tsx>) sends a photo and a question in one message, then streams the model’s answer. The showcase uses LFM3 VL 2B to describe the performer in the sample photo.
+The gallery's [image descriptions screen](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/image-description.tsx>) sends a photo and a question in one message, then streams the model's answer. The showcase uses [`LFM3_VL_2B`](../../06-api-reference/variables/models.md#llmlfm3_vl_2b) to describe the performer in the sample photo.
 
 Vision-Language Models (such as Liquid AI's [`LFM2_5_VL_450M`](../../06-api-reference/variables/models.md#llmlfm2_5_vl_450m) and [`LFM2_5_VL_1_6B`](../../06-api-reference/variables/models.md#llmlfm2_5_vl_1_6b)) process interleaved text and visual payloads:
 
@@ -183,7 +183,7 @@ The session automatically embeds the model's sentinel vision tokens, resizes and
 
 The LLM chat session supports automated, multi-turn tool calling (function calling). When tool definitions and a parser are supplied, the session automatically invokes tool callbacks, feeds their results back into the conversation, and returns the final assistant answer.
 
-See the gallery’s [local chat screen](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/llm-chat.tsx>) for a working conversation with calculator, unit conversion and device-clock tools. Expand a tool call to inspect its arguments and returned value.
+See the gallery's [local chat screen](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/llm-chat.tsx>) for a working conversation with calculator, unit conversion and device-clock tools. Expand a tool call to inspect its arguments and returned value.
 
 <TaskShowcase task="llm-tool-calling" />
 
@@ -264,7 +264,7 @@ const session = useLLMChatSession(models.llm.LFM2_5_1_2B.DEFAULT, {
 
 Pass `constraints` in the per-turn options to `sendMessage()` to restrict which tokens the model can generate. A grammar can use these constraints to produce JSON matching the structure your app expects. Parse and validate the completed response before using it.
 
-The gallery’s [Tiny widget builder screen](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/widget-builder.tsx>) demonstrates this with a JSON grammar: the model streams a widget definition, and the app renders its controls. Open the output viewer to inspect the generated JSON. The screen shows the session call; [the grammar implementation](https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/lib/widget-builder/app-builder-grammar.ts) defines the allowed structure.
+The gallery's [Tiny widget builder screen](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/widget-builder.tsx>) demonstrates this with a JSON grammar: the model streams a widget definition, and the app renders its controls. Open the output viewer to inspect the generated JSON. The screen shows the session call; [the grammar implementation](https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/lib/widget-builder/app-builder-grammar.ts) defines the allowed structure.
 
 The following excerpt uses the gallery's `appBuilderConstraints` helper, not a library export. `session` is a ready chat session; `grammar` and `tokens` are the compiled widget grammar and token table from the linked implementation.
 
