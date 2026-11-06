@@ -1,7 +1,68 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
 import styles from './styles.module.css';
+
+function ShowcaseVideo({ src, label }: { src: string; label: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    const video = ref.current;
+    if (!video) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      setLoaded(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setLoaded(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const video = ref.current;
+    if (!video || !loaded) return;
+    // Playback can be blocked by browser autoplay settings.
+    const play = () => {
+      video.play().catch(() => {});
+    };
+    if (typeof IntersectionObserver === 'undefined') {
+      play();
+      return () => video.pause();
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) play();
+      else video.pause();
+    });
+    observer.observe(video);
+    return () => {
+      observer.disconnect();
+      video.pause();
+    };
+  }, [loaded]);
+
+  return (
+    <video
+      ref={ref}
+      src={loaded ? src : undefined}
+      aria-label={label}
+      loop
+      muted
+      playsInline
+      preload="metadata"
+    />
+  );
+}
 
 /**
  * Paired recordings framed for the iPhone 17 and Pixel 10 used to capture them.
@@ -25,14 +86,10 @@ export default function TaskShowcase(props: { task: string; format?: 'mp4' | 'gi
               {format === 'gif' ? (
                 <img src={src} alt={`${task.replaceAll('-', ' ')} on ${name}`} loading="lazy" />
               ) : (
-                <video
+                <ShowcaseVideo
+                  key={src}
                   src={src}
-                  aria-label={`${task.replaceAll('-', ' ')} on ${name}`}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  preload="metadata"
+                  label={`${task.replaceAll('-', ' ')} on ${name}`}
                 />
               )}
             </div>
