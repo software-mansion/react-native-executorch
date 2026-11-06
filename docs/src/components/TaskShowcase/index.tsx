@@ -69,8 +69,8 @@ function ShowcaseVideo({ src, label }: { src: string; label: string }) {
  * @param props - Recording basename shared by the two platform exports.
  * @returns The labeled pair of phone previews.
  */
-export default function TaskShowcase(props: { task: string }) {
-  const { task } = props;
+export default function TaskShowcase(props: { task: string; label?: string }) {
+  const { task, label = task.replaceAll('-', ' ') } = props;
   const ios = useBaseUrl(`/media/gallery/${task}-ios.mp4`);
   const android = useBaseUrl(`/media/gallery/${task}-android.mp4`);
   return (
@@ -83,11 +83,7 @@ export default function TaskShowcase(props: { task: string }) {
           <figcaption>{name}</figcaption>
           <div className={`${styles.phone} ${styles[platform]}`}>
             <div className={styles.screen}>
-              <ShowcaseVideo
-                key={src}
-                src={src}
-                label={`${task.replaceAll('-', ' ')} on ${name}`}
-              />
+              <ShowcaseVideo key={src} src={src} label={`${label} on ${name}`} />
             </div>
             <div className={styles.buttons} aria-hidden="true">
               {platform === 'iphone' ? (

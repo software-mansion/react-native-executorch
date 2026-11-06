@@ -26,7 +26,7 @@ Text embedding models convert sentences, paragraphs, or documents into dense num
 
 This enables on-device semantic search, offline Retrieval-Augmented Generation (RAG) against local SQLite vector stores, intent classification, and cross-modal text-to-image queries when paired with [Image Embeddings](../computer-vision/09-image-embeddings.md) — entirely on the client without sending private text to cloud APIs.
 
-<TaskShowcase task="image-embeddings" />
+<TaskShowcase task="image-embeddings" label="Text embeddings" />
 
 ## Quick Start
 
