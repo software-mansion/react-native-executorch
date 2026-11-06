@@ -266,6 +266,8 @@ Pass `constraints` in the per-turn options to `sendMessage()` to restrict which 
 
 The gallery's [Tiny widget builder screen](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/widget-builder.tsx>) demonstrates this with a JSON grammar: the model streams a widget definition, and the app renders its controls. Open the output viewer to inspect the generated JSON. The screen shows the session call; [the grammar implementation](https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/lib/widget-builder/app-builder-grammar.ts) defines the allowed structure.
 
+<TaskShowcase task="llm-structured-output" />
+
 The following excerpt uses the gallery's `appBuilderConstraints` helper, not a library export. `session` is a ready chat session; `grammar` and `tokens` are the compiled widget grammar and token table from the linked implementation.
 
 ```typescript
@@ -281,8 +283,6 @@ console.log(result.messages);
 ```
 
 The `constraints` callback runs before each token is sampled on the worklet thread. It must be a worklet, and any helpers it calls must also work in that runtime. Keep incremental state in worklet-compatible storage, as the gallery helper does with `createSynchronizable`; create fresh state for each `sendMessage()` so a new response starts at the beginning of the grammar. The `onToken` streaming callback (the second argument) runs on the React Native thread.
-
-<TaskShowcase task="llm-structured-output" />
 
 ## Imperative Session API
 
