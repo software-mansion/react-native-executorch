@@ -110,3 +110,7 @@ TypeDoc runs strictly at startup. If you modify comments in the TypeScript packa
 
 1. Stop the server.
 2. Run `yarn start` again to regenerate the Markdown files.
+
+## Showcase recording sources
+
+[showcase-sources.json](./showcase-sources.json) records the devices, capture and editing details, fixture sources, and licenses for the task showcases. It is contributor metadata and is kept outside `static/` so it is not published with the website.

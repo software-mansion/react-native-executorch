@@ -16,6 +16,8 @@ keywords:
   ]
 ---
 
+import TaskShowcase from '@site/src/components/TaskShowcase';
+
 # Translation
 
 Translation models turn text in one language into another without sending it off the device. Two kinds are available behind the same API:
@@ -23,6 +25,8 @@ Translation models turn text in one language into another without sending it off
 - [Opus-MT](https://github.com/Helsinki-NLP/Opus-MT): small (~110 MB) and fast, one model per language pair, such as English to German.
 - [EuroLLM-1.7B-Instruct](https://huggingface.co/utter-project/EuroLLM-1.7B-Instruct): one 1.7 GB model that translates between any two of its 35 languages.
 - [Hy-MT2-1.8B](https://huggingface.co/tencent/Hy-MT2-1.8B): one 1.2 GB model that translates between any two of its 38 languages and dialects, and is stronger than EuroLLM on Chinese.
+
+<TaskShowcase task="translation" />
 
 ## Quick Start
 
@@ -49,6 +53,10 @@ function MyComponent() {
 ```
 
 An Opus-MT model accepts only its own pair. With `models.translation.EUROLLM_1_7B.DEFAULT` or `models.translation.HY_MT2_1_8B.DEFAULT`, the pair can change on every call without reloading the model.
+
+:::tip Full Interactive Example in Gallery App
+See [`src/app/(screens)/translation.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/translation.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen for English-to-German translation with Opus-MT.
+:::
 
 ## Streaming
 
