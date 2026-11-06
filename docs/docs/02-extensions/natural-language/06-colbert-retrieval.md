@@ -54,7 +54,9 @@ function Search({ documents }: { documents: string[] }) {
 }
 ```
 
+:::tip Full Interactive Example in Gallery App
 See [`src/app/(screens)/colbert-retrieval.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/colbert-retrieval.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen with a small city guide, MaxSim scoring, and ranked result cards.
+:::
 
 ## Output Format
 

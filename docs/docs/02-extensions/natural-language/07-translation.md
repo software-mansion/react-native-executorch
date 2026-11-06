@@ -54,7 +54,9 @@ function MyComponent() {
 
 An Opus-MT model accepts only its own pair. With `models.translation.EUROLLM_1_7B.DEFAULT` or `models.translation.HY_MT2_1_8B.DEFAULT`, the pair can change on every call without reloading the model.
 
+:::tip Full Interactive Example in Gallery App
 See [`src/app/(screens)/translation.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/translation.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen for English-to-German translation with Opus-MT.
+:::
 
 ## Streaming
 
