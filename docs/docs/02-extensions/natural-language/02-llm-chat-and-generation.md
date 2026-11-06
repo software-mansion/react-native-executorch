@@ -145,7 +145,7 @@ If you use a custom model whose Jinja template dynamically rewires earlier turns
 
 ## Multimodal Inputs
 
-<TaskShowcase task="llm-multimodal-input" format="gif" />
+<TaskShowcase task="llm-multimodal-input" />
 
 The gallery’s [image descriptions screen](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/image-description.tsx>) sends a photo and a question in one message, then streams the model’s answer. The showcase uses LFM3 VL 2B to describe the performer in the sample photo.
 

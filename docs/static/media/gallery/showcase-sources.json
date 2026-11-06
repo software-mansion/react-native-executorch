@@ -45,7 +45,7 @@
       "photo": "Generated courtyard sample documented above",
       "prompt": "What is the man doing? Answer in one short sentence.",
       "response": "The man is juggling oranges.",
-      "formats": ["mp4", "gif"]
+      "formats": ["mp4"]
     }
   },
   "frames": {

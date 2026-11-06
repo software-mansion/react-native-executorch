@@ -69,10 +69,10 @@ function ShowcaseVideo({ src, label }: { src: string; label: string }) {
  * @param props - Recording basename shared by the two platform exports.
  * @returns The labeled pair of phone previews.
  */
-export default function TaskShowcase(props: { task: string; format?: 'mp4' | 'gif' }) {
-  const { task, format = 'mp4' } = props;
-  const ios = useBaseUrl(`/media/gallery/${task}-ios.${format}`);
-  const android = useBaseUrl(`/media/gallery/${task}-android.${format}`);
+export default function TaskShowcase(props: { task: string }) {
+  const { task } = props;
+  const ios = useBaseUrl(`/media/gallery/${task}-ios.mp4`);
+  const android = useBaseUrl(`/media/gallery/${task}-android.mp4`);
   return (
     <div className={styles.showcase}>
       {[
@@ -83,15 +83,11 @@ export default function TaskShowcase(props: { task: string; format?: 'mp4' | 'gi
           <figcaption>{name}</figcaption>
           <div className={`${styles.phone} ${styles[platform]}`}>
             <div className={styles.screen}>
-              {format === 'gif' ? (
-                <img src={src} alt={`${task.replaceAll('-', ' ')} on ${name}`} loading="lazy" />
-              ) : (
-                <ShowcaseVideo
-                  key={src}
-                  src={src}
-                  label={`${task.replaceAll('-', ' ')} on ${name}`}
-                />
-              )}
+              <ShowcaseVideo
+                key={src}
+                src={src}
+                label={`${task.replaceAll('-', ' ')} on ${name}`}
+              />
             </div>
             <div className={styles.buttons} aria-hidden="true">
               {platform === 'iphone' ? (
