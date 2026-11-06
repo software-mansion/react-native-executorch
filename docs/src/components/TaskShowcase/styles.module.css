@@ -22,7 +22,6 @@
 .phone {
   position: relative;
   box-sizing: border-box;
-  --screen-height: 560px;
   max-width: 100%;
   padding: 6px;
   border: 2px solid #747b83;
@@ -35,13 +34,12 @@
 .screen {
   position: relative;
   overflow: hidden;
-  height: var(--screen-height);
-  border-radius: calc(var(--corner-radius) - 8px);
+  aspect-ratio: var(--screen-ratio);
+  border-radius: var(--corner-radius);
   background: #000;
 }
 
-.screen video,
-.screen img {
+.screen video {
   position: absolute;
   inset: 0;
   display: block;
@@ -52,14 +50,16 @@
 
 /* Button positions follow the manufacturers' front-view hardware diagrams. */
 .iphone {
-  --corner-radius: calc(var(--screen-height) * 0.09);
-  width: calc(var(--screen-height) * 1206 / 2622 + 16px);
+  --screen-ratio: 1206 / 2622;
+  --corner-radius: 19.6% / 9%;
+  width: calc(560px * 1206 / 2622 + 16px);
   border-radius: var(--corner-radius);
 }
 
 .pixel {
-  --corner-radius: calc(var(--screen-height) * 0.075);
-  width: calc(var(--screen-height) * 1080 / 2424 + 16px);
+  --screen-ratio: 1080 / 2424;
+  --corner-radius: 16.8% / 7.5%;
+  width: calc(560px * 1080 / 2424 + 16px);
   border-radius: var(--corner-radius);
   border-color: #8c9296;
 }
