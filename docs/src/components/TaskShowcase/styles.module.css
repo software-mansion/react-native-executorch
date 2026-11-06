@@ -36,6 +36,7 @@
   position: relative;
   overflow: hidden;
   height: var(--screen-height);
+  border-radius: calc(var(--corner-radius) - 8px);
   background: #000;
 }
 
@@ -56,19 +57,11 @@
   border-radius: var(--corner-radius);
 }
 
-.iphone .screen {
-  border-radius: calc(var(--corner-radius) - 8px);
-}
-
 .pixel {
   --corner-radius: calc(var(--screen-height) * 0.075);
   width: calc(var(--screen-height) * 1080 / 2424 + 16px);
   border-radius: var(--corner-radius);
   border-color: #8c9296;
-}
-
-.pixel .screen {
-  border-radius: calc(var(--corner-radius) - 8px);
 }
 
 .buttons {
