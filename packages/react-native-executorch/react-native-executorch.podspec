@@ -285,6 +285,11 @@ Pod::Spec.new do |s|
   # resource path. `s.ios.resource` achieves that via CocoaPods' resource copy.
   s.ios.resource = "third-party/ios/libs/executorch/mlx.metallib" if enable_mlx
 
+  # Required-reason APIs (stat/fstat in ExecutorchLib and the Core ML backend)
+  # and the download telemetry. The file must exist: a missing one globs to an
+  # empty bundle without any error.
+  s.resource_bundles = { "RnExecutorchPrivacyInfo" => ["ios/PrivacyInfo.xcprivacy"] }
+
   # An app that turns on `use_frameworks!` without naming a linkage gets the
   # default, dynamic - which is what Firebase's own setup instructions show.
   # CocoaPods then refuses to install at all, because a dynamic framework may
