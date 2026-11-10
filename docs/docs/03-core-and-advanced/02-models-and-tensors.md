@@ -249,6 +249,17 @@ const model = await wrapAsync(loadModel)('/path/to/model.pte', {
 });
 ```
 
+`loadModel()` also accepts an in-memory `ArrayBuffer` or a custom
+`ModelDataLoader` (`{ size(): number, load(offset: number, size: number): ArrayBuffer }`),
+and an optional `dataMapPath` for models exported with an external `.ptd`
+weight archive:
+
+```typescript
+const model = await wrapAsync(loadModel)(programBuffer, {
+  dataMapPath: '/path/to/weights.ptd',
+});
+```
+
 See [Worklets & Threading](./06-worklets-and-threading.md) for how
 [`wrapAsync`](../06-api-reference/functions/wrapAsync.md) and worklet runtimes
 fit together.
