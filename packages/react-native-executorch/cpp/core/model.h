@@ -12,6 +12,7 @@
 #include <jsi/jsi.h>
 
 #include <executorch/extension/module/module.h>
+#include <executorch/runtime/core/data_loader.h>
 
 namespace rnexecutorch::core::model {
 namespace jsi = facebook::jsi;
@@ -40,7 +41,11 @@ public:
      * @param modelPath Absolute file system path to the `.pte` model binary.
      * @param eagerLoadMethods Whether to eagerly load and compile all model methods.
      */
-    explicit ModelHostObject(const std::string &modelPath, bool eagerLoadMethods);
+    explicit ModelHostObject(std::string modelPath,
+                             std::unique_ptr<executorch::runtime::DataLoader> modelLoader,
+                             std::unique_ptr<executorch::runtime::DataLoader> dataMapLoader,
+                             bool eagerLoadMethods,
+                             bool usesJsiDataLoader);
 
     jsi::Value get(jsi::Runtime &rt, const jsi::PropNameID &name) override;
     std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime &rt) override;
@@ -69,6 +74,10 @@ private:
 
     /// Unique pointer to the underlying ExecuTorch module instance.
     std::unique_ptr<executorch::extension::Module> etModule_;
+
+    /// True when the program or external data map uses a JS-backed DataLoader
+    /// whose JS callbacks are detached once `loadModel` returns.
+    bool usesJsiDataLoader_ = false;
 };
 
 void install_loadModel(jsi::Runtime &rt, jsi::Object &module);

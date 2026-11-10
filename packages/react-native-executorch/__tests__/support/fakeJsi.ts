@@ -14,6 +14,7 @@
  */
 import { TextDecoder } from 'util';
 import type { ConcreteDim, ModelSpec } from '../../src/core/schema';
+import type { ModelSource } from '../../src/core/model';
 import type { DType } from '../../src/core/tensor';
 import { FakeTensor, tensorTracker } from './fakeTensor';
 import { cv, fakePhonemizer, llm, math, speech } from './fakeOps';
@@ -43,9 +44,13 @@ export type FakeProgram = {
   execute?: FakeExecute;
 };
 
-const programs = new Map<string, FakeProgram>();
+const programs = new Map<ModelSource, FakeProgram>();
 const liveModels = new Set<string>();
 const executions: { path: string; methodName: string }[] = [];
+const modelLoads: {
+  source: ModelSource;
+  options?: { eagerLoadMethods?: boolean; dataMapPath?: ModelSource };
+}[] = [];
 
 class FakeModel {
   readonly path: string;
@@ -227,12 +232,18 @@ const jsi = {
 
   createTensor: (shape: number[], dtype: DType) => new FakeTensor(dtype, shape),
 
-  loadModel: (path: string, _options?: { eagerLoadMethods?: boolean }) => {
-    const program = programs.get(path);
+  loadModel: (
+    source: ModelSource,
+    options?: { eagerLoadMethods?: boolean; dataMapPath?: ModelSource }
+  ) => {
+    const program = programs.get(source);
+    const label =
+      typeof source === 'string' ? source : source instanceof ArrayBuffer ? '<buffer>' : '<loader>';
     if (!program) {
-      throw new Error(`loadModel: no program registered at '${path}' (register one via fakeJsi)`);
+      throw new Error(`loadModel: no program registered at '${label}' (register one via fakeJsi)`);
     }
-    return new FakeModel(path, program);
+    modelLoads.push({ source, options });
+    return new FakeModel(label, program);
   },
 
   getExecuTorchRegisteredBackends: () => [...registeredBackends],
@@ -266,12 +277,12 @@ export function installFakeJsi(): void {
 
 export const fakeJsi = {
   /**
-   * Makes `loadModel(path)` succeed and return `program`.
-   * @param path The model path a pipeline will be pointed at.
+   * Makes `loadModel(source)` succeed and return `program`.
+   * @param source The model path or buffer a pipeline will be pointed at.
    * @param program The schema, backends and `execute` behavior to serve.
    */
-  registerModel(path: string, program: FakeProgram): void {
-    programs.set(path, program);
+  registerModel(source: ModelSource, program: FakeProgram): void {
+    programs.set(source, program);
   },
 
   /**
@@ -309,6 +320,14 @@ export const fakeJsi = {
     return executions;
   },
 
+  /** @returns Every `loadModel` call made so far, in order. */
+  modelLoads(): readonly {
+    source: ModelSource;
+    options?: { eagerLoadMethods?: boolean; dataMapPath?: ModelSource };
+  }[] {
+    return modelLoads;
+  },
+
   /** @returns Paths of models that were loaded and not disposed. */
   liveModels(): string[] {
     return [...liveModels].sort();
@@ -336,6 +355,7 @@ export const fakeJsi = {
     liveModels.clear();
     liveTokenizers.clear();
     executions.length = 0;
+    modelLoads.length = 0;
     registeredBackends = ['XnnpackBackend', 'CoreMLBackend'];
     jsi.isEmulator = false;
     fakePhonemizer.reset();

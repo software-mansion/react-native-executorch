@@ -1,4 +1,6 @@
 #include <format>
+#include <fstream>
+#include <iterator>
 #include <string>
 #include <vector>
 
@@ -146,6 +148,93 @@ TEST_F(ModelTest, LoadsAProgramAndExposesItsPath) {
     EXPECT_EQ(evalString(std::format("{} return model.path;", loadFixtureJs())), kFixture);
 }
 
+TEST_F(ModelTest, LoadsAProgramFromAnArrayBuffer) {
+    std::ifstream file(kFixture, std::ios::binary);
+    std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    ASSERT_FALSE(bytes.empty());
+
+    auto arrayBufferCtor = rt().global().getPropertyAsFunction(rt(), "ArrayBuffer");
+    auto bufferObj = arrayBufferCtor.callAsConstructor(rt(), static_cast<int>(bytes.size())).getObject(rt());
+    std::memcpy(bufferObj.getArrayBuffer(rt()).data(rt()), bytes.data(), bytes.size());
+    rt().global().setProperty(rt(), "__fixtureBuffer", bufferObj);
+
+    EXPECT_EQ(evalString(R"(
+        const model = __rnexecutorch_jsi__.loadModel(__fixtureBuffer, { eagerLoadMethods: false });
+        return `${model.path}:${model.backends.forward.join(',')}`;
+    )"),
+              "<buffer>:XnnpackBackend");
+}
+
+TEST_F(ModelTest, LoadsAProgramFromAModelDataLoader) {
+    std::ifstream file(kFixture, std::ios::binary);
+    std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    ASSERT_FALSE(bytes.empty());
+
+    auto arrayBufferCtor = rt().global().getPropertyAsFunction(rt(), "ArrayBuffer");
+    auto bufferObj = arrayBufferCtor.callAsConstructor(rt(), static_cast<int>(bytes.size())).getObject(rt());
+    std::memcpy(bufferObj.getArrayBuffer(rt()).data(rt()), bytes.data(), bytes.size());
+    rt().global().setProperty(rt(), "__fixtureBuffer", bufferObj);
+
+    EXPECT_EQ(evalString(R"(
+        let calls = 0;
+        const loader = {
+            size: () => __fixtureBuffer.byteLength,
+            load: (offset, size) => {
+                calls += 1;
+                return __fixtureBuffer.slice(offset, offset + size);
+            },
+        };
+        const model = __rnexecutorch_jsi__.loadModel(loader, { eagerLoadMethods: false });
+        return `${model.path}:${model.backends.forward.join(',')}:${calls > 0}`;
+    )"),
+              "<loader>:XnnpackBackend:true");
+}
+
+TEST_F(ModelTest, RejectsAModelDataLoaderReturningWrongByteLength) {
+    auto thrown = evalThrowing(R"(
+        const loader = {
+            size: () => 64,
+            load: () => new ArrayBuffer(4),
+        };
+        __rnexecutorch_jsi__.loadModel(loader, { eagerLoadMethods: false });
+    )");
+
+    EXPECT_TRUE(isCodedError(thrown, "INVALID_ARGUMENT", "loadModel: source.load() returned 4 bytes"));
+}
+
+TEST_F(ModelTest, RejectsAModelDataLoaderMissingLoad) {
+    auto thrown = evalThrowing(R"(
+        __rnexecutorch_jsi__.loadModel({ size: () => 64 }, { eagerLoadMethods: false });
+    )");
+
+    EXPECT_TRUE(isCodedError(thrown, "INVALID_ARGUMENT", "option 'load' is required"));
+}
+
+TEST_F(ModelTest, PropagatesExceptionThrownInsideModelDataLoader) {
+    auto thrown = evalThrowing(R"(
+        const loader = {
+            size: () => 64,
+            load: () => { throw new Error('disk read failed'); },
+        };
+        __rnexecutorch_jsi__.loadModel(loader, { eagerLoadMethods: false });
+    )");
+
+    EXPECT_THAT(thrown.message, HasSubstr("disk read failed"));
+}
+
+TEST_F(ModelTest, AcceptsUndefinedDataMapPathAndRejectsInvalidDataMapPath) {
+    EXPECT_EQ(evalString(std::format(
+                  "const m = __rnexecutorch_jsi__.loadModel('{}', {{ eagerLoadMethods: false, dataMapPath: undefined }}); return m.path;",
+                  kFixture)),
+              kFixture);
+
+    auto thrown = evalThrowing(std::format(
+        "__rnexecutorch_jsi__.loadModel('{}', {{ eagerLoadMethods: false, dataMapPath: 123 }});", kFixture));
+    EXPECT_TRUE(isCodedError(
+        thrown, "INVALID_ARGUMENT",
+        "loadModel: options: option 'dataMapPath' must be a string, an ArrayBuffer, or a ModelDataLoader"));
+}
+
 TEST_F(ModelTest, ExposesTheSchemaToJs) {
     EXPECT_TRUE(evalBool(std::format(
         "{} return typeof model.schema.forward === 'object';", loadFixtureJs())));
@@ -199,12 +288,12 @@ TEST_F(ModelTest, ReportsAMissingFileAsLoadFailed) {
 
 TEST_F(ModelTest, RejectsWrongArgumentCount) {
     EXPECT_THAT(evalThrowingMessage("__rnexecutorch_jsi__.loadModel();"),
-                HasSubstr("Usage: loadModel(path, options?)"));
+                HasSubstr("Usage: loadModel(source, options?)"));
 }
 
 TEST_F(ModelTest, RejectsANonStringPath) {
     EXPECT_THAT(evalThrowingMessage("__rnexecutorch_jsi__.loadModel(42);"),
-                HasSubstr("must be a string"));
+                HasSubstr("must be a string, an ArrayBuffer, or a ModelDataLoader"));
 }
 
 TEST_F(ModelTest, ExecuteRejectsWrongArgumentCount) {

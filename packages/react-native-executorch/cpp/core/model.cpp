@@ -4,8 +4,10 @@
 #include <cctype>
 #include <chrono>
 #include <cstdint>
+#include <cstring>
 #include <exception>
 #include <format>
+#include <new>
 #include <optional>
 #include <unordered_set>
 #include <utility>
@@ -19,6 +21,8 @@
 
 #include <jsi/jsi.h>
 
+#include <executorch/extension/data_loader/buffer_data_loader.h>
+#include <executorch/extension/data_loader/mmap_data_loader.h>
 #include <executorch/runtime/backend/interface.h>
 #include <executorch/runtime/core/error.h>
 #include <executorch/runtime/core/tag.h>
@@ -27,6 +31,174 @@ namespace {
 
 using rnexecutorch::core::error::RnExecuTorchErrorCode;
 using rnexecutorch::core::error::RnExecuTorchException;
+
+void freeAlignedBuffer(void * /*context*/, void *data, size_t /*size*/) {
+    ::operator delete[](static_cast<uint8_t *>(data), std::align_val_t(64));
+}
+
+class OwnedBufferDataLoader final : public executorch::runtime::DataLoader {
+public:
+    OwnedBufferDataLoader(const uint8_t *src, size_t size)
+        : storage_(static_cast<uint8_t *>(size == 0 ? nullptr : ::operator new[](size, std::align_val_t(64))),
+                   [](uint8_t *ptr) { ::operator delete[](ptr, std::align_val_t(64)); }),
+          loader_(storage_.get(), size) {
+        if (size > 0) {
+            std::memcpy(storage_.get(), src, size);
+        }
+    }
+
+    ET_NODISCARD executorch::runtime::Result<executorch::runtime::FreeableBuffer>
+    load(size_t offset, size_t size, const SegmentInfo &segmentInfo) const override {
+        return loader_.load(offset, size, segmentInfo);
+    }
+
+    ET_NODISCARD executorch::runtime::Error
+    load_into(size_t offset, size_t size, const SegmentInfo &segmentInfo, void *buffer) const override {
+        return loader_.load_into(offset, size, segmentInfo, buffer);
+    }
+
+    ET_NODISCARD executorch::runtime::Result<size_t> size() const override {
+        return loader_.size();
+    }
+
+private:
+    std::unique_ptr<uint8_t, void (*)(uint8_t *)> storage_;
+    executorch::extension::BufferDataLoader loader_;
+};
+
+class JsiDataLoader final : public executorch::runtime::DataLoader {
+public:
+    JsiDataLoader(facebook::jsi::Runtime &rt, std::string ctx, facebook::jsi::Object loader,
+                  facebook::jsi::Function sizeFn, facebook::jsi::Function loadFn,
+                  std::shared_ptr<std::exception_ptr> lastError)
+        : rt_(&rt), ctx_(std::move(ctx)), loader_(std::move(loader)),
+          sizeFn_(std::move(sizeFn)), loadFn_(std::move(loadFn)),
+          lastError_(std::move(lastError)) {}
+
+    ET_NODISCARD executorch::runtime::Result<executorch::runtime::FreeableBuffer>
+    load(size_t offset, size_t size, const SegmentInfo & /*segmentInfo*/) const override {
+        if (size == 0) {
+            return executorch::runtime::FreeableBuffer(nullptr, 0, nullptr);
+        }
+        if (rt_ == nullptr || !loader_.has_value() || !loadFn_.has_value()) {
+            return executorch::runtime::Error::InvalidState;
+        }
+        try {
+            auto result = loadFn_->callWithThis(*rt_, *loader_,
+                                                facebook::jsi::Value(static_cast<double>(offset)),
+                                                facebook::jsi::Value(static_cast<double>(size)));
+            auto buffer = rnexecutorch::core::conversions::asType<facebook::jsi::ArrayBuffer>(
+                *rt_, ctx_ + ".load()", result);
+            if (buffer.size(*rt_) != size) {
+                throw rnexecutorch::core::error::InvalidArgument(
+                    std::format("{}.load() returned {} bytes, expected {}", ctx_, buffer.size(*rt_), size));
+            }
+            auto *copy = static_cast<uint8_t *>(::operator new[](size, std::align_val_t(64)));
+            std::memcpy(copy, buffer.data(*rt_), size);
+            return executorch::runtime::FreeableBuffer(copy, size, freeAlignedBuffer);
+        } catch (...) {
+            if (lastError_ && !*lastError_) {
+                *lastError_ = std::current_exception();
+            }
+            return executorch::runtime::Error::AccessFailed;
+        }
+    }
+
+    ET_NODISCARD executorch::runtime::Error
+    load_into(size_t offset, size_t size, const SegmentInfo &segmentInfo, void *buffer) const override {
+        if (buffer == nullptr && size != 0) {
+            return executorch::runtime::Error::InvalidArgument;
+        }
+        if (size == 0) {
+            return executorch::runtime::Error::Ok;
+        }
+        auto loaded = load(offset, size, segmentInfo);
+        if (!loaded.ok()) {
+            return loaded.error();
+        }
+        std::memcpy(buffer, loaded->data(), size);
+        return executorch::runtime::Error::Ok;
+    }
+
+    ET_NODISCARD executorch::runtime::Result<size_t> size() const override {
+        if (rt_ == nullptr || !loader_.has_value() || !sizeFn_.has_value()) {
+            return executorch::runtime::Error::InvalidState;
+        }
+        try {
+            auto result = sizeFn_->callWithThis(*rt_, *loader_);
+            return static_cast<size_t>(
+                rnexecutorch::core::conversions::asType<uint64_t>(*rt_, ctx_ + ".size()", result));
+        } catch (...) {
+            if (lastError_ && !*lastError_) {
+                *lastError_ = std::current_exception();
+            }
+            return executorch::runtime::Error::AccessFailed;
+        }
+    }
+
+    void detachRuntime() {
+        rt_ = nullptr;
+        loader_.reset();
+        sizeFn_.reset();
+        loadFn_.reset();
+    }
+
+private:
+    facebook::jsi::Runtime *rt_;
+    std::string ctx_;
+    std::optional<facebook::jsi::Object> loader_;
+    std::optional<facebook::jsi::Function> sizeFn_;
+    std::optional<facebook::jsi::Function> loadFn_;
+    std::shared_ptr<std::exception_ptr> lastError_;
+};
+
+std::unique_ptr<executorch::runtime::DataLoader>
+createDataLoader(facebook::jsi::Runtime &rt, const std::string &ctx, const facebook::jsi::Value &val,
+                 const std::shared_ptr<std::exception_ptr> &lastError,
+                 JsiDataLoader **outJsiLoader, std::string *outPath) {
+    if (val.isString()) {
+        auto path = rnexecutorch::core::conversions::asType<std::string>(rt, ctx, val);
+        if (outPath != nullptr) {
+            *outPath = path;
+        }
+        auto loader = executorch::extension::MmapDataLoader::from(
+            path.c_str(), executorch::extension::MmapDataLoader::MlockConfig::NoMlock);
+        if (!loader.ok()) {
+            throw rnexecutorch::core::error::LoadFailed(
+                std::format("Failed to load model from '{}': {}", path,
+                            executorch::runtime::to_string(loader.error())),
+                loader.error());
+        }
+        return std::make_unique<executorch::extension::MmapDataLoader>(std::move(loader.get()));
+    }
+    if (val.isObject()) {
+        auto obj = val.asObject(rt);
+        if (obj.isArrayBuffer(rt)) {
+            auto buffer = obj.getArrayBuffer(rt);
+            if (outPath != nullptr) {
+                *outPath = "<buffer>";
+            }
+            return std::make_unique<OwnedBufferDataLoader>(buffer.data(rt), buffer.size(rt));
+        }
+        if (!obj.isArray(rt) && !obj.isFunction(rt)) {
+            auto sizeFn = rnexecutorch::core::conversions::getRequiredProperty<facebook::jsi::Function>(
+                rt, ctx, obj, "size");
+            auto loadFn = rnexecutorch::core::conversions::getRequiredProperty<facebook::jsi::Function>(
+                rt, ctx, obj, "load");
+            if (outPath != nullptr) {
+                *outPath = "<loader>";
+            }
+            auto loader = std::make_unique<JsiDataLoader>(
+                rt, ctx, std::move(obj), std::move(sizeFn), std::move(loadFn), lastError);
+            if (outJsiLoader != nullptr) {
+                *outJsiLoader = loader.get();
+            }
+            return loader;
+        }
+    }
+    throw rnexecutorch::core::error::InvalidArgument(
+        ctx + " must be a string, an ArrayBuffer, or a ModelDataLoader");
+}
 
 template <typename T>
 T unwrap(RnExecuTorchErrorCode code, const std::string &ctx, executorch::runtime::Result<T> result) {
@@ -72,9 +244,15 @@ namespace conversions = rnexecutorch::core::conversions;
 using executorch::extension::Module;
 using rnexecutorch::core::tensor::TensorHostObject;
 
-ModelHostObject::ModelHostObject(const std::string &modelPath, const bool eagerLoadMethods)
-    : modelPath_(modelPath),
-      etModule_(std::make_unique<executorch::extension::Module>(modelPath, Module::LoadMode::Mmap)) {
+ModelHostObject::ModelHostObject(std::string modelPath,
+                                 std::unique_ptr<executorch::runtime::DataLoader> modelLoader,
+                                 std::unique_ptr<executorch::runtime::DataLoader> dataMapLoader,
+                                 const bool eagerLoadMethods,
+                                 const bool usesJsiDataLoader)
+    : modelPath_(std::move(modelPath)),
+      etModule_(std::make_unique<executorch::extension::Module>(
+          std::move(modelLoader), nullptr, nullptr, nullptr, std::move(dataMapLoader))),
+      usesJsiDataLoader_(usesJsiDataLoader) {
 
     auto loadError = etModule_->load();
     if (!etModule_->is_loaded()) {
@@ -212,6 +390,11 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             schema::validateRuntimeConstraints(rt, methodSpec.runtimeConstraints, inputShapes,
                                                std::format("execute: method '{}'", methodName));
             if (!self->etModule_->is_method_loaded(methodName)) {
+                if (self->usesJsiDataLoader_) {
+                    throw error::InvalidState(
+                        "execute: Methods of a model loaded from a ModelDataLoader must be loaded eagerly "
+                        "(eagerLoadMethods: true)");
+                }
                 requireRegisteredBackends(self->modelPath_, methodName, self->backends_.at(methodName));
             }
 
@@ -353,18 +536,44 @@ void install_loadModel(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "loadModel";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count < 1 || count > 2) {
-            throw error::InvalidArgument("loadModel: Usage: loadModel(path, options?)");
+            throw error::InvalidArgument("loadModel: Usage: loadModel(source, options?)");
         }
 
-        auto modelPath = conversions::asType<std::string>(rt, "loadModel: path", args[0]);
+        std::string modelPath;
+        auto lastLoaderError = std::make_shared<std::exception_ptr>();
+        JsiDataLoader *jsiModelLoader = nullptr;
+        JsiDataLoader *jsiDataMapLoader = nullptr;
+        auto modelLoader = createDataLoader(
+            rt, "loadModel: source", args[0], lastLoaderError, &jsiModelLoader, &modelPath);
+        std::unique_ptr<executorch::runtime::DataLoader> dataMapLoader;
         bool eagerLoadMethods = true;
 
         if (count >= 2 && !args[1].isUndefined() && !args[1].isNull()) {
             auto options = conversions::asType<jsi::Object>(rt, "loadModel: options", args[1]);
             eagerLoadMethods = conversions::getOptionalProperty<bool>(rt, "loadModel: options", options, "eagerLoadMethods").value_or(true);
+            if (auto dataMap = conversions::getOptionalProperty<jsi::Value>(rt, "loadModel: options", options, "dataMapPath")) {
+                dataMapLoader = createDataLoader(
+                    rt, "loadModel: options: option 'dataMapPath'", *dataMap, lastLoaderError, &jsiDataMapLoader, nullptr);
+            }
         }
 
-        return jsi::Object::createFromHostObject(rt, std::make_shared<ModelHostObject>(modelPath, eagerLoadMethods));
+        try {
+            const bool usesJsiDataLoader = jsiModelLoader != nullptr || jsiDataMapLoader != nullptr;
+            auto hostObject = std::make_shared<ModelHostObject>(
+                modelPath, std::move(modelLoader), std::move(dataMapLoader), eagerLoadMethods, usesJsiDataLoader);
+            if (jsiModelLoader != nullptr) {
+                jsiModelLoader->detachRuntime();
+            }
+            if (jsiDataMapLoader != nullptr) {
+                jsiDataMapLoader->detachRuntime();
+            }
+            return jsi::Object::createFromHostObject(rt, hostObject);
+        } catch (...) {
+            if (*lastLoaderError) {
+                std::rethrow_exception(*lastLoaderError);
+            }
+            throw;
+        }
     };
     auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 2, error::guarded(fnBody));
 

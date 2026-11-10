@@ -13,6 +13,35 @@ import type { ModelSpec, ConcreteDim } from './schema';
 declare const modelBrand: unique symbol;
 
 /**
+ * Custom random-access byte loader for an ExecuTorch `.pte` program or `.ptd`
+ * external weight archive.
+ *
+ * The runtime requests only the byte ranges it needs and releases each segment
+ * buffer once the backend has unpacked it, enabling chunked or on-demand
+ * loading without materializing the entire file in memory at once.
+ * @category Core / Types
+ */
+export type ModelDataLoader = {
+  /** Total byte length of the underlying data source. */
+  size(): number;
+  /**
+   * Reads `size` bytes starting at `offset`.
+   * @param offset Byte offset from the start of the data source.
+   * @param size Number of bytes to read.
+   * @returns An `ArrayBuffer` of `size` bytes.
+   */
+  load(offset: number, size: number): ArrayBuffer;
+};
+
+/**
+ * A local filesystem path, an in-memory `ArrayBuffer`, or a custom
+ * {@link ModelDataLoader} supplying an ExecuTorch `.pte` program or `.ptd`
+ * external weight archive.
+ * @category Core / Types
+ */
+export type ModelSource = string | ArrayBuffer | ModelDataLoader;
+
+/**
  * A value that can be passed as an input to a model's `execute` method.
  * @category Core / Types
  */
@@ -36,7 +65,11 @@ export type ModelOutput = Tensor | number | boolean | string | null;
  * @category Core / Types
  */
 export type Model = {
-  /** The local filesystem path of the `.pte` model file. */
+  /**
+   * The local filesystem path of the `.pte` model file, `'<buffer>'` when the
+   * model was loaded from an `ArrayBuffer`, or `'<loader>'` when loaded from a
+   * {@link ModelDataLoader}.
+   */
   readonly path: string;
   /** The exported schema of this model. */
   readonly schema: ModelSpec<ConcreteDim>;
@@ -90,23 +123,33 @@ export type LoadModelOptions = {
    * guaranteeing instantaneous first-inference latency.
    *
    * Set to `false` to lazily load and compile methods on their first execution.
+   * Models loaded from a {@link ModelDataLoader} must keep `eagerLoadMethods`
+   * set to `true` when executing methods.
    * @default true
    */
   readonly eagerLoadMethods?: boolean;
+  /**
+   * Optional external `.ptd` weight archive path, `ArrayBuffer`, or
+   * {@link ModelDataLoader} for models exported with separated weights.
+   */
+  readonly dataMapPath?: ModelSource;
 };
 
 /**
- * Loads and compiles an ExecuTorch `.pte` model from the local filesystem.
+ * Loads and compiles an ExecuTorch `.pte` model from a local filesystem path,
+ * an in-memory `ArrayBuffer`, or a custom {@link ModelDataLoader}.
  *
  * The model is loaded synchronously into native memory. Prefer calling this
  * inside a worklet runtime thread (via {@link wrapAsync}) to avoid blocking the
  * JS thread during compilation.
  * @category Core / Functions
- * @param modelPath The absolute local path to the `.pte` model file.
+ * @param modelSource The absolute local path, `ArrayBuffer`, or
+ * {@link ModelDataLoader} supplying the `.pte` model program.
  * @param options Optional loading configuration. See {@link LoadModelOptions}.
  * @returns The compiled {@link Model} instance, ready for execution.
- * @throws {RnExecuTorchError} Thrown with code `LOAD_FAILED` if the model file
- * cannot be opened, has an invalid format, or fails native initialization.
+ * @throws {RnExecuTorchError} Thrown with code `INVALID_ARGUMENT` if the source
+ * or options are invalid, or `LOAD_FAILED` if the model cannot be opened, has
+ * an invalid format, or fails native initialization.
  * @see {@link wrapAsync}
  * @example
  * ```typescript
@@ -123,7 +166,7 @@ export type LoadModelOptions = {
  * }
  * ```
  */
-export function loadModel(modelPath: string, options?: LoadModelOptions): Model {
+export function loadModel(modelSource: ModelSource, options?: LoadModelOptions): Model {
   'worklet';
-  return rnexecutorchJsi.loadModel(modelPath, options) as Model;
+  return rnexecutorchJsi.loadModel(modelSource, options) as Model;
 }

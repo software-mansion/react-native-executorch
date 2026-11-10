@@ -55,7 +55,7 @@ Key helpers:
 
 | Helper                                        | Use                                                                                                             |
 | :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------- |
-| `fakeJsi.registerModel(path, program)`        | Make `loadModel(path)` succeed with a given schema and `execute`                                                |
+| `fakeJsi.registerModel(source, program)`      | Make `loadModel(source)` succeed with a given schema and `execute`                                              |
 | `fakeJsi.registerTokenizer(path, vocabulary)` | Same for `loadTokenizer`                                                                                        |
 | `fakeJsi.registerLLMRunner(path, program)`    | Same for `createLLMRunner`: a context window and the responses to generate, one per `generate` call             |
 | `fakePhonemizer.serve(text, phonemes)`        | Script the native grapheme-to-phoneme converter                                                                 |

@@ -38,6 +38,40 @@ describe('loadModel', () => {
     model.dispose();
   });
 
+  it('loads from an in-memory ArrayBuffer and forwards dataMapPath', () => {
+    const schema = exported(method('forward', [f32(4)], [f32(4)]));
+    const modelBuffer = new Uint8Array([1, 2, 3, 4]).buffer;
+    const weightsBuffer = new Uint8Array([5, 6, 7, 8]).buffer;
+    fakeJsi.registerModel(modelBuffer, { schema });
+
+    const model = loadModel(modelBuffer, { dataMapPath: weightsBuffer });
+    expect(model.path).toBe('<buffer>');
+    expect(fakeJsi.modelLoads()).toEqual([
+      { source: modelBuffer, options: { dataMapPath: weightsBuffer } },
+    ]);
+    model.dispose();
+  });
+
+  it('loads from a custom ModelDataLoader and forwards a loader dataMapPath', () => {
+    const schema = exported(method('forward', [f32(4)], [f32(4)]));
+    const modelLoader = {
+      size: () => 4,
+      load: (_offset: number, size: number) => new ArrayBuffer(size),
+    };
+    const weightsLoader = {
+      size: () => 8,
+      load: (_offset: number, size: number) => new ArrayBuffer(size),
+    };
+    fakeJsi.registerModel(modelLoader, { schema });
+
+    const model = loadModel(modelLoader, { dataMapPath: weightsLoader });
+    expect(model.path).toBe('<loader>');
+    expect(fakeJsi.modelLoads()).toEqual([
+      { source: modelLoader, options: { dataMapPath: weightsLoader } },
+    ]);
+    model.dispose();
+  });
+
   it('propagates a load failure as a thrown error', () => {
     expect(() => loadModel('/models/missing.pte')).toThrow(/missing.pte/);
   });
