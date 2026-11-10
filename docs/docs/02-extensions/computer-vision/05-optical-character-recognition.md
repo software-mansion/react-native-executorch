@@ -156,7 +156,7 @@ To use your own custom-trained PaddleOCR `.pte` model and character set, pass a 
 
 ```typescript
 const customOcr = await createPaddleOcr({
-  modelPath: 'https://example.com/my-ocr.pte',
+  modelSource: 'https://example.com/my-ocr.pte',
   charsetPath: 'https://example.com/charset.json',
   modelOpts: {
     defaultConfidenceThreshold: 0.5,
@@ -179,7 +179,7 @@ The pipeline automatically verifies that the model's exported input and output s
 - [`PaddleOcr`](../../06-api-reference/type-aliases/PaddleOcr.md) — OCR runner interface ([`recognizeCharacters`](../../06-api-reference/type-aliases/PaddleOcr.md#recognizecharacters), [`recognizeCharactersWorklet`](../../06-api-reference/type-aliases/PaddleOcr.md#recognizecharactersworklet), `dispose`).
 - [`OcrDetection`](../../06-api-reference/type-aliases/OcrDetection.md) — Single recognized text line with [`text`](../../06-api-reference/type-aliases/OcrDetection.md#text), [`confidence`](../../06-api-reference/type-aliases/OcrDetection.md#confidence), and [`quad`](../../06-api-reference/type-aliases/OcrDetection.md#quad).
 - [`RecognizeCharactersOptions`](../../06-api-reference/type-aliases/RecognizeCharactersOptions.md) — Inference options (`confidenceThreshold`).
-- [`PaddleOcrModel`](../../06-api-reference/type-aliases/PaddleOcrModel.md) — Model configuration spec with `modelPath` and `charsetPath`.
+- [`PaddleOcrModel`](../../06-api-reference/type-aliases/PaddleOcrModel.md) — Model configuration spec with `modelSource` and `charsetPath`.
 - [`PaddleOcrModelOptions`](../../06-api-reference/type-aliases/PaddleOcrModelOptions.md) — Model options (`defaultConfidenceThreshold`).
 - [`Quad`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/Quad.md) — Oriented 4-corner polygon tuple `[Point, Point, Point, Point]` in pixel coordinates (`top-left`, `top-right`, `bottom-right`, `bottom-left`).
 - [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) — Input image buffer structure.

@@ -163,7 +163,7 @@ To use your own fine-tuned token classification `.pte` model, pass a [`PrivacyFi
 
 ```typescript
 const customFilter = await createPrivacyFilter({
-  modelPath: 'https://example.com/my-pii-model.pte',
+  modelSource: 'https://example.com/my-pii-model.pte',
   tokenizerPath: 'https://example.com/tokenizer.json',
   modelOpts: {
     labelNames: ['O', 'B-NAME', 'I-NAME', 'E-NAME', 'S-NAME'],

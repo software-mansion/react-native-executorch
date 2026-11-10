@@ -140,7 +140,7 @@ To use your own fine-tuned semantic segmentation `.pte` model, pass a [`Semantic
 
 ```typescript
 const customSegmenter = await createSemanticSegmenter({
-  modelPath: 'https://example.com/my-segmentation.pte',
+  modelSource: 'https://example.com/my-segmentation.pte',
   modelOpts: {
     labels: ['background', 'road', 'sidewalk', 'building'],
     resizeMode: 'stretch',

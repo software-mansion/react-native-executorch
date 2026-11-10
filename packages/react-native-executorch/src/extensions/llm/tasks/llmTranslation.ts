@@ -105,7 +105,7 @@ export async function createLLMTranslator(
   const dispose = scope.dispose;
 
   try {
-    const { modelPath, tokenizerPath, tokenizerConfigPath } = config;
+    const { modelSource, tokenizerPath, tokenizerConfigPath } = config;
     const tokenizerConfigStr = await RNBlobUtil.fs.readFile(tokenizerConfigPath, 'utf8');
     const { chatTemplate, bosToken, eosToken, stopTokens } = parseTokenizerConfig(
       JSON.parse(tokenizerConfigStr)
@@ -114,7 +114,7 @@ export async function createLLMTranslator(
       createChatPreprocessor({ chatTemplate, bosToken, eosToken })
     );
     // prettier-ignore
-    const runner = scope.track(await createLLMRunner(modelPath, tokenizerPath, undefined, runtime));
+    const runner = scope.track(await createLLMRunner(modelSource, tokenizerPath, undefined, runtime));
     const generate = wrapAsync(generateWorklet, runtime);
 
     let busy = false;

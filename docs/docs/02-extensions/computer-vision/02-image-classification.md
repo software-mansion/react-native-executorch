@@ -143,7 +143,7 @@ configuration object to [`useClassifier`](../../06-api-reference/functions/useCl
 
 ```typescript
 const customClassifier = await createClassifier({
-  modelPath: 'https://example.com/my-model.pte',
+  modelSource: 'https://example.com/my-model.pte',
   modelOpts: {
     resizeMode: 'stretch',
     interpolation: 'linear',

@@ -99,7 +99,7 @@ Any ColBERT model exported with a `[1, S]` token-id and attention-mask input and
 
 ```typescript
 const colbert = await createColbertEmbedder({
-  modelPath: 'https://example.com/my-colbert.pte',
+  modelSource: 'https://example.com/my-colbert.pte',
   tokenizerPath: 'https://example.com/tokenizer.json',
   modelOpts: {
     queryPrefixToken: '[Q] ',

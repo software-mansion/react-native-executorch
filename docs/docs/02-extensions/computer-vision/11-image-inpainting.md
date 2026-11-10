@@ -152,7 +152,7 @@ To use your own inpainting `.pte` model, pass an [`InpainterModel`](../../06-api
 
 ```typescript
 const customInpainter = await createInpainter({
-  modelPath: 'https://example.com/my-inpainter.pte',
+  modelSource: 'https://example.com/my-inpainter.pte',
   modelOpts: {
     resizeMode: 'stretch',
     interpolation: 'linear',

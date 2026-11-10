@@ -141,7 +141,7 @@ Pass a [`DepthEstimatorModel`](../../06-api-reference/type-aliases/DepthEstimato
 import { createDepthEstimator, download, IMAGENET_NORM } from 'react-native-executorch';
 
 const model = await download({
-  modelPath: 'https://example.com/my-depth-model.pte',
+  modelSource: 'https://example.com/my-depth-model.pte',
   modelOpts: {
     resizeMode: 'stretch' as const,
     interpolation: 'cubic' as const,

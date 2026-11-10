@@ -316,7 +316,7 @@ function llmDriver(): Driver<LLMBenchmarkInstance> {
           })
         );
         const runner = scope.track(
-          await llmApi.createLLMRunner(config.modelPath, config.tokenizerPath, config.modalities)
+          await llmApi.createLLMRunner(config.modelSource, config.tokenizerPath, config.modalities)
         );
         return { runner, preprocessor, dispose: scope.dispose };
       } catch (error) {

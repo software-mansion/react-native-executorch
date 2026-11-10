@@ -92,8 +92,8 @@ High-level pipelines often need to support both async calls from React component
 import { loadModel, tensor, wrapAsync } from 'react-native-executorch';
 import type { WorkletRuntime } from 'react-native-worklets';
 
-export async function createClassifier(modelPath: string, runtime?: WorkletRuntime) {
-  const model = await wrapAsync(loadModel, runtime)(modelPath);
+export async function createClassifier(modelSource: string, runtime?: WorkletRuntime) {
+  const model = await wrapAsync(loadModel, runtime)(modelSource);
 
   const tInput = tensor('float32', [1, 3, 224, 224]);
   const tOutput = tensor('float32', [1, 1000]);

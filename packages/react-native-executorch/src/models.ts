@@ -206,11 +206,11 @@ const EFFICIENTNET_V2_S_OPTS = {
   labels: IMAGENET1K_LABELS,
 };
 const EFFICIENTNET_V2_S_XNNPACK_INT8: ClassifierModel<ImageNet1KLabel> = {
-  modelPath: `${BASE_URL}/EfficientNetV2-S-ExecuTorch/${VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/EfficientNetV2-S-ExecuTorch/${VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_int8.pte`,
   modelOpts: EFFICIENTNET_V2_S_OPTS,
 };
 const EFFICIENTNET_V2_S_COREML_FP16: ClassifierModel<ImageNet1KLabel> = {
-  modelPath: `${BASE_URL}/EfficientNetV2-S-ExecuTorch/${VERSION_TAG}/coreml/efficientnet_v2_s_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/EfficientNetV2-S-ExecuTorch/${VERSION_TAG}/coreml/efficientnet_v2_s_coreml_fp16.pte`,
   modelOpts: EFFICIENTNET_V2_S_OPTS,
 };
 
@@ -225,51 +225,51 @@ const STYLE_TRANSFER_OPTS = {
   outInterpolation: 'lanczos' as const,
 };
 const STYLE_TRANSFER_CANDY_XNNPACK_INT8: StyleTransferModel = {
-  modelPath: `${BASE_URL}/Fast-Neural-Style-Transfer-Candy-ExecuTorch/${VERSION_TAG}/xnnpack/style_transfer_candy_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/Fast-Neural-Style-Transfer-Candy-ExecuTorch/${VERSION_TAG}/xnnpack/style_transfer_candy_xnnpack_int8.pte`,
   modelOpts: STYLE_TRANSFER_OPTS,
 };
 const STYLE_TRANSFER_CANDY_COREML_FP16: StyleTransferModel = {
-  modelPath: `${BASE_URL}/Fast-Neural-Style-Transfer-Candy-ExecuTorch/${VERSION_TAG}/coreml/style_transfer_candy_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/Fast-Neural-Style-Transfer-Candy-ExecuTorch/${VERSION_TAG}/coreml/style_transfer_candy_coreml_fp16.pte`,
   modelOpts: STYLE_TRANSFER_OPTS,
 };
 const STYLE_TRANSFER_CANDY_VULKAN_FP16: StyleTransferModel = {
-  modelPath: `${BASE_URL}/Fast-Neural-Style-Transfer-Candy-ExecuTorch/${VERSION_TAG}/vulkan/style_transfer_candy_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/Fast-Neural-Style-Transfer-Candy-ExecuTorch/${VERSION_TAG}/vulkan/style_transfer_candy_vulkan_fp16.pte`,
   modelOpts: STYLE_TRANSFER_OPTS,
 };
 const STYLE_TRANSFER_MOSAIC_XNNPACK_INT8: StyleTransferModel = {
-  modelPath: `${BASE_URL}/Fast-Neural-Style-Transfer-Mosaic-ExecuTorch/${VERSION_TAG}/xnnpack/style_transfer_mosaic_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/Fast-Neural-Style-Transfer-Mosaic-ExecuTorch/${VERSION_TAG}/xnnpack/style_transfer_mosaic_xnnpack_int8.pte`,
   modelOpts: STYLE_TRANSFER_OPTS,
 };
 const STYLE_TRANSFER_MOSAIC_COREML_FP16: StyleTransferModel = {
-  modelPath: `${BASE_URL}/Fast-Neural-Style-Transfer-Mosaic-ExecuTorch/${VERSION_TAG}/coreml/style_transfer_mosaic_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/Fast-Neural-Style-Transfer-Mosaic-ExecuTorch/${VERSION_TAG}/coreml/style_transfer_mosaic_coreml_fp16.pte`,
   modelOpts: STYLE_TRANSFER_OPTS,
 };
 const STYLE_TRANSFER_MOSAIC_VULKAN_FP16: StyleTransferModel = {
-  modelPath: `${BASE_URL}/Fast-Neural-Style-Transfer-Mosaic-ExecuTorch/${VERSION_TAG}/vulkan/style_transfer_mosaic_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/Fast-Neural-Style-Transfer-Mosaic-ExecuTorch/${VERSION_TAG}/vulkan/style_transfer_mosaic_vulkan_fp16.pte`,
   modelOpts: STYLE_TRANSFER_OPTS,
 };
 const STYLE_TRANSFER_RAIN_PRINCESS_XNNPACK_INT8: StyleTransferModel = {
-  modelPath: `${BASE_URL}/Fast-Neural-Style-Transfer-Rain-Princess-ExecuTorch/${VERSION_TAG}/xnnpack/style_transfer_rain_princess_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/Fast-Neural-Style-Transfer-Rain-Princess-ExecuTorch/${VERSION_TAG}/xnnpack/style_transfer_rain_princess_xnnpack_int8.pte`,
   modelOpts: STYLE_TRANSFER_OPTS,
 };
 const STYLE_TRANSFER_RAIN_PRINCESS_COREML_FP16: StyleTransferModel = {
-  modelPath: `${BASE_URL}/Fast-Neural-Style-Transfer-Rain-Princess-ExecuTorch/${VERSION_TAG}/coreml/style_transfer_rain_princess_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/Fast-Neural-Style-Transfer-Rain-Princess-ExecuTorch/${VERSION_TAG}/coreml/style_transfer_rain_princess_coreml_fp16.pte`,
   modelOpts: STYLE_TRANSFER_OPTS,
 };
 const STYLE_TRANSFER_RAIN_PRINCESS_VULKAN_FP16: StyleTransferModel = {
-  modelPath: `${BASE_URL}/Fast-Neural-Style-Transfer-Rain-Princess-ExecuTorch/${VERSION_TAG}/vulkan/style_transfer_rain_princess_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/Fast-Neural-Style-Transfer-Rain-Princess-ExecuTorch/${VERSION_TAG}/vulkan/style_transfer_rain_princess_vulkan_fp16.pte`,
   modelOpts: STYLE_TRANSFER_OPTS,
 };
 const STYLE_TRANSFER_UDNIE_XNNPACK_INT8: StyleTransferModel = {
-  modelPath: `${BASE_URL}/Fast-Neural-Style-Transfer-Udnie-ExecuTorch/${VERSION_TAG}/xnnpack/style_transfer_udnie_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/Fast-Neural-Style-Transfer-Udnie-ExecuTorch/${VERSION_TAG}/xnnpack/style_transfer_udnie_xnnpack_int8.pte`,
   modelOpts: STYLE_TRANSFER_OPTS,
 };
 const STYLE_TRANSFER_UDNIE_COREML_FP16: StyleTransferModel = {
-  modelPath: `${BASE_URL}/Fast-Neural-Style-Transfer-Udnie-ExecuTorch/${VERSION_TAG}/coreml/style_transfer_udnie_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/Fast-Neural-Style-Transfer-Udnie-ExecuTorch/${VERSION_TAG}/coreml/style_transfer_udnie_coreml_fp16.pte`,
   modelOpts: STYLE_TRANSFER_OPTS,
 };
 const STYLE_TRANSFER_UDNIE_VULKAN_FP16: StyleTransferModel = {
-  modelPath: `${BASE_URL}/Fast-Neural-Style-Transfer-Udnie-ExecuTorch/${VERSION_TAG}/vulkan/style_transfer_udnie_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/Fast-Neural-Style-Transfer-Udnie-ExecuTorch/${VERSION_TAG}/vulkan/style_transfer_udnie_vulkan_fp16.pte`,
   modelOpts: STYLE_TRANSFER_OPTS,
 };
 
@@ -284,36 +284,36 @@ const DEPTH_ANYTHING_OPTS = {
   outInterpolation: 'linear' as const,
 };
 const DEPTH_ANYTHING_V2_SMALL_XNNPACK_INT8: DepthEstimatorModel = {
-  modelPath: `${BASE_URL}/Depth-Anything-V2-ExecuTorch/${VERSION_TAG}/small/xnnpack/depth_anything_v2_small_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/Depth-Anything-V2-ExecuTorch/${VERSION_TAG}/small/xnnpack/depth_anything_v2_small_xnnpack_int8.pte`,
   modelOpts: DEPTH_ANYTHING_OPTS,
 };
 const DEPTH_ANYTHING_V2_SMALL_XNNPACK_FP32: DepthEstimatorModel = {
-  modelPath: `${BASE_URL}/Depth-Anything-V2-ExecuTorch/${VERSION_TAG}/small/xnnpack/depth_anything_v2_small_xnnpack_fp32.pte`,
+  modelSource: `${BASE_URL}/Depth-Anything-V2-ExecuTorch/${VERSION_TAG}/small/xnnpack/depth_anything_v2_small_xnnpack_fp32.pte`,
   modelOpts: DEPTH_ANYTHING_OPTS,
 };
 const DEPTH_ANYTHING_V2_SMALL_COREML_FP16: DepthEstimatorModel = {
-  modelPath: `${BASE_URL}/Depth-Anything-V2-ExecuTorch/${VERSION_TAG}/small/coreml/depth_anything_v2_small_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/Depth-Anything-V2-ExecuTorch/${VERSION_TAG}/small/coreml/depth_anything_v2_small_coreml_fp16.pte`,
   modelOpts: DEPTH_ANYTHING_OPTS,
 };
 const DEPTH_ANYTHING_V2_SMALL_VULKAN_FP16: DepthEstimatorModel = {
-  modelPath: `${BASE_URL}/Depth-Anything-V2-ExecuTorch/${VERSION_TAG}/small/vulkan/depth_anything_v2_small_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/Depth-Anything-V2-ExecuTorch/${VERSION_TAG}/small/vulkan/depth_anything_v2_small_vulkan_fp16.pte`,
   modelOpts: DEPTH_ANYTHING_OPTS,
 };
 
 const DEPTH_ANYTHING_V3_SMALL_XNNPACK_INT8: DepthEstimatorModel = {
-  modelPath: `${BASE_URL}/Depth-Anything-3-Small-ExecuTorch/${VERSION_TAG}/small/xnnpack/depth_anything_v3_small_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/Depth-Anything-3-Small-ExecuTorch/${VERSION_TAG}/small/xnnpack/depth_anything_v3_small_xnnpack_int8.pte`,
   modelOpts: DEPTH_ANYTHING_OPTS,
 };
 const DEPTH_ANYTHING_V3_SMALL_XNNPACK_FP32: DepthEstimatorModel = {
-  modelPath: `${BASE_URL}/Depth-Anything-3-Small-ExecuTorch/${VERSION_TAG}/small/xnnpack/depth_anything_v3_small_xnnpack_fp32.pte`,
+  modelSource: `${BASE_URL}/Depth-Anything-3-Small-ExecuTorch/${VERSION_TAG}/small/xnnpack/depth_anything_v3_small_xnnpack_fp32.pte`,
   modelOpts: DEPTH_ANYTHING_OPTS,
 };
 const DEPTH_ANYTHING_V3_SMALL_COREML_FP16: DepthEstimatorModel = {
-  modelPath: `${BASE_URL}/Depth-Anything-3-Small-ExecuTorch/${VERSION_TAG}/small/coreml/depth_anything_v3_small_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/Depth-Anything-3-Small-ExecuTorch/${VERSION_TAG}/small/coreml/depth_anything_v3_small_coreml_fp16.pte`,
   modelOpts: DEPTH_ANYTHING_OPTS,
 };
 const DEPTH_ANYTHING_V3_SMALL_VULKAN_FP16: DepthEstimatorModel = {
-  modelPath: `${BASE_URL}/Depth-Anything-3-Small-ExecuTorch/${VERSION_TAG}/small/vulkan/depth_anything_v3_small_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/Depth-Anything-3-Small-ExecuTorch/${VERSION_TAG}/small/vulkan/depth_anything_v3_small_vulkan_fp16.pte`,
   modelOpts: DEPTH_ANYTHING_OPTS,
 };
 
@@ -325,15 +325,15 @@ const ZIPDEPTH_OPTS = {
   outInterpolation: 'linear' as const,
 };
 const ZIPDEPTH_BASE_XNNPACK_FP32: DepthEstimatorModel = {
-  modelPath: `${BASE_URL}/ZipDepth-ExecuTorch/${VERSION_TAG}/base/xnnpack/zipdepth_base_384_xnnpack_fp32.pte`,
+  modelSource: `${BASE_URL}/ZipDepth-ExecuTorch/${VERSION_TAG}/base/xnnpack/zipdepth_base_384_xnnpack_fp32.pte`,
   modelOpts: ZIPDEPTH_OPTS,
 };
 const ZIPDEPTH_BASE_COREML_FP32: DepthEstimatorModel = {
-  modelPath: `${BASE_URL}/ZipDepth-ExecuTorch/${VERSION_TAG}/base/coreml/zipdepth_base_384_coreml_fp32.pte`,
+  modelSource: `${BASE_URL}/ZipDepth-ExecuTorch/${VERSION_TAG}/base/coreml/zipdepth_base_384_coreml_fp32.pte`,
   modelOpts: ZIPDEPTH_OPTS,
 };
 const ZIPDEPTH_BASE_VULKAN_FP16: DepthEstimatorModel = {
-  modelPath: `${BASE_URL}/ZipDepth-ExecuTorch/${VERSION_TAG}/base/vulkan/zipdepth_base_384_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/ZipDepth-ExecuTorch/${VERSION_TAG}/base/vulkan/zipdepth_base_384_vulkan_fp16.pte`,
   modelOpts: ZIPDEPTH_OPTS,
 };
 
@@ -356,39 +356,39 @@ const MIGAN_OPTS = {
   blendOpts: { shrink: 0, feather: 0 },
 };
 const MIGAN_512_XNNPACK_FP16: InpainterModel = {
-  modelPath: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/xnnpack/512/migan_512_xnnpack_fp16.pte`,
+  modelSource: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/xnnpack/512/migan_512_xnnpack_fp16.pte`,
   modelOpts: MIGAN_OPTS,
 };
 const MIGAN_512_COREML_FP16: InpainterModel = {
-  modelPath: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/coreml/512/migan_512_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/coreml/512/migan_512_coreml_fp16.pte`,
   modelOpts: MIGAN_OPTS,
 };
 const MIGAN_512_VULKAN_FP16: InpainterModel = {
-  modelPath: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/vulkan/512/migan_512_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/vulkan/512/migan_512_vulkan_fp16.pte`,
   modelOpts: MIGAN_OPTS,
 };
 const MIGAN_256_XNNPACK_FP16: InpainterModel = {
-  modelPath: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/xnnpack/256/migan_256_xnnpack_fp16.pte`,
+  modelSource: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/xnnpack/256/migan_256_xnnpack_fp16.pte`,
   modelOpts: MIGAN_OPTS,
 };
 const MIGAN_256_COREML_FP16: InpainterModel = {
-  modelPath: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/coreml/256/migan_256_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/coreml/256/migan_256_coreml_fp16.pte`,
   modelOpts: MIGAN_OPTS,
 };
 const MIGAN_256_VULKAN_FP16: InpainterModel = {
-  modelPath: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/vulkan/256/migan_256_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/vulkan/256/migan_256_vulkan_fp16.pte`,
   modelOpts: MIGAN_OPTS,
 };
 const MIGAN_FACES_256_XNNPACK_FP16: InpainterModel = {
-  modelPath: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/xnnpack/faces_256/migan_faces_256_xnnpack_fp16.pte`,
+  modelSource: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/xnnpack/faces_256/migan_faces_256_xnnpack_fp16.pte`,
   modelOpts: MIGAN_OPTS,
 };
 const MIGAN_FACES_256_COREML_FP16: InpainterModel = {
-  modelPath: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/coreml/faces_256/migan_faces_256_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/coreml/faces_256/migan_faces_256_coreml_fp16.pte`,
   modelOpts: MIGAN_OPTS,
 };
 const MIGAN_FACES_256_VULKAN_FP16: InpainterModel = {
-  modelPath: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/vulkan/faces_256/migan_faces_256_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/vulkan/faces_256/migan_faces_256_vulkan_fp16.pte`,
   modelOpts: MIGAN_OPTS,
 };
 
@@ -396,7 +396,7 @@ const MIGAN_FACES_256_VULKAN_FP16: InpainterModel = {
 // Semantic Segmentation
 // =============================================================================
 const SELFIE_SEGMENTATION_XNNPACK_FP32: SemanticSegmenterModel<'background' | 'person'> = {
-  modelPath: `${BASE_URL}/MediaPipe-Selfie-Segmentation-ExecuTorch/${VERSION_TAG}/xnnpack/selfie_segmentation_xnnpack_fp32.pte`,
+  modelSource: `${BASE_URL}/MediaPipe-Selfie-Segmentation-ExecuTorch/${VERSION_TAG}/xnnpack/selfie_segmentation_xnnpack_fp32.pte`,
   modelOpts: {
     labels: ['background', 'person'] as const,
     resizeMode: 'stretch',
@@ -406,16 +406,16 @@ const SELFIE_SEGMENTATION_XNNPACK_FP32: SemanticSegmenterModel<'background' | 'p
   },
 };
 const SELFIE_SEGMENTATION_COREML_FP16: SemanticSegmenterModel<'background' | 'person'> = {
-  modelPath: `${BASE_URL}/MediaPipe-Selfie-Segmentation-ExecuTorch/${VERSION_TAG}/coreml/selfie_segmentation_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/MediaPipe-Selfie-Segmentation-ExecuTorch/${VERSION_TAG}/coreml/selfie_segmentation_coreml_fp16.pte`,
   modelOpts: SELFIE_SEGMENTATION_XNNPACK_FP32.modelOpts,
 };
 const SELFIE_SEGMENTATION_LANDSCAPE_XNNPACK_FP32: SemanticSegmenterModel<'background' | 'person'> =
   {
-    modelPath: `${BASE_URL}/MediaPipe-Selfie-Segmentation-ExecuTorch/${VERSION_TAG}/xnnpack/selfie_segmentation_landscape_xnnpack_fp32.pte`,
+    modelSource: `${BASE_URL}/MediaPipe-Selfie-Segmentation-ExecuTorch/${VERSION_TAG}/xnnpack/selfie_segmentation_landscape_xnnpack_fp32.pte`,
     modelOpts: SELFIE_SEGMENTATION_XNNPACK_FP32.modelOpts,
   };
 const SELFIE_SEGMENTATION_LANDSCAPE_COREML_FP16: SemanticSegmenterModel<'background' | 'person'> = {
-  modelPath: `${BASE_URL}/MediaPipe-Selfie-Segmentation-ExecuTorch/${VERSION_TAG}/coreml/selfie_segmentation_landscape_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/MediaPipe-Selfie-Segmentation-ExecuTorch/${VERSION_TAG}/coreml/selfie_segmentation_landscape_coreml_fp16.pte`,
   modelOpts: SELFIE_SEGMENTATION_XNNPACK_FP32.modelOpts,
 };
 
@@ -427,23 +427,23 @@ const U2NETP_OPTS = {
   outInterpolation: 'linear' as const,
 };
 const U2NETP_XNNPACK_FP32: SemanticSegmenterModel<'background' | 'foreground'> = {
-  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/xnnpack/u2netp_xnnpack_fp32.pte`,
+  modelSource: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/xnnpack/u2netp_xnnpack_fp32.pte`,
   modelOpts: U2NETP_OPTS,
 };
 const U2NETP_XNNPACK_INT8: SemanticSegmenterModel<'background' | 'foreground'> = {
-  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/xnnpack/u2netp_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/xnnpack/u2netp_xnnpack_int8.pte`,
   modelOpts: U2NETP_OPTS,
 };
 const U2NETP_VULKAN_FP16: SemanticSegmenterModel<'background' | 'foreground'> = {
-  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/vulkan/u2netp_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/vulkan/u2netp_vulkan_fp16.pte`,
   modelOpts: U2NETP_OPTS,
 };
 const U2NETP_COREML_FP16: SemanticSegmenterModel<'background' | 'foreground'> = {
-  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/coreml/u2netp_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/coreml/u2netp_coreml_fp16.pte`,
   modelOpts: U2NETP_OPTS,
 };
 const U2NETP_COREML_FP32: SemanticSegmenterModel<'background' | 'foreground'> = {
-  modelPath: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/coreml/u2netp_coreml_fp32.pte`,
+  modelSource: `${BASE_URL}/U2NetP-ExecuTorch/${NEXT_VERSION_TAG}/coreml/u2netp_coreml_fp32.pte`,
   modelOpts: U2NETP_OPTS,
 };
 
@@ -455,11 +455,11 @@ const LRASPP_MOBILENET_V3_LARGE_OPTS = {
   normalizeOpts: IMAGENET_NORM,
 };
 const LRASPP_MOBILENET_V3_LARGE_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/LRASPP-MobileNetV3-Large-ExecuTorch/${VERSION_TAG}/xnnpack/lraspp_mobilenet_v3_large_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/LRASPP-MobileNetV3-Large-ExecuTorch/${VERSION_TAG}/xnnpack/lraspp_mobilenet_v3_large_xnnpack_int8.pte`,
   modelOpts: LRASPP_MOBILENET_V3_LARGE_OPTS,
 };
 const LRASPP_MOBILENET_V3_LARGE_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/LRASPP-MobileNetV3-Large-ExecuTorch/${VERSION_TAG}/coreml/lraspp_mobilenet_v3_large_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/LRASPP-MobileNetV3-Large-ExecuTorch/${VERSION_TAG}/coreml/lraspp_mobilenet_v3_large_coreml_fp16.pte`,
   modelOpts: LRASPP_MOBILENET_V3_LARGE_OPTS,
 };
 
@@ -471,27 +471,27 @@ const DEEPLAB_V3_OPTS = {
   normalizeOpts: IMAGENET_NORM,
 };
 const DEEPLAB_V3_RESNET50_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/xnnpack/deeplab_v3_resnet50_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/xnnpack/deeplab_v3_resnet50_xnnpack_int8.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_RESNET50_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/coreml/deeplab_v3_resnet50_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/coreml/deeplab_v3_resnet50_coreml_fp16.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_RESNET101_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/xnnpack/deeplab_v3_resnet101_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/xnnpack/deeplab_v3_resnet101_xnnpack_int8.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_RESNET101_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/coreml/deeplab_v3_resnet101_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/coreml/deeplab_v3_resnet101_coreml_fp16.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/xnnpack/deeplab_v3_mobilenet_v3_large_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/xnnpack/deeplab_v3_mobilenet_v3_large_xnnpack_int8.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_MOBILENET_V3_LARGE_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/coreml/deeplab_v3_mobilenet_v3_large_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/coreml/deeplab_v3_mobilenet_v3_large_coreml_fp16.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 
@@ -503,19 +503,19 @@ const FCN_OPTS = {
   normalizeOpts: IMAGENET_NORM,
 };
 const FCN_RESNET50_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/FCN-ExecuTorch/${VERSION_TAG}/xnnpack/fcn_resnet50_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/FCN-ExecuTorch/${VERSION_TAG}/xnnpack/fcn_resnet50_xnnpack_int8.pte`,
   modelOpts: FCN_OPTS,
 };
 const FCN_RESNET50_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/FCN-ExecuTorch/${VERSION_TAG}/coreml/fcn_resnet50_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/FCN-ExecuTorch/${VERSION_TAG}/coreml/fcn_resnet50_coreml_fp16.pte`,
   modelOpts: FCN_OPTS,
 };
 const FCN_RESNET101_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/FCN-ExecuTorch/${VERSION_TAG}/xnnpack/fcn_resnet101_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/FCN-ExecuTorch/${VERSION_TAG}/xnnpack/fcn_resnet101_xnnpack_int8.pte`,
   modelOpts: FCN_OPTS,
 };
 const FCN_RESNET101_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/FCN-ExecuTorch/${VERSION_TAG}/coreml/fcn_resnet101_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/FCN-ExecuTorch/${VERSION_TAG}/coreml/fcn_resnet101_coreml_fp16.pte`,
   modelOpts: FCN_OPTS,
 };
 
@@ -532,11 +532,11 @@ const SSDLITE320_MOBILENET_V3_LARGE_OPTS = {
   defaultIouThreshold: 0.55,
 };
 const SSDLITE320_MOBILENET_V3_LARGE_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClass> = {
-  modelPath: `${BASE_URL}/SSDlite320-MobileNetV3-Large-ExecuTorch/${VERSION_TAG}/xnnpack/ssdlite320_mobilenet_v3_large_xnnpack_fp32.pte`,
+  modelSource: `${BASE_URL}/SSDlite320-MobileNetV3-Large-ExecuTorch/${VERSION_TAG}/xnnpack/ssdlite320_mobilenet_v3_large_xnnpack_fp32.pte`,
   modelOpts: SSDLITE320_MOBILENET_V3_LARGE_OPTS,
 };
 const SSDLITE320_MOBILENET_V3_LARGE_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClass> = {
-  modelPath: `${BASE_URL}/SSDlite320-MobileNetV3-Large-ExecuTorch/${VERSION_TAG}/coreml/ssdlite320_mobilenet_v3_large_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/SSDlite320-MobileNetV3-Large-ExecuTorch/${VERSION_TAG}/coreml/ssdlite320_mobilenet_v3_large_coreml_fp16.pte`,
   modelOpts: SSDLITE320_MOBILENET_V3_LARGE_OPTS,
 };
 
@@ -550,15 +550,15 @@ const RFDETR_NANO_DETECTOR_OPTS = {
   defaultIouThreshold: 0.55,
 };
 const RFDETR_NANO_DETECTOR_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClass> = {
-  modelPath: `${BASE_URL}/rf-detr-nano-ExecuTorch/${VERSION_TAG}/xnnpack/rfdetr_nano_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/rf-detr-nano-ExecuTorch/${VERSION_TAG}/xnnpack/rfdetr_nano_xnnpack_int8.pte`,
   modelOpts: RFDETR_NANO_DETECTOR_OPTS,
 };
 const RFDETR_NANO_DETECTOR_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClass> = {
-  modelPath: `${BASE_URL}/rf-detr-nano-ExecuTorch/${VERSION_TAG}/coreml/rfdetr_nano_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/rf-detr-nano-ExecuTorch/${VERSION_TAG}/coreml/rfdetr_nano_coreml_fp16.pte`,
   modelOpts: RFDETR_NANO_DETECTOR_OPTS,
 };
 const RFDETR_NANO_DETECTOR_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClass> = {
-  modelPath: `${BASE_URL}/rf-detr-nano-ExecuTorch/${VERSION_TAG}/vulkan/rfdetr_nano_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/rf-detr-nano-ExecuTorch/${VERSION_TAG}/vulkan/rfdetr_nano_vulkan_fp16.pte`,
   modelOpts: RFDETR_NANO_DETECTOR_OPTS,
 };
 
@@ -573,187 +573,187 @@ const YOLO26_DETECTOR_OPTS = {
 };
 
 const YOLO26_NANO_384_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26n_384_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26n_384_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_NANO_384_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/coreml/yolo26n_384_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/coreml/yolo26n_384_coreml_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_NANO_384_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/vulkan/yolo26n_384_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/vulkan/yolo26n_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_NANO_512_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26n_512_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26n_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_NANO_512_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/coreml/yolo26n_512_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/coreml/yolo26n_512_coreml_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_NANO_512_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/vulkan/yolo26n_512_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/vulkan/yolo26n_512_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_NANO_640_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26n_640_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26n_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_NANO_640_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/coreml/yolo26n_640_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/coreml/yolo26n_640_coreml_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_NANO_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/vulkan/yolo26n_640_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/vulkan/yolo26n_640_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
 const YOLO26_SMALL_384_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/xnnpack/yolo26s_384_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/xnnpack/yolo26s_384_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_SMALL_384_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/coreml/yolo26s_384_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/coreml/yolo26s_384_coreml_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_SMALL_384_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/vulkan/yolo26s_384_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/vulkan/yolo26s_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_SMALL_512_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/xnnpack/yolo26s_512_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/xnnpack/yolo26s_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_SMALL_512_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/coreml/yolo26s_512_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/coreml/yolo26s_512_coreml_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_SMALL_512_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/vulkan/yolo26s_512_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/vulkan/yolo26s_512_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_SMALL_640_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/xnnpack/yolo26s_640_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/xnnpack/yolo26s_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_SMALL_640_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/coreml/yolo26s_640_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/coreml/yolo26s_640_coreml_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_SMALL_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/vulkan/yolo26s_640_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/vulkan/yolo26s_640_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
 const YOLO26_MEDIUM_384_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/xnnpack/yolo26m_384_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/xnnpack/yolo26m_384_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_MEDIUM_384_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/coreml/yolo26m_384_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/coreml/yolo26m_384_coreml_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_MEDIUM_384_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/vulkan/yolo26m_384_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/vulkan/yolo26m_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_MEDIUM_512_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/xnnpack/yolo26m_512_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/xnnpack/yolo26m_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_MEDIUM_512_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/coreml/yolo26m_512_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/coreml/yolo26m_512_coreml_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_MEDIUM_512_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/vulkan/yolo26m_512_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/vulkan/yolo26m_512_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_MEDIUM_640_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/xnnpack/yolo26m_640_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/xnnpack/yolo26m_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_MEDIUM_640_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/coreml/yolo26m_640_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/coreml/yolo26m_640_coreml_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_MEDIUM_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/vulkan/yolo26m_640_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/vulkan/yolo26m_640_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
 const YOLO26_LARGE_384_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/xnnpack/yolo26l_384_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/xnnpack/yolo26l_384_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_LARGE_384_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/coreml/yolo26l_384_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/coreml/yolo26l_384_coreml_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_LARGE_384_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/vulkan/yolo26l_384_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/vulkan/yolo26l_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_LARGE_512_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/xnnpack/yolo26l_512_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/xnnpack/yolo26l_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_LARGE_512_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/coreml/yolo26l_512_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/coreml/yolo26l_512_coreml_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_LARGE_512_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/vulkan/yolo26l_512_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/vulkan/yolo26l_512_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_LARGE_640_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/xnnpack/yolo26l_640_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/xnnpack/yolo26l_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_LARGE_640_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/coreml/yolo26l_640_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/coreml/yolo26l_640_coreml_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_LARGE_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/vulkan/yolo26l_640_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/vulkan/yolo26l_640_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
 const YOLO26_XLARGE_384_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/xnnpack/yolo26x_384_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/xnnpack/yolo26x_384_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_XLARGE_384_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/coreml/yolo26x_384_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/coreml/yolo26x_384_coreml_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_XLARGE_384_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/vulkan/yolo26x_384_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/vulkan/yolo26x_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_XLARGE_512_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/xnnpack/yolo26x_512_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/xnnpack/yolo26x_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_XLARGE_512_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/coreml/yolo26x_512_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/coreml/yolo26x_512_coreml_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_XLARGE_512_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/vulkan/yolo26x_512_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/vulkan/yolo26x_512_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_XLARGE_640_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/xnnpack/yolo26x_640_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/xnnpack/yolo26x_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_XLARGE_640_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/coreml/yolo26x_640_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/coreml/yolo26x_640_coreml_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_XLARGE_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/vulkan/yolo26x_640_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/vulkan/yolo26x_640_vulkan_fp16.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
@@ -761,7 +761,7 @@ const YOLO26_XLARGE_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> 
 // Keypoint Detection
 // =============================================================================
 const BLAZEFACE_XNNPACK_FP32: KeypointDetectorModel<'xyxy', BlazeFaceLandmark> = {
-  modelPath: `${BASE_URL}/BlazeFace-ExecuTorch/${VERSION_TAG}/xnnpack/blazeface_xnnpack_fp32.pte`,
+  modelSource: `${BASE_URL}/BlazeFace-ExecuTorch/${VERSION_TAG}/xnnpack/blazeface_xnnpack_fp32.pte`,
   modelOpts: {
     boxFormat: 'xyxy',
     resizeMode: 'letterbox',
@@ -773,7 +773,7 @@ const BLAZEFACE_XNNPACK_FP32: KeypointDetectorModel<'xyxy', BlazeFaceLandmark> =
   },
 };
 const BLAZEFACE_VULKAN_FP16: KeypointDetectorModel<'xyxy', BlazeFaceLandmark> = {
-  modelPath: `${BASE_URL}/BlazeFace-ExecuTorch/${VERSION_TAG}/vulkan/blazeface_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/BlazeFace-ExecuTorch/${VERSION_TAG}/vulkan/blazeface_vulkan_fp16.pte`,
   modelOpts: BLAZEFACE_XNNPACK_FP32.modelOpts,
 };
 
@@ -787,39 +787,39 @@ const YOLO26_POSE_OPTS = {
   landmarks: COCO_LANDMARKS,
 };
 const YOLO26_POSE_384_XNNPACK_INT8: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/xnnpack/yolo26n_pose_384_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/xnnpack/yolo26n_pose_384_xnnpack_int8.pte`,
   modelOpts: YOLO26_POSE_OPTS,
 };
 const YOLO26_POSE_384_COREML_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/coreml/yolo26n_pose_384_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/coreml/yolo26n_pose_384_coreml_fp16.pte`,
   modelOpts: YOLO26_POSE_OPTS,
 };
 const YOLO26_POSE_384_VULKAN_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/384/vulkan/yolo26n_pose_384_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/384/vulkan/yolo26n_pose_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_POSE_OPTS,
 };
 const YOLO26_POSE_512_XNNPACK_INT8: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/xnnpack/yolo26n_pose_512_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/xnnpack/yolo26n_pose_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_POSE_OPTS,
 };
 const YOLO26_POSE_512_COREML_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/coreml/yolo26n_pose_512_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/coreml/yolo26n_pose_512_coreml_fp16.pte`,
   modelOpts: YOLO26_POSE_OPTS,
 };
 const YOLO26_POSE_512_VULKAN_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/512/vulkan/yolo26n_pose_512_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/512/vulkan/yolo26n_pose_512_vulkan_fp16.pte`,
   modelOpts: YOLO26_POSE_OPTS,
 };
 const YOLO26_POSE_640_XNNPACK_INT8: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/xnnpack/yolo26n_pose_640_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/xnnpack/yolo26n_pose_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_POSE_OPTS,
 };
 const YOLO26_POSE_640_COREML_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/coreml/yolo26n_pose_640_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/coreml/yolo26n_pose_640_coreml_fp16.pte`,
   modelOpts: YOLO26_POSE_OPTS,
 };
 const YOLO26_POSE_640_VULKAN_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/640/vulkan/yolo26n_pose_640_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-pose-ExecuTorch/${VERSION_TAG}/640/vulkan/yolo26n_pose_640_vulkan_fp16.pte`,
   modelOpts: YOLO26_POSE_OPTS,
 };
 
@@ -833,15 +833,15 @@ const RFDETR_KEYPOINT_OPTS = {
   landmarks: COCO_LANDMARKS,
 };
 const RFDETR_KEYPOINT_XNNPACK_INT8: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}/rf-detr-keypoint-ExecuTorch/${VERSION_TAG}/xnnpack/rfdetr_keypoint_preview_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/rf-detr-keypoint-ExecuTorch/${VERSION_TAG}/xnnpack/rfdetr_keypoint_preview_xnnpack_int8.pte`,
   modelOpts: RFDETR_KEYPOINT_OPTS,
 };
 const RFDETR_KEYPOINT_COREML_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}/rf-detr-keypoint-ExecuTorch/${VERSION_TAG}/coreml/rfdetr_keypoint_preview_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/rf-detr-keypoint-ExecuTorch/${VERSION_TAG}/coreml/rfdetr_keypoint_preview_coreml_fp16.pte`,
   modelOpts: RFDETR_KEYPOINT_OPTS,
 };
 const RFDETR_KEYPOINT_VULKAN_FP16: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}/rf-detr-keypoint-ExecuTorch/${VERSION_TAG}/vulkan/rfdetr_keypoint_preview_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/rf-detr-keypoint-ExecuTorch/${VERSION_TAG}/vulkan/rfdetr_keypoint_preview_vulkan_fp16.pte`,
   modelOpts: RFDETR_KEYPOINT_OPTS,
 };
 
@@ -857,11 +857,11 @@ const FACEMESH_OPTS = {
   landmarks: FACEMESH_LANDMARKS,
 };
 const FACEMESH_XNNPACK_FP32: KeypointDetectorModel<'xyxy', number> = {
-  modelPath: `${BASE_URL}/FaceMesh-ExecuTorch/${VERSION_TAG}/xnnpack/facemesh_xnnpack_fp32.pte`,
+  modelSource: `${BASE_URL}/FaceMesh-ExecuTorch/${VERSION_TAG}/xnnpack/facemesh_xnnpack_fp32.pte`,
   modelOpts: FACEMESH_OPTS,
 };
 const FACEMESH_COREML_FP16: KeypointDetectorModel<'xyxy', number> = {
-  modelPath: `${BASE_URL}/FaceMesh-ExecuTorch/${VERSION_TAG}/coreml/facemesh_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/FaceMesh-ExecuTorch/${VERSION_TAG}/coreml/facemesh_coreml_fp16.pte`,
   modelOpts: FACEMESH_OPTS,
 };
 
@@ -879,27 +879,27 @@ const FASTSAM_OPTS = {
   defaultMaskThreshold: 0.5,
 };
 const FASTSAM_S_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', 'object'> = {
-  modelPath: `${BASE_URL}/FastSAM-ExecuTorch/${VERSION_TAG}/s/xnnpack/fast_sam_s_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/FastSAM-ExecuTorch/${VERSION_TAG}/s/xnnpack/fast_sam_s_xnnpack_int8.pte`,
   modelOpts: FASTSAM_OPTS,
 };
 const FASTSAM_S_COREML_FP16: InstanceSegmenterModel<'xyxy', 'object'> = {
-  modelPath: `${BASE_URL}/FastSAM-ExecuTorch/${VERSION_TAG}/s/coreml/fast_sam_s_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/FastSAM-ExecuTorch/${VERSION_TAG}/s/coreml/fast_sam_s_coreml_fp16.pte`,
   modelOpts: FASTSAM_OPTS,
 };
 const FASTSAM_S_VULKAN_FP16: InstanceSegmenterModel<'xyxy', 'object'> = {
-  modelPath: `${BASE_URL}/FastSAM-ExecuTorch/${VERSION_TAG}/s/vulkan/fast_sam_s_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/FastSAM-ExecuTorch/${VERSION_TAG}/s/vulkan/fast_sam_s_vulkan_fp16.pte`,
   modelOpts: FASTSAM_OPTS,
 };
 const FASTSAM_X_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', 'object'> = {
-  modelPath: `${BASE_URL}/FastSAM-ExecuTorch/${VERSION_TAG}/x/xnnpack/fast_sam_x_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/FastSAM-ExecuTorch/${VERSION_TAG}/x/xnnpack/fast_sam_x_xnnpack_int8.pte`,
   modelOpts: FASTSAM_OPTS,
 };
 const FASTSAM_X_COREML_FP16: InstanceSegmenterModel<'xyxy', 'object'> = {
-  modelPath: `${BASE_URL}/FastSAM-ExecuTorch/${VERSION_TAG}/x/coreml/fast_sam_x_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/FastSAM-ExecuTorch/${VERSION_TAG}/x/coreml/fast_sam_x_coreml_fp16.pte`,
   modelOpts: FASTSAM_OPTS,
 };
 const FASTSAM_X_VULKAN_FP16: InstanceSegmenterModel<'xyxy', 'object'> = {
-  modelPath: `${BASE_URL}/FastSAM-ExecuTorch/${VERSION_TAG}/x/vulkan/fast_sam_x_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/FastSAM-ExecuTorch/${VERSION_TAG}/x/vulkan/fast_sam_x_vulkan_fp16.pte`,
   modelOpts: FASTSAM_OPTS,
 };
 
@@ -914,15 +914,15 @@ const RFDETR_NANO_SEG_OPTS = {
   defaultMaskThreshold: 0.5,
 };
 const RFDETR_NANO_SEG_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClass> = {
-  modelPath: `${BASE_URL}/rf-detr-seg-nano-ExecuTorch/${VERSION_TAG}/coreml/rfdetr_nano_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/rf-detr-seg-nano-ExecuTorch/${VERSION_TAG}/coreml/rfdetr_nano_coreml_fp16.pte`,
   modelOpts: RFDETR_NANO_SEG_OPTS,
 };
 const RFDETR_NANO_SEG_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClass> = {
-  modelPath: `${BASE_URL}/rf-detr-seg-nano-ExecuTorch/${VERSION_TAG}/xnnpack/rfdetr_nano_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/rf-detr-seg-nano-ExecuTorch/${VERSION_TAG}/xnnpack/rfdetr_nano_xnnpack_int8.pte`,
   modelOpts: RFDETR_NANO_SEG_OPTS,
 };
 const RFDETR_NANO_SEG_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClass> = {
-  modelPath: `${BASE_URL}/rf-detr-seg-nano-ExecuTorch/${VERSION_TAG}/vulkan/rfdetr_nano_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/rf-detr-seg-nano-ExecuTorch/${VERSION_TAG}/vulkan/rfdetr_nano_vulkan_fp16.pte`,
   modelOpts: RFDETR_NANO_SEG_OPTS,
 };
 
@@ -938,187 +938,187 @@ const YOLO26_SEG_OPTS = {
 };
 
 const YOLO26_NANO_SEG_384_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26_seg_n_384_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26_seg_n_384_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_NANO_SEG_384_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/coreml/yolo26_seg_n_384_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/coreml/yolo26_seg_n_384_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_NANO_SEG_384_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/vulkan/yolo26_seg_n_384_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/vulkan/yolo26_seg_n_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_NANO_SEG_512_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26_seg_n_512_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26_seg_n_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_NANO_SEG_512_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/coreml/yolo26_seg_n_512_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/coreml/yolo26_seg_n_512_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_NANO_SEG_512_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/vulkan/yolo26_seg_n_512_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/vulkan/yolo26_seg_n_512_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_NANO_SEG_640_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26_seg_n_640_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26_seg_n_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_NANO_SEG_640_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/coreml/yolo26_seg_n_640_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/coreml/yolo26_seg_n_640_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_NANO_SEG_640_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/vulkan/yolo26_seg_n_640_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/n/vulkan/yolo26_seg_n_640_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 
 const YOLO26_SMALL_SEG_384_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/xnnpack/yolo26_seg_s_384_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/xnnpack/yolo26_seg_s_384_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_SMALL_SEG_384_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/coreml/yolo26_seg_s_384_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/coreml/yolo26_seg_s_384_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_SMALL_SEG_384_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/vulkan/yolo26_seg_s_384_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/vulkan/yolo26_seg_s_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_SMALL_SEG_512_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/xnnpack/yolo26_seg_s_512_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/xnnpack/yolo26_seg_s_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_SMALL_SEG_512_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/coreml/yolo26_seg_s_512_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/coreml/yolo26_seg_s_512_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_SMALL_SEG_512_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/vulkan/yolo26_seg_s_512_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/vulkan/yolo26_seg_s_512_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_SMALL_SEG_640_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/xnnpack/yolo26_seg_s_640_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/xnnpack/yolo26_seg_s_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_SMALL_SEG_640_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/coreml/yolo26_seg_s_640_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/coreml/yolo26_seg_s_640_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_SMALL_SEG_640_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/vulkan/yolo26_seg_s_640_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/s/vulkan/yolo26_seg_s_640_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 
 const YOLO26_MEDIUM_SEG_384_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/xnnpack/yolo26_seg_m_384_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/xnnpack/yolo26_seg_m_384_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_MEDIUM_SEG_384_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/coreml/yolo26_seg_m_384_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/coreml/yolo26_seg_m_384_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_MEDIUM_SEG_384_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/vulkan/yolo26_seg_m_384_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/vulkan/yolo26_seg_m_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_MEDIUM_SEG_512_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/xnnpack/yolo26_seg_m_512_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/xnnpack/yolo26_seg_m_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_MEDIUM_SEG_512_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/coreml/yolo26_seg_m_512_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/coreml/yolo26_seg_m_512_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_MEDIUM_SEG_512_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/vulkan/yolo26_seg_m_512_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/vulkan/yolo26_seg_m_512_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_MEDIUM_SEG_640_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/xnnpack/yolo26_seg_m_640_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/xnnpack/yolo26_seg_m_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_MEDIUM_SEG_640_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/coreml/yolo26_seg_m_640_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/coreml/yolo26_seg_m_640_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_MEDIUM_SEG_640_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/vulkan/yolo26_seg_m_640_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/m/vulkan/yolo26_seg_m_640_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 
 const YOLO26_LARGE_SEG_384_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/xnnpack/yolo26_seg_l_384_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/xnnpack/yolo26_seg_l_384_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_LARGE_SEG_384_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/coreml/yolo26_seg_l_384_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/coreml/yolo26_seg_l_384_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_LARGE_SEG_384_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/vulkan/yolo26_seg_l_384_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/vulkan/yolo26_seg_l_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_LARGE_SEG_512_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/xnnpack/yolo26_seg_l_512_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/xnnpack/yolo26_seg_l_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_LARGE_SEG_512_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/coreml/yolo26_seg_l_512_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/coreml/yolo26_seg_l_512_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_LARGE_SEG_512_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/vulkan/yolo26_seg_l_512_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/vulkan/yolo26_seg_l_512_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_LARGE_SEG_640_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/xnnpack/yolo26_seg_l_640_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/xnnpack/yolo26_seg_l_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_LARGE_SEG_640_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/coreml/yolo26_seg_l_640_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/coreml/yolo26_seg_l_640_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_LARGE_SEG_640_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/vulkan/yolo26_seg_l_640_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/l/vulkan/yolo26_seg_l_640_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 
 const YOLO26_XLARGE_SEG_384_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/xnnpack/yolo26_seg_x_384_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/xnnpack/yolo26_seg_x_384_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_XLARGE_SEG_384_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/coreml/yolo26_seg_x_384_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/coreml/yolo26_seg_x_384_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_XLARGE_SEG_384_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/vulkan/yolo26_seg_x_384_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/vulkan/yolo26_seg_x_384_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_XLARGE_SEG_512_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/xnnpack/yolo26_seg_x_512_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/xnnpack/yolo26_seg_x_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_XLARGE_SEG_512_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/coreml/yolo26_seg_x_512_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/coreml/yolo26_seg_x_512_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_XLARGE_SEG_512_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/vulkan/yolo26_seg_x_512_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/vulkan/yolo26_seg_x_512_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_XLARGE_SEG_640_XNNPACK_INT8: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/xnnpack/yolo26_seg_x_640_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/xnnpack/yolo26_seg_x_640_xnnpack_int8.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_XLARGE_SEG_640_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/coreml/yolo26_seg_x_640_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/coreml/yolo26_seg_x_640_coreml_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 const YOLO26_XLARGE_SEG_640_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/vulkan/yolo26_seg_x_640_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/YOLO26-seg-ExecuTorch/${VERSION_TAG}/x/vulkan/yolo26_seg_x_640_vulkan_fp16.pte`,
   modelOpts: YOLO26_SEG_OPTS,
 };
 
@@ -1126,128 +1126,128 @@ const YOLO26_XLARGE_SEG_640_VULKAN_FP16: InstanceSegmenterModel<'xyxy', CocoClas
 // Text Embeddings
 // =============================================================================
 const ALL_MINILM_L6_V2_XNNPACK_INT8: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/all-MiniLM-L6-v2-ExecuTorch/${VERSION_TAG}/xnnpack/all_minilm_l6_v2_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/all-MiniLM-L6-v2-ExecuTorch/${VERSION_TAG}/xnnpack/all_minilm_l6_v2_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/all-MiniLM-L6-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const ALL_MINILM_L6_V2_COREML_INT8: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/all-MiniLM-L6-v2-ExecuTorch/${VERSION_TAG}/coreml/all_minilm_l6_v2_coreml_int8.pte`,
+  modelSource: `${BASE_URL}/all-MiniLM-L6-v2-ExecuTorch/${VERSION_TAG}/coreml/all_minilm_l6_v2_coreml_int8.pte`,
   tokenizerPath: `${BASE_URL}/all-MiniLM-L6-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const ALL_MINILM_L6_V2_COREML_FP16: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/all-MiniLM-L6-v2-ExecuTorch/${VERSION_TAG}/coreml/all_minilm_l6_v2_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/all-MiniLM-L6-v2-ExecuTorch/${VERSION_TAG}/coreml/all_minilm_l6_v2_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/all-MiniLM-L6-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const ALL_MINILM_L6_V2_VULKAN_FP16: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/all-MiniLM-L6-v2-ExecuTorch/${VERSION_TAG}/vulkan/all_minilm_l6_v2_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/all-MiniLM-L6-v2-ExecuTorch/${VERSION_TAG}/vulkan/all_minilm_l6_v2_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/all-MiniLM-L6-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const ALL_MPNET_BASE_V2_XNNPACK_INT8: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/all-mpnet-base-v2-ExecuTorch/${VERSION_TAG}/xnnpack/all_mpnet_base_v2_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/all-mpnet-base-v2-ExecuTorch/${VERSION_TAG}/xnnpack/all_mpnet_base_v2_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/all-mpnet-base-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const ALL_MPNET_BASE_V2_XNNPACK_8DA4W: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/all-mpnet-base-v2-ExecuTorch/${VERSION_TAG}/xnnpack/all_mpnet_base_v2_xnnpack_8da4w.pte`,
+  modelSource: `${BASE_URL}/all-mpnet-base-v2-ExecuTorch/${VERSION_TAG}/xnnpack/all_mpnet_base_v2_xnnpack_8da4w.pte`,
   tokenizerPath: `${BASE_URL}/all-mpnet-base-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const ALL_MPNET_BASE_V2_VULKAN_INT8: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/all-mpnet-base-v2-ExecuTorch/${VERSION_TAG}/vulkan/all_mpnet_base_v2_vulkan_int8.pte`,
+  modelSource: `${BASE_URL}/all-mpnet-base-v2-ExecuTorch/${VERSION_TAG}/vulkan/all_mpnet_base_v2_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}/all-mpnet-base-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const ALL_MPNET_BASE_V2_VULKAN_FP16: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/all-mpnet-base-v2-ExecuTorch/${VERSION_TAG}/vulkan/all_mpnet_base_v2_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/all-mpnet-base-v2-ExecuTorch/${VERSION_TAG}/vulkan/all_mpnet_base_v2_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/all-mpnet-base-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const MULTI_QA_MINILM_L6_COS_V1_XNNPACK_INT8: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/multi-qa-MiniLM-L6-cos-v1-ExecuTorch/${VERSION_TAG}/xnnpack/multi_qa_minilm_l6_cos_v1_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/multi-qa-MiniLM-L6-cos-v1-ExecuTorch/${VERSION_TAG}/xnnpack/multi_qa_minilm_l6_cos_v1_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/multi-qa-MiniLM-L6-cos-v1-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const MULTI_QA_MINILM_L6_COS_V1_COREML_INT8: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/multi-qa-MiniLM-L6-cos-v1-ExecuTorch/${VERSION_TAG}/coreml/multi_qa_minilm_l6_cos_v1_coreml_int8.pte`,
+  modelSource: `${BASE_URL}/multi-qa-MiniLM-L6-cos-v1-ExecuTorch/${VERSION_TAG}/coreml/multi_qa_minilm_l6_cos_v1_coreml_int8.pte`,
   tokenizerPath: `${BASE_URL}/multi-qa-MiniLM-L6-cos-v1-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const MULTI_QA_MINILM_L6_COS_V1_COREML_FP16: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/multi-qa-MiniLM-L6-cos-v1-ExecuTorch/${VERSION_TAG}/coreml/multi_qa_minilm_l6_cos_v1_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/multi-qa-MiniLM-L6-cos-v1-ExecuTorch/${VERSION_TAG}/coreml/multi_qa_minilm_l6_cos_v1_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/multi-qa-MiniLM-L6-cos-v1-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const MULTI_QA_MINILM_L6_COS_V1_VULKAN_FP16: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/multi-qa-MiniLM-L6-cos-v1-ExecuTorch/${VERSION_TAG}/vulkan/multi_qa_minilm_l6_cos_v1_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/multi-qa-MiniLM-L6-cos-v1-ExecuTorch/${VERSION_TAG}/vulkan/multi_qa_minilm_l6_cos_v1_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/multi-qa-MiniLM-L6-cos-v1-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const MULTI_QA_MPNET_BASE_DOT_V1_XNNPACK_INT8: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/multi-qa-mpnet-base-dot-v1-ExecuTorch/${VERSION_TAG}/xnnpack/multi_qa_mpnet_base_dot_v1_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/multi-qa-mpnet-base-dot-v1-ExecuTorch/${VERSION_TAG}/xnnpack/multi_qa_mpnet_base_dot_v1_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/multi-qa-mpnet-base-dot-v1-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const MULTI_QA_MPNET_BASE_DOT_V1_XNNPACK_8DA4W: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/multi-qa-mpnet-base-dot-v1-ExecuTorch/${VERSION_TAG}/xnnpack/multi_qa_mpnet_base_dot_v1_xnnpack_8da4w.pte`,
+  modelSource: `${BASE_URL}/multi-qa-mpnet-base-dot-v1-ExecuTorch/${VERSION_TAG}/xnnpack/multi_qa_mpnet_base_dot_v1_xnnpack_8da4w.pte`,
   tokenizerPath: `${BASE_URL}/multi-qa-mpnet-base-dot-v1-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const MULTI_QA_MPNET_BASE_DOT_V1_VULKAN_INT8: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/multi-qa-mpnet-base-dot-v1-ExecuTorch/${VERSION_TAG}/vulkan/multi_qa_mpnet_base_dot_v1_vulkan_int8.pte`,
+  modelSource: `${BASE_URL}/multi-qa-mpnet-base-dot-v1-ExecuTorch/${VERSION_TAG}/vulkan/multi_qa_mpnet_base_dot_v1_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}/multi-qa-mpnet-base-dot-v1-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const MULTI_QA_MPNET_BASE_DOT_V1_VULKAN_FP16: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/multi-qa-mpnet-base-dot-v1-ExecuTorch/${VERSION_TAG}/vulkan/multi_qa_mpnet_base_dot_v1_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/multi-qa-mpnet-base-dot-v1-ExecuTorch/${VERSION_TAG}/vulkan/multi_qa_mpnet_base_dot_v1_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/multi-qa-mpnet-base-dot-v1-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_EMBEDDINGS: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/paraphrase-multilingual-MiniLM-L12-v2-ExecuTorch/${VERSION_TAG}/xnnpack/paraphrase_multilingual_minilm_l12_v2_xnnpack_8da4w.pte`,
+  modelSource: `${BASE_URL}/paraphrase-multilingual-MiniLM-L12-v2-ExecuTorch/${VERSION_TAG}/xnnpack/paraphrase_multilingual_minilm_l12_v2_xnnpack_8da4w.pte`,
   tokenizerPath: `${BASE_URL}/paraphrase-multilingual-MiniLM-L12-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_COREML_INT8: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/paraphrase-multilingual-MiniLM-L12-v2-ExecuTorch/${VERSION_TAG}/coreml/paraphrase_multilingual_minilm_l12_v2_coreml_int8.pte`,
+  modelSource: `${BASE_URL}/paraphrase-multilingual-MiniLM-L12-v2-ExecuTorch/${VERSION_TAG}/coreml/paraphrase_multilingual_minilm_l12_v2_coreml_int8.pte`,
   tokenizerPath: `${BASE_URL}/paraphrase-multilingual-MiniLM-L12-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_COREML_FP16: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/paraphrase-multilingual-MiniLM-L12-v2-ExecuTorch/${VERSION_TAG}/coreml/paraphrase_multilingual_minilm_l12_v2_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/paraphrase-multilingual-MiniLM-L12-v2-ExecuTorch/${VERSION_TAG}/coreml/paraphrase_multilingual_minilm_l12_v2_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/paraphrase-multilingual-MiniLM-L12-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_VULKAN_FP16: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/paraphrase-multilingual-MiniLM-L12-v2-ExecuTorch/${VERSION_TAG}/vulkan/paraphrase_multilingual_minilm_l12_v2_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/paraphrase-multilingual-MiniLM-L12-v2-ExecuTorch/${VERSION_TAG}/vulkan/paraphrase_multilingual_minilm_l12_v2_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/paraphrase-multilingual-MiniLM-L12-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/xnnpack/distiluse_base_multilingual_cased_v2_xnnpack_8da4w.pte`,
+  modelSource: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/xnnpack/distiluse_base_multilingual_cased_v2_xnnpack_8da4w.pte`,
   tokenizerPath: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_INT8: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/coreml/distiluse_base_multilingual_cased_v2_coreml_int8.pte`,
+  modelSource: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/coreml/distiluse_base_multilingual_cased_v2_coreml_int8.pte`,
   tokenizerPath: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/coreml/distiluse_base_multilingual_cased_v2_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/coreml/distiluse_base_multilingual_cased_v2_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/mlx/distiluse_base_multilingual_cased_v2_mlx_int8.pte`,
+  modelSource: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/mlx/distiluse_base_multilingual_cased_v2_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_VULKAN_FP16: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/vulkan/distiluse_base_multilingual_cased_v2_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/vulkan/distiluse_base_multilingual_cased_v2_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const CLIP_VIT_BASE_PATCH32_TEXT_XNNPACK_INT8: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const CLIP_VIT_BASE_PATCH32_TEXT_COREML_INT8: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/coreml/clip_vit_base_patch32_text_coreml_int8.pte`,
+  modelSource: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/coreml/clip_vit_base_patch32_text_coreml_int8.pte`,
   tokenizerPath: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const CLIP_VIT_BASE_PATCH32_TEXT_COREML_FP16: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/coreml/clip_vit_base_patch32_text_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/coreml/clip_vit_base_patch32_text_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const CLIP_VIT_BASE_PATCH32_TEXT_VULKAN_FP16: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/vulkan/clip_vit_base_patch32_text_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/vulkan/clip_vit_base_patch32_text_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const LFM2_5_EMBEDDING_350M_EMBEDDINGS: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/LFM2.5-Embedding-350M-ExecuTorch/${VERSION_TAG}/xnnpack/lfm_2_5_embedding_350m_xnnpack_8da4w.pte`,
+  modelSource: `${BASE_URL}/LFM2.5-Embedding-350M-ExecuTorch/${VERSION_TAG}/xnnpack/lfm_2_5_embedding_350m_xnnpack_8da4w.pte`,
   tokenizerPath: `${BASE_URL}/LFM2.5-Embedding-350M-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   defaultPrompt: 'query: ',
 };
 const LFM2_5_EMBEDDING_350M_MLX_INT4: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/LFM2.5-Embedding-350M-ExecuTorch/${VERSION_TAG}/mlx/lfm_2_5_embedding_350m_mlx_int4.pte`,
+  modelSource: `${BASE_URL}/LFM2.5-Embedding-350M-ExecuTorch/${VERSION_TAG}/mlx/lfm_2_5_embedding_350m_mlx_int4.pte`,
   tokenizerPath: `${BASE_URL}/LFM2.5-Embedding-350M-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   defaultPrompt: 'query: ',
 };
@@ -1265,12 +1265,12 @@ const LFM2_5_COLBERT_350M_OPTS = {
   skiplistTokens: [...'!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'],
 };
 const LFM2_5_COLBERT_350M_XNNPACK_8DA4W: ColbertEmbedderModel = {
-  modelPath: `${BASE_URL}/LFM2.5-ColBERT-350M-ExecuTorch/${VERSION_TAG}/xnnpack/lfm_2_5_colbert_350m_xnnpack_8da4w.pte`,
+  modelSource: `${BASE_URL}/LFM2.5-ColBERT-350M-ExecuTorch/${VERSION_TAG}/xnnpack/lfm_2_5_colbert_350m_xnnpack_8da4w.pte`,
   tokenizerPath: `${BASE_URL}/LFM2.5-ColBERT-350M-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   modelOpts: LFM2_5_COLBERT_350M_OPTS,
 };
 const LFM2_5_COLBERT_350M_MLX_INT4: ColbertEmbedderModel = {
-  modelPath: `${BASE_URL}/LFM2.5-ColBERT-350M-ExecuTorch/${VERSION_TAG}/mlx/lfm_2_5_colbert_350m_mlx_int4.pte`,
+  modelSource: `${BASE_URL}/LFM2.5-ColBERT-350M-ExecuTorch/${VERSION_TAG}/mlx/lfm_2_5_colbert_350m_mlx_int4.pte`,
   tokenizerPath: `${BASE_URL}/LFM2.5-ColBERT-350M-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   modelOpts: LFM2_5_COLBERT_350M_OPTS,
 };
@@ -1289,19 +1289,19 @@ const CLIP_IMAGE_EMBEDDINGS_OPTS = {
   },
 };
 const CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_INT8: ImageEmbedderModel = {
-  modelPath: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/xnnpack/clip_vit_base_patch32_image_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/xnnpack/clip_vit_base_patch32_image_xnnpack_int8.pte`,
   modelOpts: CLIP_IMAGE_EMBEDDINGS_OPTS,
 };
 const CLIP_VIT_BASE_PATCH32_IMAGE_COREML_FP16: ImageEmbedderModel = {
-  modelPath: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/coreml/clip_vit_base_patch32_image_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/coreml/clip_vit_base_patch32_image_coreml_fp16.pte`,
   modelOpts: CLIP_IMAGE_EMBEDDINGS_OPTS,
 };
 const CLIP_VIT_BASE_PATCH32_IMAGE_MLX_INT8: ImageEmbedderModel = {
-  modelPath: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/mlx/clip_vit_base_patch32_image_mlx_int8.pte`,
+  modelSource: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/mlx/clip_vit_base_patch32_image_mlx_int8.pte`,
   modelOpts: CLIP_IMAGE_EMBEDDINGS_OPTS,
 };
 const CLIP_VIT_BASE_PATCH32_IMAGE_VULKAN_FP16: ImageEmbedderModel = {
-  modelPath: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/vulkan/clip_vit_base_patch32_image_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/vulkan/clip_vit_base_patch32_image_vulkan_fp16.pte`,
   modelOpts: CLIP_IMAGE_EMBEDDINGS_OPTS,
 };
 
@@ -1309,7 +1309,7 @@ const CLIP_VIT_BASE_PATCH32_IMAGE_VULKAN_FP16: ImageEmbedderModel = {
 // Voice Activity Detection
 // =============================================================================
 const FSMN_VAD_XNNPACK_FP32: FsmnVadModel = {
-  modelPath: `${BASE_URL}/fsmn-vad-ExecuTorch/${VERSION_TAG}/xnnpack/fsmn_vad_xnnpack_fp32.pte`,
+  modelSource: `${BASE_URL}/fsmn-vad-ExecuTorch/${VERSION_TAG}/xnnpack/fsmn_vad_xnnpack_fp32.pte`,
   defaultOptions: {
     speechThreshold: 0.6,
     minSpeechDurationMs: 250,
@@ -1324,42 +1324,42 @@ const FSMN_VAD_XNNPACK_FP32: FsmnVadModel = {
 // =============================================================================
 const WHISPER_TINY_EN_XNNPACK_INT8: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_COREML_FP16: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/coreml/whisper_tiny_en_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/coreml/whisper_tiny_en_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_MLX_BF16: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_tiny_en_mlx_bf16.pte`,
+  modelSource: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_tiny_en_mlx_bf16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_MLX_INT8: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_tiny_en_mlx_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_tiny_en_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_VULKAN_FP16: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_tiny_en_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_tiny_en_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_tiny_en_vulkan_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_tiny_en_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1367,42 +1367,42 @@ const WHISPER_TINY_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
 
 const WHISPER_TINY_XNNPACK_INT8: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_tiny_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_tiny_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_COREML_FP16: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/coreml/whisper_tiny_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/coreml/whisper_tiny_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_MLX_BF16: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/mlx/whisper_tiny_mlx_bf16.pte`,
+  modelSource: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/mlx/whisper_tiny_mlx_bf16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_MLX_INT8: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/mlx/whisper_tiny_mlx_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/mlx/whisper_tiny_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_VULKAN_FP16: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/vulkan/whisper_tiny_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/vulkan/whisper_tiny_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_VULKAN_INT8: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/vulkan/whisper_tiny_vulkan_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/vulkan/whisper_tiny_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1410,42 +1410,42 @@ const WHISPER_TINY_VULKAN_INT8: WhisperSttModel = {
 
 const WHISPER_BASE_EN_XNNPACK_INT8: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_base_en_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_base_en_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_COREML_FP16: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/coreml/whisper_base_en_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/coreml/whisper_base_en_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_MLX_BF16: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_base_en_mlx_bf16.pte`,
+  modelSource: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_base_en_mlx_bf16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_MLX_INT8: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_base_en_mlx_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_base_en_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_VULKAN_FP16: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_base_en_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_base_en_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_base_en_vulkan_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_base_en_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1453,42 +1453,42 @@ const WHISPER_BASE_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
 
 const WHISPER_BASE_XNNPACK_INT8: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_base_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_base_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_COREML_FP16: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/coreml/whisper_base_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/coreml/whisper_base_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_MLX_BF16: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/mlx/whisper_base_mlx_bf16.pte`,
+  modelSource: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/mlx/whisper_base_mlx_bf16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_MLX_INT8: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/mlx/whisper_base_mlx_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/mlx/whisper_base_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_VULKAN_FP16: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/vulkan/whisper_base_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/vulkan/whisper_base_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_VULKAN_INT8: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/vulkan/whisper_base_vulkan_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/vulkan/whisper_base_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1496,35 +1496,35 @@ const WHISPER_BASE_VULKAN_INT8: WhisperSttModel = {
 
 const WHISPER_SMALL_EN_XNNPACK_INT8: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_small_en_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_small_en_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_EN_COREML_FP16: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/coreml/whisper_small_en_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/coreml/whisper_small_en_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_EN_MLX_INT8: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_small_en_mlx_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_small_en_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_EN_VULKAN_FP16: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_small_en_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_small_en_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_small_en_vulkan_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/vulkan/whisper_small_en_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1532,35 +1532,35 @@ const WHISPER_SMALL_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
 
 const WHISPER_SMALL_XNNPACK_INT8: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_small_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/xnnpack/whisper_small_xnnpack_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_COREML_FP16: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/coreml/whisper_small_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/coreml/whisper_small_coreml_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_MLX_INT8: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/mlx/whisper_small_mlx_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/mlx/whisper_small_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_VULKAN_FP16: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/vulkan/whisper_small_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/vulkan/whisper_small_vulkan_fp16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_VULKAN_INT8: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/vulkan/whisper_small_vulkan_int8.pte`,
+  modelSource: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/vulkan/whisper_small_vulkan_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1569,13 +1569,13 @@ const WHISPER_SMALL_VULKAN_INT8: WhisperSttModel = {
 const QWEN3_ASR_0_6B_TOKENIZER = `${BASE_URL}/Qwen3-ASR-ExecuTorch/${VERSION_TAG}/0_6b/tokenizer.json`;
 const QWEN3_ASR_0_6B_XNNPACK_8DA4W: Qwen3AsrSttModel = {
   name: 'qwen3-asr',
-  modelPath: `${BASE_URL}/Qwen3-ASR-ExecuTorch/${VERSION_TAG}/0_6b/xnnpack/qwen3_asr_0_6b_xnnpack_8da4w.pte`,
+  modelSource: `${BASE_URL}/Qwen3-ASR-ExecuTorch/${VERSION_TAG}/0_6b/xnnpack/qwen3_asr_0_6b_xnnpack_8da4w.pte`,
   tokenizerPath: QWEN3_ASR_0_6B_TOKENIZER,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const QWEN3_ASR_0_6B_MLX_COREML_INT4: Qwen3AsrSttModel = {
   name: 'qwen3-asr',
-  modelPath: `${BASE_URL}/Qwen3-ASR-ExecuTorch/${VERSION_TAG}/0_6b/mlx/qwen3_asr_0_6b_coreml_mlx_4w.pte`,
+  modelSource: `${BASE_URL}/Qwen3-ASR-ExecuTorch/${VERSION_TAG}/0_6b/mlx/qwen3_asr_0_6b_coreml_mlx_4w.pte`,
   tokenizerPath: QWEN3_ASR_0_6B_TOKENIZER,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
@@ -1585,15 +1585,15 @@ const QWEN3_ASR_0_6B_MLX_COREML_INT4: Qwen3AsrSttModel = {
 // =============================================================================
 const SDXS_512_DREAMSHAPER_TOKENIZER = `${BASE_URL}/sdxs-512-dreamshaper-ExecuTorch/${VERSION_TAG}/tokenizer.json`;
 const SDXS_512_DREAMSHAPER_XNNPACK_INT8: SdxsTextToImageModel = {
-  modelPath: `${BASE_URL}/sdxs-512-dreamshaper-ExecuTorch/${VERSION_TAG}/xnnpack/sdxs_512_dreamshaper_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/sdxs-512-dreamshaper-ExecuTorch/${VERSION_TAG}/xnnpack/sdxs_512_dreamshaper_xnnpack_int8.pte`,
   tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
 };
 const SDXS_512_DREAMSHAPER_COREML_FP16: SdxsTextToImageModel = {
-  modelPath: `${BASE_URL}/sdxs-512-dreamshaper-ExecuTorch/${VERSION_TAG}/coreml/sdxs_512_dreamshaper_coreml_fp16.pte`,
+  modelSource: `${BASE_URL}/sdxs-512-dreamshaper-ExecuTorch/${VERSION_TAG}/coreml/sdxs_512_dreamshaper_coreml_fp16.pte`,
   tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
 };
 const SDXS_512_DREAMSHAPER_VULKAN_FP16: SdxsTextToImageModel = {
-  modelPath: `${BASE_URL}/sdxs-512-dreamshaper-ExecuTorch/${VERSION_TAG}/vulkan/sdxs_512_dreamshaper_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/sdxs-512-dreamshaper-ExecuTorch/${VERSION_TAG}/vulkan/sdxs_512_dreamshaper_vulkan_fp16.pte`,
   tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
 };
 
@@ -1610,7 +1610,7 @@ const SUPERTONIC_DEFAULT_VOICE_STYLES = SUPERTONIC_DEFAULT_VOICE_NAMES.reduce(
 
 const SUPERTONIC_3_XNNPACK_INT8: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
   name: 'supertonic',
-  modelPaths: {
+  modelSources: {
     durationPredictor: `${BASE_URL}/supertonic-ExecuTorch/${VERSION_TAG}/xnnpack/duration_predictor_xnnpack_fp32.pte`,
     vectorEstimator: `${BASE_URL}/supertonic-ExecuTorch/${VERSION_TAG}/xnnpack/vector_estimator_xnnpack_int8.pte`,
     textEncoder: `${BASE_URL}/supertonic-ExecuTorch/${VERSION_TAG}/xnnpack/text_encoder_xnnpack_fp32.pte`,
@@ -1622,7 +1622,7 @@ const SUPERTONIC_3_XNNPACK_INT8: SupertonicTtsModel<SupertonicDefaultVoiceName> 
 
 const SUPERTONIC_3_MLX_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
   name: 'supertonic',
-  modelPaths: {
+  modelSources: {
     durationPredictor: `${BASE_URL}/supertonic-ExecuTorch/${VERSION_TAG}/mlx/duration_predictor_mlx_fp32.pte`,
     vectorEstimator: `${BASE_URL}/supertonic-ExecuTorch/${VERSION_TAG}/mlx/vector_estimator_mlx_fp32.pte`,
     textEncoder: `${BASE_URL}/supertonic-ExecuTorch/${VERSION_TAG}/mlx/text_encoder_mlx_fp32.pte`,
@@ -1634,7 +1634,7 @@ const SUPERTONIC_3_MLX_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
 
 const SUPERTONIC_3_VULKAN_FP16: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
   name: 'supertonic',
-  modelPaths: {
+  modelSources: {
     durationPredictor: `${BASE_URL}/supertonic-ExecuTorch/${VERSION_TAG}/vulkan/duration_predictor_vulkan_fp16.pte`,
     vectorEstimator: `${BASE_URL}/supertonic-ExecuTorch/${VERSION_TAG}/vulkan/vector_estimator_vulkan_fp16.pte`,
     textEncoder: `${BASE_URL}/supertonic-ExecuTorch/${VERSION_TAG}/vulkan/text_encoder_vulkan_fp16.pte`,
@@ -1700,61 +1700,61 @@ const KOKORO_EN_US_XNNPACK_FP32: KokoroTtsModel<
   'af_heart' | 'af_river' | 'af_sarah' | 'am_adam' | 'am_michael' | 'am_santa'
 > = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('xnnpack', 'std', 'standard'),
+  modelSources: kokoroModelPaths('xnnpack', 'std', 'standard'),
   phonemizer: kokoroEnglishPhonemizer('en-us'),
   voices: kokoroVoices(['af_heart', 'af_river', 'af_sarah', 'am_adam', 'am_michael', 'am_santa']),
 };
 const KOKORO_EN_GB_XNNPACK_FP32: KokoroTtsModel<'bf_emma' | 'bm_daniel'> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('xnnpack', 'std', 'standard'),
+  modelSources: kokoroModelPaths('xnnpack', 'std', 'standard'),
   phonemizer: kokoroEnglishPhonemizer('en-gb'),
   voices: kokoroVoices(['bf_emma', 'bm_daniel']),
 };
 const KOKORO_ES_XNNPACK_FP32: KokoroTtsModel<'ef_dora' | 'em_alex'> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('xnnpack', 'std', 'standard'),
+  modelSources: kokoroModelPaths('xnnpack', 'std', 'standard'),
   phonemizer: kokoroNeuralPhonemizer('es'),
   voices: kokoroVoices(['ef_dora', 'em_alex']),
 };
 const KOKORO_FR_XNNPACK_FP32: KokoroTtsModel<'ff_siwis'> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('xnnpack', 'std', 'standard'),
+  modelSources: kokoroModelPaths('xnnpack', 'std', 'standard'),
   phonemizer: kokoroNeuralPhonemizer('fr'),
   voices: kokoroVoices(['ff_siwis']),
 };
 const KOKORO_IT_XNNPACK_FP32: KokoroTtsModel<'if_sara' | 'im_nicola'> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('xnnpack', 'std', 'standard'),
+  modelSources: kokoroModelPaths('xnnpack', 'std', 'standard'),
   phonemizer: kokoroNeuralPhonemizer('it'),
   voices: kokoroVoices(['if_sara', 'im_nicola']),
 };
 const KOKORO_PT_XNNPACK_FP32: KokoroTtsModel<'pf_dora' | 'pm_santa'> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('xnnpack', 'std', 'standard'),
+  modelSources: kokoroModelPaths('xnnpack', 'std', 'standard'),
   phonemizer: kokoroNeuralPhonemizer('pt'),
   voices: kokoroVoices(['pf_dora', 'pm_santa']),
 };
 const KOKORO_HI_XNNPACK_FP32: KokoroTtsModel<'hf_alpha' | 'hm_omega' | 'hm_psi'> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('xnnpack', 'std', 'standard'),
+  modelSources: kokoroModelPaths('xnnpack', 'std', 'standard'),
   phonemizer: kokoroNeuralPhonemizer('hi'),
   voices: kokoroVoices(['hf_alpha', 'hm_omega', 'hm_psi']),
 };
 const KOKORO_PL_XNNPACK_FP32: KokoroTtsModel<'pm_mateusz'> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('xnnpack', 'pl', 'polish'),
+  modelSources: kokoroModelPaths('xnnpack', 'pl', 'polish'),
   phonemizer: kokoroNeuralPhonemizer('pl'),
   voices: kokoroVoices(['pm_mateusz']),
 };
 const KOKORO_DE_XNNPACK_FP32: KokoroTtsModel<'df_anna'> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('xnnpack', 'de', 'german'),
+  modelSources: kokoroModelPaths('xnnpack', 'de', 'german'),
   phonemizer: kokoroNeuralPhonemizer('de'),
   voices: kokoroVoices(['df_anna']),
 };
 const KOKORO_ZH_XNNPACK_FP32: KokoroTtsModel<KokoroZhVoice> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('xnnpack', 'std', 'standard'),
+  modelSources: kokoroModelPaths('xnnpack', 'std', 'standard'),
   phonemizer: KOKORO_ZH_PHONEMIZER,
   voices: KOKORO_ZH_VOICES,
 };
@@ -1766,62 +1766,62 @@ const KOKORO_EN_US_COREML_FP32: KokoroTtsModel<
   'af_heart' | 'af_river' | 'af_sarah' | 'am_adam' | 'am_michael' | 'am_santa'
 > = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('coreml', 'std', 'standard'),
+  modelSources: kokoroModelPaths('coreml', 'std', 'standard'),
   phonemizer: kokoroEnglishPhonemizer('en-us'),
   voices: kokoroVoices(['af_heart', 'af_river', 'af_sarah', 'am_adam', 'am_michael', 'am_santa']),
 };
 const KOKORO_EN_GB_COREML_FP32: KokoroTtsModel<'bf_emma' | 'bm_daniel'> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('coreml', 'std', 'standard'),
+  modelSources: kokoroModelPaths('coreml', 'std', 'standard'),
   phonemizer: kokoroEnglishPhonemizer('en-gb'),
   voices: kokoroVoices(['bf_emma', 'bm_daniel']),
 };
 const KOKORO_ES_COREML_FP32: KokoroTtsModel<'ef_dora' | 'em_alex'> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('coreml', 'std', 'standard'),
+  modelSources: kokoroModelPaths('coreml', 'std', 'standard'),
   phonemizer: kokoroNeuralPhonemizer('es'),
   voices: kokoroVoices(['ef_dora', 'em_alex']),
 };
 const KOKORO_FR_COREML_FP32: KokoroTtsModel<'ff_siwis'> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('coreml', 'std', 'standard'),
+  modelSources: kokoroModelPaths('coreml', 'std', 'standard'),
   phonemizer: kokoroNeuralPhonemizer('fr'),
   voices: kokoroVoices(['ff_siwis']),
 };
 const KOKORO_IT_COREML_FP32: KokoroTtsModel<'if_sara' | 'im_nicola'> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('coreml', 'std', 'standard'),
+  modelSources: kokoroModelPaths('coreml', 'std', 'standard'),
   phonemizer: kokoroNeuralPhonemizer('it'),
   voices: kokoroVoices(['if_sara', 'im_nicola']),
 };
 const KOKORO_PT_COREML_FP32: KokoroTtsModel<'pf_dora' | 'pm_santa'> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('coreml', 'std', 'standard'),
+  modelSources: kokoroModelPaths('coreml', 'std', 'standard'),
   phonemizer: kokoroNeuralPhonemizer('pt'),
   voices: kokoroVoices(['pf_dora', 'pm_santa']),
 };
 const KOKORO_HI_COREML_FP32: KokoroTtsModel<'hf_alpha' | 'hm_omega' | 'hm_psi'> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('coreml', 'std', 'standard'),
+  modelSources: kokoroModelPaths('coreml', 'std', 'standard'),
   phonemizer: kokoroNeuralPhonemizer('hi'),
   voices: kokoroVoices(['hf_alpha', 'hm_omega', 'hm_psi']),
 };
 
 const KOKORO_PL_COREML_FP32: KokoroTtsModel<'pm_mateusz'> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('coreml', 'pl', 'polish'),
+  modelSources: kokoroModelPaths('coreml', 'pl', 'polish'),
   phonemizer: kokoroNeuralPhonemizer('pl'),
   voices: kokoroVoices(['pm_mateusz']),
 };
 const KOKORO_DE_COREML_FP32: KokoroTtsModel<'df_anna'> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('coreml', 'de', 'german'),
+  modelSources: kokoroModelPaths('coreml', 'de', 'german'),
   phonemizer: kokoroNeuralPhonemizer('de'),
   voices: kokoroVoices(['df_anna']),
 };
 const KOKORO_ZH_COREML_FP32: KokoroTtsModel<KokoroZhVoice> = {
   name: 'kokoro',
-  modelPaths: kokoroModelPaths('coreml', 'std', 'standard'),
+  modelSources: kokoroModelPaths('coreml', 'std', 'standard'),
   phonemizer: KOKORO_ZH_PHONEMIZER,
   voices: KOKORO_ZH_VOICES,
 };
@@ -1841,12 +1841,12 @@ const PRIVACY_FILTER_OPENAI_OPTS = {
   padTokenId: O200K_PAD_TOKEN_ID,
 };
 const PRIVACY_FILTER_OPENAI_XNNPACK_8DA4W: PrivacyFilterModel<PrivacyFilterOpenaiLabel> = {
-  modelPath: `${BASE_URL}/openai-privacy-filter-ExecuTorch/${VERSION_TAG}/xnnpack/privacy_filter_openai_xnnpack_8da4w.pte`,
+  modelSource: `${BASE_URL}/openai-privacy-filter-ExecuTorch/${VERSION_TAG}/xnnpack/privacy_filter_openai_xnnpack_8da4w.pte`,
   tokenizerPath: PRIVACY_FILTER_OPENAI_TOKENIZER,
   modelOpts: PRIVACY_FILTER_OPENAI_OPTS,
 };
 const PRIVACY_FILTER_OPENAI_MLX_INT4: PrivacyFilterModel<PrivacyFilterOpenaiLabel> = {
-  modelPath: `${BASE_URL}/openai-privacy-filter-ExecuTorch/${VERSION_TAG}/mlx/privacy_filter_openai_mlx_int4.pte`,
+  modelSource: `${BASE_URL}/openai-privacy-filter-ExecuTorch/${VERSION_TAG}/mlx/privacy_filter_openai_mlx_int4.pte`,
   tokenizerPath: PRIVACY_FILTER_OPENAI_TOKENIZER,
   modelOpts: PRIVACY_FILTER_OPENAI_OPTS,
 };
@@ -1857,12 +1857,12 @@ const PRIVACY_FILTER_NEMOTRON_OPTS = {
   padTokenId: O200K_PAD_TOKEN_ID,
 };
 const PRIVACY_FILTER_NEMOTRON_XNNPACK_8DA4W: PrivacyFilterModel<PrivacyFilterNemotronLabel> = {
-  modelPath: `${BASE_URL}/privacy-filter-nemotron-ExecuTorch/${VERSION_TAG}/xnnpack/privacy_filter_nemotron_xnnpack_8da4w.pte`,
+  modelSource: `${BASE_URL}/privacy-filter-nemotron-ExecuTorch/${VERSION_TAG}/xnnpack/privacy_filter_nemotron_xnnpack_8da4w.pte`,
   tokenizerPath: PRIVACY_FILTER_NEMOTRON_TOKENIZER,
   modelOpts: PRIVACY_FILTER_NEMOTRON_OPTS,
 };
 const PRIVACY_FILTER_NEMOTRON_MLX_INT8: PrivacyFilterModel<PrivacyFilterNemotronLabel> = {
-  modelPath: `${BASE_URL}/privacy-filter-nemotron-ExecuTorch/${VERSION_TAG}/mlx/privacy_filter_nemotron_mlx_int8.pte`,
+  modelSource: `${BASE_URL}/privacy-filter-nemotron-ExecuTorch/${VERSION_TAG}/mlx/privacy_filter_nemotron_mlx_int8.pte`,
   tokenizerPath: PRIVACY_FILTER_NEMOTRON_TOKENIZER,
   modelOpts: PRIVACY_FILTER_NEMOTRON_OPTS,
 };
@@ -1883,17 +1883,17 @@ const PPOCRV6_OPTS = { defaultConfidenceThreshold: 0.5 };
 // SVTR attention stack.
 const PPOCRV6_CHARSET = `${BASE_URL}/PP-OCRv6-ExecuTorch/${VERSION_TAG}/charset.json`;
 const PPOCRV6_SMALL_XNNPACK_INT8: PaddleOcrModel = {
-  modelPath: `${BASE_URL}/PP-OCRv6-ExecuTorch/${VERSION_TAG}/xnnpack/pp_ocrv6_xnnpack_int8.pte`,
+  modelSource: `${BASE_URL}/PP-OCRv6-ExecuTorch/${VERSION_TAG}/xnnpack/pp_ocrv6_xnnpack_int8.pte`,
   charsetPath: PPOCRV6_CHARSET,
   modelOpts: PPOCRV6_OPTS,
 };
 const PPOCRV6_SMALL_COREML_INT8: PaddleOcrModel = {
-  modelPath: `${BASE_URL}/PP-OCRv6-ExecuTorch/${VERSION_TAG}/coreml/pp_ocrv6_coreml_int8.pte`,
+  modelSource: `${BASE_URL}/PP-OCRv6-ExecuTorch/${VERSION_TAG}/coreml/pp_ocrv6_coreml_int8.pte`,
   charsetPath: PPOCRV6_CHARSET,
   modelOpts: PPOCRV6_OPTS,
 };
 const PPOCRV6_SMALL_VULKAN_FP16: PaddleOcrModel = {
-  modelPath: `${BASE_URL}/PP-OCRv6-ExecuTorch/${VERSION_TAG}/vulkan/pp_ocrv6_vulkan_fp16.pte`,
+  modelSource: `${BASE_URL}/PP-OCRv6-ExecuTorch/${VERSION_TAG}/vulkan/pp_ocrv6_vulkan_fp16.pte`,
   charsetPath: PPOCRV6_CHARSET,
   modelOpts: PPOCRV6_OPTS,
 };
@@ -1905,42 +1905,42 @@ const OPUS_MT_BASE_URL = `${BASE_URL}/opus-mt-ExecuTorch/${VERSION_TAG}`;
 
 const OPUS_MT_EN_DE_XNNPACK_INT8: MarianTranslatorModel = {
   name: 'marian',
-  modelPath: `${OPUS_MT_BASE_URL}/en_de/xnnpack/opus_mt_en_de_xnnpack_int8.pte`,
+  modelSource: `${OPUS_MT_BASE_URL}/en_de/xnnpack/opus_mt_en_de_xnnpack_int8.pte`,
   tokenizerPath: `${OPUS_MT_BASE_URL}/en_de/tokenizer.json`,
   sourceLanguage: 'en',
   targetLanguage: 'de',
 };
 const OPUS_MT_DE_EN_XNNPACK_INT8: MarianTranslatorModel = {
   name: 'marian',
-  modelPath: `${OPUS_MT_BASE_URL}/de_en/xnnpack/opus_mt_de_en_xnnpack_int8.pte`,
+  modelSource: `${OPUS_MT_BASE_URL}/de_en/xnnpack/opus_mt_de_en_xnnpack_int8.pte`,
   tokenizerPath: `${OPUS_MT_BASE_URL}/de_en/tokenizer.json`,
   sourceLanguage: 'de',
   targetLanguage: 'en',
 };
 const OPUS_MT_EN_ES_XNNPACK_INT8: MarianTranslatorModel = {
   name: 'marian',
-  modelPath: `${OPUS_MT_BASE_URL}/en_es/xnnpack/opus_mt_en_es_xnnpack_int8.pte`,
+  modelSource: `${OPUS_MT_BASE_URL}/en_es/xnnpack/opus_mt_en_es_xnnpack_int8.pte`,
   tokenizerPath: `${OPUS_MT_BASE_URL}/en_es/tokenizer.json`,
   sourceLanguage: 'en',
   targetLanguage: 'es',
 };
 const OPUS_MT_ES_EN_XNNPACK_INT8: MarianTranslatorModel = {
   name: 'marian',
-  modelPath: `${OPUS_MT_BASE_URL}/es_en/xnnpack/opus_mt_es_en_xnnpack_int8.pte`,
+  modelSource: `${OPUS_MT_BASE_URL}/es_en/xnnpack/opus_mt_es_en_xnnpack_int8.pte`,
   tokenizerPath: `${OPUS_MT_BASE_URL}/es_en/tokenizer.json`,
   sourceLanguage: 'es',
   targetLanguage: 'en',
 };
 const OPUS_MT_EN_FR_XNNPACK_INT8: MarianTranslatorModel = {
   name: 'marian',
-  modelPath: `${OPUS_MT_BASE_URL}/en_fr/xnnpack/opus_mt_en_fr_xnnpack_int8.pte`,
+  modelSource: `${OPUS_MT_BASE_URL}/en_fr/xnnpack/opus_mt_en_fr_xnnpack_int8.pte`,
   tokenizerPath: `${OPUS_MT_BASE_URL}/en_fr/tokenizer.json`,
   sourceLanguage: 'en',
   targetLanguage: 'fr',
 };
 const OPUS_MT_FR_EN_XNNPACK_INT8: MarianTranslatorModel = {
   name: 'marian',
-  modelPath: `${OPUS_MT_BASE_URL}/fr_en/xnnpack/opus_mt_fr_en_xnnpack_int8.pte`,
+  modelSource: `${OPUS_MT_BASE_URL}/fr_en/xnnpack/opus_mt_fr_en_xnnpack_int8.pte`,
   tokenizerPath: `${OPUS_MT_BASE_URL}/fr_en/tokenizer.json`,
   sourceLanguage: 'fr',
   targetLanguage: 'en',
@@ -1956,14 +1956,14 @@ const EUROLLM_PROMPT = {
 
 const EUROLLM_1_7B_XNNPACK_8DA8W: LLMTranslatorModel = {
   name: 'llm',
-  modelPath: `${EUROLLM_BASE_URL}/xnnpack/eurollm_1_7b_xnnpack_8da8w.pte`,
+  modelSource: `${EUROLLM_BASE_URL}/xnnpack/eurollm_1_7b_xnnpack_8da8w.pte`,
   tokenizerPath: `${EUROLLM_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${EUROLLM_BASE_URL}/tokenizer_config.json`,
   prompt: EUROLLM_PROMPT,
 };
 const EUROLLM_1_7B_MLX_INT8: LLMTranslatorModel = {
   name: 'llm',
-  modelPath: `${EUROLLM_BASE_URL}/mlx/eurollm_1_7b_mlx_int8.pte`,
+  modelSource: `${EUROLLM_BASE_URL}/mlx/eurollm_1_7b_mlx_int8.pte`,
   tokenizerPath: `${EUROLLM_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${EUROLLM_BASE_URL}/tokenizer_config.json`,
   prompt: EUROLLM_PROMPT,
@@ -1989,14 +1989,14 @@ const HY_MT2_PROMPTS = {
 
 const HY_MT2_1_8B_XNNPACK_8DA4W: LLMTranslatorModel = {
   name: 'llm',
-  modelPath: `${HY_MT2_BASE_URL}/xnnpack/hy_mt2_1_8b_xnnpack_8da4w.pte`,
+  modelSource: `${HY_MT2_BASE_URL}/xnnpack/hy_mt2_1_8b_xnnpack_8da4w.pte`,
   tokenizerPath: `${HY_MT2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HY_MT2_BASE_URL}/tokenizer_config.json`,
   ...HY_MT2_PROMPTS,
 };
 const HY_MT2_1_8B_MLX_INT8: LLMTranslatorModel = {
   name: 'llm',
-  modelPath: `${HY_MT2_BASE_URL}/mlx/hy_mt2_1_8b_mlx_int8.pte`,
+  modelSource: `${HY_MT2_BASE_URL}/mlx/hy_mt2_1_8b_mlx_int8.pte`,
   tokenizerPath: `${HY_MT2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HY_MT2_BASE_URL}/tokenizer_config.json`,
   ...HY_MT2_PROMPTS,
@@ -2008,12 +2008,12 @@ const HY_MT2_1_8B_MLX_INT8: LLMTranslatorModel = {
 const MINICPM5_BASE_URL = `${BASE_URL}/MiniCPM5-2B-ExecuTorch/${VERSION_TAG}`;
 
 const MINICPM5_2B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${MINICPM5_BASE_URL}/xnnpack/minicpm_5_2b_xnnpack_8da4w.pte`,
+  modelSource: `${MINICPM5_BASE_URL}/xnnpack/minicpm_5_2b_xnnpack_8da4w.pte`,
   tokenizerPath: `${MINICPM5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${MINICPM5_BASE_URL}/tokenizer_config.json`,
 };
 const MINICPM5_2B_MLX_INT4: LLMModel = {
-  modelPath: `${MINICPM5_BASE_URL}/mlx/minicpm_5_2b_mlx_4w.pte`,
+  modelSource: `${MINICPM5_BASE_URL}/mlx/minicpm_5_2b_mlx_4w.pte`,
   tokenizerPath: `${MINICPM5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${MINICPM5_BASE_URL}/tokenizer_config.json`,
 };
@@ -2021,33 +2021,33 @@ const MINICPM5_2B_MLX_INT4: LLMModel = {
 const LFM2_5_BASE_URL = `${BASE_URL}/LFM2.5-ExecuTorch/${VERSION_TAG}`;
 
 const LFM2_5_1_2B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_8da4w.pte`,
+  modelSource: `${LFM2_5_BASE_URL}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer_config.json`,
 };
 const LFM2_5_1_2B_MLX_INT4: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/1_2b/mlx/lfm_2_5_1_2b_mlx_int4.pte`,
+  modelSource: `${LFM2_5_BASE_URL}/1_2b/mlx/lfm_2_5_1_2b_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer_config.json`,
 };
 const LFM2_5_350M_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/350m/xnnpack/lfm_2_5_350m_xnnpack_8da4w.pte`,
+  modelSource: `${LFM2_5_BASE_URL}/350m/xnnpack/lfm_2_5_350m_xnnpack_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
 };
 const LFM2_5_350M_MLX_INT4: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/350m/mlx/lfm_2_5_350m_mlx_int4.pte`,
+  modelSource: `${LFM2_5_BASE_URL}/350m/mlx/lfm_2_5_350m_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
 };
 
 const LFM2_5_2_6B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/2_6b/xnnpack/lfm_2_5_2_6b_xnnpack_8da4w.pte`,
+  modelSource: `${LFM2_5_BASE_URL}/2_6b/xnnpack/lfm_2_5_2_6b_xnnpack_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/2_6b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/2_6b/tokenizer_config.json`,
 };
 const LFM2_5_2_6B_MLX_INT4: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/2_6b/mlx/lfm_2_5_2_6b_mlx_int4.pte`,
+  modelSource: `${LFM2_5_BASE_URL}/2_6b/mlx/lfm_2_5_2_6b_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/2_6b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/2_6b/tokenizer_config.json`,
 };
@@ -2064,49 +2064,49 @@ const LFM2_5_VL_PREPROCESSOR_CONFIG = {
   },
 };
 const LFM2_5_VL_450M_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_450m/xnnpack/lfm_2_5_vl_450m_xnnpack_8da4w.pte`,
+  modelSource: `${LFM2_5_BASE_URL}/vl_450m/xnnpack/lfm_2_5_vl_450m_xnnpack_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_450M_MLX_INT4: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_450m/mlx/lfm_2_5_vl_450m_mlx_int4.pte`,
+  modelSource: `${LFM2_5_BASE_URL}/vl_450m/mlx/lfm_2_5_vl_450m_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_1_6B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/xnnpack/lfm_2_5_vl_1_6b_xnnpack_8da4w.pte`,
+  modelSource: `${LFM2_5_BASE_URL}/vl_1_6b/xnnpack/lfm_2_5_vl_1_6b_xnnpack_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_450M_VULKAN_8DA4W: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_450m/vulkan/lfm_2_5_vl_450m_vulkan_8da4w.pte`,
+  modelSource: `${LFM2_5_BASE_URL}/vl_450m/vulkan/lfm_2_5_vl_450m_vulkan_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_1_6B_VULKAN_8DA4W: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/vulkan/lfm_2_5_vl_1_6b_vulkan_8da4w.pte`,
+  modelSource: `${LFM2_5_BASE_URL}/vl_1_6b/vulkan/lfm_2_5_vl_1_6b_vulkan_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_1_6B_MLX_INT4: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/mlx/lfm_2_5_vl_1_6b_mlx_int4.pte`,
+  modelSource: `${LFM2_5_BASE_URL}/vl_1_6b/mlx/lfm_2_5_vl_1_6b_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_1_6B_MLX_INT8: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/mlx/lfm_2_5_vl_1_6b_mlx_int8.pte`,
+  modelSource: `${LFM2_5_BASE_URL}/vl_1_6b/mlx/lfm_2_5_vl_1_6b_mlx_int8.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
   modalities: ['image'],
@@ -2116,17 +2116,17 @@ const LFM2_5_VL_1_6B_MLX_INT8: LLMModel = {
 const LFM3_BASE_URL = `${BASE_URL}/LFM3-ExecuTorch/${NEXT_VERSION_TAG}`;
 
 const LFM3_1_7B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${LFM3_BASE_URL}/1_7b/xnnpack/lfm_3_1_7b_xnnpack_8da4w.pte`,
+  modelSource: `${LFM3_BASE_URL}/1_7b/xnnpack/lfm_3_1_7b_xnnpack_8da4w.pte`,
   tokenizerPath: `${LFM3_BASE_URL}/1_7b/tokenizer.json`,
   tokenizerConfigPath: `${LFM3_BASE_URL}/1_7b/tokenizer_config.json`,
 };
 const LFM3_1_7B_MLX_INT4: LLMModel = {
-  modelPath: `${LFM3_BASE_URL}/1_7b/mlx/lfm_3_1_7b_mlx_int4.pte`,
+  modelSource: `${LFM3_BASE_URL}/1_7b/mlx/lfm_3_1_7b_mlx_int4.pte`,
   tokenizerPath: `${LFM3_BASE_URL}/1_7b/tokenizer.json`,
   tokenizerConfigPath: `${LFM3_BASE_URL}/1_7b/tokenizer_config.json`,
 };
 const LFM3_1_7B_MLX_INT8: LLMModel = {
-  modelPath: `${LFM3_BASE_URL}/1_7b/mlx/lfm_3_1_7b_mlx_int8.pte`,
+  modelSource: `${LFM3_BASE_URL}/1_7b/mlx/lfm_3_1_7b_mlx_int8.pte`,
   tokenizerPath: `${LFM3_BASE_URL}/1_7b/tokenizer.json`,
   tokenizerConfigPath: `${LFM3_BASE_URL}/1_7b/tokenizer_config.json`,
 };
@@ -2143,21 +2143,21 @@ const LFM3_VL_PREPROCESSOR_CONFIG = {
   },
 };
 const LFM3_VL_2B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${LFM3_BASE_URL}/vl_2b/xnnpack/lfm_3_vl_2b_xnnpack_8da4w.pte`,
+  modelSource: `${LFM3_BASE_URL}/vl_2b/xnnpack/lfm_3_vl_2b_xnnpack_8da4w.pte`,
   tokenizerPath: `${LFM3_BASE_URL}/vl_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM3_BASE_URL}/vl_2b/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM3_VL_PREPROCESSOR_CONFIG,
 };
 const LFM3_VL_2B_MLX_INT4: LLMModel = {
-  modelPath: `${LFM3_BASE_URL}/vl_2b/mlx/lfm_3_vl_2b_mlx_int4.pte`,
+  modelSource: `${LFM3_BASE_URL}/vl_2b/mlx/lfm_3_vl_2b_mlx_int4.pte`,
   tokenizerPath: `${LFM3_BASE_URL}/vl_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM3_BASE_URL}/vl_2b/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM3_VL_PREPROCESSOR_CONFIG,
 };
 const LFM3_VL_2B_MLX_INT8: LLMModel = {
-  modelPath: `${LFM3_BASE_URL}/vl_2b/mlx/lfm_3_vl_2b_mlx_int8.pte`,
+  modelSource: `${LFM3_BASE_URL}/vl_2b/mlx/lfm_3_vl_2b_mlx_int8.pte`,
   tokenizerPath: `${LFM3_BASE_URL}/vl_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM3_BASE_URL}/vl_2b/tokenizer_config.json`,
   modalities: ['image'],
@@ -2172,21 +2172,21 @@ const LFM3_AUDIO_PREPROCESSOR_CONFIG = {
   },
 };
 const LFM3_AUDIO_2B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${LFM3_BASE_URL}/audio_2b/xnnpack/lfm_3_audio_2b_xnnpack_8da4w.pte`,
+  modelSource: `${LFM3_BASE_URL}/audio_2b/xnnpack/lfm_3_audio_2b_xnnpack_8da4w.pte`,
   tokenizerPath: `${LFM3_BASE_URL}/audio_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM3_BASE_URL}/audio_2b/tokenizer_config.json`,
   modalities: ['audio'],
   preprocessorConfig: LFM3_AUDIO_PREPROCESSOR_CONFIG,
 };
 const LFM3_AUDIO_2B_MLX_INT4: LLMModel = {
-  modelPath: `${LFM3_BASE_URL}/audio_2b/mlx/lfm_3_audio_2b_mlx_int4.pte`,
+  modelSource: `${LFM3_BASE_URL}/audio_2b/mlx/lfm_3_audio_2b_mlx_int4.pte`,
   tokenizerPath: `${LFM3_BASE_URL}/audio_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM3_BASE_URL}/audio_2b/tokenizer_config.json`,
   modalities: ['audio'],
   preprocessorConfig: LFM3_AUDIO_PREPROCESSOR_CONFIG,
 };
 const LFM3_AUDIO_2B_MLX_INT8: LLMModel = {
-  modelPath: `${LFM3_BASE_URL}/audio_2b/mlx/lfm_3_audio_2b_mlx_int8.pte`,
+  modelSource: `${LFM3_BASE_URL}/audio_2b/mlx/lfm_3_audio_2b_mlx_int8.pte`,
   tokenizerPath: `${LFM3_BASE_URL}/audio_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM3_BASE_URL}/audio_2b/tokenizer_config.json`,
   modalities: ['audio'],
@@ -2196,7 +2196,7 @@ const LFM3_AUDIO_2B_MLX_INT8: LLMModel = {
 const BIELIK_V3_1_5B_BASE_URL = `${BASE_URL}/Bielik-1.5B-v3.0-Instruct-ExecuTorch/${VERSION_TAG}`;
 
 const BIELIK_V3_1_5B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${BIELIK_V3_1_5B_BASE_URL}/xnnpack/bielik_v3_0_1_5b_xnnpack_8da4w.pte`,
+  modelSource: `${BIELIK_V3_1_5B_BASE_URL}/xnnpack/bielik_v3_0_1_5b_xnnpack_8da4w.pte`,
   tokenizerPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer_config.json`,
 };
@@ -2204,22 +2204,22 @@ const BIELIK_V3_1_5B_XNNPACK_8DA4W: LLMModel = {
 const LLAMA3_2_BASE_URL = `${BASE_URL}/Llama-3.2-ExecuTorch/${VERSION_TAG}`;
 
 const LLAMA3_2_3B_SPINQUANT: LLMModel = {
-  modelPath: `${LLAMA3_2_BASE_URL}/3b/xnnpack/llama_3_2_3b_xnnpack_spinquant.pte`,
+  modelSource: `${LLAMA3_2_BASE_URL}/3b/xnnpack/llama_3_2_3b_xnnpack_spinquant.pte`,
   tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
 };
 const LLAMA3_2_1B_SPINQUANT: LLMModel = {
-  modelPath: `${LLAMA3_2_BASE_URL}/1b/xnnpack/llama_3_2_1b_xnnpack_spinquant.pte`,
+  modelSource: `${LLAMA3_2_BASE_URL}/1b/xnnpack/llama_3_2_1b_xnnpack_spinquant.pte`,
   tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
 };
 const LLAMA3_2_1B_MLX_INT4: LLMModel = {
-  modelPath: `${LLAMA3_2_BASE_URL}/1b/mlx/llama_3_2_1b_mlx_int4.pte`,
+  modelSource: `${LLAMA3_2_BASE_URL}/1b/mlx/llama_3_2_1b_mlx_int4.pte`,
   tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
 };
 const LLAMA3_2_3B_MLX_INT4: LLMModel = {
-  modelPath: `${LLAMA3_2_BASE_URL}/3b/mlx/llama_3_2_3b_mlx_int4.pte`,
+  modelSource: `${LLAMA3_2_BASE_URL}/3b/mlx/llama_3_2_3b_mlx_int4.pte`,
   tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
 };
@@ -2227,32 +2227,32 @@ const LLAMA3_2_3B_MLX_INT4: LLMModel = {
 const SMOLLM2_BASE_URL = `${BASE_URL}/SmolLM2-ExecuTorch/${VERSION_TAG}`;
 
 const SMOLLM2_135M_8DA8W: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/135m/xnnpack/smollm2_135m_xnnpack_8da8w.pte`,
+  modelSource: `${SMOLLM2_BASE_URL}/135m/xnnpack/smollm2_135m_xnnpack_8da8w.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 const SMOLLM2_360M_8DA8W: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/360m/xnnpack/smollm2_360m_xnnpack_8da8w.pte`,
+  modelSource: `${SMOLLM2_BASE_URL}/360m/xnnpack/smollm2_360m_xnnpack_8da8w.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 const SMOLLM2_1_7B_8DA8W: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/1_7b/xnnpack/smollm2_1_7b_xnnpack_8da8w.pte`,
+  modelSource: `${SMOLLM2_BASE_URL}/1_7b/xnnpack/smollm2_1_7b_xnnpack_8da8w.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 const SMOLLM2_135M_MLX_INT8: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/135m/mlx/smollm2_135m_mlx_int8.pte`,
+  modelSource: `${SMOLLM2_BASE_URL}/135m/mlx/smollm2_135m_mlx_int8.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 const SMOLLM2_360M_MLX_INT8: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/360m/mlx/smollm2_360m_mlx_int8.pte`,
+  modelSource: `${SMOLLM2_BASE_URL}/360m/mlx/smollm2_360m_mlx_int8.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 const SMOLLM2_1_7B_MLX_INT8: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/1_7b/mlx/smollm2_1_7b_mlx_int8.pte`,
+  modelSource: `${SMOLLM2_BASE_URL}/1_7b/mlx/smollm2_1_7b_mlx_int8.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
@@ -2260,32 +2260,32 @@ const SMOLLM2_1_7B_MLX_INT8: LLMModel = {
 const HAMMER2_1_BASE_URL = `${BASE_URL}/Hammer2.1-ExecuTorch/${VERSION_TAG}`;
 
 const HAMMER2_1_0_5B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/0_5b/xnnpack/hammer_2_1_0_5b_xnnpack_8da4w.pte`,
+  modelSource: `${HAMMER2_1_BASE_URL}/0_5b/xnnpack/hammer_2_1_0_5b_xnnpack_8da4w.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_1_5B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/1_5b/xnnpack/hammer_2_1_1_5b_xnnpack_8da4w.pte`,
+  modelSource: `${HAMMER2_1_BASE_URL}/1_5b/xnnpack/hammer_2_1_1_5b_xnnpack_8da4w.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_3B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/3b/xnnpack/hammer_2_1_3b_xnnpack_8da4w.pte`,
+  modelSource: `${HAMMER2_1_BASE_URL}/3b/xnnpack/hammer_2_1_3b_xnnpack_8da4w.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_0_5B_MLX_INT4: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/0_5b/mlx/hammer_2_1_0_5b_mlx_int4.pte`,
+  modelSource: `${HAMMER2_1_BASE_URL}/0_5b/mlx/hammer_2_1_0_5b_mlx_int4.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_1_5B_MLX_INT4: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/1_5b/mlx/hammer_2_1_1_5b_mlx_int4.pte`,
+  modelSource: `${HAMMER2_1_BASE_URL}/1_5b/mlx/hammer_2_1_1_5b_mlx_int4.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_3B_MLX_INT4: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/3b/mlx/hammer_2_1_3b_mlx_int4.pte`,
+  modelSource: `${HAMMER2_1_BASE_URL}/3b/mlx/hammer_2_1_3b_mlx_int4.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
@@ -2293,12 +2293,12 @@ const HAMMER2_1_3B_MLX_INT4: LLMModel = {
 const PHI4_MINI_BASE_URL = `${BASE_URL}/Phi-4-mini-instruct-ExecuTorch/${VERSION_TAG}`;
 
 const PHI4_MINI_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${PHI4_MINI_BASE_URL}/xnnpack/phi_4_mini_xnnpack_8da4w.pte`,
+  modelSource: `${PHI4_MINI_BASE_URL}/xnnpack/phi_4_mini_xnnpack_8da4w.pte`,
   tokenizerPath: `${PHI4_MINI_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${PHI4_MINI_BASE_URL}/tokenizer_config.json`,
 };
 const PHI4_MINI_MLX_INT4: LLMModel = {
-  modelPath: `${PHI4_MINI_BASE_URL}/mlx/phi_4_mini_mlx_int4.pte`,
+  modelSource: `${PHI4_MINI_BASE_URL}/mlx/phi_4_mini_mlx_int4.pte`,
   tokenizerPath: `${PHI4_MINI_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${PHI4_MINI_BASE_URL}/tokenizer_config.json`,
 };
@@ -2306,32 +2306,32 @@ const PHI4_MINI_MLX_INT4: LLMModel = {
 const QWEN2_5_BASE_URL = `${BASE_URL}/Qwen2.5-ExecuTorch/${VERSION_TAG}`;
 
 const QWEN2_5_0_5B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/0_5b/xnnpack/qwen_2_5_0_5b_xnnpack_8da4w.pte`,
+  modelSource: `${QWEN2_5_BASE_URL}/0_5b/xnnpack/qwen_2_5_0_5b_xnnpack_8da4w.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_1_5B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/1_5b/xnnpack/qwen_2_5_1_5b_xnnpack_8da4w.pte`,
+  modelSource: `${QWEN2_5_BASE_URL}/1_5b/xnnpack/qwen_2_5_1_5b_xnnpack_8da4w.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_3B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/3b/xnnpack/qwen_2_5_3b_xnnpack_8da4w.pte`,
+  modelSource: `${QWEN2_5_BASE_URL}/3b/xnnpack/qwen_2_5_3b_xnnpack_8da4w.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_0_5B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/0_5b/mlx/qwen_2_5_0_5b_mlx_int4.pte`,
+  modelSource: `${QWEN2_5_BASE_URL}/0_5b/mlx/qwen_2_5_0_5b_mlx_int4.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_1_5B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/1_5b/mlx/qwen_2_5_1_5b_mlx_int4.pte`,
+  modelSource: `${QWEN2_5_BASE_URL}/1_5b/mlx/qwen_2_5_1_5b_mlx_int4.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_3B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/3b/mlx/qwen_2_5_3b_mlx_int4.pte`,
+  modelSource: `${QWEN2_5_BASE_URL}/3b/mlx/qwen_2_5_3b_mlx_int4.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
@@ -2355,36 +2355,36 @@ const GEMMA4_OMNI_PREPROCESSOR_CONFIG = {
 };
 
 const GEMMA4_E2B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${GEMMA4_BASE_URL}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`,
+  modelSource: `${GEMMA4_BASE_URL}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
 };
 const GEMMA4_E2B_VULKAN_8DA4W: LLMModel = {
-  modelPath: `${GEMMA4_BASE_URL}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`,
+  modelSource: `${GEMMA4_BASE_URL}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
 };
 const GEMMA4_E2B_MLX_INT4: LLMModel = {
-  modelPath: `${GEMMA4_BASE_URL}/e2b/mlx/gemma_4_e2b_mlx_int4.pte`,
+  modelSource: `${GEMMA4_BASE_URL}/e2b/mlx/gemma_4_e2b_mlx_int4.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
 };
 const GEMMA4_OMNI_E2B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${GEMMA4_OMNI_BASE_URL}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`,
+  modelSource: `${GEMMA4_OMNI_BASE_URL}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
   modalities: ['image', 'audio'],
   preprocessorConfig: GEMMA4_OMNI_PREPROCESSOR_CONFIG,
 };
 const GEMMA4_OMNI_E2B_VULKAN_8DA4W: LLMModel = {
-  modelPath: `${GEMMA4_OMNI_BASE_URL}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`,
+  modelSource: `${GEMMA4_OMNI_BASE_URL}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
   modalities: ['image', 'audio'],
   preprocessorConfig: GEMMA4_OMNI_PREPROCESSOR_CONFIG,
 };
 const GEMMA4_OMNI_E2B_MLX_INT4: LLMModel = {
-  modelPath: `${GEMMA4_OMNI_BASE_URL}/e2b/mlx/gemma_4_e2b_mlx_int4.pte`,
+  modelSource: `${GEMMA4_OMNI_BASE_URL}/e2b/mlx/gemma_4_e2b_mlx_int4.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
   modalities: ['image', 'audio'],
@@ -2394,32 +2394,32 @@ const GEMMA4_OMNI_E2B_MLX_INT4: LLMModel = {
 const QWEN3_BASE_URL = `${BASE_URL}/Qwen3-ExecuTorch/${VERSION_TAG}`;
 
 const QWEN3_0_6B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/0_6b/xnnpack/qwen_3_0_6b_xnnpack_8da4w.pte`,
+  modelSource: `${QWEN3_BASE_URL}/0_6b/xnnpack/qwen_3_0_6b_xnnpack_8da4w.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_1_7B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/1_7b/xnnpack/qwen_3_1_7b_xnnpack_8da4w.pte`,
+  modelSource: `${QWEN3_BASE_URL}/1_7b/xnnpack/qwen_3_1_7b_xnnpack_8da4w.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_4B_XNNPACK_8DA4W: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/4b/xnnpack/qwen_3_4b_xnnpack_8da4w.pte`,
+  modelSource: `${QWEN3_BASE_URL}/4b/xnnpack/qwen_3_4b_xnnpack_8da4w.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_0_6B_MLX_INT8: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/0_6b/mlx/qwen_3_0_6b_mlx_int8.pte`,
+  modelSource: `${QWEN3_BASE_URL}/0_6b/mlx/qwen_3_0_6b_mlx_int8.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_1_7B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/1_7b/mlx/qwen_3_1_7b_mlx_int4.pte`,
+  modelSource: `${QWEN3_BASE_URL}/1_7b/mlx/qwen_3_1_7b_mlx_int4.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_4B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/4b/mlx/qwen_3_4b_mlx_int4.pte`,
+  modelSource: `${QWEN3_BASE_URL}/4b/mlx/qwen_3_4b_mlx_int4.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };

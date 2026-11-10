@@ -168,7 +168,7 @@ To use your own fine-tuned sentence transformer `.pte` model, pass a [`TextEmbed
 
 ```typescript
 const customEmbedder = await createTextEmbedder({
-  modelPath: 'https://example.com/my-sentence-transformer.pte',
+  modelSource: 'https://example.com/my-sentence-transformer.pte',
   tokenizerPath: 'https://example.com/tokenizer.json',
   defaultPrompt: 'passage: ', // Optional default prefix
 });
@@ -188,7 +188,7 @@ The pipeline automatically verifies that the model's exported input and output s
 ### Types & Options
 
 - [`TextEmbedder`](../../06-api-reference/type-aliases/TextEmbedder.md) — Text embedder runner interface ([`embed`](../../06-api-reference/type-aliases/TextEmbedder.md#embed), [`embedWorklet`](../../06-api-reference/type-aliases/TextEmbedder.md#embedworklet)).
-- [`TextEmbedderModel`](../../06-api-reference/type-aliases/TextEmbedderModel.md) — Model configuration spec with `modelPath`, `tokenizerPath`, and `defaultPrompt`.
+- [`TextEmbedderModel`](../../06-api-reference/type-aliases/TextEmbedderModel.md) — Model configuration spec with `modelSource`, `tokenizerPath`, and `defaultPrompt`.
 - [`createVectorStore()`](../../06-api-reference/functions/createVectorStore.md) — In-memory vector store with nearest-neighbor search.
 
 ### Model Presets

@@ -55,7 +55,7 @@ export type ResourceScope = {
  * const scope = createResourceScope();
  * const dispose = scope.dispose;
  * try {
- *   const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
+ *   const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
  *   const { dims } = validateSpec(model.schema, { ... }); // may throw
  *   const tensors = [scope.track(tensor('float32', shape))];
  *   return { run, dispose };

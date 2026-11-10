@@ -350,7 +350,7 @@ const { chatTemplate, bosToken, eosToken } = llm.parseTokenizerConfig(
   JSON.parse(await RNBlobUtil.fs.readFile(model.tokenizerConfigPath, 'utf8'))
 );
 const preprocessor = llm.createChatPreprocessor({ chatTemplate, bosToken, eosToken });
-const runner = await llm.createLLMRunner(model.modelPath, model.tokenizerPath);
+const runner = await llm.createLLMRunner(model.modelSource, model.tokenizerPath);
 
 // Runs on a background worklet thread; `generate` is synchronous.
 const complete = wrapAsync((r: llm.LLMRunner, prompt: llm.Prompt) => {
@@ -405,7 +405,7 @@ To use your own fine-tuned LLM `.pte` model, pass an [`LLMModel`](../../06-api-r
 
 ```typescript
 const customSession = await createLLMChatSession({
-  modelPath: 'https://example.com/my-llm.pte',
+  modelSource: 'https://example.com/my-llm.pte',
   tokenizerPath: 'https://example.com/tokenizer.json',
   tokenizerConfigPath: 'https://example.com/tokenizer_config.json',
 });

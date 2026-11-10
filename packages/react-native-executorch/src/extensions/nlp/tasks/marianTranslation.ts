@@ -6,7 +6,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 import { scheduleOnRN, createSynchronizable } from 'react-native-worklets';
 
 import { tensor, type Tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import { wrapAsync } from '../../../core/runtime';
 import {
   constraint,
@@ -41,8 +41,8 @@ const NUM_CROSS_KV = 12;
 export type MarianTranslatorModel = {
   /** Identifies the pipeline this config belongs to. */
   readonly name: 'marian';
-  /** Local path or remote URL of the `.pte` model file. */
-  readonly modelPath: string;
+  /** Model source: a local or remote path, program and data paths, or callback loaders. */
+  readonly modelSource: ModelSource;
   /** Local path or remote URL of the tokenizer file. */
   readonly tokenizerPath: string;
   /** ISO 639-1 code of the language the model translates from. */
@@ -92,8 +92,8 @@ export async function createMarianTranslator(
   const dispose = scope.dispose;
 
   try {
-    const { modelPath, tokenizerPath } = config;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
+    const { modelSource, tokenizerPath } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
     // The source length S must agree across the ids, the mask and every

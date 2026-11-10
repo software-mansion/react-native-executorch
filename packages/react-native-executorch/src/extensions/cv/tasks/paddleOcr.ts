@@ -6,7 +6,7 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 import RNBlobUtil from 'react-native-blob-util';
 
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import { RnExecuTorchError } from '../../../core/error';
 import { wrapAsync } from '../../../core/runtime';
 import { tensor, type Tensor } from '../../../core/tensor';
@@ -90,11 +90,11 @@ export type RecognizeCharactersOptions = {
  */
 export type PaddleOcrModel = {
   /** The fused detect/recognize PTE. Resolved to a local path by the fetcher. */
-  readonly modelPath: string;
+  readonly modelSource: ModelSource;
   /**
    * The recognizer charset published beside the model: a JSON array of strings,
    * one per class, where `charset[i]` labels logit `i + 1` (logit 0 is the CTC
-   * blank). Resolved to a local path by the resource fetcher like `modelPath`.
+   * blank). Resolved to a local path by the resource fetcher like `modelSource`.
    */
   readonly charsetPath: string;
   /** Run options. See {@link PaddleOcrModelOptions}. */
@@ -405,8 +405,8 @@ export async function createPaddleOcr(
   const dispose = scope.dispose;
 
   try {
-    const { modelPath, charsetPath, modelOpts } = config;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
+    const { modelSource, charsetPath, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
 
     // Both methods are `DynamicDim` on every backend — a range on XNNPACK and
     // Vulkan, an enum on CoreML, which has no RangeDim — so one variant covers

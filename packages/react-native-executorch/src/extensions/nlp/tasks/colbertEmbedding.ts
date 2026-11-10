@@ -5,7 +5,7 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import {
   validateSpec,
   DynamicDim as Dyn,
@@ -66,8 +66,8 @@ export type ColbertEmbedderOptions = {
  * @category NLP / Types
  */
 export type ColbertEmbedderModel = {
-  /** Local path or remote URL of the `.pte` model file. */
-  readonly modelPath: string;
+  /** Model source: a local or remote path, program and data paths, or callback loaders. */
+  readonly modelSource: ModelSource;
   /** Local path or remote URL of the tokenizer file. */
   readonly tokenizerPath: string;
   /** Tokenization settings of the model. See {@link ColbertEmbedderOptions}. */
@@ -240,8 +240,8 @@ export async function createColbertEmbedder(
   const dispose = scope.dispose;
 
   try {
-    const { modelPath, tokenizerPath, modelOpts } = config;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
+    const { modelSource, tokenizerPath, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
     // Token ids and attention mask in, one vector per token out, all sharing

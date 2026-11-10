@@ -5,7 +5,7 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import { validateSpec, DynamicDim as Dyn, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { createResourceScope } from '../../../core/lifetime';
@@ -61,7 +61,7 @@ export type VadOptions = {
  */
 export type FsmnVadModel = {
   /** Local path or remote URL of the `.pte` model. */
-  readonly modelPath: string;
+  readonly modelSource: ModelSource;
   /**
    * Detection thresholds tuned for this model, overridable per `detectVoice`
    * call. Defined alongside the model in the `models` registry so defaults
@@ -250,9 +250,9 @@ export async function createFsmnVoiceActivityDetector(
   const dispose = scope.dispose;
 
   try {
-    const { modelPath, defaultOptions } = config;
+    const { modelSource, defaultOptions } = config;
 
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
 
     // Input is [frames, fftLength] with a dynamic frame count; the output is
     // [1, frames, classes] where class 0 is the non-speech class. The output frame

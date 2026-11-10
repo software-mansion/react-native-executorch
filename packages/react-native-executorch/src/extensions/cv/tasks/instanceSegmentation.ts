@@ -6,7 +6,7 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
@@ -57,8 +57,8 @@ export type InstanceSegmenterOptions<F extends BoxFormat, L> = Omit<
  * @typeParam L The label type.
  */
 export type InstanceSegmenterModel<F extends BoxFormat, L> = {
-  /** Local path or remote URL of the `.pte` model file. */
-  readonly modelPath: string;
+  /** Model source: a local or remote path, program and data paths, or callback loaders. */
+  readonly modelSource: ModelSource;
   /**
    * Image preprocessing, label vocabulary, bounding box format, and default
    * NMS/mask/confidence thresholds.
@@ -171,8 +171,8 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
   const dispose = scope.dispose;
 
   try {
-    const { modelPath, modelOpts } = config;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
+    const { modelSource, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
 
     const { variant, dims } = validateSpec(model.schema, {
       batched: method(

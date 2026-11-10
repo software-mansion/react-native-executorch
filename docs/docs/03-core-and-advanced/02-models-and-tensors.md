@@ -337,8 +337,8 @@ tears it all down. The tensors are reused on every run rather than reallocated.
 ```typescript
 import { loadModel, tensor, wrapAsync } from 'react-native-executorch';
 
-export async function createSimpleClassifier(modelPath: string) {
-  const model = await wrapAsync(loadModel)(modelPath);
+export async function createSimpleClassifier(modelSource: string) {
+  const model = await wrapAsync(loadModel)(modelSource);
 
   const tensors = [
     tensor('float32', [1, 3, 224, 224]), // tInput
@@ -405,12 +405,12 @@ normal disposal:
 ```typescript
 import { createResourceScope, loadModel, tensor, wrapAsync } from 'react-native-executorch';
 
-export async function createClassifier(modelPath: string) {
+export async function createClassifier(modelSource: string) {
   const scope = createResourceScope();
   const dispose = scope.dispose;
 
   try {
-    const model = scope.track(await wrapAsync(loadModel)(modelPath));
+    const model = scope.track(await wrapAsync(loadModel)(modelSource));
     const tInput = scope.track(tensor('float32', [1, 3, 224, 224]));
     const tOutput = scope.track(tensor('float32', [1, 1000]));
 
