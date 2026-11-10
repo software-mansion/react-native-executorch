@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <regex>
 #include <sstream>
@@ -52,8 +53,14 @@ TEST(Error, MapsEveryCodeToItsWireString) {
 // added on one side and forgotten on the other fails here rather than reaching
 // an app as an unmatchable string.
 TEST(Error, CodeListMatchesTypeScript) {
-    std::ifstream file(RNE_ERROR_TS_SOURCE);
-    ASSERT_TRUE(file.is_open()) << "cannot open " << RNE_ERROR_TS_SOURCE;
+#ifdef RNE_ERROR_TS_SOURCE
+    const std::filesystem::path sourcePath = RNE_ERROR_TS_SOURCE;
+#else
+    // Standalone compiler checks do not receive CMake's test definitions.
+    const auto sourcePath = std::filesystem::path(__FILE__).parent_path() / "../../../src/core/error.ts";
+#endif
+    std::ifstream file(sourcePath);
+    ASSERT_TRUE(file.is_open()) << "cannot open " << sourcePath;
 
     std::stringstream buffer;
     buffer << file.rdbuf();
@@ -125,7 +132,7 @@ TEST_F(ErrorJsTest, AttachesExecuTorchCodeWhenTheRuntimeFailed) {
 TEST_F(ErrorJsTest, OmitsExecuTorchCodeForOurOwnFailures) {
     auto thrown = evalThrowing("__rnexecutorch_jsi__.loadModel(42);");
 
-    EXPECT_TRUE(isCodedError(thrown, "INVALID_ARGUMENT", "must be a string"));
+    EXPECT_TRUE(isCodedError(thrown, "INVALID_ARGUMENT", "loadModel: source"));
     EXPECT_FALSE(thrown.etRuntimeErrorCode.has_value());
 }
 

@@ -14,6 +14,7 @@
  */
 import { TextDecoder } from 'util';
 import type { ConcreteDim, ModelSpec } from '../../src/core/schema';
+import type { LoadModelOptions, ModelSource } from '../../src/core/model';
 import type { DType } from '../../src/core/tensor';
 import { FakeTensor, tensorTracker } from './fakeTensor';
 import { cv, fakePhonemizer, llm, math, speech } from './fakeOps';
@@ -43,25 +44,25 @@ export type FakeProgram = {
   execute?: FakeExecute;
 };
 
-const programs = new Map<string, FakeProgram>();
-const liveModels = new Set<string>();
+const programs = new Map<ModelSource, FakeProgram>();
+const liveModels = new Set<FakeModel>();
 const executions: { path: string; methodName: string }[] = [];
 
 class FakeModel {
-  readonly path: string;
+  readonly path?: string;
   readonly schema: ModelSpec<ConcreteDim>;
   readonly backends: Record<string, readonly string[]>;
   private readonly program: FakeProgram;
   private disposed = false;
 
-  constructor(path: string, program: FakeProgram) {
+  constructor(path: string | undefined, program: FakeProgram) {
     this.path = path;
     this.program = program;
     this.schema = program.schema;
     this.backends =
       program.backends ??
       Object.fromEntries(Object.keys(program.schema).map((m) => [m, ['XnnpackBackend']]));
-    liveModels.add(path);
+    liveModels.add(this);
   }
 
   execute(methodName: string, inputs: unknown[], outputTensors: FakeTensor[]): unknown[] {
@@ -69,7 +70,7 @@ class FakeModel {
     if (!this.schema[methodName]) {
       throw new Error(`execute: method '${methodName}' is not exported by '${this.path}'`);
     }
-    executions.push({ path: this.path, methodName });
+    executions.push({ path: this.path ?? '(callback source)', methodName });
     const values = this.program.execute?.(methodName, inputs, outputTensors);
     return values ? [...values] : outputTensors;
   }
@@ -77,7 +78,7 @@ class FakeModel {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    liveModels.delete(this.path);
+    liveModels.delete(this);
   }
 }
 
@@ -227,8 +228,16 @@ const jsi = {
 
   createTensor: (shape: number[], dtype: DType) => new FakeTensor(dtype, shape),
 
-  loadModel: (path: string, _options?: { eagerLoadMethods?: boolean }) => {
-    const program = programs.get(path);
+  loadModel: (source: ModelSource, _options?: LoadModelOptions) => {
+    // Callback sources are registered by identity. Native byte reads and the
+    // initialization-only lifetime contract are exercised by the C++ suites.
+    const path =
+      typeof source === 'string'
+        ? source
+        : 'programPath' in source
+          ? source.programPath
+          : undefined;
+    const program = programs.get(source) ?? (path === undefined ? undefined : programs.get(path));
     if (!program) {
       throw new Error(`loadModel: no program registered at '${path}' (register one via fakeJsi)`);
     }
@@ -266,12 +275,12 @@ export function installFakeJsi(): void {
 
 export const fakeJsi = {
   /**
-   * Makes `loadModel(path)` succeed and return `program`.
-   * @param path The model path a pipeline will be pointed at.
+   * Makes `loadModel(source)` succeed and return `program`.
+   * @param source The model source a pipeline will be pointed at.
    * @param program The schema, backends and `execute` behavior to serve.
    */
-  registerModel(path: string, program: FakeProgram): void {
-    programs.set(path, program);
+  registerModel(source: ModelSource, program: FakeProgram): void {
+    programs.set(source, program);
   },
 
   /**
@@ -311,7 +320,7 @@ export const fakeJsi = {
 
   /** @returns Paths of models that were loaded and not disposed. */
   liveModels(): string[] {
-    return [...liveModels].sort();
+    return [...liveModels].map((model) => model.path ?? '(callback source)').sort();
   },
 
   /** @returns Paths of tokenizers that were loaded and not disposed. */

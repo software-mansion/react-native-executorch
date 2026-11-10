@@ -1,8 +1,9 @@
-import { loadModel } from '../../src/core/model';
+import { loadModel, type ModelSource } from '../../src/core/model';
 import { tensor } from '../../src/core/tensor';
 import { f32, i64, method } from '../../src/core/schema';
 import { fakeJsi } from '../support/fakeJsi';
 import { exported, writesOutputs } from '../support/fixtures';
+import { tracked } from '../support/lifetime';
 
 const PATH = '/models/fixture.pte';
 
@@ -36,6 +37,26 @@ describe('loadModel', () => {
     const model = loadModel(PATH, { eagerLoadMethods: false });
     expect(model.path).toBe(PATH);
     model.dispose();
+  });
+
+  it.each<ModelSource>([
+    { programPath: PATH, dataMapPath: '/models/weights.ptd' },
+    { programPath: PATH, dataMapPath: ['/models/weights-0.ptd', '/models/weights-1.ptd'] },
+    { programLoader: { size: () => 0, load: () => new ArrayBuffer(0) } },
+    {
+      programLoader: { size: () => 0, load: () => new ArrayBuffer(0) },
+      dataMapLoader: { size: () => 0, load: () => new ArrayBuffer(0) },
+    },
+  ])('executes a model supplied through an object source: %o', (source) => {
+    fakeJsi.registerModel(source, {
+      schema: exported(method('value', [], [{ kind: 'Int' }])),
+      execute: () => [42],
+    });
+    const model = tracked(loadModel(source));
+    expect(model.path).toBe(
+      typeof source === 'string' || 'programPath' in source ? PATH : undefined
+    );
+    expect(model.execute('value', [], [])).toEqual([42]);
   });
 
   it('propagates a load failure as a thrown error', () => {

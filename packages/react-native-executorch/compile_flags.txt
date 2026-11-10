@@ -16,3 +16,4 @@
 -isystem.native-test-deps/hermes/src/API
 -isystem.native-test-deps/hermes/src/API/jsi
 -isystem.native-test-deps/hermes/src/public
+-isystem.native-test-deps/executorch/third-party/flatbuffers/include
