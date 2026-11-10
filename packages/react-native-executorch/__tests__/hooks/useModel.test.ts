@@ -1,3 +1,4 @@
+import type { DataLoader } from '../../src/core/model';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 
 import { useModel } from '../../src/hooks/useModel';
@@ -16,6 +17,33 @@ const factoryOf = (instances: Instance[]) =>
   });
 
 describe('useModel', () => {
+  it('does not rebuild when only reader function identity changes', async () => {
+    const reader = (): DataLoader => ({ size: () => 0, load: () => new ArrayBuffer(0) });
+    const first = reader();
+    const second = reader();
+    const factory = jest.fn(async ({ modelSource }: { modelSource: DataLoader }) => ({
+      modelSource,
+      dispose: jest.fn(),
+    }));
+    const { result, rerender, unmount } = await renderHook(
+      ({ loader }: { loader: DataLoader }) => useModel(factory, { modelSource: loader }),
+      { initialProps: { loader: first } }
+    );
+    await waitFor(() => expect(result.current.model?.modelSource).toBe(first));
+    const previous = result.current.model!;
+
+    await rerender({ loader: first });
+    expect(factory).toHaveBeenCalledTimes(1);
+
+    await rerender({ loader: second });
+    expect(factory).toHaveBeenCalledTimes(1);
+    expect(result.current.model).toBe(previous);
+    expect(previous.dispose).not.toHaveBeenCalled();
+
+    await unmount();
+    expect(previous.dispose).toHaveBeenCalledTimes(1);
+  });
+
   it('starts with no model and no error', async () => {
     const { result } = await renderHook(() => useModel(factoryOf([]), undefined));
     expect(result.current).toEqual({ model: undefined, error: undefined });

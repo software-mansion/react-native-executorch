@@ -18,7 +18,7 @@ const registerBatched = (labels: readonly string[] = LABELS) => {
 };
 
 const config = (labels: readonly string[] = LABELS) => ({
-  modelPath: MODEL_PATH,
+  modelSource: MODEL_PATH,
   modelOpts: { ...STRETCH_PREPROCESSING, labels },
 });
 
@@ -56,7 +56,7 @@ describe('createClassifier — model acceptance', () => {
 
   it('surfaces a load failure', async () => {
     await expect(
-      createClassifier({ ...config(), modelPath: '/models/absent.pte' })
+      createClassifier({ ...config(), modelSource: '/models/absent.pte' })
     ).rejects.toThrow(/absent.pte/);
   });
 });

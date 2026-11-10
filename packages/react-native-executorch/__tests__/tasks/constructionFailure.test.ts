@@ -64,10 +64,10 @@ const CV_OPTS = {
   defaultConfidenceThreshold: 0.5,
 } as const;
 
-const cv = { modelPath: MODEL_PATH, modelOpts: CV_OPTS } as const;
-const tokenized = { modelPath: MODEL_PATH, tokenizerPath: TOKENIZER_PATH } as const;
+const cv = { modelSource: MODEL_PATH, modelOpts: CV_OPTS } as const;
+const tokenized = { modelSource: MODEL_PATH, tokenizerPath: TOKENIZER_PATH } as const;
 const vadModel = {
-  modelPath: MODEL_PATH,
+  modelSource: MODEL_PATH,
   defaultOptions: {
     speechThreshold: 0.5,
     minSpeechDurationMs: 100,
@@ -96,7 +96,7 @@ const factories: Record<string, () => Promise<unknown>> = {
   keypointDetector: () => createKeypointDetector(cv),
   paddleOcr: () =>
     createPaddleOcr({
-      modelPath: MODEL_PATH,
+      modelSource: MODEL_PATH,
       charsetPath: CHARSET_PATH,
       modelOpts: { defaultConfidenceThreshold: 0.5 },
     }),
@@ -128,7 +128,7 @@ const factories: Record<string, () => Promise<unknown>> = {
   supertonicTextToSpeech: () =>
     createSupertonicTextToSpeech({
       name: 'supertonic',
-      modelPaths: {
+      modelSources: {
         durationPredictor: MODEL_PATH,
         vectorEstimator: MODEL_PATH,
         textEncoder: MODEL_PATH,
@@ -139,14 +139,14 @@ const factories: Record<string, () => Promise<unknown>> = {
   kokoroTextToSpeech: () =>
     createKokoroTextToSpeech({
       name: 'kokoro',
-      modelPaths: { durationPredictor: MODEL_PATH, synthesizer: MODEL_PATH },
+      modelSources: { durationPredictor: MODEL_PATH, synthesizer: MODEL_PATH },
       phonemizer: { lang: 'en-us' },
       voices: { v: VOICE_PATH },
     } as never),
   llmRunner: () => createLLMRunner(MODEL_PATH, TOKENIZER_PATH),
   llmChatSession: () =>
     createLLMChatSession({
-      modelPath: MODEL_PATH,
+      modelSource: MODEL_PATH,
       tokenizerPath: TOKENIZER_PATH,
       tokenizerConfigPath: TOKENIZER_CONFIG_PATH,
     }),
@@ -203,7 +203,7 @@ describe('create<Task> — schema validation failure', () => {
     // factories cleaned up, this leaked one model per attempt.
     for (const path of ['/a.pte', '/b.pte', '/c.pte']) {
       fakeJsi.registerModel(path, { schema: MISMATCHED });
-      await expect(createClassifier({ ...cv, modelPath: path })).rejects.toThrow();
+      await expect(createClassifier({ ...cv, modelSource: path })).rejects.toThrow();
     }
 
     expect(stillAllocated()).toEqual(NOTHING);

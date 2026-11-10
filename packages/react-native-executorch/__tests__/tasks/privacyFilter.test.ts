@@ -90,7 +90,7 @@ const recordingLengths =
   };
 
 const config = {
-  modelPath: MODEL_PATH,
+  modelSource: MODEL_PATH,
   tokenizerPath: TOKENIZER_PATH,
   modelOpts: { labelNames: LABELS, padTokenId: PAD_TOKEN_ID },
 };

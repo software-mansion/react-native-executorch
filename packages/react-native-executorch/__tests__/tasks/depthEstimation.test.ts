@@ -8,7 +8,7 @@ import type { FakeTensor } from '../support/fakeTensor';
 
 const MODEL_PATH = '/models/depth.pte';
 const config = {
-  modelPath: MODEL_PATH,
+  modelSource: MODEL_PATH,
   modelOpts: {
     resizeMode: 'stretch',
     interpolation: 'cubic',

@@ -50,7 +50,7 @@ const register = (classes: number[] = CLASSES) => {
   });
 };
 
-const config = { modelPath: MODEL_PATH, modelOpts: options };
+const config = { modelSource: MODEL_PATH, modelOpts: options };
 
 describe('createObjectDetector — detection', () => {
   beforeEach(() => register());

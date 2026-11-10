@@ -35,7 +35,7 @@ const OPTIONS: ColbertEmbedderOptions = {
   // '?' is not in the vocabulary and must be ignored rather than fail.
   skiplistTokens: ['.', ',', '?'],
 };
-const config = { modelPath: MODEL_PATH, tokenizerPath: TOKENIZER_PATH, modelOpts: OPTIONS };
+const config = { modelSource: MODEL_PATH, tokenizerPath: TOKENIZER_PATH, modelOpts: OPTIONS };
 
 const SEQ_SHARED = [
   constraint.equality(

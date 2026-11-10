@@ -20,7 +20,7 @@ const VAD_PATH = '/models/vad.pte';
 const VAD_FRAMES = RangeDim(1, 500);
 const VAD_SCHEMA = exported(method('forward', [f32(VAD_FRAMES, 400)], [f32(1, VAD_FRAMES, 2)]));
 const VAD_CONFIG = {
-  modelPath: VAD_PATH,
+  modelSource: VAD_PATH,
   defaultOptions: {
     speechThreshold: 0.5,
     minSpeechDurationMs: 250,
@@ -32,7 +32,7 @@ const VAD_CONFIG = {
 
 const config = {
   name: 'qwen3-asr',
-  modelPath: MODEL_PATH,
+  modelSource: MODEL_PATH,
   tokenizerPath: TOKENIZER_PATH,
   vadModel: VAD_CONFIG,
 } as const;

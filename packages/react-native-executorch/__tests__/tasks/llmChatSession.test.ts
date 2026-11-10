@@ -11,6 +11,7 @@
  * is scripted (see `support/fakeLLM.ts`), so a test can drive a tool loop
  * without any weights and observe exactly what the model was asked to read.
  */
+import type { ModelSource } from '../../src/core/model';
 import { createLLMChatSession } from '../../src/extensions/llm/tasks/llmChatSession';
 import { createChatPreprocessor } from '../../src/extensions/llm/utils/chatPreprocessor';
 import type { ToolCall, ToolParserResult } from '../../src/extensions/llm/utils/toolCalling';
@@ -37,7 +38,7 @@ const CHAT_TEMPLATE = [
 ].join('');
 
 const config = {
-  modelPath: MODEL_PATH,
+  modelSource: MODEL_PATH,
   tokenizerPath: TOKENIZER_PATH,
   tokenizerConfigPath: TOKENIZER_CONFIG_PATH,
 };
@@ -108,6 +109,23 @@ describe('chat preprocessor — thinking render options', () => {
 });
 
 describe('createLLMChatSession — construction', () => {
+  it.each<ModelSource>([
+    { programPath: MODEL_PATH, dataMapPath: ['/models/weights.0.ptd', '/models/weights.1.ptd'] },
+    { programLoader: { size: () => 0, load: () => new ArrayBuffer(0) } },
+  ])('generates with model source %p', async (modelSource) => {
+    registerFakeLLM(modelSource, TOKENIZER_PATH, {
+      eosToken: EOS,
+      generations: [{ response: 'hello there ' }],
+    });
+    const session = tracked(await createLLMChatSession({ ...config, modelSource }));
+    await session.sendMessage('hi');
+    expect(session.getHistory()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ role: 'assistant', content: 'hello there ' }),
+      ])
+    );
+  });
+
   it.each([undefined, true, false])(
     'passes enableThinking=%s to templates and preserves the omitted default',
     async (enableThinking) => {

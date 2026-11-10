@@ -10,7 +10,7 @@ const MODEL_PATH = '/models/embedder.pte';
 const TOKENIZER_PATH = '/models/tokenizer.json';
 
 describe('createImageEmbedder', () => {
-  const config = { modelPath: MODEL_PATH, modelOpts: STRETCH_PREPROCESSING };
+  const config = { modelSource: MODEL_PATH, modelOpts: STRETCH_PREPROCESSING };
 
   it('returns the raw embedding vector at the model output dimension', async () => {
     fakeJsi.registerModel(MODEL_PATH, {
@@ -89,7 +89,7 @@ describe('createTextEmbedder', () => {
     fakeJsi.registerTokenizer(TOKENIZER_PATH, { tokens: VOCAB });
   };
 
-  const config = { modelPath: MODEL_PATH, tokenizerPath: TOKENIZER_PATH };
+  const config = { modelSource: MODEL_PATH, tokenizerPath: TOKENIZER_PATH };
 
   it('validates the declared equality constraint between ids and mask', async () => {
     register();

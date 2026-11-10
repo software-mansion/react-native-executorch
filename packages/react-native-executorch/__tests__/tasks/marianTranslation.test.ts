@@ -16,7 +16,7 @@ const NUM_CROSS_KV = 12;
 
 const config = {
   name: 'marian' as const,
-  modelPath: MODEL_PATH,
+  modelSource: MODEL_PATH,
   tokenizerPath: TOKENIZER_PATH,
   sourceLanguage: 'en',
   targetLanguage: 'de',

@@ -121,7 +121,7 @@ const writeVoice = (rows = MAX_TOKENS) => {
 /* eslint-disable camelcase */
 const config = {
   name: 'kokoro',
-  modelPaths: { durationPredictor: PREDICTOR_PATH, synthesizer: SYNTHESIZER_PATH },
+  modelSources: { durationPredictor: PREDICTOR_PATH, synthesizer: SYNTHESIZER_PATH },
   phonemizer: { lang: 'en-us' },
   voices: { af_heart: VOICE_PATH },
 } as const;
@@ -148,6 +148,24 @@ beforeEach(() => {
 });
 
 describe('createKokoroTextToSpeech — the model contract', () => {
+  it('synthesizes with a split-file predictor and a callback synthesizer', async () => {
+    const durationPredictor = { programPath: PREDICTOR_PATH, dataMapPath: '/models/durations.ptd' };
+    const synthesizer = { programLoader: { size: () => 0, load: () => new ArrayBuffer(0) } };
+    fakeJsi.registerModel(synthesizer, { schema: synthesizerSchema(), execute: emitsTone });
+    const tts = tracked(
+      await createKokoroTextToSpeech({
+        ...config,
+        modelSources: { durationPredictor, synthesizer },
+      })
+    );
+    const chunks = await collect(tts.synthesize('hello', { voice: 'af_heart', phonemize: false }));
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0]!.audio.length).toBeGreaterThan(0);
+    tts.dispose();
+    expect(fakeJsi.liveModels()).toEqual([]);
+    expect(fakeJsi.liveTensors()).toBe(0);
+  });
+
   it('accepts the exported pair and exposes the synthesis API', async () => {
     const tts = tracked(await createKokoroTextToSpeech(config));
 

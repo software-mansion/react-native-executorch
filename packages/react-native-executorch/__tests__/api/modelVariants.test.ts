@@ -20,15 +20,15 @@ const isObject = (value: unknown): value is Node =>
 
 const isConfig = (value: unknown): value is Node =>
   isObject(value) &&
-  (typeof value.modelPath === 'string' ||
-    (isObject(value.modelPaths) &&
-      Object.values(value.modelPaths).every((path) => typeof path === 'string')));
+  (typeof value.modelSource === 'string' ||
+    (isObject(value.modelSources) &&
+      Object.values(value.modelSources).every((path) => typeof path === 'string')));
 
 /** The `.pte` file(s) a config names, as one comparable string. */
 const modelPathsOf = (config: Node): string =>
-  typeof config.modelPath === 'string'
-    ? config.modelPath
-    : Object.values(config.modelPaths as Node)
+  typeof config.modelSource === 'string'
+    ? config.modelSource
+    : Object.values(config.modelSources as Node)
         .map(String)
         .sort()
         .join('|');

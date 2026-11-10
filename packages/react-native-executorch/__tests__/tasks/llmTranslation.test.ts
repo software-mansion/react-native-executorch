@@ -5,6 +5,7 @@
  * is scripted (see `support/fakeLLM.ts`), so a test sees the exact prompt each
  * line was sent with.
  */
+import type { ModelSource } from '../../src/core/model';
 import { createLLMTranslator } from '../../src/extensions/llm/tasks/llmTranslation';
 import { fakeJsi } from '../support/fakeJsi';
 import { fakeFs } from '../support/blobUtilMock';
@@ -22,7 +23,7 @@ const CHAT_TEMPLATE =
   "{% if not add_generation_prompt is defined %}{% set add_generation_prompt = false %}{% endif %}<|im_start|>system\n{% if messages[0]['role'] == 'system' %}{{ messages[0]['content'] }}{% endif %}<|im_end|>\n{% for message in messages %}{% if message['role'] != 'system' %}<|im_start|>{{ message['role'] }}\n{{ message['content'] }}<|im_end|>\n{% endif %}{% endfor %}{% if add_generation_prompt %}<|im_start|>assistant\n{% endif %}";
 
 const paths = {
-  modelPath: MODEL_PATH,
+  modelSource: MODEL_PATH,
   tokenizerPath: TOKENIZER_PATH,
   tokenizerConfigPath: TOKENIZER_CONFIG_PATH,
 };
@@ -65,6 +66,18 @@ beforeEach(() => {
 });
 
 describe('createLLMTranslator', () => {
+  it.each<ModelSource>([
+    { programPath: MODEL_PATH, dataMapPath: ['/models/weights.0.ptd', '/models/weights.1.ptd'] },
+    { programLoader: { size: () => 0, load: () => new ArrayBuffer(0) } },
+  ])('generates with model source %p', async (modelSource) => {
+    registerFakeLLM(modelSource, TOKENIZER_PATH, {
+      eosToken: EOS,
+      generations: [{ response: 'hello there ' }],
+    });
+    const translator = tracked(await createLLMTranslator({ ...config, modelSource }));
+    expect(await translator.translate('Hello', EN_DE)).toBe('hello there ');
+  });
+
   it('sends each line with the model card prompt and keeps line breaks', async () => {
     script('Hallo Welt.', 'Guten Morgen.');
     const translator = tracked(await createLLMTranslator(config));

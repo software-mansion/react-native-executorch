@@ -26,20 +26,20 @@ const isObject = (value: unknown): value is Node =>
  */
 const isConfig = (value: unknown): value is Node =>
   isObject(value) &&
-  (typeof value.modelPath === 'string' ||
-    (isObject(value.modelPaths) &&
-      Object.values(value.modelPaths).every((path) => typeof path === 'string')));
+  (typeof value.modelSource === 'string' ||
+    (isObject(value.modelSources) &&
+      Object.values(value.modelSources).every((path) => typeof path === 'string')));
 
 /**
  * The model file(s) a config names, as one comparable identity.
  */
-const modelPathsOf = (config: Node): string =>
-  typeof config.modelPath === 'string'
-    ? config.modelPath
-    : Object.values(config.modelPaths as Node)
-        .map(String)
-        .sort()
-        .join('|');
+const modelPathsOf = (config: Node): string => {
+  if (typeof config.modelSource === 'string') return config.modelSource;
+  return Object.values(config.modelSources as Node)
+    .map(String)
+    .sort()
+    .join('|');
+};
 
 /**
  * A backend variant key, e.g. `XNNPACK_FP32`. Size keys (`TINY`) look the same.
@@ -249,7 +249,7 @@ describe('models registry — task configs', () => {
     '$label bundles a tokenizer, a VAD model and its supported languages',
     ({ config }) => {
       expect(typeof config.tokenizerPath).toBe('string');
-      expect(config.vadModel).toMatchObject({ modelPath: expect.any(String) });
+      expect(config.vadModel).toMatchObject({ modelSource: expect.any(String) });
       expect(config.supportedLanguages).toEqual(expect.any(Array));
       expect((config.supportedLanguages as unknown[]).length).toBeGreaterThan(0);
     }
