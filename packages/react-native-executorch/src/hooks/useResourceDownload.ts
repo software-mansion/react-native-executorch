@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { download } from '../fetcher/fetcher';
+import { download, serializeHookConfig } from '../fetcher/fetcher';
 import { isRnExecuTorchError } from '../core/error';
 
 import type { ResourceOptions } from '../utils';
@@ -43,7 +43,7 @@ export function useResourceDownload<T>(config: T | undefined, options?: Resource
 
   // Configs are plain JSON data, so serializing is a sound structural identity
   // and keeps an inline `config` object from re-running the effect every render.
-  const configKey = useMemo(() => JSON.stringify(config), [config]);
+  const configKey = useMemo(() => serializeHookConfig(config), [config]);
 
   useEffect(() => {
     setResource(undefined);

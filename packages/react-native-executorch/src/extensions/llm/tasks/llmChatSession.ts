@@ -7,6 +7,7 @@ import { scheduleOnRN, type WorkletRuntime } from 'react-native-worklets';
 import RNBlobUtil from 'react-native-blob-util';
 
 import { wrapAsync } from '../../../core/runtime';
+import type { ModelSource } from '../../../core/model';
 import { RnExecuTorchError } from '../../../core/error';
 import { createResourceScope } from '../../../core/lifetime';
 import {
@@ -30,10 +31,14 @@ import type { ToolDefinition, ToolParser } from '../utils/toolCalling';
 /**
  * Model configuration required to instantiate an LLM chat session.
  * @category LLM / Types
+ * @typeParam TSource Model source type (`string` path/URL by default, or
+ * {@link ModelSource} when loading from an `ArrayBuffer`).
  */
-export type LLMModel = {
-  /** Local path or remote URL of the `.pte` model file. */
-  readonly modelPath: string;
+export type LLMModel<TSource extends ModelSource = string> = {
+  /** Local path, remote URL, `ArrayBuffer`, or {@link ModelDataLoader} of the `.pte` model. */
+  readonly modelPath: TSource;
+  /** Optional local path, remote URL, `ArrayBuffer`, or {@link ModelDataLoader} of an external `.ptd` weight archive. */
+  readonly dataMapPath?: ModelSource;
   /** Local path or remote URL of the `tokenizer.json` file. */
   readonly tokenizerPath: string;
   /** Local path or remote URL of the `tokenizer_config.json` file. */
@@ -176,7 +181,7 @@ const DEFAULT_MAX_TURNS = 5;
  * @returns A promise resolving to the instantiated {@link LLMChatSession} session.
  */
 export async function createLLMChatSession(
-  config: LLMModel,
+  config: LLMModel<ModelSource>,
   options: LLMChatSessionOptions = {},
   runtime?: WorkletRuntime
 ): Promise<LLMChatSession> {
@@ -192,8 +197,14 @@ export async function createLLMChatSession(
       resetOnTurn = false,
     } = options;
 
-    const { modelPath, tokenizerPath, tokenizerConfigPath, modalities, preprocessorConfig } =
-      config;
+    const {
+      modelPath,
+      dataMapPath,
+      tokenizerPath,
+      tokenizerConfigPath,
+      modalities,
+      preprocessorConfig,
+    } = config;
     const { tools, parseToolCalls, maxToolTurns = DEFAULT_MAX_TURNS } = toolOpts ?? {};
 
     // Read and parse tokenizer_config.json
@@ -214,7 +225,15 @@ export async function createLLMChatSession(
 
     // Prepare runner
     // prettier-ignore
-    const runner = scope.track(await createLLMRunner(modelPath, tokenizerPath, modalities, runtime));
+    const runner = scope.track(
+      await createLLMRunner(
+        modelPath,
+        tokenizerPath,
+        modalities,
+        runtime,
+        dataMapPath ? { dataMapPath } : undefined
+      )
+    );
     const prefill = wrapAsync(runner.prefill, runtime);
 
     const history: ChatMessage[] = [];

@@ -690,12 +690,46 @@ async function downloadUrlViaStream(
   return dest;
 }
 
+function isModelDataLoader(value: unknown): value is object {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as { size?: unknown }).size === 'function' &&
+    typeof (value as { load?: unknown }).load === 'function'
+  );
+}
+
+const objectIds = new WeakMap<object, number>();
+let nextObjectId = 1;
+
+/**
+ * Serializes a hook config while preserving identity for non-JSON model
+ * sources (`ArrayBuffer` and `ModelDataLoader` instances).
+ * @internal
+ * @param config Config value to serialize.
+ * @returns Stable string key for `useMemo`.
+ */
+export function serializeHookConfig(config: unknown): string | undefined {
+  return JSON.stringify(config, (_key, value) => {
+    if (value instanceof ArrayBuffer || isModelDataLoader(value)) {
+      let id = objectIds.get(value);
+      if (id === undefined) {
+        id = nextObjectId++;
+        objectIds.set(value, id);
+      }
+      return `__ModelSource_${id}__`;
+    }
+    return value;
+  });
+}
+
 // Plain data containers we recurse into. Anything else (numbers, functions,
-// typed arrays, class instances) is left alone.
+// typed arrays, class instances, ModelDataLoader objects) is left alone.
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   if (typeof value !== 'object' || value === null) return false;
   const proto = Object.getPrototypeOf(value);
-  return proto === Object.prototype || proto === null;
+  if (proto !== Object.prototype && proto !== null) return false;
+  return !isModelDataLoader(value);
 }
 
 /**

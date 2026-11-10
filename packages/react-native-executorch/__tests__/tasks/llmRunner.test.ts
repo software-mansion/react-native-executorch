@@ -888,3 +888,41 @@ describe('createLLMMultimodalRunner — audio input', () => {
     }
   });
 });
+
+describe('createLLMRunner — in-memory and external weights', () => {
+  it('loads from an ArrayBuffer and forwards dataMapPath', async () => {
+    const modelBuffer = new Uint8Array([1, 2, 3, 4]).buffer;
+    const weightsBuffer = new Uint8Array([5, 6, 7, 8]).buffer;
+    fakeJsi.registerModel(modelBuffer, {
+      schema: TEXT_SPEC,
+      execute: (methodName) => {
+        switch (methodName) {
+          case 'get_max_seq_len':
+            return [128];
+          case 'get_max_context_len':
+            return [512];
+          case 'get_vocab_size':
+            return [100];
+          case 'use_kv_cache':
+          case 'enable_dynamic_shape':
+            return [true];
+          case 'get_eos_ids':
+            return [1];
+          default:
+            return undefined;
+        }
+      },
+    });
+
+    const runner = tracked(
+      await createLLMRunner(modelBuffer, TOKENIZER_PATH, undefined, undefined, {
+        dataMapPath: weightsBuffer,
+      })
+    );
+
+    expect(runner.modelPath).toBe('<buffer>');
+    expect(fakeJsi.modelLoads()).toEqual([
+      { source: modelBuffer, options: { dataMapPath: weightsBuffer } },
+    ]);
+  });
+});

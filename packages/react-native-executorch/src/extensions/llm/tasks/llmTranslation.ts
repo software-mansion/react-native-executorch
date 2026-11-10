@@ -6,6 +6,7 @@ import { scheduleOnRN, type WorkletRuntime } from 'react-native-worklets';
 import RNBlobUtil from 'react-native-blob-util';
 
 import { wrapAsync } from '../../../core/runtime';
+import type { ModelSource } from '../../../core/model';
 import { RnExecuTorchError } from '../../../core/error';
 import { createResourceScope } from '../../../core/lifetime';
 import type { TranslationLanguages, Translator } from '../../nlp/utils/translationUtils';
@@ -38,7 +39,7 @@ export type LLMTranslationPrompt = {
  * translates between any two of its supported languages.
  * @category NLP / Types
  */
-export type LLMTranslatorModel = LLMModel & {
+export type LLMTranslatorModel<TSource extends ModelSource = string> = LLMModel<TSource> & {
   /** Identifies the pipeline this config belongs to. */
   readonly name: 'llm';
   /**
@@ -98,14 +99,14 @@ const GENERATION_CONFIG: LLMGenerationConfig = { temperature: 0 };
  * match a text LLM.
  */
 export async function createLLMTranslator(
-  config: LLMTranslatorModel,
+  config: LLMTranslatorModel<ModelSource>,
   runtime?: WorkletRuntime
 ): Promise<LLMTranslator> {
   const scope = createResourceScope();
   const dispose = scope.dispose;
 
   try {
-    const { modelPath, tokenizerPath, tokenizerConfigPath } = config;
+    const { modelPath, dataMapPath, tokenizerPath, tokenizerConfigPath } = config;
     const tokenizerConfigStr = await RNBlobUtil.fs.readFile(tokenizerConfigPath, 'utf8');
     const { chatTemplate, bosToken, eosToken, stopTokens } = parseTokenizerConfig(
       JSON.parse(tokenizerConfigStr)
@@ -114,7 +115,15 @@ export async function createLLMTranslator(
       createChatPreprocessor({ chatTemplate, bosToken, eosToken })
     );
     // prettier-ignore
-    const runner = scope.track(await createLLMRunner(modelPath, tokenizerPath, undefined, runtime));
+    const runner = scope.track(
+      await createLLMRunner(
+        modelPath,
+        tokenizerPath,
+        undefined,
+        runtime,
+        dataMapPath ? { dataMapPath } : undefined
+      )
+    );
     const generate = wrapAsync(generateWorklet, runtime);
 
     let busy = false;

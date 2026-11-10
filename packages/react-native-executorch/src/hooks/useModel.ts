@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { serializeHookConfig } from '../fetcher/fetcher';
 
 /**
  * React hook to instantiate and manage a model or task instance with automatic
@@ -29,7 +30,7 @@ export function useModel<TConfig, TModel extends { dispose: () => void }>(
 
   // Configs are plain JSON data, so serializing is a sound structural identity
   // and keeps an inline `config` object from rebuilding the model every render.
-  const configKey = useMemo(() => JSON.stringify(config), [config]);
+  const configKey = useMemo(() => serializeHookConfig(config), [config]);
 
   useEffect(() => {
     if (config === undefined) {

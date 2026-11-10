@@ -78,6 +78,29 @@ describe('useModel', () => {
     expect(instances).toHaveLength(1);
   });
 
+  it('rebuilds when an ArrayBuffer inside the config changes identity', async () => {
+    const instances: Instance[] = [];
+    const factory = jest.fn(async (config: { id: string; modelPath: ArrayBuffer }) => {
+      const instance = { dispose: jest.fn(), id: config.id };
+      instances.push(instance);
+      return instance;
+    });
+    const first = new Uint8Array([1, 2]).buffer;
+    const second = new Uint8Array([3, 4]).buffer;
+    const { result, rerender } = await renderHook(
+      ({ config }: { config: { id: string; modelPath: ArrayBuffer } }) => useModel(factory, config),
+      { initialProps: { config: { id: 'a', modelPath: first } } }
+    );
+    await waitFor(() => expect(result.current.model).toBeDefined());
+
+    await rerender({ config: { id: 'a', modelPath: first } });
+    expect(factory).toHaveBeenCalledTimes(1);
+
+    await rerender({ config: { id: 'b', modelPath: second } });
+    await waitFor(() => expect(result.current.model?.id).toBe('b'));
+    expect(instances[0]!.dispose).toHaveBeenCalledTimes(1);
+  });
+
   it('disposes an instance that arrives after unmount', async () => {
     const gate = deferred();
     const instance = { dispose: jest.fn(), id: 'late' };

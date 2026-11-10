@@ -10,7 +10,7 @@ import { type WorkletRuntime } from 'react-native-worklets';
 
 import type { Tensor } from '../../core/tensor';
 import { wrapAsync } from '../../core/runtime';
-import { loadModel } from '../../core/model';
+import { loadModel, type LoadModelOptions, type ModelSource } from '../../core/model';
 import { RnExecuTorchError } from '../../core/error';
 import { createResourceScope } from '../../core/lifetime';
 import { validateSpec } from '../../core/schema';
@@ -170,23 +170,27 @@ export type LLMRunner = {
  * Loads the model and its tokenizer, validates the model's exported methods
  * against the supported runner specs, and returns the matching runner.
  * @category LLM / Functions
- * @param modelPath Path to the local `.pte` model file.
+ * @param modelPath Local `.pte` model file path, `ArrayBuffer`, or
+ * {@link ModelDataLoader}.
  * @param tokenizerPath Path to the local tokenizer file (e.g. `tokenizer.json`).
  * @param modalities List of supported input non-text modalities (e.g.
  * `['image']`). When omitted, defaults to text-only.
  * @param runtime Optional worklet runtime thread on which to load the model and
  * tokenizer.
+ * @param options Optional model-loading configuration, including an external
+ * `.ptd` weight archive. See {@link LoadModelOptions}.
  * @returns A promise resolving to the {@link LLMRunner} instance.
  */
 export async function createLLMRunner(
-  modelPath: string,
+  modelPath: ModelSource,
   tokenizerPath: string,
   modalities?: readonly Modality[],
-  runtime?: WorkletRuntime
+  runtime?: WorkletRuntime,
+  options?: LoadModelOptions
 ): Promise<LLMRunner> {
   const scope = createResourceScope();
   try {
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath, options));
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
     const { variant } = validateSpec(model.schema, {

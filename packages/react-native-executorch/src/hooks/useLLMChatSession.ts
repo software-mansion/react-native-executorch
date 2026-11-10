@@ -1,5 +1,6 @@
 import { useModel } from './useModel';
 import { useResourceDownload, type ResourceOptions } from './useResourceDownload';
+import type { ModelSource } from '../core/model';
 import {
   createLLMChatSession,
   type LLMModel,
@@ -23,8 +24,8 @@ import {
  * combined with loading state and download progress.
  * @see {@link LLMChatSession}
  */
-export function useLLMChatSession(
-  config: LLMModel,
+export function useLLMChatSession<TSource extends ModelSource = string>(
+  config: LLMModel<TSource>,
   options?: LLMChatSessionOptions & ResourceOptions
 ) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
