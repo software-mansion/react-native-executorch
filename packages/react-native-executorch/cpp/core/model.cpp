@@ -6,11 +6,14 @@
 #include <cstdint>
 #include <exception>
 #include <format>
+#include <memory>
 #include <optional>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
+#include "conversions.h"
+#include "data_loader.h"
 #include "dtype.h"
 #include "error.h"
 #include "profiler.h"
@@ -24,6 +27,7 @@
 #include <executorch/runtime/core/tag.h>
 
 namespace {
+namespace error = rnexecutorch::core::error;
 
 using rnexecutorch::core::error::RnExecuTorchErrorCode;
 using rnexecutorch::core::error::RnExecuTorchException;
@@ -44,9 +48,6 @@ void unwrap(RnExecuTorchErrorCode code, const std::string &ctx, executorch::runt
     }
 }
 
-// A file can mix backends across methods: Qwen3-ASR's MLX file runs its audio
-// tower on Core ML. Name the backend an app did not link instead of leaving
-// load_method to fail with a generic error.
 void requireRegisteredBackends(const std::string &modelPath, const std::string &methodName,
                                const std::vector<std::string> &backends) {
     for (const auto &name : backends) {
@@ -55,11 +56,11 @@ void requireRegisteredBackends(const std::string &modelPath, const std::string &
         }
         auto configName = name.substr(0, name.rfind("Backend"));
         std::ranges::transform(configName, configName.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-        throw rnexecutorch::core::error::LoadFailed(
-            std::format("Model '{}': method '{}' runs on {}, which this app does not link. Add \"{}\" to "
-                        "\"react-native-executorch\".backends in the app's package.json.",
-                        modelPath, methodName, name, configName),
-            executorch::runtime::Error::NotFound);
+
+        const auto errorMsg = std::format("Model '{}': method '{}' runs on {}, which this app does not link. Add \"{}\" to "
+                                          "\"react-native-executorch\".backends in the app's package.json.",
+                                          modelPath, methodName, name, configName);
+        throw error::LoadFailed(errorMsg, executorch::runtime::Error::NotFound);
     }
 }
 
@@ -72,14 +73,16 @@ namespace conversions = rnexecutorch::core::conversions;
 using executorch::extension::Module;
 using rnexecutorch::core::tensor::TensorHostObject;
 
-ModelHostObject::ModelHostObject(const std::string &modelPath, const bool eagerLoadMethods)
-    : modelPath_(modelPath),
-      etModule_(std::make_unique<executorch::extension::Module>(modelPath, Module::LoadMode::Mmap)) {
+ModelHostObject::ModelHostObject(std::optional<std::string> modelPath,
+                                 std::unique_ptr<Module> module,
+                                 const bool eagerLoadMethods)
+    : modelPath_(std::move(modelPath)),
+      etModule_(std::move(module)) {
 
     auto loadError = etModule_->load();
     if (!etModule_->is_loaded()) {
         const std::string errorMsg = executorch::runtime::to_string(loadError);
-        throw error::LoadFailed(std::format("Failed to load model from '{}': {}", modelPath_, errorMsg),
+        throw error::LoadFailed(std::format("Failed to load model from '{}': {}", modelPath_.value_or("callback source"), errorMsg),
                                 loadError);
     }
 
@@ -104,7 +107,7 @@ ModelHostObject::ModelHostObject(const std::string &modelPath, const bool eagerL
         backends_[methodName] = schema::getUsedBackends(methodMeta);
 
         if (eagerLoadMethods && methodName != kGetModelSchemaMethod) {
-            requireRegisteredBackends(modelPath_, methodName, backends_[methodName]);
+            requireRegisteredBackends(modelPath_.value_or("callback source"), methodName, backends_[methodName]);
             // Every backend is registered by now, so a failure points at the export.
             auto loadCtx = std::format("Load method '{}' failed. The model export might be broken or "
                                        "incompatible with the linked ExecuTorch runtime version. Error",
@@ -126,7 +129,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
     auto nameStr = name.utf8(rt);
 
     if (nameStr == "path") {
-        return jsi::String::createFromUtf8(rt, modelPath_);
+        return modelPath_ ? jsi::String::createFromUtf8(rt, *modelPath_) : jsi::Value::undefined();
     }
 
     if (nameStr == "schema") {
@@ -212,7 +215,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             schema::validateRuntimeConstraints(rt, methodSpec.runtimeConstraints, inputShapes,
                                                std::format("execute: method '{}'", methodName));
             if (!self->etModule_->is_method_loaded(methodName)) {
-                requireRegisteredBackends(self->modelPath_, methodName, self->backends_.at(methodName));
+                requireRegisteredBackends(self->modelPath_.value_or("callback source"), methodName, self->backends_.at(methodName));
             }
 
             auto startTime = std::chrono::high_resolution_clock::now();
@@ -222,8 +225,10 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 #ifdef EXECUTORCH_ENABLE_EXECUTION_PROFILING
             // Recorded in nanoseconds: the millisecond log rounds a sub-millisecond inference to 0.
             auto durationNs = std::chrono::duration_cast<std::chrono::nanoseconds>(finishTime - startTime).count();
-            profiler::record(self->modelPath_, methodName, durationNs);
             auto durationMs = durationNs / 1'000'000;
+
+            profiler::record(self->modelPath_.value_or("callback source"), methodName, durationNs);
+
             auto consoleObj = conversions::asType<jsi::Object>(rt, "console", rt.global().getProperty(rt, "console"));
             auto logFn = conversions::asType<jsi::Function>(rt, "console.log", consoleObj.getProperty(rt, "log"));
             auto info = std::format("Execution of method '{}' took {} ms", methodName, durationMs);
@@ -353,18 +358,75 @@ void install_loadModel(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "loadModel";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count < 1 || count > 2) {
-            throw error::InvalidArgument("loadModel: Usage: loadModel(path, options?)");
+            throw error::InvalidArgument("loadModel: Usage: loadModel(source, options?)");
         }
 
-        auto modelPath = conversions::asType<std::string>(rt, "loadModel: path", args[0]);
         bool eagerLoadMethods = true;
-
         if (count >= 2 && !args[1].isUndefined() && !args[1].isNull()) {
             auto options = conversions::asType<jsi::Object>(rt, "loadModel: options", args[1]);
             eagerLoadMethods = conversions::getOptionalProperty<bool>(rt, "loadModel: options", options, "eagerLoadMethods").value_or(true);
         }
 
-        return jsi::Object::createFromHostObject(rt, std::make_shared<ModelHostObject>(modelPath, eagerLoadMethods));
+        if (args[0].isString()) {
+            auto path = conversions::asType<std::string>(rt, "loadModel: source", args[0]);
+            auto etModule = std::make_unique<Module>(path, Module::LoadMode::Mmap);
+            auto model = std::make_shared<ModelHostObject>(std::move(path), std::move(etModule), eagerLoadMethods);
+            return jsi::Object::createFromHostObject(rt, std::move(model));
+        }
+
+        auto source = conversions::asType<jsi::Object>(rt, "loadModel: source", args[0]);
+        auto programPath = conversions::getOptionalProperty<std::string>(rt, "loadModel: source", source, "programPath");
+        auto dataMapPath = conversions::getOptionalProperty<jsi::Value>(rt, "loadModel: source", source, "dataMapPath");
+        auto programLoader = conversions::getOptionalProperty<jsi::Value>(rt, "loadModel: source", source, "programLoader");
+        auto dataMapLoader = conversions::getOptionalProperty<jsi::Value>(rt, "loadModel: source", source, "dataMapLoader");
+
+        if (programPath && dataMapPath) {
+            std::vector<std::string> dataPaths;
+
+            if (dataMapPath->isString()) {
+                auto dataPath = conversions::asType<std::string>(rt, "loadModel: source.dataMapPath", *dataMapPath);
+                dataPaths.push_back(std::move(dataPath));
+            } else {
+                dataPaths = conversions::asVector<std::string>(rt, "loadModel: source.dataMapPath", *dataMapPath);
+            }
+
+            if (dataPaths.empty() || std::ranges::any_of(dataPaths, [](const auto &path) { return path.empty(); })) {
+                throw error::InvalidArgument("loadModel: source.dataMapPath must contain at least one nonempty path");
+            }
+
+            auto etModule = std::make_unique<Module>(*programPath, std::move(dataPaths), Module::LoadMode::Mmap);
+            auto model = std::make_shared<ModelHostObject>(std::move(programPath), std::move(etModule), eagerLoadMethods);
+
+            return jsi::Object::createFromHostObject(rt, std::move(model));
+        }
+
+        if (programLoader) {
+            if (!eagerLoadMethods) {
+                throw error::InvalidArgument("loadModel: callback loaders require eagerLoadMethods: true");
+            }
+
+            data_loader::LoadSession loaders(rt);
+            auto program = loaders.create("loadModel: source.programLoader", *programLoader);
+
+            std::unique_ptr<executorch::runtime::DataLoader> data;
+            if (dataMapLoader) {
+                data = loaders.create("loadModel: source.dataMapLoader", *dataMapLoader);
+            }
+
+            auto etModule = std::make_unique<Module>(std::move(program), nullptr, nullptr, nullptr, std::move(data));
+
+            try {
+                auto model = std::make_shared<ModelHostObject>(std::nullopt, std::move(etModule), eagerLoadMethods);
+                loaders.rethrowIfFailed();
+
+                return jsi::Object::createFromHostObject(rt, std::move(model));
+            } catch (...) {
+                loaders.rethrowIfFailed();
+                throw;
+            }
+        }
+
+        throw error::InvalidArgument("loadModel: source must contain either programPath/dataMapPath or programLoader/dataMapLoader");
     };
     auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 2, error::guarded(fnBody));
 
