@@ -344,6 +344,13 @@ export const SymbolicTensor = (dtype: DType, shape: SymbolicShape) => {
  */
 export const f32 = (...shape: SymbolicShape) => SymbolicTensor('float32', shape);
 /**
+ * Shorthand for `SymbolicTensor('float16', shape)`.
+ * @category Core / Schema / Functions
+ * @param shape Dimension sizes of the tensor.
+ * @returns A {@link SymbolicTensor} with `float16` data type.
+ */
+export const f16 = (...shape: SymbolicShape) => SymbolicTensor('float16', shape);
+/**
  * Shorthand for `SymbolicTensor('int64', shape)`.
  * @category Core / Schema / Functions
  * @param shape Dimension sizes of the tensor.
