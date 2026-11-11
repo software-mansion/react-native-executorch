@@ -27875,6 +27875,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/schema/functions/f16": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/schema/functions/f32": {
     "shouldDisplay": true,
     "hasMarkdown": false,
