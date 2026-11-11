@@ -14,7 +14,7 @@ declare const tensorBrand: unique symbol;
  * Element data type of a {@link Tensor}.
  * @category Core / Types
  */
-export type DType = 'float32' | 'uint8' | 'int32' | 'int64' | 'bool';
+export type DType = 'float32' | 'float16' | 'uint8' | 'int32' | 'int64' | 'bool';
 
 /**
  * A native ExecuTorch tensor allocated in C++ memory.
@@ -62,14 +62,15 @@ export type Tensor = {
   /**
    * Writes data from a typed array into this tensor's native buffer.
    * @param src The source typed array. Its size in bytes must match the
-   * tensor's size. Use a `BigInt64Array` for `int64` tensors and a
-   * `Uint8Array` for `bool` tensors.
+   * tensor's size. Use a `BigInt64Array` for `int64` tensors, a `Uint8Array`
+   * for `bool` tensors, and a `Uint16Array` of raw IEEE 754 half-precision bits
+   * for `float16` tensors.
    * @returns `this` tensor.
    * @throws {RnExecuTorchError} Thrown with code `INVALID_ARGUMENT` if `src`
    * byte length does not match tensor size, `RESOURCE_BUSY` if the tensor is in
    * use, or `RESOURCE_DISPOSED` if disposed.
    */
-  setData(src: Float32Array | Uint8Array | Int32Array | BigInt64Array): Tensor;
+  setData(src: Float32Array | Uint16Array | Uint8Array | Int32Array | BigInt64Array): Tensor;
 
   /**
    * Copies data out of this tensor's native buffer into a typed array.
@@ -81,7 +82,9 @@ export type Tensor = {
    * byte length does not match tensor size, `RESOURCE_BUSY` if the tensor is in
    * use, or `RESOURCE_DISPOSED` if disposed.
    */
-  getData<T extends Float32Array | Uint8Array | Int32Array | BigInt64Array>(dst: T): T;
+  getData<T extends Float32Array | Uint16Array | Uint8Array | Int32Array | BigInt64Array>(
+    dst: T
+  ): T;
 
   /**
    * Passes `this` tensor as the first argument to `fn` and returns the result.
@@ -147,7 +150,7 @@ export type Tensor = {
 export function tensor(
   dtype: DType,
   shape: number[],
-  src?: Float32Array | Uint8Array | Int32Array | BigInt64Array
+  src?: Float32Array | Uint16Array | Uint8Array | Int32Array | BigInt64Array
 ): Tensor {
   'worklet';
   const t: Tensor = rnexecutorchJsi.createTensor(shape, dtype);

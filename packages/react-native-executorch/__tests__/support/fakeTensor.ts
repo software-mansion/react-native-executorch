@@ -8,10 +8,11 @@
  */
 import type { DType } from '../../src/core/tensor';
 
-type Storage = Float32Array | Uint8Array | Int32Array | BigInt64Array;
+type Storage = Float32Array | Uint16Array | Uint8Array | Int32Array | BigInt64Array;
 
 const STORAGE: Record<DType, new (length: number) => Storage> = {
   float32: Float32Array,
+  float16: Uint16Array, // raw half-precision bits, as the native runtime transfers them
   uint8: Uint8Array,
   int32: Int32Array,
   int64: BigInt64Array,
@@ -20,6 +21,7 @@ const STORAGE: Record<DType, new (length: number) => Storage> = {
 
 const BYTES_PER_ELEMENT: Record<DType, number> = {
   float32: 4,
+  float16: 2,
   uint8: 1,
   int32: 4,
   int64: 8,

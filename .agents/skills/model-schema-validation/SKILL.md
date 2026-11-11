@@ -65,7 +65,7 @@ const L = dims.range('L');
 ### Key Schema Utilities from `src/core/schema.ts`:
 
 - **`method(name, inputs, outputs, runtimeConstraints?)`**: Constructs a method specification.
-- **`f32(...)` / `i64(...)` / `i32(...)` / `ui8(...)`**: Shorthand helpers for tensor parameter specs.
+- **`f32(...)` / `f16(...)` / `i64(...)` / `i32(...)` / `ui8(...)`**: Shorthand helpers for tensor parameter specs.
 - **`StaticDim('symbol')` / String Literals**: Strings passed to shape helpers (e.g. `'H'`, `'W'`) automatically map to `StaticDim`, acting as **static dimension wildcards**. They bind strictly to `constant` positive integer dimensions in the exported spec.
 - **`DynamicDim('symbol')` (or `Dyn('symbol')`)**: Creates a dynamic dimension symbol. Must be used when a dimension genuinely varies at runtime and binds to a `range` or `enum` domain in the exported spec.
 - **Constraint Helpers (`constraint`)**:

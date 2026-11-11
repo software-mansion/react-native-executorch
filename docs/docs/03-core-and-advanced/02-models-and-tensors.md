@@ -96,6 +96,7 @@ reports the total element count, derived from the shape.
 | `DType`     | Element type       | TypedArray for transfers | Bytes / element |
 | :---------- | :----------------- | :----------------------- | :-------------- |
 | `'float32'` | 32-bit float       | `Float32Array`           | 4               |
+| `'float16'` | 16-bit float       | `Uint16Array` (raw bits) | 2               |
 | `'int32'`   | 32-bit signed int  | `Int32Array`             | 4               |
 | `'int64'`   | 64-bit signed int  | `BigInt64Array`          | 8               |
 | `'uint8'`   | 8-bit unsigned int | `Uint8Array`             | 1               |
