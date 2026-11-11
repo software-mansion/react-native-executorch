@@ -14,6 +14,9 @@ DType dtypeFromString(const std::string &s) {
     if (s == "int64") {
         return DType::int64;
     }
+    if (s == "float16") {
+        return DType::float16;
+    }
     if (s == "float32") {
         return DType::float32;
     }
@@ -21,7 +24,7 @@ DType dtypeFromString(const std::string &s) {
         return DType::boolean;
     }
     throw error::InvalidArgument(
-        std::format("Unsupported dtype: '{}'. Expected 'uint8', 'int32', 'int64', 'float32' or 'bool'", s));
+        std::format("Unsupported dtype: '{}'. Expected 'uint8', 'int32', 'int64', 'float16', 'float32' or 'bool'", s));
 }
 
 std::string dtypeToString(DType dtype) {
@@ -32,6 +35,8 @@ std::string dtypeToString(DType dtype) {
         return "int32";
     case DType::int64:
         return "int64";
+    case DType::float16:
+        return "float16";
     case DType::float32:
         return "float32";
     case DType::boolean:
@@ -47,6 +52,8 @@ executorch::aten::ScalarType dtypeToScalarType(DType dtype) {
         return executorch::aten::ScalarType::Int;
     case DType::int64:
         return executorch::aten::ScalarType::Long;
+    case DType::float16:
+        return executorch::aten::ScalarType::Half;
     case DType::float32:
         return executorch::aten::ScalarType::Float;
     case DType::boolean:
@@ -62,6 +69,8 @@ DType dtypeFromScalarType(executorch::aten::ScalarType st) {
         return DType::int32;
     case executorch::aten::ScalarType::Long:
         return DType::int64;
+    case executorch::aten::ScalarType::Half:
+        return DType::float16;
     case executorch::aten::ScalarType::Float:
         return DType::float32;
     case executorch::aten::ScalarType::Bool:
@@ -83,6 +92,8 @@ size_t elementSize(DType dtype) {
         return 4;
     case DType::int64:
         return 8;
+    case DType::float16:
+        return 2;
     case DType::float32:
         return 4;
     }

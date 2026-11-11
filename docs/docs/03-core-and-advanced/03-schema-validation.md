@@ -91,6 +91,7 @@ Build a method spec with
 Inputs and outputs are ordered lists of parameter specs; for tensors, use the
 dtype shorthands —
 [`f32`](../06-api-reference/react-native-executorch/namespaces/schema/functions/f32.md),
+[`f16`](../06-api-reference/react-native-executorch/namespaces/schema/functions/f16.md),
 [`i64`](../06-api-reference/react-native-executorch/namespaces/schema/functions/i64.md),
 [`i32`](../06-api-reference/react-native-executorch/namespaces/schema/functions/i32.md),
 [`ui8`](../06-api-reference/react-native-executorch/namespaces/schema/functions/ui8.md),
