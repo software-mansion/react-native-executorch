@@ -91,30 +91,46 @@ export function createProfiles(config = readCompatibility()) {
     }
     return { ...profile, family: 'expo', cli: config.cli };
   });
-  return { bare, expo };
+  const latestExpo = [...expo].sort((a, b) => compareVersions(a.expo, b.expo)).at(-1);
+  requireVersion(latestExpo.expoAsset, `${latestExpo.id}.expoAsset`);
+  const smoke = { ...latestExpo, id: `${latestExpo.id}-smoke`, smoke: true };
+  requireId(smoke.id);
+  return { bare, expo, smoke };
 }
 
 export function findProfile(id) {
-  const { bare, expo } = createProfiles();
-  const profile = [...bare, ...expo].find((profile) => profile.id === id);
+  const { bare, expo, smoke } = createProfiles();
+  const profile = [...bare, ...expo, smoke].find((profile) => profile.id === id);
   if (!profile) throw new Error(`Unknown consumer profile: ${id}`);
   return profile;
 }
 
 export function createMatrix(scope = 'expo', config = readCompatibility()) {
   if (!['expo', 'full'].includes(scope)) throw new Error(`Unknown matrix scope: ${scope}`);
-  const { bare, expo } = createProfiles(config);
-  const profiles = scope === 'full' ? [...bare, ...expo] : expo;
+  const { bare, expo, smoke } = createProfiles(config);
+  const profiles = scope === 'full' ? [...bare, ...expo, smoke] : [...expo, smoke];
+  const latestExpo = [...expo].sort((a, b) => compareVersions(a.expo, b.expo)).at(-1);
   return {
     scope,
     matrix: {
-      include: profiles.flatMap((profile) =>
-        ['android', 'ios'].map((platform) => ({
-          profile: profile.id,
-          platform,
-          id: `${profile.id}-${platform}`,
-        }))
-      ),
+      include: [
+        ...profiles.flatMap((profile) =>
+          ['android', 'ios'].map((platform) => ({
+            profile: profile.id,
+            platform,
+            id: `${profile.id}-${platform}`,
+            runner: platform === 'ios' ? 'macos-26' : 'ubuntu-24.04',
+            smoke: Boolean(profile.smoke),
+          }))
+        ),
+        {
+          profile: latestExpo.id,
+          platform: 'android',
+          id: `${latestExpo.id}-android-windows`,
+          runner: 'windows-2025',
+          smoke: false,
+        },
+      ],
     },
   };
 }

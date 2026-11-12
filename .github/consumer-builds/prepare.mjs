@@ -2,18 +2,22 @@ import { spawnSync } from 'node:child_process';
 import {
   copyFileSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   readFileSync,
   realpathSync,
   statSync,
   writeFileSync,
 } from 'node:fs';
-import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findProfile } from './matrix.mjs';
+import { isInside, packageManagerCommand } from './host.mjs';
+import { prepareSmokeFixture } from './smoke-fixture.mjs';
 
 const fixtures = dirname(fileURLToPath(import.meta.url));
 const repository = resolve(fixtures, '../..');
+const appFixtures = join(repository, 'apps/consumer-fixtures');
 const [profileId, platform, archiveArgument, directoryArgument] = process.argv.slice(2);
 if (
   !['android', 'ios'].includes(platform) ||
@@ -26,6 +30,10 @@ if (
   );
 }
 const profile = findProfile(profileId);
+const abi = profile.smoke && platform === 'android' ? 'x86_64' : 'arm64-v8a';
+const bundleIdentifier = profile.smoke
+  ? 'com.swmansion.executorch.consumersmoke'
+  : 'com.swmansion.executorch.consumerbuild';
 const archive = realpathSync(archiveArgument);
 const requestedDirectory = resolve(directoryArgument);
 if (!statSync(archive).isFile() || !archive.endsWith('.tgz')) {
@@ -34,8 +42,7 @@ if (!statSync(archive).isFile() || !archive.endsWith('.tgz')) {
 // npm must not discover the repository's workspaces or hoisted dependencies.
 mkdirSync(dirname(requestedDirectory), { recursive: true });
 const directory = join(realpathSync(dirname(requestedDirectory)), basename(requestedDirectory));
-const fromRepository = relative(repository, directory);
-if (fromRepository === '' || (!fromRepository.startsWith('../') && !isAbsolute(fromRepository))) {
+if (isInside(repository, directory)) {
   throw new Error('Create the consumer outside the repository to avoid workspace resolution');
 }
 if (existsSync(directory)) throw new Error(`Refusing to overwrite ${directory}`);
@@ -44,7 +51,12 @@ if (process.env.RNET_SKIP_DOWNLOAD)
 
 function run(command, args, cwd) {
   console.log(`Running ${command} ${args.join(' ')} in ${cwd}`);
-  const result = spawnSync(command, args, { cwd, stdio: 'inherit', env: process.env });
+  const selected = packageManagerCommand(command, args);
+  const result = spawnSync(selected.command, selected.args, {
+    cwd,
+    stdio: 'inherit',
+    env: process.env,
+  });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`${command} failed (${result.status ?? result.signal})`);
 }
@@ -98,7 +110,7 @@ AppRegistry.registerComponent('ConsumerBuild', () => App);
 `
   );
   // Replace the template's App.tsx so Metro bundles this fixture.
-  copyFileSync(join(fixtures, 'App.jsx'), join(directory, 'App.tsx'));
+  copyFileSync(join(appFixtures, 'App.jsx'), join(directory, 'App.tsx'));
   replaceInFile(
     join(directory, 'ios/Podfile'),
     /^platform :ios, min_ios_version_supported$/m,
@@ -135,6 +147,7 @@ AppRegistry.registerComponent('ConsumerBuild', () => App);
       'expo-build-properties': profile.buildProperties,
       'react-native-worklets': profile.worklets,
       'react-native-blob-util': profile.blobUtil,
+      ...(profile.smoke ? { 'expo-asset': profile.expoAsset } : {}),
     },
     devDependencies: { '@babel/core': profile.babelCore, 'babel-preset-expo': profile.babelPreset },
   };
@@ -146,8 +159,13 @@ AppRegistry.registerComponent('ConsumerBuild', () => App);
           name: 'ConsumerBuild',
           slug: 'consumer-build',
           version: '1.0.0',
-          ios: { bundleIdentifier: 'com.swmansion.executorch.consumerbuild' },
-          android: { package: 'com.swmansion.executorch.consumerbuild' },
+          ios: {
+            bundleIdentifier,
+            ...(profile.smoke
+              ? { infoPlist: { NSAppTransportSecurity: { NSAllowsArbitraryLoads: true } } }
+              : {}),
+          },
+          android: { package: bundleIdentifier },
           plugins: [
             [
               'expo-build-properties',
@@ -155,8 +173,9 @@ AppRegistry.registerComponent('ConsumerBuild', () => App);
                 ios: { deploymentTarget: '17.0' },
                 android: {
                   minSdkVersion: 26,
-                  buildArchs: ['arm64-v8a'],
+                  buildArchs: [abi],
                   enableMinifyInReleaseBuilds: true,
+                  ...(profile.smoke ? { usesCleartextTraffic: true } : {}),
                 },
               },
             ],
@@ -174,7 +193,8 @@ import App from './App';
 registerRootComponent(App);
 `
   );
-  copyFileSync(join(fixtures, 'App.jsx'), join(directory, 'App.jsx'));
+  copyFileSync(join(appFixtures, 'App.jsx'), join(directory, 'App.jsx'));
+  if (profile.smoke) await prepareSmokeFixture(directory);
 }
 copyFileSync(archive, join(directory, 'react-native-executorch.tgz'));
 manifest.dependencies['react-native-executorch'] = 'file:./react-native-executorch.tgz';
@@ -186,10 +206,13 @@ writeFileSync(
   join(directory, 'consumer-profile.json'),
   JSON.stringify({ ...profile, platform }, null, 2) + '\n'
 );
-process.env.RNET_TARGET = platform === 'android' ? 'android-arm64-v8a' : 'ios';
+// Emulator installs need the default downloads: the ABI-independent
+// executorch.jar is distributed in the arm64 core archive.
+if (platform === 'android' && profile.smoke) delete process.env.RNET_TARGET;
+else process.env.RNET_TARGET = platform === 'android' ? `android-${abi}` : 'ios';
 run('npm', ['install', '--foreground-scripts', '--no-audit', '--no-fund'], directory);
 const installed = join(directory, 'node_modules/react-native-executorch');
-if (realpathSync(installed) !== installed)
+if (lstatSync(installed).isSymbolicLink() || !isInside(directory, realpathSync(installed)))
   throw new Error('Consumer installed a linked workspace instead of the tarball');
 for (const file of [
   'lib/module/index.js',

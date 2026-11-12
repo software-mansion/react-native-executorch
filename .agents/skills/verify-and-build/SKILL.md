@@ -110,11 +110,12 @@ phoneme output. Use device/emulator integration for those behaviors.
 
 The [consumer build matrix](../../../.github/consumer-builds/README.md) checks a
 packed library in fresh bare RN and Expo applications on Android and iOS. It
-runs Expo profiles on relevant PRs; manual dispatch can also select the full
+runs Expo profiles on relevant PRs, including Windows-hosted Android and two
+emulator/simulator runtime smoke cells. Manual dispatch can also select the full
 bare RN/Worklets matrix.
 Use it for publication, installation, autolinking, release bundling and
-native build regressions. It does not launch applications or
-establish device inference. The linked README owns its version pins, commands,
+native build regressions. Only the smoke cells launch apps and verify a bundled
+XNNPACK model; other backends and physical devices still need separate verification. The linked README owns its version pins, commands,
 artifacts and limitations.
 
 Choose the relevant app (`computer-vision`, `nlp` or `speech`) and inspect its current native setup.
