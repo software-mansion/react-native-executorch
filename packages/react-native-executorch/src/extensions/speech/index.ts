@@ -8,3 +8,5 @@ export * from './utils/supertonicUtils';
 export * from './utils/kokoroUtils';
 export * from './utils/phonemizer';
 export * from './utils/textPartitioner';
+export { estimateTargetFrames } from './utils/reverbUtils';
+export * from './utils/reverbPartitioner';

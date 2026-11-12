@@ -119,7 +119,8 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
-    "@huggingface/jinja": "^0.5.9"
+    "@huggingface/jinja": "^0.5.9",
+    "verbalis": "^0.1.1"
   },
   "peerDependencies": {
     "@kesha-antonov/react-native-background-downloader": ">=4.4.0",

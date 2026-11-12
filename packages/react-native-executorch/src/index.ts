@@ -98,6 +98,7 @@ export * from './extensions/speech/tasks/whisperSpeechToText';
 export * from './extensions/speech/tasks/qwen3AsrSpeechToText';
 export * from './extensions/speech/tasks/supertonicTextToSpeech';
 export * from './extensions/speech/tasks/kokoroTextToSpeech';
+export * from './extensions/speech/tasks/reverbTextToSpeech';
 
 // Vector search over embeddings
 export * from './extensions/vectorStore';
