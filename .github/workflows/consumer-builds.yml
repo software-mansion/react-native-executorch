@@ -16,10 +16,10 @@ on:
       scope:
         description: Version coverage
         type: choice
-        options: [full, pr]
-        default: full
-  # TODO: After validating the full matrix on PRs, move it to a nightly cron
-  # job and restore the four boundary builds for pull_request events.
+        options: [expo, full]
+        default: expo
+  # TODO: After validating Expo PR builds, consider moving regular Expo coverage
+  # to a daily cron job. Keep the full bare RN matrix available manually.
   # schedule:
   #   - cron: '17 4 * * *'
 
@@ -49,7 +49,7 @@ jobs:
       - name: Generate version matrices
         id: matrix
         env:
-          MATRIX_SCOPE: ${{ inputs.scope || 'full' }}
+          MATRIX_SCOPE: ${{ inputs.scope || 'expo' }}
         run: node .github/consumer-builds/matrix.mjs "$MATRIX_SCOPE"
 
   package:

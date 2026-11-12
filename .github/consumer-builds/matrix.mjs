@@ -101,13 +101,10 @@ export function findProfile(id) {
   return profile;
 }
 
-export function createMatrix(scope, config = readCompatibility()) {
-  if (!['pr', 'full'].includes(scope)) throw new Error(`Unknown matrix scope: ${scope}`);
+export function createMatrix(scope = 'expo', config = readCompatibility()) {
+  if (!['expo', 'full'].includes(scope)) throw new Error(`Unknown matrix scope: ${scope}`);
   const { bare, expo } = createProfiles(config);
-  // Sorting in createProfiles makes these the oldest and newest declared valid
-  // RN/Worklets pairs, independent of the order in the JSON file.
-  const boundaries = [...new Set([bare[0], bare.at(-1)])];
-  const profiles = scope === 'full' ? [...bare, ...expo] : boundaries;
+  const profiles = scope === 'full' ? [...bare, ...expo] : expo;
   return {
     scope,
     matrix: {
@@ -123,7 +120,7 @@ export function createMatrix(scope, config = readCompatibility()) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const result = createMatrix(process.argv[2] ?? 'full');
+  const result = createMatrix(process.argv[2] ?? 'expo');
   console.log(JSON.stringify(result, null, 2));
   if (process.env.GITHUB_OUTPUT) {
     for (const [key, value] of Object.entries(result)) {

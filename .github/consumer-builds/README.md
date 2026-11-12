@@ -28,22 +28,23 @@ expands it across Android and iOS. One workflow plans, packs and builds them.
 | Expo 58.0.24 / RN 0.88.1  | 0.13.0                                                      | 2                  |
 | **Total**                 | **16 bare pairs + 4 Expo fixtures, each on both platforms** | **40**             |
 
-- **Relevant pull requests:** all 40 app builds per run, 20 Android and 20 iOS.
-  Path filters select library, harness, workflow and dependency changes targeting
-  `main`.
-- **Manual dispatch:** `full` runs 40 app builds; `pr` runs the four boundary
-  builds (RN 0.83.6 / Worklets 0.10.4 and RN 0.88.1 / Worklets 0.13.0, each on both
-  platforms).
-- **No scheduled runs yet.** A TODO in the workflow tracks moving the full matrix
-  to a nightly cron job and restoring boundary-only PR coverage after validation.
+- **Relevant pull requests:** eight Expo app builds per run, four Android and
+  four iOS. Bare RN builds do not run automatically. Path filters select library,
+  harness, workflow and dependency changes targeting `main`.
+- **Manual dispatch:** `expo` (the default) runs eight Expo app builds; `full`
+  runs all 40 app builds, including every declared bare RN/Worklets pair. Use
+  `full` for releases, native changes and compatibility investigations.
+- **No scheduled runs yet.** A TODO tracks considering daily Expo coverage after
+  validation; the broader bare RN matrix remains manual.
 
-Every full run also has one planning/test job and one shared library build/package
-job: **42 jobs total**, with at most four app builds concurrently. The optional
-manual boundary run has six jobs total.
+Each run has one planning/test job and one shared library build/package job:
+**10 jobs for regular Expo coverage, 42 for manual full coverage**, with at most
+four app builds concurrently. The table above shows the complete manual matrix;
+only its four Expo profiles are routinely tested on PRs.
 
 The compatibility rules match the pinned Worklets packages' published RN peer
 ranges. For example, Worklets 0.13 supports RN 0.86–0.88, whereas 0.12 supports
-0.83–0.87. Every compatible combination of the declared pins is built on relevant PRs;
+0.83–0.87. The manual `full` scope builds every compatible combination of the declared pins;
 this does not test every patch release or expand support to Worklets 0.14.
 Expo RN/React/build-properties pins follow each SDK's `bundledNativeModules.json`.
 SDKs 55 and 56 bundle Worklets below this library's minimum; these fixtures
@@ -88,7 +89,7 @@ RNET_SKIP_DOWNLOAD=1 yarn install --immutable
 (cd packages/react-native-executorch && RNET_SKIP_DOWNLOAD=1 RNE_SKIP_INSTALL=1 GIT_LFS_SKIP_SMUDGE=1 ./scripts/create-package.sh)
 
 # Use a new directory outside the checkout. Leave RNET_SKIP_DOWNLOAD unset.
-node .github/consumer-builds/prepare.mjs rn-0-83-worklets-0-10 android \
+node .github/consumer-builds/prepare.mjs expo-55 android \
   packages/react-native-executorch/react-native-executorch-1.0.0.tgz \
   /tmp/ConsumerBuild
 
@@ -114,7 +115,7 @@ Update the JSON pins and compatibility declarations deliberately, checking the
 published npm peer requirements. Every configured RN minor must have a compatible
 Worklets version, every Worklets RN declaration must name a configured RN minor,
 and Expo must use a declared compatible pair. The tests verify full combination
-coverage, unique artifact ids, and manual boundary selection. The planning job reports
+coverage, unique artifact ids, and Expo-only default selection. The planning job reports
 the actual build count in the GitHub job summary; update the table and expected
 counts in the tests when changing support.
 

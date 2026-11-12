@@ -7,15 +7,20 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { createMatrix, createProfiles, findProfile, readCompatibility } from './matrix.mjs';
 
-test('boundary scope builds the oldest and newest RN profiles on both platforms', () => {
-  const { matrix } = createMatrix('pr');
+test('the default matrix contains only Expo SDKs 55–58 on both platforms', () => {
+  const { scope, matrix } = createMatrix();
+  assert.equal(scope, 'expo');
   assert.deepEqual(
     matrix.include.map((cell) => cell.id),
     [
-      'rn-0-83-worklets-0-10-android',
-      'rn-0-83-worklets-0-10-ios',
-      'rn-0-88-worklets-0-13-android',
-      'rn-0-88-worklets-0-13-ios',
+      'expo-55-android',
+      'expo-55-ios',
+      'expo-56-android',
+      'expo-56-ios',
+      'expo-57-android',
+      'expo-57-ios',
+      'expo-58-android',
+      'expo-58-ios',
     ]
   );
 });
@@ -53,11 +58,11 @@ test('the full matrix builds every declared compatible pair on both platforms', 
   }
 });
 
-test('boundary selection does not depend on JSON entry ordering', () => {
+test('bare expansion does not depend on JSON entry ordering', () => {
   const config = readCompatibility();
   config.bare.reverse();
   config.worklets.reverse();
-  assert.deepEqual(createMatrix('pr', config), createMatrix('pr'));
+  assert.deepEqual(createProfiles(config).bare, createProfiles().bare);
 });
 
 test('invalid declarations fail instead of silently dropping compatibility coverage', () => {
@@ -92,13 +97,9 @@ test('the CLI writes single-line JSON matrices usable by GitHub job outputs', ()
   const output = join(directory, 'outputs');
   const summary = join(directory, 'summary');
   try {
-    execFileSync(
-      process.execPath,
-      [fileURLToPath(new URL('./matrix.mjs', import.meta.url)), 'pr'],
-      {
-        env: { ...process.env, GITHUB_OUTPUT: output, GITHUB_STEP_SUMMARY: summary },
-      }
-    );
+    execFileSync(process.execPath, [fileURLToPath(new URL('./matrix.mjs', import.meta.url))], {
+      env: { ...process.env, GITHUB_OUTPUT: output, GITHUB_STEP_SUMMARY: summary },
+    });
     const outputs = Object.fromEntries(
       readFileSync(output, 'utf8')
         .trim()
@@ -108,9 +109,9 @@ test('the CLI writes single-line JSON matrices usable by GitHub job outputs', ()
           return [line.slice(0, separator), line.slice(separator + 1)];
         })
     );
-    assert.equal(outputs.scope, 'pr');
-    assert.equal(JSON.parse(outputs.matrix).include.length, 4);
-    assert.match(readFileSync(summary, 'utf8'), /4 Release app builds: 2 Android and 2 iOS/);
+    assert.equal(outputs.scope, 'expo');
+    assert.equal(JSON.parse(outputs.matrix).include.length, 8);
+    assert.match(readFileSync(summary, 'utf8'), /8 Release app builds: 4 Android and 4 iOS/);
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
