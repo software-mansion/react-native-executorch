@@ -105,6 +105,10 @@ A loopback HTTP collector waits for a report containing all three assertions and
 a per-build random token. App crashes, missing reports, assertion failures and
 incomplete reports fail CI. The reporter's own tests verify those failure paths.
 Android reaches the collector through `adb reverse`; iOS uses simulator loopback.
+Simulator boot has a separate ten-minute deadline to allow first-boot data
+migration. The three-minute assertion deadline starts immediately before app
+launch, after boot and installation. Simulator boot output is saved in
+`simulator-boot.log`; cleanup commands are limited to fifteen seconds each.
 Cleartext loopback access is enabled only in the smoke fixtures. Native/runtime
 logs and the successful report are retained in the cell's artifact.
 
