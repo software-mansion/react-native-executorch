@@ -40,8 +40,8 @@ expands it across Android and iOS. One workflow plans, packs and builds them.
   validation; the broader bare RN matrix remains manual.
 
 Each run also has one planning/test job and one shared library build/package job:
-**13 jobs for regular coverage, 45 for manual full coverage**, with at most four
-app builds concurrently. The table above shows the complete manual matrix.
+**13 jobs for regular coverage, 45 for manual full coverage**. Matrix jobs can
+run concurrently, subject to GitHub runner availability and organization limits. The table above shows the complete manual matrix.
 
 The compatibility rules match the pinned Worklets packages' published RN peer
 ranges. For example, Worklets 0.13 supports RN 0.86–0.88, whereas 0.12 supports
