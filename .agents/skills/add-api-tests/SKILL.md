@@ -47,7 +47,7 @@ fakeJsi.registerModel('/models/task.pte', {
   execute: writesOutputs([1, 0, 2]),
 });
 
-const runner = tracked(await createMyTask({ modelPath: '/models/task.pte', modelOpts }));
+const runner = tracked(await createMyTask({ modelSource: '/models/task.pte', modelOpts }));
 expect(await runner.runTask(imageBuffer(8, 8))).toEqual(/* ... */);
 ```
 

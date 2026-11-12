@@ -154,7 +154,7 @@ To use your own fine-tuned instance segmentation `.pte` model, pass an [`Instanc
 
 ```typescript
 const customSegmenter = await createInstanceSegmenter({
-  modelPath: 'https://example.com/my-instance-seg.pte',
+  modelSource: 'https://example.com/my-instance-seg.pte',
   modelOpts: {
     labels: ['bottle', 'cup', 'can'],
     boxFormat: 'xyxy',

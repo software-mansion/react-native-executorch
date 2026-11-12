@@ -230,7 +230,7 @@ To use your own fine-tuned pose or landmark detection `.pte` model, pass a [`Key
 
 ```typescript
 const customDetector = await createKeypointDetector({
-  modelPath: 'https://example.com/my-pose-model.pte',
+  modelSource: 'https://example.com/my-pose-model.pte',
   modelOpts: {
     landmarks: ['head', 'leftHand', 'rightHand'],
     boxFormat: 'xyxy',

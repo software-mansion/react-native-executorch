@@ -7,7 +7,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 import RNBlobUtil from 'react-native-blob-util';
 
 import { tensor, type Tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import {
   validateSpec,
   method,
@@ -74,16 +74,16 @@ function getDefaultMaxChunkLength(lang?: SupertonicLanguage): number {
 export type SupertonicTtsModel<K extends PropertyKey> = {
   /** Discriminates this config from the other Text-to-Speech pipelines. */
   readonly name: 'supertonic';
-  /** Local or remote file paths to the 4 Supertonic `.pte` sub-models. */
-  readonly modelPaths: {
-    /** Path to the duration predictor `.pte` model. */
-    readonly durationPredictor: string;
-    /** Path to the vector estimator `.pte` model. */
-    readonly vectorEstimator: string;
-    /** Path to the text encoder `.pte` model. */
-    readonly textEncoder: string;
-    /** Path to the vocoder `.pte` model. */
-    readonly vocoder: string;
+  /** Model sources for the 4 Supertonic sub-models. */
+  readonly modelSources: {
+    /** Duration predictor model source. */
+    readonly durationPredictor: ModelSource;
+    /** Vector estimator model source. */
+    readonly vectorEstimator: ModelSource;
+    /** Text encoder model source. */
+    readonly textEncoder: ModelSource;
+    /** Vocoder model source. */
+    readonly vocoder: ModelSource;
   };
   /** Local or remote path to the `unicode_indexer.json` character mapping file. */
   readonly unicodeIndexerPath: string;
@@ -185,10 +185,10 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
 
   try {
     const load = wrapAsync(loadModel, runtime);
-    const durationPredictor = scope.track(await load(config.modelPaths.durationPredictor));
-    const vectorEstimator = scope.track(await load(config.modelPaths.vectorEstimator));
-    const textEncoder = scope.track(await load(config.modelPaths.textEncoder));
-    const vocoder = scope.track(await load(config.modelPaths.vocoder));
+    const durationPredictor = scope.track(await load(config.modelSources.durationPredictor));
+    const vectorEstimator = scope.track(await load(config.modelSources.vectorEstimator));
+    const textEncoder = scope.track(await load(config.modelSources.textEncoder));
+    const vocoder = scope.track(await load(config.modelSources.vocoder));
     const models = { durationPredictor, textEncoder, vectorEstimator, vocoder };
 
     validateSpec(models.durationPredictor.schema, {

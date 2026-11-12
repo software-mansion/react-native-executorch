@@ -3,7 +3,7 @@ import { tensor } from '../../src/core/tensor';
 import { createLLMRunner } from '../../src/extensions/llm/llmRunner';
 import { createLLMMultimodalRunner } from '../../src/extensions/llm/runners/llmMultimodalRunner';
 import { createLLMGemmaRunner } from '../../src/extensions/llm/runners/llmGemmaRunner';
-import { loadModel } from '../../src/core/model';
+import { loadModel, type ModelSource } from '../../src/core/model';
 import { loadTokenizer } from '../../src/extensions/nlp';
 import { fakeJsi } from '../support/fakeJsi';
 import type { FakeTensor } from '../support/fakeTensor';
@@ -98,6 +98,7 @@ const GEMMA_SPEC = exported({
 function registerModelWithSchema(
   schema: any,
   options: {
+    modelSource?: ModelSource;
     maxContextLen?: number;
     tokenIds?: readonly number[];
     onForward?: (inputs: readonly FakeTensor[]) => void;
@@ -106,7 +107,7 @@ function registerModelWithSchema(
 ) {
   const maxContextLen = options.maxContextLen ?? 512;
   let step = 0;
-  fakeJsi.registerModel(MODEL_PATH, {
+  fakeJsi.registerModel(options.modelSource ?? MODEL_PATH, {
     schema,
     execute: (methodName, _inputs, outputs) => {
       switch (methodName) {
@@ -400,6 +401,24 @@ describe.each([
 });
 
 describe('createLLMRunner — variant dispatch & modalities validation', () => {
+  it.each<ModelSource>([
+    { programPath: MODEL_PATH, dataMapPath: '/models/weights.ptd' },
+    { programPath: MODEL_PATH, dataMapPath: ['/models/weights-0.ptd', '/models/weights-1.ptd'] },
+    { programLoader: { size: () => 0, load: () => new ArrayBuffer(0) } },
+    {
+      programLoader: { size: () => 0, load: () => new ArrayBuffer(0) },
+      dataMapLoader: { size: () => 0, load: () => new ArrayBuffer(0) },
+    },
+  ])('prefills a runner loaded from an object source: %o', async (source) => {
+    registerModelWithSchema(TEXT_SPEC, { modelSource: source });
+    const runner = tracked(await createLLMRunner(source, TOKENIZER_PATH));
+    expect(runner.modelPath).toBe(
+      typeof source === 'string' || 'programPath' in source ? MODEL_PATH : undefined
+    );
+    expect(runner.prefill('hello').numTokens).toBe(1);
+    expect(runner.getKVCacheState().pos).toBe(1);
+  });
+
   it('dispatches to text runner when schema matches LLM_TEXT_SPEC', async () => {
     registerModelWithSchema(TEXT_SPEC);
     const runner = tracked(await createLLMRunner(MODEL_PATH, TOKENIZER_PATH));

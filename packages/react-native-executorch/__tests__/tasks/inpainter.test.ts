@@ -22,7 +22,7 @@ const options = {
   blendOpts: { shrink: 0, feather: 0 },
 } as const;
 
-const config = { modelPath: MODEL_PATH, modelOpts: options };
+const config = { modelSource: MODEL_PATH, modelOpts: options };
 
 const BATCHED = method(
   'forward',

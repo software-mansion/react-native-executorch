@@ -154,7 +154,7 @@ To use your own fine-tuned object detection `.pte` model, pass an [`ObjectDetect
 
 ```typescript
 const customDetector = await createObjectDetector({
-  modelPath: 'https://example.com/my-detector.pte',
+  modelSource: 'https://example.com/my-detector.pte',
   modelOpts: {
     labels: ['hardhat', 'vest', 'boots'],
     boxFormat: 'xyxy',

@@ -36,7 +36,7 @@ const VAD_PATH = '/models/vad.pte';
 describe('createKeypointDetector', () => {
   const LANDMARKS = ['nose', 'left_eye', 'right_eye'] as const;
   const config = {
-    modelPath: MODEL_PATH,
+    modelSource: MODEL_PATH,
     modelOpts: {
       ...STRETCH_PREPROCESSING,
       resizeMode: 'stretch',
@@ -169,7 +169,7 @@ describe('createKeypointDetector', () => {
     const KEYPOINTS = [1, 1, 0.9, 2, 2, 0.8, 3, 3, 0.7, 1, 1, 0.01, 2, 2, 0.01, 3, 3, 0.01];
 
     const detectorConfig = {
-      modelPath: MODEL_PATH,
+      modelSource: MODEL_PATH,
       modelOpts: { ...config.modelOpts, defaultIouThreshold: 0.5 },
     } as const;
 
@@ -219,7 +219,7 @@ describe('createKeypointDetector', () => {
 
 describe('createInstanceSegmenter', () => {
   const config = {
-    modelPath: MODEL_PATH,
+    modelSource: MODEL_PATH,
     modelOpts: {
       ...STRETCH_PREPROCESSING,
       resizeMode: 'stretch',
@@ -282,7 +282,7 @@ const FRAMES = RangeDim(1, 500);
 const VAD_SCHEMA = exported(method('forward', [f32(FRAMES, 400)], [f32(1, FRAMES, 2)]));
 
 const VAD_CONFIG = {
-  modelPath: VAD_PATH,
+  modelSource: VAD_PATH,
   defaultOptions: {
     speechThreshold: 0.5,
     minSpeechDurationMs: 250,
@@ -363,7 +363,7 @@ describe('createWhisperSpeechToText', () => {
   // Whisper pads internally, so the exported encode input is a dynamic range.
   const AUDIO_SAMPLES = RangeDim(1, 480000);
   const config = {
-    modelPath: MODEL_PATH,
+    modelSource: MODEL_PATH,
     tokenizerPath: TOKENIZER_PATH,
     supportedLanguages: ['en'],
     vadModel: VAD_CONFIG,
@@ -487,7 +487,7 @@ describe('createWhisperSpeechToText', () => {
 // ============================================================================
 
 describe('createSdxsTextToImage', () => {
-  const config = { modelPath: MODEL_PATH, tokenizerPath: TOKENIZER_PATH };
+  const config = { modelSource: MODEL_PATH, tokenizerPath: TOKENIZER_PATH };
 
   const SDXS_SCHEMA = exported({
     ...method('encode', [i64(1, 77)], [f32(1, 77, 768)]),

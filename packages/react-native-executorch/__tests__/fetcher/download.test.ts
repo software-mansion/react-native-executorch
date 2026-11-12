@@ -54,7 +54,7 @@ describe('download — resolution', () => {
     fakeNet.serve(URL_B);
 
     const config = {
-      modelPath: URL_A,
+      modelSource: URL_A,
       tokenizerPath: URL_B,
       localPath: '/already/local.pte',
       modelOpts: { labels: ['cat', 'dog'], normalizeOpts: { alpha: 0.5 } },
@@ -62,21 +62,21 @@ describe('download — resolution', () => {
 
     const resolved = await download(config);
 
-    expect(resolved.modelPath).toBe(cachedPath('model.pte'));
+    expect(resolved.modelSource).toBe(cachedPath('model.pte'));
     expect(resolved.tokenizerPath).toBe(cachedPath('tokenizer.json'));
     expect(resolved.localPath).toBe('/already/local.pte');
     expect(resolved.modelOpts).toEqual(config.modelOpts);
   });
 
   it('returns the original object identity when nothing needed downloading', async () => {
-    const config = { modelPath: '/local/model.pte', modelOpts: { labels: ['a'] } };
+    const config = { modelSource: '/local/model.pte', modelOpts: { labels: ['a'] } };
     const resolved = await download(config);
     expect(resolved).toBe(config);
   });
 
   it('keeps untouched sub-objects referentially stable', async () => {
     fakeNet.serve(URL_A);
-    const config = { modelPath: URL_A, modelOpts: { labels: ['a'] } };
+    const config = { modelSource: URL_A, modelOpts: { labels: ['a'] } };
 
     const resolved = await download(config);
 

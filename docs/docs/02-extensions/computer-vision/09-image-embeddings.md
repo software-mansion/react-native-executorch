@@ -148,7 +148,7 @@ To use your own fine-tuned vision encoder `.pte` model, pass an [`ImageEmbedderM
 
 ```typescript
 const customEmbedder = await createImageEmbedder({
-  modelPath: 'https://example.com/my-vision-encoder.pte',
+  modelSource: 'https://example.com/my-vision-encoder.pte',
   modelOpts: {
     resizeMode: 'stretch',
     interpolation: 'linear',

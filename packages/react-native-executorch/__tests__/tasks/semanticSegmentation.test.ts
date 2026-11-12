@@ -15,7 +15,7 @@ const options = {
   labels: LABELS,
 } as const;
 
-const config = { modelPath: MODEL_PATH, modelOpts: options };
+const config = { modelSource: MODEL_PATH, modelOpts: options };
 
 /**
  * Per-class logits for a 2x2 image in CHW order. Class 1 wins the top-left

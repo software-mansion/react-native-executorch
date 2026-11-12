@@ -128,7 +128,7 @@ To use your own fine-tuned SDXS `.pte` model and CLIP tokenizer, pass a [`SdxsTe
 
 ```typescript
 const customGenerator = await createSdxsTextToImage({
-  modelPath: 'https://example.com/my-sdxs.pte',
+  modelSource: 'https://example.com/my-sdxs.pte',
   tokenizerPath: 'https://example.com/tokenizer.json',
 });
 ```
@@ -146,7 +146,7 @@ The pipeline automatically verifies that the model's exported methods (`encode`,
 ### Types & Options
 
 - [`SdxsTextToImage`](../../06-api-reference/type-aliases/SdxsTextToImage.md) — Text-to-image generator runner interface ([`generate`](../../06-api-reference/type-aliases/SdxsTextToImage.md#generate), [`generateWorklet`](../../06-api-reference/type-aliases/SdxsTextToImage.md#generateworklet)).
-- [`SdxsTextToImageModel`](../../06-api-reference/type-aliases/SdxsTextToImageModel.md) — Model configuration spec with `modelPath` and `tokenizerPath`.
+- [`SdxsTextToImageModel`](../../06-api-reference/type-aliases/SdxsTextToImageModel.md) — Model configuration spec with `modelSource` and `tokenizerPath`.
 - [`ImageBuffer`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/ImageBuffer.md) — Generated RGBA output image buffer structure.
 
 ### Model Presets

@@ -45,7 +45,7 @@ describe('useResourceDownload', () => {
     fakeNet.serve(MODEL_URL);
     fakeNet.serve(TOKENIZER_URL);
     const config = {
-      modelPath: MODEL_URL,
+      modelSource: MODEL_URL,
       tokenizerPath: TOKENIZER_URL,
       modelOpts: { labels: ['a', 'b'] },
     };
@@ -54,7 +54,7 @@ describe('useResourceDownload', () => {
 
     await waitFor(() => expect(result.current.resource).toBeDefined());
     expect(result.current.resource).toEqual({
-      modelPath: cachedPath('model.pte'),
+      modelSource: cachedPath('model.pte'),
       tokenizerPath: cachedPath('tokenizer.json'),
       modelOpts: { labels: ['a', 'b'] },
     });
@@ -120,13 +120,13 @@ describe('useResourceDownload', () => {
   it('keys the config by value, so an equal inline object does not re-download', async () => {
     fakeNet.serve(MODEL_URL);
     const { result, rerender } = await renderHook(
-      ({ config }: { config: { modelPath: string } }) => useResourceDownload(config),
-      { initialProps: { config: { modelPath: MODEL_URL } } }
+      ({ config }: { config: { modelSource: string } }) => useResourceDownload(config),
+      { initialProps: { config: { modelSource: MODEL_URL } } }
     );
     await waitFor(() => expect(result.current.resource).toBeDefined());
     const resolved = result.current.resource;
 
-    await rerender({ config: { modelPath: MODEL_URL } });
+    await rerender({ config: { modelSource: MODEL_URL } });
 
     expect(result.current.resource).toBe(resolved);
   });

@@ -6,7 +6,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 import { scheduleOnRN, createSynchronizable } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import { wrapAsync } from '../../../core/runtime';
 import { f32, i64, method, validateSpec, DynamicDim as Dyn } from '../../../core/schema';
 
@@ -94,7 +94,7 @@ export type WhisperSttModel<L extends WhisperLanguage = WhisperLanguage> = {
   /** Pipeline tag, which tells {@link useSpeechToText} which runner to build. */
   readonly name?: 'whisper';
   /** Local path or remote URL of the `.pte` model. */
-  readonly modelPath: string;
+  readonly modelSource: ModelSource;
   /** Local path or remote URL of the tokenizer file. */
   readonly tokenizerPath: string;
   /** List of supported language codes for this model. */
@@ -204,8 +204,8 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
   const dispose = scope.dispose;
 
   try {
-    const { modelPath, tokenizerPath, supportedLanguages, vadModel } = config;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
+    const { modelSource, tokenizerPath, supportedLanguages, vadModel } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
     const voiceDetector = scope.track(await createFsmnVoiceActivityDetector(vadModel, runtime));
     const { detectVoiceWorklet } = voiceDetector;

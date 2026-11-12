@@ -6,7 +6,7 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import { validateSpec, method, i64, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { createResourceScope } from '../../../core/lifetime';
@@ -45,7 +45,7 @@ const NOISE_COEFF = -14.579279;
  */
 export type SdxsTextToImageModel = {
   /** Local path to the model `.pte`. */
-  readonly modelPath: string;
+  readonly modelSource: ModelSource;
   /** Local path to the CLIP `tokenizer.json`. */
   readonly tokenizerPath: string;
 };
@@ -99,8 +99,8 @@ export async function createSdxsTextToImage(
   const dispose = scope.dispose;
 
   try {
-    const { modelPath, tokenizerPath } = config;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
+    const { modelSource, tokenizerPath } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
     validateSpec(model.schema, {

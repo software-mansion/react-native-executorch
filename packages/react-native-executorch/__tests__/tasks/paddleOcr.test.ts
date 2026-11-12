@@ -110,7 +110,7 @@ const detectsAndReads = (regions: Region[], words: string[], confidence = 0.9) =
 };
 
 const config = {
-  modelPath: MODEL_PATH,
+  modelSource: MODEL_PATH,
   charsetPath: CHARSET_PATH,
   modelOpts: { defaultConfidenceThreshold: 0.5 },
 };

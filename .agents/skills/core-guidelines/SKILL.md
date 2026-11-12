@@ -51,6 +51,13 @@ registry options. The [task skill](../add-task-pipeline/SKILL.md) owns that dist
 
 ## Shared conventions
 
+- `loadModel` accepts local paths, `{ programPath, dataMapPath }` (one or multiple `.ptd` paths),
+  or `{ programLoader, dataMapLoader? }`. Callback sources require eager initialization. Their JS
+  handles are owned by the scoped `cpp/core/data_loader` session and released before loading returns;
+  copied ranges have native ownership. They do not support backend reads after initialization or on
+  worker threads. Keep model execution/disposal independent of the loading runtime; do not retain JS
+  callbacks in `ModelHostObject` or materialize a complete source as a fallback.
+
 - Name options parameters `options`. Existing suffixes such as `ModelOpts` or `modelOpts` are allowed.
 - Native JSI wrappers use `rnexecutorchJsi` from the bridge and start with `'worklet';`. Helpers called
   from worklets must also be compatible with that runtime. See the native extension skill for bindings.
