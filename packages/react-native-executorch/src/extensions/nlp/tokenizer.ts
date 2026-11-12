@@ -16,8 +16,9 @@ export type Tokenizer = {
   readonly path: string;
 
   /**
-   * Encodes a string into token ids (special tokens are added according to the
-   * `tokenizer.json` post_processor).
+   * Encodes a string into token ids. No special tokens are added: the
+   * `tokenizer.json` post_processor template (e.g. `[CLS]`/`[SEP]` or BOS/EOS)
+   * is not applied. Special tokens written in `text` are still encoded.
    * @param text The input text string to tokenize.
    * @returns The encoded token ids as an `Int32Array`.
    * @throws {RnExecuTorchError} With code `EXECUTION_FAILED` if tokenization
