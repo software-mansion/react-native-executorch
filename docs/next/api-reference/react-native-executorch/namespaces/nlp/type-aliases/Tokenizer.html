@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.97b06c05.css">
-<script src="/react-native-executorch/assets/js/runtime~main.b41d8471.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.8b514e4b.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.5cca5c14.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.c3c75bfb.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -39,7 +39,7 @@ object. All methods are synchronous and worklet-compatible.</p>
 <blockquote>
 <p><strong>decode</strong>(<code>tokens</code>, <code>skipSpecialTokens?</code>): <code>string</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/nlp/tokenizer.ts#L38" target="_blank" rel="noopener noreferrer" class="">extensions/nlp/tokenizer.ts:38</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/nlp/tokenizer.ts#L40" target="_blank" rel="noopener noreferrer" class="">extensions/nlp/tokenizer.ts:40</a></p>
 <p>Decodes token ids back into a string.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters">Parameters<a href="#parameters" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="tokens">tokens<a href="#tokens" class="hash-link" aria-label="Direct link to tokens" title="Direct link to tokens" translate="no">​</a></h5>
@@ -60,7 +60,7 @@ disposed.</p>
 <blockquote>
 <p><strong>dispose</strong>(): <code>void</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/nlp/tokenizer.ts#L87" target="_blank" rel="noopener noreferrer" class="">extensions/nlp/tokenizer.ts:87</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/nlp/tokenizer.ts#L89" target="_blank" rel="noopener noreferrer" class="">extensions/nlp/tokenizer.ts:89</a></p>
 <p>Releases the native tokenizer resources. The instance must not be used
 afterwards.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-1">Returns<a href="#returns-1" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
@@ -73,9 +73,11 @@ has already been disposed.</p>
 <blockquote>
 <p><strong>encode</strong>(<code>text</code>): <code>Int32Array</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/nlp/tokenizer.ts#L27" target="_blank" rel="noopener noreferrer" class="">extensions/nlp/tokenizer.ts:27</a></p>
-<p>Encodes a string into token ids (special tokens are added according to the
-<code>tokenizer.json</code> post_processor).</p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/nlp/tokenizer.ts#L29" target="_blank" rel="noopener noreferrer" class="">extensions/nlp/tokenizer.ts:29</a></p>
+<p>Encodes a string into token ids. Special tokens from the <code>tokenizer.json</code>
+post_processor (e.g. <code>[CLS]</code>/<code>[SEP]</code> or BOS/EOS) are not added. The
+<code>truncation</code> and <code>padding</code> settings of <code>tokenizer.json</code> still apply.
+Special tokens written in <code>text</code> are still encoded.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-1">Parameters<a href="#parameters-1" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="text">text<a href="#text" class="hash-link" aria-label="Direct link to text" title="Direct link to text" translate="no">​</a></h5>
 <p><code>string</code></p>
@@ -92,7 +94,7 @@ if disposed.</p>
 <blockquote>
 <p><strong>getVocabSize</strong>(): <code>number</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/nlp/tokenizer.ts#L59" target="_blank" rel="noopener noreferrer" class="">extensions/nlp/tokenizer.ts:59</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/nlp/tokenizer.ts#L61" target="_blank" rel="noopener noreferrer" class="">extensions/nlp/tokenizer.ts:61</a></p>
 <p>Returns the total vocabulary size.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-3">Returns<a href="#returns-3" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
 <p><code>number</code></p>
@@ -105,7 +107,7 @@ in use, or <code>RESOURCE_DISPOSED</code> if disposed.</p>
 <blockquote>
 <p><strong>idToToken</strong>(<code>id</code>): <code>string</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/nlp/tokenizer.ts#L69" target="_blank" rel="noopener noreferrer" class="">extensions/nlp/tokenizer.ts:69</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/nlp/tokenizer.ts#L71" target="_blank" rel="noopener noreferrer" class="">extensions/nlp/tokenizer.ts:71</a></p>
 <p>Converts a numeric token id to its string piece representation.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-2">Parameters<a href="#parameters-2" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="id">id<a href="#id" class="hash-link" aria-label="Direct link to id" title="Direct link to id" translate="no">​</a></h5>
@@ -123,7 +125,7 @@ if disposed.</p>
 <blockquote>
 <p><strong>tokenToId</strong>(<code>token</code>): <code>number</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/nlp/tokenizer.ts#L79" target="_blank" rel="noopener noreferrer" class="">extensions/nlp/tokenizer.ts:79</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/nlp/tokenizer.ts#L81" target="_blank" rel="noopener noreferrer" class="">extensions/nlp/tokenizer.ts:81</a></p>
 <p>Converts a string piece token to its numeric token id.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-3">Parameters<a href="#parameters-3" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="token">token<a href="#token" class="hash-link" aria-label="Direct link to token" title="Direct link to token" translate="no">​</a></h5>
@@ -141,7 +143,7 @@ if disposed.</p>
 <blockquote>
 <p><strong>tryDecode</strong>(<code>tokens</code>, <code>skipSpecialTokens?</code>): <code>string</code> | <code>undefined</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/nlp/tokenizer.ts#L51" target="_blank" rel="noopener noreferrer" class="">extensions/nlp/tokenizer.ts:51</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/nlp/tokenizer.ts#L53" target="_blank" rel="noopener noreferrer" class="">extensions/nlp/tokenizer.ts:53</a></p>
 <p>Decodes token ids, returning <code>undefined</code> if the decoded bytes end in an
 incomplete UTF-8 sequence. Retain the ids and retry with additional tokens
 until a string is returned. An empty string is a successful decode.</p>

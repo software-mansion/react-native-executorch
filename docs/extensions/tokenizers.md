@@ -2,7 +2,7 @@
 
 Tokenizers translate human-readable natural language text into numeric token ID arrays (and decode token ID sequences back into text).
 
-The library embeds PyTorch's native C++ tokenizer engine, providing high-performance Hugging Face `tokenizer.json` compatibility directly on-device without Python or Rust runtimes. It supports Byte-Pair Encoding (BPE), WordPiece, Unigram, and Byte-level tokenizers with full support for normalizers, pre-tokenizers, truncation, padding, and post-processors (such as adding special `[CLS]` and `[SEP]` tokens automatically).
+The library embeds PyTorch's native C++ tokenizer engine, providing high-performance Hugging Face `tokenizer.json` compatibility directly on-device without Python or Rust runtimes. It supports Byte-Pair Encoding (BPE), WordPiece, Unigram, and Byte-level tokenizers with support for normalizers, pre-tokenizers, truncation and padding. `encode` does not add special tokens such as `[CLS]` and `[SEP]` (see [encode](#1-encodetext)).
 
 ## Native Tokenizer (loadTokenizer)[​](#native-tokenizer-loadtokenizer "Direct link to Native Tokenizer (loadTokenizer)")
 
@@ -35,11 +35,11 @@ The [`Tokenizer`](https://docs.swmansion.com/react-native-executorch/docs/api-re
 
 ### 1. encode(text)[​](#1-encodetext "Direct link to 1. encode(text)")
 
-Converts a string into an [`Int32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array) of token IDs. Special tokens are automatically appended/prepended according to the `tokenizer.json` post-processor configuration (e.g. `[CLS]` and `[SEP]` for BERT/WordPiece):
+Converts a string into an [`Int32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array) of token IDs. Special tokens from the `tokenizer.json` post-processor (e.g. `[CLS]` and `[SEP]` for BERT/WordPiece) are not added. The `truncation` and `padding` settings of `tokenizer.json` still apply. If your model expects special tokens, add them yourself or inside the exported graph:
 
 ```typescript
 const ids: Int32Array = tokenizer.encode('ExecuTorch on React Native');
-// e.g. Int32Array([101, 10769, 2178, 2006, 2690, 3110, 102])
+// e.g. Int32Array([10769, 2178, 2006, 2690, 3110])
 
 ```
 
@@ -49,7 +49,8 @@ Decodes an [`Int32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScrip
 
 ```typescript
 const cleanText = tokenizer.decode(ids); // "ExecuTorch on React Native"
-const rawText = tokenizer.decode(ids, false); // "[CLS] ExecuTorch on React Native [SEP]"
+const framed = new Int32Array([101, ...ids, 102]); // [CLS] ... [SEP], added by hand
+const rawText = tokenizer.decode(framed, false); // "[CLS] ExecuTorch on React Native [SEP]"
 
 ```
 
@@ -118,7 +119,7 @@ const nativeTokenizer = nlp.loadTokenizer('/path/to/local/tokenizer.json');
 
 ```
 
-The native tokenizer automatically handles the model type, vocabulary tables, regex pre-tokenizers, merges, and post-processor rules defined in the JSON file.
+The native tokenizer automatically handles the model type, vocabulary tables, regex pre-tokenizers, merges, truncation and padding defined in the JSON file. Special tokens from the post-processor are not added (see [encode](#1-encodetext)).
 
 ## API Reference[​](#api-reference "Direct link to API Reference")
 

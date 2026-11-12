@@ -1,6 +1,6 @@
 # React Native ExecuTorch
 
-> Latest stable release: v0.11.x (npm `react-native-executorch`); this file was generated 2026-11-11.
+> Latest stable release: v0.11.x (npm `react-native-executorch`); this file was generated 2026-11-12.
 > 82 pre-exported models across 19 tasks, listed under "Supported Models" below.
 > Backends: XNNPACK (CPU, iOS and Android), Core ML (iOS), MLX (iOS), Vulkan (Android GPU). Precisions: fp32, fp16, bf16, int8, 8da8w, 8da4w, int4, spinquant, coreml_int4.
 > New in v0.11.x: `models.llm.MINICPM5_2B`, `models.llm.LFM2_5_2_6B`, `models.colbertEmbeddings.LFM2_5_COLBERT_350M`, `models.keypointDetection.FACEMESH`, `models.depthEstimation.DEPTH_ANYTHING_V2_SMALL`, `models.depthEstimation.DEPTH_ANYTHING_V3_SMALL`, `models.depthEstimation.ZIPDEPTH_BASE`, `models.inpainting.MIGAN`.
