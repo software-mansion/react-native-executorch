@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { createMatrix, createProfiles, findProfile, readCompatibility } from './matrix.mjs';
 
-test('the default matrix contains only Expo SDKs 55–58 on both platforms', () => {
+test('default coverage includes Expo SDKs, one Windows build and two runtime smoke apps', () => {
   const { scope, matrix } = createMatrix();
   assert.equal(scope, 'expo');
   assert.deepEqual(
@@ -21,6 +21,9 @@ test('the default matrix contains only Expo SDKs 55–58 on both platforms', () 
       'expo-57-ios',
       'expo-58-android',
       'expo-58-ios',
+      'expo-58-smoke-android',
+      'expo-58-smoke-ios',
+      'expo-58-android-windows',
     ]
   );
 });
@@ -33,8 +36,8 @@ test('the full matrix builds every declared compatible pair on both platforms', 
     expo.map((p) => p.id),
     ['expo-55', 'expo-56', 'expo-57', 'expo-58']
   );
-  assert.equal(matrix.include.length, 40);
-  assert.equal(matrix.include.filter((cell) => cell.profile.startsWith('expo-')).length, 8);
+  assert.equal(matrix.include.length, 43);
+  assert.equal(matrix.include.filter((cell) => cell.profile.startsWith('expo-')).length, 11);
   const expected = {
     0.83: ['0.10', '0.11', '0.12'],
     0.84: ['0.10', '0.11', '0.12'],
@@ -52,7 +55,9 @@ test('the full matrix builds every declared compatible pair on both platforms', 
   }
   for (const profile of [...bare, ...expo]) {
     assert.deepEqual(
-      matrix.include.filter((cell) => cell.profile === profile.id).map((cell) => cell.platform),
+      matrix.include
+        .filter((cell) => cell.profile === profile.id && cell.runner !== 'windows-2025')
+        .map((cell) => cell.platform),
       ['android', 'ios']
     );
   }
@@ -110,9 +115,32 @@ test('the CLI writes single-line JSON matrices usable by GitHub job outputs', ()
         })
     );
     assert.equal(outputs.scope, 'expo');
-    assert.equal(JSON.parse(outputs.matrix).include.length, 8);
-    assert.match(readFileSync(summary, 'utf8'), /8 Release app builds: 4 Android and 4 iOS/);
+    assert.equal(JSON.parse(outputs.matrix).include.length, 11);
+    assert.match(readFileSync(summary, 'utf8'), /11 Release app builds: 6 Android and 5 iOS/);
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
+});
+
+test('Windows coverage stays on the newest Expo SDK regardless of configuration order', () => {
+  const config = readCompatibility();
+  config.expo.reverse();
+  const windows = createMatrix('full', config).matrix.include.filter(
+    (cell) => cell.runner === 'windows-2025'
+  );
+  assert.deepEqual(windows, [
+    {
+      profile: 'expo-58',
+      platform: 'android',
+      id: 'expo-58-android-windows',
+      runner: 'windows-2025',
+      smoke: false,
+    },
+  ]);
+  const smoke = createMatrix().matrix.include.filter((cell) => cell.smoke);
+  assert.deepEqual(
+    smoke.map((cell) => cell.platform),
+    ['android', 'ios']
+  );
+  assert.ok(smoke.every((cell) => cell.profile === 'expo-58-smoke'));
 });

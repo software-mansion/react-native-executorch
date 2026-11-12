@@ -75,7 +75,8 @@
       "blobUtil": "1.0.0",
       "buildProperties": "58.0.12",
       "babelPreset": "58.0.25",
-      "babelCore": "7.29.7"
+      "babelCore": "7.29.7",
+      "expoAsset": "58.0.21"
     }
   ],
   "worklets": [
