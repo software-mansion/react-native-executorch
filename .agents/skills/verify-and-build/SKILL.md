@@ -108,6 +108,14 @@ phoneme output. Use device/emulator integration for those behaviors.
 
 ## Native app verification
 
+The [consumer build matrix](../../../.github/consumer-builds/README.md) checks a
+packed library in fresh bare RN and Expo applications on Android and iOS. It
+runs the full compatibility matrix on relevant PRs and supports manual dispatch.
+Use it for publication, installation, autolinking, release bundling and
+native build regressions. It does not launch applications or
+establish device inference. The linked README owns its version pins, commands,
+artifacts and limitations.
+
 Choose the relevant app (`computer-vision`, `nlp` or `speech`) and inspect its current native setup.
 Provision matching native libraries before rebuilding. If iOS native projects already exist, run
 `pod install` in the app's `ios/` directory when dependencies, podspec files or source discovery change.
