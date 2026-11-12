@@ -127,13 +127,17 @@ jobs:
               pod --version
             fi
           } 2>&1 | tee "$LOG_DIR/toolchain.log"
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         if: matrix.platform == 'android'
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      - name: Use the hosted runner's Android SDK
         if: matrix.platform == 'android'
+        run: |
+          test -n "$ANDROID_HOME"
+          test -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
       - name: Record Android toolchain
         if: matrix.platform == 'android'
         run: |

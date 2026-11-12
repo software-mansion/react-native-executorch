@@ -24,8 +24,12 @@ test('the full matrix builds every declared compatible pair on both platforms', 
   const { matrix } = createMatrix('full');
   const { bare, expo } = createProfiles();
   assert.equal(bare.length, 16);
-  assert.equal(matrix.include.length, 34);
-  assert.equal(matrix.include.filter((cell) => cell.profile.startsWith('expo-')).length, 2);
+  assert.deepEqual(
+    expo.map((p) => p.id),
+    ['expo-55', 'expo-56', 'expo-57', 'expo-58']
+  );
+  assert.equal(matrix.include.length, 40);
+  assert.equal(matrix.include.filter((cell) => cell.profile.startsWith('expo-')).length, 8);
   const expected = {
     0.83: ['0.10', '0.11', '0.12'],
     0.84: ['0.10', '0.11', '0.12'],
@@ -77,7 +81,7 @@ test('each artifact id is unique across bare and Expo cells', () => {
 
 test('profile lookup supplies its family and pinned CLI, and rejects typos', () => {
   assert.equal(findProfile('rn-0-83-worklets-0-10').family, 'bare');
-  assert.equal(findProfile('expo-57').family, 'expo');
+  for (const sdk of [55, 56, 57, 58]) assert.equal(findProfile(`expo-${sdk}`).family, 'expo');
   assert.match(findProfile('rn-0-88-worklets-0-13').cli, /^\d+\.\d+\.\d+$/);
   assert.throws(() => findProfile('rn-0-89'), /Unknown consumer profile/);
   assert.throws(() => createMatrix('typo'), /Unknown matrix scope/);
