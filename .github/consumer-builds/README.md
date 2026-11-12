@@ -1,6 +1,6 @@
 # Consumer build matrix
 
-<!-- cspell:ignore plutil Podfile -->
+<!-- cspell:ignore plutil Podfile prebuild -->
 
 The [Consumer builds workflow](../workflows/consumer-builds.yml) installs one
 published-format library tarball into fresh consumer applications outside the
@@ -11,43 +11,51 @@ cannot resolve the repository's workspace dependencies or library source files.
 
 [compatibility.json](./compatibility.json) declares supported RN minors for each
 pinned Worklets release, pinned RN patches and peer versions, and the Expo
-fixture. [matrix.mjs](./matrix.mjs) generates every declared compatible pair and
+fixtures. [matrix.mjs](./matrix.mjs) generates every declared compatible pair and
 expands it across Android and iOS. One workflow plans, packs and builds them.
 
-| React Native             | Compatible Worklets pins                                   | Release app builds |
-| ------------------------ | ---------------------------------------------------------- | ------------------ |
-| 0.83.6                   | 0.10.4, 0.11.4, 0.12.2                                     | 6                  |
-| 0.84.1                   | 0.10.4, 0.11.4, 0.12.2                                     | 6                  |
-| 0.85.3                   | 0.10.4, 0.11.4, 0.12.2                                     | 6                  |
-| 0.86.3                   | 0.10.4, 0.11.4, 0.12.2, 0.13.0                             | 8                  |
-| 0.87.1                   | 0.12.2, 0.13.0                                             | 4                  |
-| 0.88.1                   | 0.13.0                                                     | 2                  |
-| Expo 57.0.28 / RN 0.86.3 | 0.13.0                                                     | 2                  |
-| **Total**                | **16 bare pairs + 1 Expo fixture, each on both platforms** | **34**             |
+| React Native              | Compatible Worklets pins                                    | Release app builds |
+| ------------------------- | ----------------------------------------------------------- | ------------------ |
+| 0.83.6                    | 0.10.4, 0.11.4, 0.12.2                                      | 6                  |
+| 0.84.1                    | 0.10.4, 0.11.4, 0.12.2                                      | 6                  |
+| 0.85.3                    | 0.10.4, 0.11.4, 0.12.2                                      | 6                  |
+| 0.86.3                    | 0.10.4, 0.11.4, 0.12.2, 0.13.0                              | 8                  |
+| 0.87.1                    | 0.12.2, 0.13.0                                              | 4                  |
+| 0.88.1                    | 0.13.0                                                      | 2                  |
+| Expo 55.0.32 / RN 0.83.10 | 0.10.4                                                      | 2                  |
+| Expo 56.0.24 / RN 0.85.3  | 0.10.4                                                      | 2                  |
+| Expo 57.0.28 / RN 0.86.3  | 0.13.0                                                      | 2                  |
+| Expo 58.0.24 / RN 0.88.1  | 0.13.0                                                      | 2                  |
+| **Total**                 | **16 bare pairs + 4 Expo fixtures, each on both platforms** | **40**             |
 
-- **Relevant pull requests:** all 34 app builds per run, 17 Android and 17 iOS.
+- **Relevant pull requests:** all 40 app builds per run, 20 Android and 20 iOS.
   Path filters select library, harness, workflow and dependency changes targeting
   `main`.
-- **Manual dispatch:** `full` runs 34 app builds; `pr` runs the four boundary
+- **Manual dispatch:** `full` runs 40 app builds; `pr` runs the four boundary
   builds (RN 0.83.6 / Worklets 0.10.4 and RN 0.88.1 / Worklets 0.13.0, each on both
   platforms).
 - **No scheduled runs yet.** A TODO in the workflow tracks moving the full matrix
   to a nightly cron job and restoring boundary-only PR coverage after validation.
 
 Every full run also has one planning/test job and one shared library build/package
-job: **36 jobs total**, with at most four app builds concurrently. The optional
+job: **42 jobs total**, with at most four app builds concurrently. The optional
 manual boundary run has six jobs total.
 
 The compatibility rules match the pinned Worklets packages' published RN peer
 ranges. For example, Worklets 0.13 supports RN 0.86–0.88, whereas 0.12 supports
 0.83–0.87. Every compatible combination of the declared pins is built on relevant PRs;
 this does not test every patch release or expand support to Worklets 0.14.
+Expo RN/React/build-properties pins follow each SDK's `bundledNativeModules.json`.
+SDKs 55 and 56 bundle Worklets below this library's minimum; these fixtures
+explicitly install 0.10.4, as required by the integration documentation. SDKs 57
+and 58 use 0.13.0. These are native prebuild tests, not Expo Go or EAS tests.
+
 blob-util is pinned to 0.25.1 for RN 0.83 and 1.0.0 for newer RN versions, because
 blob-util 1.0 requires RN >=0.84.
 
-All builds are Release: Android uses Ubuntu 24.04, Java 17, arm64 and R8; iOS uses
+All builds are Release: Android uses Ubuntu 24.04, Java 17, the hosted runner's preinstalled Android SDK, arm64 and R8; iOS uses
 an Apple Silicon macOS 26 runner and creates an unsigned device archive. Framework
-linkage, backend subsets, Debug, RN nightly and other Expo SDKs are separate
+linkage, backend subsets, Debug and RN nightly are separate
 coverage to add, not extra dimensions of this matrix.
 
 ## What it checks
@@ -90,7 +98,7 @@ cd /tmp/ConsumerBuild/android
 
 Adjust the tarball filename to the package version. For iOS, pass `ios` instead
 of `android`, run `pod install` in the generated `ios/` directory, then use the
-workflow's archive command. `expo-57` works on either platform. iOS app
+workflow's archive command. `expo-55`, `expo-56`, `expo-57` and `expo-58` work on either platform. iOS app
 deployment targets are at least 17.0, preserving a higher RN requirement.
 
 Compatibility data pins the framework, Worklets, blob-util and CLI; other template and
