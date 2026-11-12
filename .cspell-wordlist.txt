@@ -451,6 +451,13 @@ eurollm
 doclayout
 netp
 Uyghur
+codebook
+codebooks
+remask
+higgs
+verbalizers
+workletized
+partitioners
 cocoapods
 ARCHS
 Podfile

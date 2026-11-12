@@ -13001,6 +13001,7 @@ __metadata:
     react-native-worklets: "npm:0.13.0"
     test-renderer: "npm:^1.2.0"
     typescript: "npm:~5.9.2"
+    verbalis: "npm:^0.1.1"
   peerDependencies:
     "@kesha-antonov/react-native-background-downloader": ">=4.4.0"
     react: "*"
@@ -15043,6 +15044,13 @@ __metadata:
     react: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
     react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
   checksum: 10/9d34f7f9aae1994450233f7803fcd47dca7680bc621ee24717b8e78b72fda9c5156e1ff2c8af6c2705993224fd8d3725ed89d84ba5bd1d411124dd91cde2b2e5
+  languageName: node
+  linkType: hard
+
+"verbalis@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "verbalis@npm:0.1.1"
+  checksum: 10/012f4789d08a0e3ea729db7f192f2e453e525f90bc278e780e1ca17baa82e9f47ab61c8ce7307d4742142fb218f1e57556229719164d9cb25c9631584b096922
   languageName: node
   linkType: hard
 
