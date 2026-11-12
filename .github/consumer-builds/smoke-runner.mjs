@@ -46,13 +46,17 @@ export async function startReporter(token, port = 18765, timeout = 180000) {
     server.once('error', reject);
     server.listen(port, '127.0.0.1', resolve);
   });
-  const timer = setTimeout(
-    () => reject(new Error('App did not report passing smoke assertions before the timeout')),
-    timeout
-  );
+  let timer;
   return {
     port: server.address().port,
-    result,
+    // Booting and installing are setup; only app execution uses this deadline.
+    waitForReport: () => {
+      timer ??= setTimeout(
+        () => reject(new Error('App did not report passing smoke assertions before the timeout')),
+        timeout
+      );
+      return result;
+    },
     close: async () => {
       clearTimeout(timer);
       await new Promise((resolve) => server.close(resolve));
@@ -83,6 +87,7 @@ async function main() {
       logger.stdout.pipe(output, { end: false });
       logger.stderr.pipe(output, { end: false });
       await execute('adb', ['shell', 'am', 'force-stop', config.bundleIdentifier]);
+      reporter.waitForReport();
       await execute('adb', [
         'shell',
         'am',
@@ -105,8 +110,22 @@ async function main() {
         await execute('xcrun', ['simctl', 'boot', udid]);
         bootedByUs = true;
       }
-      await execute('xcrun', ['simctl', 'bootstatus', udid, '-b'], { timeout: 120000 });
+      console.log(`Waiting up to 10 minutes for simulator ${device.name} (${udid})`);
+      try {
+        const boot = await execute('xcrun', ['simctl', 'bootstatus', udid, '-b'], {
+          timeout: 600000,
+          maxBuffer: 8 * 1024 * 1024,
+        });
+        writeFileSync(join(logs, 'simulator-boot.log'), boot.stdout + boot.stderr);
+      } catch (error) {
+        writeFileSync(
+          join(logs, 'simulator-boot.log'),
+          `${error.stdout ?? ''}${error.stderr ?? ''}\n${error.message}\n`
+        );
+        throw error;
+      }
       await execute('xcrun', ['simctl', 'install', udid, resolve(artifact)]);
+      reporter.waitForReport();
       logger = spawn('xcrun', [
         'simctl',
         'launch',
@@ -119,7 +138,7 @@ async function main() {
       logger.stderr.pipe(output, { end: false });
     }
     logger.on('error', (error) => output.write(`Log capture failed: ${error.message}\n`));
-    const report = await reporter.result;
+    const report = await reporter.waitForReport();
     writeFileSync(join(logs, 'smoke-result.json'), JSON.stringify(report, null, 2) + '\n');
     console.log(
       'PASS: native tensor, worklet typed-array round trip and bundled XNNPACK inference'
@@ -131,13 +150,21 @@ async function main() {
     output.end();
     await reporter.close();
     if (platform === 'android') {
-      await execute('adb', ['shell', 'am', 'force-stop', config.bundleIdentifier]).catch(() => {});
-      await execute('adb', ['reverse', '--remove', `tcp:${config.port}`]).catch(() => {});
+      await execute('adb', ['shell', 'am', 'force-stop', config.bundleIdentifier], {
+        timeout: 15000,
+      }).catch(() => {});
+      await execute('adb', ['reverse', '--remove', `tcp:${config.port}`], {
+        timeout: 15000,
+      }).catch(() => {});
     } else if (udid) {
-      await execute('xcrun', ['simctl', 'terminate', udid, config.bundleIdentifier]).catch(
-        () => {}
-      );
-      if (bootedByUs) await execute('xcrun', ['simctl', 'shutdown', udid]).catch(() => {});
+      await execute('xcrun', ['simctl', 'terminate', udid, config.bundleIdentifier], {
+        timeout: 15000,
+      }).catch(() => {});
+      if (bootedByUs) {
+        await execute('xcrun', ['simctl', 'shutdown', udid], { timeout: 15000 }).catch(
+          () => {}
+        );
+      }
     }
   }
 }
