@@ -7,12 +7,7 @@ const TOKENIZER_PATH = '/models/tokenizer.json';
 const TOKENS = ['<s>', '</s>', 'hello', 'world', 'react'];
 
 const register = () =>
-  fakeJsi.registerTokenizer(TOKENIZER_PATH, {
-    tokens: TOKENS,
-    prefix: [0],
-    suffix: [1],
-    specialIds: [0, 1],
-  });
+  fakeJsi.registerTokenizer(TOKENIZER_PATH, { tokens: TOKENS, specialIds: [0, 1] });
 
 describe('loadTokenizer', () => {
   it('propagates a load failure', () => {
@@ -30,13 +25,13 @@ describe('loadTokenizer', () => {
 describe('createTokenizer', () => {
   beforeEach(register);
 
-  it('encodes to an Int32Array, adding the post-processor special tokens', async () => {
+  it('encodes to an Int32Array without adding special tokens', async () => {
     const tokenizer = tracked(await createTokenizer(TOKENIZER_PATH));
 
     const ids = await tokenizer.encode('hello world');
 
     expect(ids).toBeInstanceOf(Int32Array);
-    expect([...ids]).toEqual([0, 2, 3, 1]);
+    expect([...ids]).toEqual([2, 3]);
   });
 
   it('round-trips text through encode and decode', async () => {
@@ -50,7 +45,7 @@ describe('createTokenizer', () => {
   it('keeps the special tokens when asked not to skip them', async () => {
     const tokenizer = tracked(await createTokenizer(TOKENIZER_PATH));
 
-    const ids = await tokenizer.encode('hello');
+    const ids = new Int32Array([0, 2, 1]);
 
     expect(await tokenizer.decode(ids, false)).toBe('<s> hello </s>');
   });

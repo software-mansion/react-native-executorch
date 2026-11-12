@@ -20,9 +20,9 @@ namespace jsi = facebook::jsi;
 namespace conversions = rnexecutorch::core::conversions;
 
 namespace {
-// Number of BOS/EOS tokens to add on top of what the tokenizer.json defines.
-// Keeping these at 0 means encoding follows the tokenizer's own post_processor
-// (i.e. special tokens are added exactly as configured in tokenizer.json).
+// HFTokenizer::encode only checks whether either value is > 0. At 0 the
+// tokenizer.json post_processor adds no special tokens: callers and exported
+// graphs add them when the model needs them.
 constexpr uint64_t kNumAddedBosTokens = 0;
 constexpr uint64_t kNumAddedEosTokens = 0;
 

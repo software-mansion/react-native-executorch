@@ -35,9 +35,9 @@ function TokenizerContent() {
       const decoded = await decode(tokenIds, true);
       const vocab = getVocabSize();
 
-      // Self-consistent inverse check on a token from the actual output
-      // (HFTokenizer adds special tokens per the tokenizer.json post_processor).
-      const sampleId = tokenIds[Math.min(1, tokenIds.length - 1)]!;
+      // Self-consistent inverse check on the first token of the actual output
+      // (encode adds no special tokens, so it is a real word piece).
+      const sampleId = tokenIds[0]!;
       const sampleToken = idToToken(sampleId);
       const sampleIdBack = tokenToId(sampleToken);
 
