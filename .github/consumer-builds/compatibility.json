@@ -96,5 +96,11 @@
       "version": "0.13.0",
       "reactNative": ["0.86", "0.87", "0.88"]
     }
-  ]
+  ],
+  "integrations": {
+    "@sentry/react-native": "8.35.0",
+    "@react-native-firebase/app": "27.1.1",
+    "react-native-vision-camera": "4.7.3",
+    "react-native-audio-api": "0.13.6"
+  }
 }

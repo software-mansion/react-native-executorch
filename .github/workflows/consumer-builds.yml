@@ -100,6 +100,7 @@ jobs:
     env:
       CI: '1'
       EXPO_NO_TELEMETRY: '1'
+      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
       CONSUMER_ABI: ${{ matrix.smoke && matrix.platform == 'android' && 'x86_64' || 'arm64-v8a' }}
     steps:
       - name: Set consumer paths
@@ -186,6 +187,18 @@ jobs:
             grep -F "lib/${CONSUMER_ABI}/lib${library}.so" "$LOG_DIR/apk-files.log"
           done
           cp "$apk" "$LOG_DIR/ConsumerBuild.apk"
+      - name: Build Android App Bundle
+        if: matrix.aab
+        working-directory: ${{ env.CONSUMER_DIR }}/android
+        run: |
+          ./gradlew :app:bundleRelease --no-daemon --stacktrace --max-workers=2 \
+            2>&1 | tee "$LOG_DIR/android-bundle.log"
+          cp app/build/outputs/bundle/release/app-release.aab "$LOG_DIR/ConsumerBuild.aab"
+      - name: Validate Android App Bundle and packaged native libraries
+        if: matrix.aab
+        run: |
+          node .github/consumer-builds/validate-aab.mjs "$LOG_DIR/ConsumerBuild.aab" \
+            "$RUNNER_TEMP/bundletool" "$LOG_DIR" 2>&1 | tee "$LOG_DIR/aab-validation.log"
       - name: Build Android release on Windows with R8
         if: runner.os == 'Windows'
         shell: pwsh
@@ -261,7 +274,7 @@ jobs:
         if: always()
         run: |
           mkdir -p "$LOG_DIR"
-          for file in smoke-config.json consumer-profile.json package.json package-lock.json android/gradle.properties android/build.gradle android/app/build.gradle ios/Podfile ios/Podfile.lock ios/Podfile.properties.json; do
+          for file in smoke-config.json consumer-profile.json app.json metro.config.js package.json package-lock.json android/gradle.properties android/build.gradle android/app/build.gradle android/app/src/main/AndroidManifest.xml ios/Podfile ios/Podfile.lock ios/Podfile.properties.json ios/ConsumerBuild/Info.plist; do
             if [[ -f "$CONSUMER_DIR/$file" ]]; then
               destination="$LOG_DIR/config/$file"
               mkdir -p "$(dirname "$destination")"

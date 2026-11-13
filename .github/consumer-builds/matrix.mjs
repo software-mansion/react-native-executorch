@@ -95,20 +95,38 @@ export function createProfiles(config = readCompatibility()) {
   requireVersion(latestExpo.expoAsset, `${latestExpo.id}.expoAsset`);
   const smoke = { ...latestExpo, id: `${latestExpo.id}-smoke`, smoke: true };
   requireId(smoke.id);
-  return { bare, expo, smoke };
+  for (const [name, version] of Object.entries(config.integrations ?? {})) {
+    requireVersion(version, `integrations.${name}`);
+  }
+  for (const name of [
+    '@sentry/react-native',
+    '@react-native-firebase/app',
+    'react-native-vision-camera',
+    'react-native-audio-api',
+  ]) {
+    requireVersion(config.integrations?.[name], `integrations.${name}`);
+  }
+  const integration = {
+    ...latestExpo,
+    id: `${latestExpo.id}-integration`,
+    integrations: config.integrations,
+  };
+  requireId(integration.id);
+  return { bare, expo, smoke, integration };
 }
 
 export function findProfile(id) {
-  const { bare, expo, smoke } = createProfiles();
-  const profile = [...bare, ...expo, smoke].find((profile) => profile.id === id);
+  const { bare, expo, smoke, integration } = createProfiles();
+  const profile = [...bare, ...expo, smoke, integration].find((profile) => profile.id === id);
   if (!profile) throw new Error(`Unknown consumer profile: ${id}`);
   return profile;
 }
 
 export function createMatrix(scope = 'expo', config = readCompatibility()) {
   if (!['expo', 'full'].includes(scope)) throw new Error(`Unknown matrix scope: ${scope}`);
-  const { bare, expo, smoke } = createProfiles(config);
-  const profiles = scope === 'full' ? [...bare, ...expo, smoke] : [...expo, smoke];
+  const { bare, expo, smoke, integration } = createProfiles(config);
+  const profiles =
+    scope === 'full' ? [...bare, ...expo, smoke, integration] : [...expo, smoke, integration];
   const latestExpo = [...expo].sort((a, b) => compareVersions(a.expo, b.expo)).at(-1);
   return {
     scope,
@@ -121,6 +139,7 @@ export function createMatrix(scope = 'expo', config = readCompatibility()) {
             id: `${profile.id}-${platform}`,
             runner: platform === 'ios' ? 'macos-26' : 'ubuntu-24.04',
             smoke: Boolean(profile.smoke),
+            aab: profile.id === latestExpo.id && platform === 'android',
           }))
         ),
         {
@@ -129,6 +148,7 @@ export function createMatrix(scope = 'expo', config = readCompatibility()) {
           id: `${latestExpo.id}-android-windows`,
           runner: 'windows-2025',
           smoke: false,
+          aab: false,
         },
       ],
     },
