@@ -14,6 +14,11 @@ import { fileURLToPath } from 'node:url';
 import { findProfile } from './matrix.mjs';
 import { isInside, packageManagerCommand } from './host.mjs';
 import { prepareSmokeFixture } from './smoke-fixture.mjs';
+import {
+  integrationPlugins,
+  prepareIntegrationFixture,
+  verifyIntegrationFixture,
+} from './integration-fixture.mjs';
 
 const fixtures = dirname(fileURLToPath(import.meta.url));
 const repository = resolve(fixtures, '../..');
@@ -148,6 +153,7 @@ AppRegistry.registerComponent('ConsumerBuild', () => App);
       'react-native-worklets': profile.worklets,
       'react-native-blob-util': profile.blobUtil,
       ...(profile.smoke ? { 'expo-asset': profile.expoAsset } : {}),
+      ...profile.integrations,
     },
     devDependencies: { '@babel/core': profile.babelCore, 'babel-preset-expo': profile.babelPreset },
   };
@@ -161,16 +167,23 @@ AppRegistry.registerComponent('ConsumerBuild', () => App);
           version: '1.0.0',
           ios: {
             bundleIdentifier,
+            ...(profile.integrations ? { googleServicesFile: './GoogleService-Info.plist' } : {}),
             ...(profile.smoke
               ? { infoPlist: { NSAppTransportSecurity: { NSAllowsArbitraryLoads: true } } }
               : {}),
           },
-          android: { package: bundleIdentifier },
+          android: {
+            package: bundleIdentifier,
+            ...(profile.integrations ? { googleServicesFile: './google-services.json' } : {}),
+          },
           plugins: [
             [
               'expo-build-properties',
               {
-                ios: { deploymentTarget: '17.0' },
+                ios: {
+                  deploymentTarget: '17.0',
+                  ...(profile.integrations ? { useFrameworks: 'dynamic' } : {}),
+                },
                 android: {
                   minSdkVersion: 26,
                   buildArchs: [abi],
@@ -179,6 +192,7 @@ AppRegistry.registerComponent('ConsumerBuild', () => App);
                 },
               },
             ],
+            ...(profile.integrations ? integrationPlugins : []),
           ],
         },
       },
@@ -195,6 +209,7 @@ registerRootComponent(App);
   );
   copyFileSync(join(appFixtures, 'App.jsx'), join(directory, 'App.jsx'));
   if (profile.smoke) await prepareSmokeFixture(directory);
+  if (profile.integrations) prepareIntegrationFixture(directory, appFixtures, bundleIdentifier);
 }
 copyFileSync(archive, join(directory, 'react-native-executorch.tgz'));
 manifest.dependencies['react-native-executorch'] = 'file:./react-native-executorch.tgz';
@@ -227,4 +242,5 @@ if (profile.family === 'expo') {
     ['--no-install', 'expo', 'prebuild', '--platform', platform, '--no-install'],
     directory
   );
+  if (profile.integrations) verifyIntegrationFixture(directory, platform);
 }

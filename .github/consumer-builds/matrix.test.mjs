@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { createMatrix, createProfiles, findProfile, readCompatibility } from './matrix.mjs';
 
-test('default coverage includes Expo SDKs, one Windows build and two runtime smoke apps', () => {
+test('default coverage includes Expo SDKs, Windows, runtime smoke and integration apps', () => {
   const { scope, matrix } = createMatrix();
   assert.equal(scope, 'expo');
   assert.deepEqual(
@@ -23,6 +23,8 @@ test('default coverage includes Expo SDKs, one Windows build and two runtime smo
       'expo-58-ios',
       'expo-58-smoke-android',
       'expo-58-smoke-ios',
+      'expo-58-integration-android',
+      'expo-58-integration-ios',
       'expo-58-android-windows',
     ]
   );
@@ -36,8 +38,8 @@ test('the full matrix builds every declared compatible pair on both platforms', 
     expo.map((p) => p.id),
     ['expo-55', 'expo-56', 'expo-57', 'expo-58']
   );
-  assert.equal(matrix.include.length, 43);
-  assert.equal(matrix.include.filter((cell) => cell.profile.startsWith('expo-')).length, 11);
+  assert.equal(matrix.include.length, 45);
+  assert.equal(matrix.include.filter((cell) => cell.profile.startsWith('expo-')).length, 13);
   const expected = {
     0.83: ['0.10', '0.11', '0.12'],
     0.84: ['0.10', '0.11', '0.12'],
@@ -115,8 +117,8 @@ test('the CLI writes single-line JSON matrices usable by GitHub job outputs', ()
         })
     );
     assert.equal(outputs.scope, 'expo');
-    assert.equal(JSON.parse(outputs.matrix).include.length, 11);
-    assert.match(readFileSync(summary, 'utf8'), /11 Release app builds: 6 Android and 5 iOS/);
+    assert.equal(JSON.parse(outputs.matrix).include.length, 13);
+    assert.match(readFileSync(summary, 'utf8'), /13 Release app builds: 7 Android and 6 iOS/);
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
@@ -135,6 +137,7 @@ test('Windows coverage stays on the newest Expo SDK regardless of configuration 
       id: 'expo-58-android-windows',
       runner: 'windows-2025',
       smoke: false,
+      aab: false,
     },
   ]);
   const smoke = createMatrix().matrix.include.filter((cell) => cell.smoke);
@@ -143,4 +146,23 @@ test('Windows coverage stays on the newest Expo SDK regardless of configuration 
     ['android', 'ios']
   );
   assert.ok(smoke.every((cell) => cell.profile === 'expo-58-smoke'));
+});
+
+test('integration pins are exact, cover both platforms and follow the newest Expo; only one cell builds AAB', () => {
+  const config = readCompatibility();
+  config.expo.reverse();
+  const matrix = createMatrix('expo', config).matrix.include;
+  const integration = matrix.filter((cell) => cell.profile.endsWith('-integration'));
+  assert.deepEqual(
+    integration.map((cell) => cell.platform),
+    ['android', 'ios']
+  );
+  assert.ok(integration.every((cell) => cell.profile === 'expo-58-integration'));
+  assert.equal(findProfile('expo-58-integration').integrations['react-native-audio-api'], '0.13.6');
+  assert.deepEqual(
+    matrix.filter((cell) => cell.aab).map((cell) => cell.id),
+    ['expo-58-android']
+  );
+  config.integrations['@sentry/react-native'] = '^8.35.0';
+  assert.throws(() => createMatrix('expo', config), /Pin integrations/);
 });
