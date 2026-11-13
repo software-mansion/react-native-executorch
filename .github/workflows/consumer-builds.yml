@@ -1,0 +1,293 @@
+name: Consumer builds
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/consumer-build*.yml'
+      - '.github/consumer-builds/**'
+      - 'apps/consumer-fixtures/**'
+      - '.github/actions/setup/**'
+      - 'packages/react-native-executorch/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.nvmrc'
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: Version coverage
+        type: choice
+        options: [expo, full]
+        default: expo
+  # TODO: After validating Expo PR builds, consider moving regular Expo coverage
+  # to a daily cron job. Keep the full bare RN matrix available manually.
+  # schedule:
+  #   - cron: '17 4 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: consumer-builds-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      scope: ${{ steps.matrix.outputs.scope }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+      - name: Validate consumer harness
+        run: |
+          node --check .github/consumer-builds/prepare.mjs
+          node --test .github/consumer-builds/*.test.mjs
+      - name: Generate version matrices
+        id: matrix
+        env:
+          MATRIX_SCOPE: ${{ inputs.scope || 'expo' }}
+        run: node .github/consumer-builds/matrix.mjs "$MATRIX_SCOPE"
+
+  package:
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      RNET_SKIP_DOWNLOAD: '1'
+      RNE_SKIP_INSTALL: '1'
+      GIT_LFS_SKIP_SMUDGE: '1'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup
+      - name: Build the same tarball used for publishing
+        working-directory: packages/react-native-executorch
+        run: ./scripts/create-package.sh
+      - name: Check and stage the published files
+        run: |
+          listing=packages/react-native-executorch/build.log
+          grep -Fx 'package/lib/module/index.js' "$listing"
+          grep -Fx 'package/lib/typescript/src/index.d.ts' "$listing"
+          grep -Fx 'package/third-party/common/phonemis/phonemis_sources.rb' "$listing"
+          grep -Fx 'package/LICENSE' "$listing"
+          if grep -E '^package/(node_modules/|third-party/(include/|android/libs/|ios/libs/))' "$listing"; then
+            echo 'Package contains dependencies or downloaded native artifacts' >&2
+            exit 1
+          fi
+          cp packages/react-native-executorch/react-native-executorch-*.tgz "$RUNNER_TEMP/react-native-executorch.tgz"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: consumer-library
+          path: ${{ runner.temp }}/react-native-executorch.tgz
+          if-no-files-found: error
+          retention-days: 3
+
+  build:
+    needs: [plan, package]
+    name: ${{ matrix.id }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+      CONSUMER_ABI: ${{ matrix.smoke && matrix.platform == 'android' && 'x86_64' || 'arm64-v8a' }}
+    steps:
+      - name: Set consumer paths
+        if: runner.os != 'Windows'
+        run: |
+          echo "CONSUMER_DIR=$RUNNER_TEMP/ConsumerBuild" >> "$GITHUB_ENV"
+          echo "LOG_DIR=$RUNNER_TEMP/consumer-logs" >> "$GITHUB_ENV"
+      - name: Set short Windows consumer paths
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          'CONSUMER_DIR=C:\rnet\app' | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "LOG_DIR=$env:RUNNER_TEMP/consumer-logs" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          git config --global core.longpaths true
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+      - name: Validate Windows host helpers
+        if: runner.os == 'Windows'
+        run: node --test .github/consumer-builds/host.test.mjs
+      - uses: actions/download-artifact@v4
+        with:
+          name: consumer-library
+          path: ${{ runner.temp }}/consumer-package
+      - name: Record toolchain
+        run: |
+          mkdir -p "$LOG_DIR"
+          {
+            uname -a
+            node --version
+            npm --version
+            if [[ "$RUNNER_OS" == macOS ]]; then
+              test "$(uname -m)" = arm64
+              xcodebuild -version
+              ruby --version
+              pod --version
+            fi
+          } 2>&1 | tee "$LOG_DIR/toolchain.log"
+      - uses: actions/setup-java@v5
+        if: matrix.platform == 'android'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Use the hosted runner's Android SDK
+        if: matrix.platform == 'android' && runner.os != 'Windows'
+        run: |
+          test -n "$ANDROID_HOME"
+          test -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+      - name: Record Android toolchain
+        if: matrix.platform == 'android' && runner.os != 'Windows'
+        run: |
+          {
+            java -version
+            sdkmanager --version
+          } 2>&1 | tee -a "$LOG_DIR/toolchain.log"
+      - name: Use and record the Windows Android SDK
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force $env:LOG_DIR | Out-Null
+          $tools = Join-Path $env:ANDROID_HOME 'cmdline-tools/latest/bin'
+          if (!(Test-Path (Join-Path $tools 'sdkmanager.bat'))) { throw 'Android SDK command-line tools are missing' }
+          $tools | Out-File $env:GITHUB_PATH -Encoding utf8 -Append
+          & java -version 2>&1 | Tee-Object -FilePath "$env:LOG_DIR/toolchain.log" -Append
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & (Join-Path $tools 'sdkmanager.bat') --version 2>&1 | Tee-Object -FilePath "$env:LOG_DIR/toolchain.log" -Append
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Create and install the clean consumer
+        run: |
+          node .github/consumer-builds/prepare.mjs '${{ matrix.profile }}' '${{ matrix.platform }}' \
+            "$RUNNER_TEMP/consumer-package/react-native-executorch.tgz" "$CONSUMER_DIR" \
+            2>&1 | tee "$LOG_DIR/install.log"
+      - name: Build Android release with R8
+        if: matrix.platform == 'android' && runner.os != 'Windows'
+        working-directory: ${{ env.CONSUMER_DIR }}/android
+        run: |
+          ./gradlew :app:assembleRelease --no-daemon --stacktrace --max-workers=2 \
+            2>&1 | tee "$LOG_DIR/android.log"
+          apk=app/build/outputs/apk/release/app-release.apk
+          unzip -l "$apk" | tee "$LOG_DIR/apk-files.log"
+          for library in RnExecutorch executorch xnnpack_executorch_backend vulkan_executorch_backend; do
+            grep -F "lib/${CONSUMER_ABI}/lib${library}.so" "$LOG_DIR/apk-files.log"
+          done
+          cp "$apk" "$LOG_DIR/ConsumerBuild.apk"
+      - name: Build Android App Bundle
+        if: matrix.aab
+        working-directory: ${{ env.CONSUMER_DIR }}/android
+        run: |
+          ./gradlew :app:bundleRelease --no-daemon --stacktrace --max-workers=2 \
+            2>&1 | tee "$LOG_DIR/android-bundle.log"
+          cp app/build/outputs/bundle/release/app-release.aab "$LOG_DIR/ConsumerBuild.aab"
+      - name: Validate Android App Bundle and packaged native libraries
+        if: matrix.aab
+        run: |
+          node .github/consumer-builds/validate-aab.mjs "$LOG_DIR/ConsumerBuild.aab" \
+            "$RUNNER_TEMP/bundletool" "$LOG_DIR" 2>&1 | tee "$LOG_DIR/aab-validation.log"
+      - name: Build Android release on Windows with R8
+        if: runner.os == 'Windows'
+        shell: pwsh
+        working-directory: ${{ env.CONSUMER_DIR }}/android
+        run: |
+          & .\gradlew.bat :app:assembleRelease --no-daemon --stacktrace --max-workers=2 2>&1 | Tee-Object -FilePath "$env:LOG_DIR/android.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $apk = Join-Path $PWD 'app/build/outputs/apk/release/app-release.apk'
+          Add-Type -AssemblyName System.IO.Compression.ZipFile
+          $zip = [System.IO.Compression.ZipFile]::OpenRead($apk)
+          try {
+            $entries = @($zip.Entries | ForEach-Object { $_.FullName })
+            $entries | Out-File "$env:LOG_DIR/apk-files.log" -Encoding utf8
+            foreach ($library in @('RnExecutorch', 'executorch', 'xnnpack_executorch_backend', 'vulkan_executorch_backend')) {
+              if ($entries -notcontains "lib/arm64-v8a/lib$library.so") { throw "APK is missing $library" }
+            }
+          } finally { $zip.Dispose() }
+          Copy-Item $apk "$env:LOG_DIR/ConsumerBuild.apk"
+      - name: Install iOS pods
+        if: matrix.platform == 'ios'
+        working-directory: ${{ env.CONSUMER_DIR }}/ios
+        run: pod install 2>&1 | tee "$LOG_DIR/pods.log"
+      - name: Archive iOS release without signing
+        if: matrix.platform == 'ios' && !matrix.smoke
+        working-directory: ${{ env.CONSUMER_DIR }}
+        run: |
+          xcodebuild -workspace ios/ConsumerBuild.xcworkspace -scheme ConsumerBuild \
+            -configuration Release -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/ConsumerBuild.xcarchive" \
+            -derivedDataPath "$RUNNER_TEMP/consumer-derived-data" \
+            -resultBundlePath "$LOG_DIR/ios.xcresult" \
+            CODE_SIGNING_ALLOWED=NO archive 2>&1 | tee "$LOG_DIR/ios.log"
+          app="$RUNNER_TEMP/ConsumerBuild.xcarchive/Products/Applications/ConsumerBuild.app"
+          test -f "$app/ConsumerBuild"
+          test -f "$app/main.jsbundle"
+          # Enforce the manifest's archive presence once #1627 lands, without
+          # duplicating that PR or hiding its current absence from the baseline.
+          if [[ -f node_modules/react-native-executorch/ios/PrivacyInfo.xcprivacy ]]; then
+            test -f "$app/RnExecutorchPrivacyInfo.bundle/PrivacyInfo.xcprivacy"
+            plutil -lint "$app/RnExecutorchPrivacyInfo.bundle/PrivacyInfo.xcprivacy"
+          fi
+      - name: Build iOS simulator smoke app
+        if: matrix.platform == 'ios' && matrix.smoke
+        working-directory: ${{ env.CONSUMER_DIR }}
+        run: |
+          xcodebuild -workspace ios/ConsumerBuild.xcworkspace -scheme ConsumerBuild \
+            -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/consumer-derived-data" \
+            CODE_SIGNING_ALLOWED=NO build 2>&1 | tee "$LOG_DIR/ios.log"
+      - name: Run iOS native smoke assertions
+        if: matrix.platform == 'ios' && matrix.smoke
+        run: |
+          node .github/consumer-builds/smoke-runner.mjs ios \
+            "$RUNNER_TEMP/consumer-derived-data/Build/Products/Release-iphonesimulator/ConsumerBuild.app" \
+            "$CONSUMER_DIR" "$LOG_DIR"
+      - name: Enable Android emulator acceleration
+        if: matrix.platform == 'android' && matrix.smoke
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run Android native smoke assertions
+        if: matrix.platform == 'android' && matrix.smoke
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: node .github/consumer-builds/smoke-runner.mjs android "${{ env.CONSUMER_DIR }}/android/app/build/outputs/apk/release/app-release.apk" "${{ env.CONSUMER_DIR }}" "${{ env.LOG_DIR }}"
+      - name: Collect consumer configuration
+        if: always()
+        run: |
+          mkdir -p "$LOG_DIR"
+          for file in smoke-config.json consumer-profile.json app.json metro.config.js package.json package-lock.json android/gradle.properties android/build.gradle android/app/build.gradle android/app/src/main/AndroidManifest.xml ios/Podfile ios/Podfile.lock ios/Podfile.properties.json ios/ConsumerBuild/Info.plist; do
+            if [[ -f "$CONSUMER_DIR/$file" ]]; then
+              destination="$LOG_DIR/config/$file"
+              mkdir -p "$(dirname "$destination")"
+              cp "$CONSUMER_DIR/$file" "$destination"
+            fi
+          done
+          if [[ -f "$CONSUMER_DIR/node_modules/react-native-executorch/rne-build-config.json" ]]; then
+            cp "$CONSUMER_DIR/node_modules/react-native-executorch/rne-build-config.json" "$LOG_DIR/"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: consumer-build-${{ matrix.id }}
+          path: ${{ env.LOG_DIR }}
+          if-no-files-found: warn
+          retention-days: 7

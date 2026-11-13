@@ -1,0 +1,106 @@
+{
+  "cli": "20.1.1",
+  "bare": [
+    {
+      "id": "rn-0-83",
+      "reactNative": "0.83.6",
+      "blobUtil": "0.25.1"
+    },
+    {
+      "id": "rn-0-84",
+      "reactNative": "0.84.1",
+      "blobUtil": "1.0.0"
+    },
+    {
+      "id": "rn-0-85",
+      "reactNative": "0.85.3",
+      "blobUtil": "1.0.0"
+    },
+    {
+      "id": "rn-0-86",
+      "reactNative": "0.86.3",
+      "blobUtil": "1.0.0"
+    },
+    {
+      "id": "rn-0-87",
+      "reactNative": "0.87.1",
+      "blobUtil": "1.0.0"
+    },
+    {
+      "id": "rn-0-88",
+      "reactNative": "0.88.1",
+      "blobUtil": "1.0.0"
+    }
+  ],
+  "expo": [
+    {
+      "id": "expo-55",
+      "expo": "55.0.32",
+      "reactNative": "0.83.10",
+      "react": "19.2.0",
+      "worklets": "0.10.4",
+      "blobUtil": "0.25.1",
+      "buildProperties": "55.0.18",
+      "babelPreset": "55.0.25",
+      "babelCore": "7.29.7"
+    },
+    {
+      "id": "expo-56",
+      "expo": "56.0.24",
+      "reactNative": "0.85.3",
+      "react": "19.2.3",
+      "worklets": "0.10.4",
+      "blobUtil": "1.0.0",
+      "buildProperties": "56.0.27",
+      "babelPreset": "56.0.21",
+      "babelCore": "7.29.7"
+    },
+    {
+      "id": "expo-57",
+      "expo": "57.0.28",
+      "reactNative": "0.86.3",
+      "react": "19.2.3",
+      "worklets": "0.13.0",
+      "blobUtil": "1.0.0",
+      "buildProperties": "57.0.22",
+      "babelPreset": "57.0.15",
+      "babelCore": "7.29.7"
+    },
+    {
+      "id": "expo-58",
+      "expo": "58.0.24",
+      "reactNative": "0.88.1",
+      "react": "19.3.0",
+      "worklets": "0.13.0",
+      "blobUtil": "1.0.0",
+      "buildProperties": "58.0.12",
+      "babelPreset": "58.0.25",
+      "babelCore": "7.29.7",
+      "expoAsset": "58.0.21"
+    }
+  ],
+  "worklets": [
+    {
+      "version": "0.10.4",
+      "reactNative": ["0.83", "0.84", "0.85", "0.86"]
+    },
+    {
+      "version": "0.11.4",
+      "reactNative": ["0.83", "0.84", "0.85", "0.86"]
+    },
+    {
+      "version": "0.12.2",
+      "reactNative": ["0.83", "0.84", "0.85", "0.86", "0.87"]
+    },
+    {
+      "version": "0.13.0",
+      "reactNative": ["0.86", "0.87", "0.88"]
+    }
+  ],
+  "integrations": {
+    "@sentry/react-native": "8.35.0",
+    "@react-native-firebase/app": "27.1.1",
+    "react-native-vision-camera": "4.7.3",
+    "react-native-audio-api": "0.13.6"
+  }
+}
