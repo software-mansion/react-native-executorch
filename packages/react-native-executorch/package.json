@@ -134,7 +134,7 @@
     }
   },
   "devDependencies": {
-    "@babel/core": "^7.29.7",
+    "@babel/core": "^7.29.13",
     "@babel/plugin-transform-export-namespace-from": "^7.29.7",
     "@react-native/babel-preset": "0.83.6",
     "@react-native/metro-config": "^0.86.0",
