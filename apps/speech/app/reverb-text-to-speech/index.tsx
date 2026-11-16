@@ -56,27 +56,13 @@ const LANGUAGES: { label: string; value: ReverbLanguage }[] = [
 
 // cspell:disable
 const SAMPLE_TEXTS: Record<ReverbLanguage, string> = {
-  en:
-    'Reverb speaks in any voice you give it. Record a few seconds of speech, and it reads ' +
-    'your text in that voice, entirely on your device, with no internet connection.',
-  de:
-    'Reverb spricht mit jeder Stimme, die du ihm gibst. Nimm ein paar Sekunden Sprache auf, ' +
-    'und es liest deinen Text mit dieser Stimme vor, vollständig auf deinem Gerät.',
-  es:
-    'Reverb habla con cualquier voz que le des. Graba unos segundos de voz y leerá tu texto ' +
-    'con esa voz, completamente en tu dispositivo y sin conexión a internet.',
-  fr:
-    "Reverb parle avec n'importe quelle voix. Enregistrez quelques secondes de parole, et il " +
-    'lira votre texte avec cette voix, entièrement sur votre appareil.',
-  it:
-    'Reverb parla con qualsiasi voce tu gli dia. Registra qualche secondo di parlato e leggerà ' +
-    'il tuo testo con quella voce, interamente sul tuo dispositivo.',
-  pl:
-    'Reverb mówi dowolnym głosem, który mu podasz. Nagraj kilka sekund mowy, a przeczyta twój ' +
-    'tekst tym głosem, w całości na twoim urządzeniu, bez połączenia z internetem.',
-  pt:
-    'O Reverb fala com qualquer voz que lhe der. Grave alguns segundos de fala e ele lerá o seu ' +
-    'texto com essa voz, inteiramente no seu dispositivo.',
+  en: 'Reverb speaks in any voice, right on your phone.',
+  de: 'Reverb spricht mit jeder Stimme, direkt am Handy.',
+  es: 'Reverb habla con cualquier voz, en tu teléfono.',
+  fr: "Reverb parle avec n'importe quelle voix, ici.",
+  it: 'Reverb parla con qualsiasi voce, sul tuo telefono.',
+  pl: 'Reverb mówi dowolnym głosem, prosto w telefonie.',
+  pt: 'O Reverb fala com qualquer voz, no seu telefone.',
 };
 // cspell:enable
 
