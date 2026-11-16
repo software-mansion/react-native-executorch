@@ -35,8 +35,8 @@ import { theme } from '../../theme';
 type ReverbVariant = Exclude<keyof typeof models.textToSpeech.REVERB, 'DEFAULT'>;
 
 const MODEL_OPTIONS: { label: string; value: ReverbVariant; platform: typeof Platform.OS }[] = [
-  { label: 'MLX fp16', value: 'MLX_COREML_FP16', platform: 'ios' },
   { label: 'MLX int8', value: 'MLX_COREML_INT8', platform: 'ios' },
+  { label: 'MLX fp16', value: 'MLX_COREML_FP16', platform: 'ios' },
   { label: 'MLX int4', value: 'MLX_COREML_INT4', platform: 'ios' },
   { label: 'Vulkan int4', value: 'VULKAN_INT4', platform: 'android' },
 ];
@@ -337,7 +337,7 @@ function LevelMeter({ level, active }: { level: number; active: boolean }) {
 
 function ReverbContent() {
   const [selectedModel, setSelectedModel] = useState<ReverbVariant>(
-    Platform.OS === 'android' ? 'VULKAN_INT4' : 'MLX_COREML_FP16'
+    Platform.OS === 'android' ? 'VULKAN_INT4' : 'MLX_COREML_INT8'
   );
   const [language, setLanguage] = useState<ReverbLanguage>('en');
   const [text, setText] = useState(SAMPLE_TEXTS.en);

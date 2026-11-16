@@ -4035,13 +4035,13 @@ export const models = {
      * 1-20 s recording, given its transcript, in 7 languages. Ships three
      * preset voices (see {@link REVERB_DEFAULT_VOICE_NAMES}).
      */
-    // fp16 leads on iOS: 1.6-2x faster than int8 and int4 on an iPhone 17,
-    // which only buy size. All decode with the fp16 codec (the int8 Core ML one
-    // holds ~600 MB more on the GPU); INT4 encodes with int4 (40 MB smaller),
-    // the rest with int8. No XNNPACK export: the backbone needs MLX or Vulkan.
+    // int8 leads on iOS: within ~20% of fp16's speed in the app at 260 MB
+    // less. All decode with the fp16 codec (the int8 Core ML one holds ~600 MB
+    // more on the GPU); INT4 encodes with int4 (40 MB smaller), the rest with
+    // int8. No XNNPACK export: the backbone needs MLX or Vulkan.
     REVERB: variants({
-      MLX_COREML_FP16: REVERB_MLX_COREML_FP16,
       MLX_COREML_INT8: REVERB_MLX_COREML_INT8,
+      MLX_COREML_FP16: REVERB_MLX_COREML_FP16,
       MLX_COREML_INT4: REVERB_MLX_COREML_INT4,
       VULKAN_INT4: REVERB_VULKAN_INT4,
     }),
