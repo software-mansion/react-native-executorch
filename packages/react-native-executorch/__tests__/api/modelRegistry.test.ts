@@ -134,8 +134,10 @@ describe('models registry — URLs', () => {
     }
   });
 
+  // Reverb ships its programs in the model's own repo, the one exception to the
+  // `-ExecuTorch` naming.
   it.each(urls)('%s is served over https from the software-mansion org', (_path, url) => {
-    expect(url).toMatch(new RegExp(`^${BASE_URL}/[A-Za-z0-9._-]+-ExecuTorch/`));
+    expect(url).toMatch(new RegExp(`^${BASE_URL}/([A-Za-z0-9._-]+-ExecuTorch|Reverb-TTS)/`));
   });
 
   it.each(urls)('%s pins an explicit revision', (_path, url) => {

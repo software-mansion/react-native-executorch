@@ -1335,6 +1335,22 @@ export const SUPERTONIC_DEFAULT_VOICE_NAMES = [
  */
 export type SupertonicDefaultVoiceName = (typeof SUPERTONIC_DEFAULT_VOICE_NAMES)[number];
 
+/**
+ * Default Reverb voice names array.
+ * @category Speech / Constants
+ */
+export const REVERB_DEFAULT_VOICE_NAMES = [
+  'standard_male',
+  'angry_male',
+  'sensual_female',
+] as const;
+
+/**
+ * Type representing a valid Reverb default voice name.
+ * @category Speech / Types
+ */
+export type ReverbDefaultVoiceName = (typeof REVERB_DEFAULT_VOICE_NAMES)[number];
+
 // BIOES tag scheme for the privacy filter models: one outside tag ("O")
 // followed by four prefix variants (B/I/E/S) per entity type, in the entity
 // order below. The resulting arrays must match each model's id2label mapping

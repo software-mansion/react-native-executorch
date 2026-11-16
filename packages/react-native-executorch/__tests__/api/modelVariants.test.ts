@@ -238,8 +238,10 @@ describe('DEFAULT variant resolution', () => {
     expect(offenders).toEqual([]);
   });
 
+  // Reverb publishes no XNNPACK export, so it has nothing to fall back to.
   it('falls back to XNNPACK on the iOS simulator, which runs neither Core ML nor MLX', () => {
     const offenders = defaultsOf(registryFor({ os: 'ios', isEmulator: true }))
+      .filter(({ offers }) => offers.some((key) => key.startsWith('XNNPACK')))
       .filter(({ path }) => /\/(coreml|mlx)\//.test(path))
       .map(({ label, path }) => `${label}: ${path}`);
 
@@ -248,6 +250,7 @@ describe('DEFAULT variant resolution', () => {
 
   it('falls back to XNNPACK on iOS when the app links XNNPACK only', () => {
     const offenders = defaultsOf(registryFor({ os: 'ios', backends: ['XnnpackBackend'] }))
+      .filter(({ offers }) => offers.some((key) => key.startsWith('XNNPACK')))
       .filter(({ key }) => key !== undefined && !key.startsWith('XNNPACK'))
       .map(({ label, key }) => `${label}: ${key}`);
 

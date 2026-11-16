@@ -141,6 +141,7 @@ exports[`public API surface matches the recorded export list 1`] = `
   "PRIVACY_FILTER_OPENAI_LABELS",
   "QWEN3_ASR_LANGUAGES",
   "QWEN3_ASR_SAMPLE_RATE_HZ",
+  "REVERB_DEFAULT_VOICE_NAMES",
   "REVERB_FRAME_RATE",
   "REVERB_LANGUAGES",
   "REVERB_SAMPLE_RATE",

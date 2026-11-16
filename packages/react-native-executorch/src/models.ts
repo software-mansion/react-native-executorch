@@ -34,6 +34,7 @@ import type { LLMTranslatorModel } from './extensions/llm/tasks/llmTranslation';
 import type { FsmnVadModel } from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 import type { SupertonicTtsModel } from './extensions/speech/tasks/supertonicTextToSpeech';
 import type { KokoroTtsModel } from './extensions/speech/tasks/kokoroTextToSpeech';
+import type { ReverbTtsModel } from './extensions/speech/tasks/reverbTextToSpeech';
 import type { PhonemizerLanguage } from './extensions/speech/utils/phonemizer';
 import {
   type WhisperSttModel,
@@ -52,6 +53,7 @@ import {
   FACEMESH_LANDMARKS,
   COCO_LANDMARKS,
   SUPERTONIC_DEFAULT_VOICE_NAMES,
+  REVERB_DEFAULT_VOICE_NAMES,
   PRIVACY_FILTER_OPENAI_LABELS,
   PRIVACY_FILTER_NEMOTRON_LABELS,
   EUROLLM_LANGUAGES,
@@ -66,6 +68,7 @@ import {
   type BlazeFaceLandmark,
   type CocoLandmark,
   type SupertonicDefaultVoiceName,
+  type ReverbDefaultVoiceName,
 } from './constants';
 
 // =============================================================================
@@ -89,10 +92,10 @@ const PLATFORM: TargetPlatform = Platform.OS === 'ios' ? 'ios' : 'android';
 
 // Accelerators lead and XNNPACK trails: a model is only exported to Core ML,
 // MLX or Vulkan once it has been shown to run better there, and XNNPACK is the
-// one backend every model exports to. Core ML sits above MLX only to make the
-// order deterministic; every group publishing both pins its winner explicitly.
-// QNN leads on Android: it runs on the Hexagon NPU, and a model only gets a
-// QNN export once it beats the GPU there.
+// one backend nearly every model exports to. Core ML sits above MLX only to
+// make the order deterministic; every group publishing both pins its winner
+// explicitly. QNN leads on Android: it runs on the Hexagon NPU, and a model
+// only gets a QNN export once it beats the GPU there.
 //
 // The iOS simulator links the Core ML backend but cannot run it: no Neural
 // Engine, and MPSGraph refuses the compiled models. MLX only ever ships a
@@ -2049,6 +2052,57 @@ const KOKORO_ZH_COREML_FP32: KokoroTtsModel<KokoroZhVoice> = {
   voices: KOKORO_ZH_VOICES,
 };
 
+// The backbone, tokenizer and voices live in the model's own repo, the one
+// registry repo without an -ExecuTorch name; the codec in the Higgs tokenizer's.
+const REVERB_ROOT = `${BASE_URL}/Reverb-TTS/${NEXT_VERSION_TAG}`;
+const REVERB_CODEC_ROOT = `${BASE_URL}/higgs-audio-v2-tokenizer-ExecuTorch/${NEXT_VERSION_TAG}`;
+const REVERB_TOKENIZER = `${REVERB_ROOT}/model/tokenizer.json`;
+const REVERB_DEFAULT_VOICES = REVERB_DEFAULT_VOICE_NAMES.reduce(
+  (acc, name) => ({ ...acc, [name]: `${REVERB_ROOT}/voices/${name}.json` }),
+  {} as Record<ReverbDefaultVoiceName, string>
+);
+
+const REVERB_MLX_COREML_FP16: ReverbTtsModel<ReverbDefaultVoiceName> = {
+  name: 'reverb',
+  modelPaths: {
+    backbone: `${REVERB_ROOT}/model/executorch/mlx/fp16/echo_mlx_fp16.pte`,
+    codecDecoder: `${REVERB_CODEC_ROOT}/decoder/coreml/fp16/codec_decoder_coreml_fp16.pte`,
+    codecEncoder: `${REVERB_CODEC_ROOT}/encoder/coreml/int8/codec_encoder_coreml_int8.pte`,
+  },
+  tokenizerPath: REVERB_TOKENIZER,
+  voices: REVERB_DEFAULT_VOICES,
+};
+const REVERB_MLX_COREML_INT8: ReverbTtsModel<ReverbDefaultVoiceName> = {
+  name: 'reverb',
+  modelPaths: {
+    backbone: `${REVERB_ROOT}/model/executorch/mlx/int8/echo_mlx_int8.pte`,
+    codecDecoder: `${REVERB_CODEC_ROOT}/decoder/coreml/fp16/codec_decoder_coreml_fp16.pte`,
+    codecEncoder: `${REVERB_CODEC_ROOT}/encoder/coreml/int8/codec_encoder_coreml_int8.pte`,
+  },
+  tokenizerPath: REVERB_TOKENIZER,
+  voices: REVERB_DEFAULT_VOICES,
+};
+const REVERB_MLX_COREML_INT4: ReverbTtsModel<ReverbDefaultVoiceName> = {
+  name: 'reverb',
+  modelPaths: {
+    backbone: `${REVERB_ROOT}/model/executorch/mlx/int4/echo_mlx_int4.pte`,
+    codecDecoder: `${REVERB_CODEC_ROOT}/decoder/coreml/fp16/codec_decoder_coreml_fp16.pte`,
+    codecEncoder: `${REVERB_CODEC_ROOT}/encoder/coreml/int4/codec_encoder_coreml_int4.pte`,
+  },
+  tokenizerPath: REVERB_TOKENIZER,
+  voices: REVERB_DEFAULT_VOICES,
+};
+const REVERB_VULKAN_INT4: ReverbTtsModel<ReverbDefaultVoiceName> = {
+  name: 'reverb',
+  modelPaths: {
+    backbone: `${REVERB_ROOT}/model/executorch/vulkan/int4/echo_vulkan_int4.pte`,
+    codecDecoder: `${REVERB_CODEC_ROOT}/decoder/vulkan/fp16/codec_decoder_vulkan_fp16.pte`,
+    codecEncoder: `${REVERB_CODEC_ROOT}/encoder/vulkan/int8/codec_encoder_vulkan_int8.pte`,
+  },
+  tokenizerPath: REVERB_TOKENIZER,
+  voices: REVERB_DEFAULT_VOICES,
+};
+
 // =============================================================================
 // Privacy Filter
 // =============================================================================
@@ -3975,6 +4029,22 @@ export const models = {
         COREML_FP32: KOKORO_ZH_COREML_FP32,
       }),
     },
+
+    /**
+     * Reverb — multilingual Text-to-Speech that speaks in the voice of any
+     * 1-20 s recording, given its transcript, in 7 languages. Ships three
+     * preset voices (see {@link REVERB_DEFAULT_VOICE_NAMES}).
+     */
+    // fp16 leads on iOS: 1.6-2x faster than int8 and int4 on an iPhone 17,
+    // which only buy size. All decode with the fp16 codec (the int8 Core ML one
+    // holds ~600 MB more on the GPU); INT4 encodes with int4 (40 MB smaller),
+    // the rest with int8. No XNNPACK export: the backbone needs MLX or Vulkan.
+    REVERB: variants({
+      MLX_COREML_FP16: REVERB_MLX_COREML_FP16,
+      MLX_COREML_INT8: REVERB_MLX_COREML_INT8,
+      MLX_COREML_INT4: REVERB_MLX_COREML_INT4,
+      VULKAN_INT4: REVERB_VULKAN_INT4,
+    }),
   },
 
   /**
