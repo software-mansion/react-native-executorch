@@ -350,7 +350,7 @@ function ReverbContent() {
 
   const [speed, setSpeed] = useState(1.0);
   const [showSampler, setShowSampler] = useState(false);
-  const [steps, setSteps] = useState(8);
+  const [steps, setSteps] = useState(6);
   const [remaskRatio, setRemaskRatio] = useState(0.25);
   const [fixedSeed, setFixedSeed] = useState<number | null>(null);
   const [lastSeed, setLastSeed] = useState<number | null>(null);
