@@ -312,7 +312,7 @@ if(EXISTS "${MODEL_FIXTURE}")
 else()
   set(RNE_HAVE_MODEL_FIXTURE OFF)
   message(WARNING
-    "Model fixture missing, skipping the ModelTest suite. Fetch it with:\n"
+    "Model fixture missing, skipping the ModelTest and ModelSourceTest suites. Fetch it with:\n"
     "  scripts/fetch-test-fixtures.sh")
 endif()
 
@@ -360,7 +360,6 @@ set(TEST_SUITES
   core/ErrorTest.cpp
   core/ConversionsTest.cpp
   core/DataLoaderTest.cpp
-  core/ModelSourceTest.cpp
   core/TensorTest.cpp
   core/SchemaTest.cpp
   core/UtilsTest.cpp
@@ -377,7 +376,7 @@ if(RNE_TESTS_ENABLE_PHONEMIS)
 endif()
 
 if(RNE_HAVE_MODEL_FIXTURE)
-  list(APPEND TEST_SUITES core/ModelTest.cpp)
+  list(APPEND TEST_SUITES core/ModelTest.cpp core/ModelSourceTest.cpp)
 endif()
 
 if(RNE_HAVE_TOKENIZER_FIXTURE)
@@ -394,11 +393,5 @@ foreach(suite_path IN LISTS TEST_SUITES)
   # re2/abseil come in transitively via et_tokenizers, which places them after
   # their consumer — see the note by TOKENIZER_DEP_LIBS.
   target_link_libraries(${suite_name} PRIVATE rne_test_support gtest_main)
-  if(suite_name STREQUAL "ModelSourceTest")
-    # Build a tiny executable FlatBuffer in the test itself, using the same
-    # FlatBuffers version as the provisioned ExecuTorch host dependency.
-    target_include_directories(${suite_name} SYSTEM PRIVATE
-      "${RNE_TEST_DEPS_DIR}/executorch/third-party/flatbuffers/include")
-  endif()
   gtest_discover_tests(${suite_name} DISCOVERY_TIMEOUT 60)
 endforeach()
