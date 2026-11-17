@@ -2065,7 +2065,7 @@ const REVERB_DEFAULT_VOICES = REVERB_DEFAULT_VOICE_NAMES.reduce(
 const REVERB_MLX_COREML_FP16: ReverbTtsModel<ReverbDefaultVoiceName> = {
   name: 'reverb',
   modelPaths: {
-    backbone: `${REVERB_ROOT}/model/executorch/mlx/fp16/echo_mlx_fp16.pte`,
+    backbone: `${REVERB_ROOT}/model/executorch/mlx/fp16/reverb_mlx_fp16.pte`,
     codecDecoder: `${REVERB_CODEC_ROOT}/decoder/coreml/fp16/codec_decoder_coreml_fp16.pte`,
     codecEncoder: `${REVERB_CODEC_ROOT}/encoder/coreml/int8/codec_encoder_coreml_int8.pte`,
   },
@@ -2075,7 +2075,7 @@ const REVERB_MLX_COREML_FP16: ReverbTtsModel<ReverbDefaultVoiceName> = {
 const REVERB_MLX_COREML_INT8: ReverbTtsModel<ReverbDefaultVoiceName> = {
   name: 'reverb',
   modelPaths: {
-    backbone: `${REVERB_ROOT}/model/executorch/mlx/int8/echo_mlx_int8.pte`,
+    backbone: `${REVERB_ROOT}/model/executorch/mlx/int8/reverb_mlx_int8.pte`,
     codecDecoder: `${REVERB_CODEC_ROOT}/decoder/coreml/fp16/codec_decoder_coreml_fp16.pte`,
     codecEncoder: `${REVERB_CODEC_ROOT}/encoder/coreml/int8/codec_encoder_coreml_int8.pte`,
   },
@@ -2085,7 +2085,7 @@ const REVERB_MLX_COREML_INT8: ReverbTtsModel<ReverbDefaultVoiceName> = {
 const REVERB_MLX_COREML_INT4: ReverbTtsModel<ReverbDefaultVoiceName> = {
   name: 'reverb',
   modelPaths: {
-    backbone: `${REVERB_ROOT}/model/executorch/mlx/int4/echo_mlx_int4.pte`,
+    backbone: `${REVERB_ROOT}/model/executorch/mlx/int4/reverb_mlx_int4.pte`,
     codecDecoder: `${REVERB_CODEC_ROOT}/decoder/coreml/fp16/codec_decoder_coreml_fp16.pte`,
     codecEncoder: `${REVERB_CODEC_ROOT}/encoder/coreml/int4/codec_encoder_coreml_int4.pte`,
   },
@@ -2095,7 +2095,7 @@ const REVERB_MLX_COREML_INT4: ReverbTtsModel<ReverbDefaultVoiceName> = {
 const REVERB_VULKAN_INT4: ReverbTtsModel<ReverbDefaultVoiceName> = {
   name: 'reverb',
   modelPaths: {
-    backbone: `${REVERB_ROOT}/model/executorch/vulkan/int4/echo_vulkan_int4.pte`,
+    backbone: `${REVERB_ROOT}/model/executorch/vulkan/int4/reverb_vulkan_int4.pte`,
     codecDecoder: `${REVERB_CODEC_ROOT}/decoder/vulkan/fp16/codec_decoder_vulkan_fp16.pte`,
     codecEncoder: `${REVERB_CODEC_ROOT}/encoder/vulkan/int8/codec_encoder_vulkan_int8.pte`,
   },
