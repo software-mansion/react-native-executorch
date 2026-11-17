@@ -83,7 +83,7 @@ export default function App() {
   const [status, setStatus] = useState('Running native smoke tests');
   useEffect(() => {
     runSmoke()
-      .catch((error) => ({ status: 'fail', error: String(error?.stack ?? error) }))
+      .catch((error) => ({ status: 'fail', error: String(error?.stack ?? error).slice(0, 2000) }))
       .then(async (result) => {
         setStatus(JSON.stringify(result));
         await fetch(`http://127.0.0.1:${config.port}/result/${config.token}`, {
