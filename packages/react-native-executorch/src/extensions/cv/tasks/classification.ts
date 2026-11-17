@@ -32,7 +32,7 @@ export type ClassifierOptions<L> = ImagePreprocessorOptions & {
  */
 export type ClassifierModel<L> = {
   /** Model source: a local or remote path, program and data paths, or callback loaders. */
-  readonly modelSource: ModelSource;
+  readonly modelPath: ModelSource;
   /**
    * Image preprocessing and label vocabulary. The `labels` array length must
    * match the model's output dimension.
@@ -125,8 +125,8 @@ export async function createClassifier<L>(
   const dispose = scope.dispose;
 
   try {
-    const { modelSource, modelOpts } = config;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
+    const { modelPath, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
     const { variant, dims } = validateSpec(model.schema, {
       batched: method(

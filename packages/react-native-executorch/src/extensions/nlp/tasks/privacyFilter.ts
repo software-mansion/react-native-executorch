@@ -63,7 +63,7 @@ export type PrivacyFilterOptions<Label extends string = string> = {
  */
 export type PrivacyFilterModel<Label extends string = string> = {
   /** Local path or remote URL of the `.pte` model. */
-  readonly modelSource: ModelSource;
+  readonly modelPath: ModelSource;
   /** Local path or remote URL of the matching `tokenizer.json`. */
   readonly tokenizerPath: string;
   /**
@@ -134,7 +134,7 @@ export async function createPrivacyFilter<Label extends string>(
   const dispose = scope.dispose;
 
   try {
-    const { modelSource, tokenizerPath, modelOpts } = config;
+    const { modelPath, tokenizerPath, modelOpts } = config;
     const { labelNames } = modelOpts;
 
     if (labelNames.length === 0 || labelNames[0] !== 'O') {
@@ -144,7 +144,7 @@ export async function createPrivacyFilter<Label extends string>(
       );
     }
 
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
     const numLabels = labelNames.length;

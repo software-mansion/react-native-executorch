@@ -44,7 +44,7 @@ export type ObjectDetectorOptions<F extends BoxFormat, L> = Omit<
  */
 export type ObjectDetectorModel<F extends BoxFormat, L> = {
   /** Model source: a local or remote path, program and data paths, or callback loaders. */
-  readonly modelSource: ModelSource;
+  readonly modelPath: ModelSource;
   /**
    * Image preprocessing, label vocabulary, and default NMS/confidence
    * thresholds. Used as fallbacks when per-call overrides are omitted.
@@ -146,8 +146,8 @@ export async function createObjectDetector<F extends BoxFormat, L>(
   const dispose = scope.dispose;
 
   try {
-    const { modelSource, modelOpts } = config;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
+    const { modelPath, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
     const { variant, dims } = validateSpec(model.schema, {
       batched: method(

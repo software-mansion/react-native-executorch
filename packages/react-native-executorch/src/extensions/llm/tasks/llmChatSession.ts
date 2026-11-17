@@ -34,7 +34,7 @@ import type { ToolDefinition, ToolParser } from '../utils/toolCalling';
  */
 export type LLMModel = {
   /** Local/remote program path, program with data paths, or callback readers. */
-  readonly modelSource: ModelSource;
+  readonly modelPath: ModelSource;
   /** Local path or remote URL of the `tokenizer.json` file. */
   readonly tokenizerPath: string;
   /** Local path or remote URL of the `tokenizer_config.json` file. */
@@ -193,7 +193,7 @@ export async function createLLMChatSession(
       resetOnTurn = false,
     } = options;
 
-    const { modelSource, tokenizerPath, tokenizerConfigPath, modalities, preprocessorConfig } =
+    const { modelPath, tokenizerPath, tokenizerConfigPath, modalities, preprocessorConfig } =
       config;
     const { tools, parseToolCalls, maxToolTurns = DEFAULT_MAX_TURNS } = toolOpts ?? {};
 
@@ -215,7 +215,7 @@ export async function createLLMChatSession(
 
     // Prepare runner
     // prettier-ignore
-    const runner = scope.track(await createLLMRunner(modelSource, tokenizerPath, modalities, runtime));
+    const runner = scope.track(await createLLMRunner(modelPath, tokenizerPath, modalities, runtime));
     const prefill = wrapAsync(runner.prefill, runtime);
 
     const history: ChatMessage[] = [];

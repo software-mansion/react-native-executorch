@@ -122,7 +122,7 @@ export type Qwen3AsrSttModel = {
   /** Pipeline tag, which tells {@link useSpeechToText} which runner to build. */
   readonly name: 'qwen3-asr';
   /** Local path or remote URL of the `.pte` model. */
-  readonly modelSource: ModelSource;
+  readonly modelPath: ModelSource;
   /** Local path or remote URL of the `tokenizer.json` file. */
   readonly tokenizerPath: string;
   /** VAD model configuration used for speech segmentation. */
@@ -284,8 +284,8 @@ export async function createQwen3AsrSpeechToText(
   const dispose = scope.dispose;
 
   try {
-    const { modelSource, tokenizerPath, vadModel } = config;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
+    const { modelPath, tokenizerPath, vadModel } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
     const voiceDetector = scope.track(await createFsmnVoiceActivityDetector(vadModel, runtime));
     const { detectVoiceWorklet } = voiceDetector;

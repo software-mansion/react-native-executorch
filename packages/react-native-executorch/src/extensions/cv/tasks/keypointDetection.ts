@@ -44,7 +44,7 @@ export type KeypointDetectorOptions<F extends BoxFormat, L extends PropertyKey> 
  */
 export type KeypointDetectorModel<F extends BoxFormat, L extends PropertyKey> = {
   /** Model source: a local or remote path, program and data paths, or callback loaders. */
-  readonly modelSource: ModelSource;
+  readonly modelPath: ModelSource;
   /**
    * Image preprocessing, landmark names, bounding box format, and default
    * NMS/confidence thresholds.
@@ -262,9 +262,9 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
   const dispose = scope.dispose;
 
   try {
-    const { modelSource, modelOpts } = config;
+    const { modelPath, modelOpts } = config;
     const { landmarks } = modelOpts;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
     const { variant, dims } = validateSpec(model.schema, {
       '2d': method(

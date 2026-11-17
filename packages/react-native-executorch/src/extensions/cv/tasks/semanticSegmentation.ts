@@ -44,7 +44,7 @@ export type SemanticSegmenterOptions<L> = Omit<ImagePreprocessorOptions, 'resize
  */
 export type SemanticSegmenterModel<L> = {
   /** Model source: a local or remote path, program and data paths, or callback loaders. */
-  readonly modelSource: ModelSource;
+  readonly modelPath: ModelSource;
   /**
    * Image preprocessing, output mask interpolation, and label vocabulary.
    * `resizeMode` is fixed to `'stretch'`.
@@ -154,8 +154,8 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
   const dispose = scope.dispose;
 
   try {
-    const { modelSource, modelOpts } = config;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
+    const { modelPath, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
     const { variant, dim, dims } = validateSpec(model.schema, {
       batched: method(

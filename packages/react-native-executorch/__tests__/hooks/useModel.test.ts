@@ -21,15 +21,15 @@ describe('useModel', () => {
     const reader = (): DataLoader => ({ size: () => 0, load: () => new ArrayBuffer(0) });
     const first = reader();
     const second = reader();
-    const factory = jest.fn(async ({ modelSource }: { modelSource: DataLoader }) => ({
-      modelSource,
+    const factory = jest.fn(async ({ modelPath }: { modelPath: DataLoader }) => ({
+      modelPath,
       dispose: jest.fn(),
     }));
     const { result, rerender, unmount } = await renderHook(
-      ({ loader }: { loader: DataLoader }) => useModel(factory, { modelSource: loader }),
+      ({ loader }: { loader: DataLoader }) => useModel(factory, { modelPath: loader }),
       { initialProps: { loader: first } }
     );
-    await waitFor(() => expect(result.current.model?.modelSource).toBe(first));
+    await waitFor(() => expect(result.current.model?.modelPath).toBe(first));
     const previous = result.current.model!;
 
     await rerender({ loader: first });

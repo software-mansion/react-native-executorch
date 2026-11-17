@@ -123,7 +123,7 @@ To use your own trained feed-forward style transfer `.pte` model, pass a [`Style
 
 ```typescript
 const customStyler = await createStyleTransfer({
-  modelSource: 'https://example.com/my-style.pte',
+  modelPath: 'https://example.com/my-style.pte',
   modelOpts: {
     resizeMode: 'stretch',
     interpolation: 'linear',

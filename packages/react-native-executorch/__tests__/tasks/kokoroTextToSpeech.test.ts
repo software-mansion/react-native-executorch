@@ -121,7 +121,7 @@ const writeVoice = (rows = MAX_TOKENS) => {
 /* eslint-disable camelcase */
 const config = {
   name: 'kokoro',
-  modelSources: { durationPredictor: PREDICTOR_PATH, synthesizer: SYNTHESIZER_PATH },
+  modelPaths: { durationPredictor: PREDICTOR_PATH, synthesizer: SYNTHESIZER_PATH },
   phonemizer: { lang: 'en-us' },
   voices: { af_heart: VOICE_PATH },
 } as const;
@@ -155,7 +155,7 @@ describe('createKokoroTextToSpeech — the model contract', () => {
     const tts = tracked(
       await createKokoroTextToSpeech({
         ...config,
-        modelSources: { durationPredictor, synthesizer },
+        modelPaths: { durationPredictor, synthesizer },
       })
     );
     const chunks = await collect(tts.synthesize('hello', { voice: 'af_heart', phonemize: false }));

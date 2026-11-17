@@ -49,14 +49,14 @@ export type FakePromptRead = { text: string; startPos: number; numTokens: number
 const VOCAB_SIZE = 4096;
 
 /**
- * Registers a scripted LLM at `modelSource` and its tokenizer at `tokenizerPath`.
- * @param modelSource The model source the runner will load.
+ * Registers a scripted LLM at `modelPath` and its tokenizer at `tokenizerPath`.
+ * @param modelPath The model source the runner will load.
  * @param tokenizerPath The tokenizer path the runner will load.
  * @param program The context window and the responses to generate.
  * @returns Accessors for what the model was asked to read.
  */
 export function registerFakeLLM(
-  modelSource: ModelSource,
+  modelPath: ModelSource,
   tokenizerPath: string,
   program: FakeLLMProgram
 ) {
@@ -126,7 +126,7 @@ export function registerFakeLLM(
   } as ModelSpec<ConcreteDim>;
   /* eslint-enable camelcase */
 
-  fakeJsi.registerModel(modelSource, {
+  fakeJsi.registerModel(modelPath, {
     schema,
     execute: (methodName, inputs, outputs) => {
       switch (methodName) {

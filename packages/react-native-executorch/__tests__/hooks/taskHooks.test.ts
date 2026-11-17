@@ -21,7 +21,7 @@ const TOKENIZER_URL = 'https://huggingface.co/software-mansion/model/resolve/v1/
 const HF_COUNTER = 'https://huggingface.co/software-mansion/model/resolve/main/config.json';
 
 const LABELS = ['cat', 'dog'] as const;
-const config = { modelSource: MODEL_URL, modelOpts: { ...STRETCH_PREPROCESSING, labels: LABELS } };
+const config = { modelPath: MODEL_URL, modelOpts: { ...STRETCH_PREPROCESSING, labels: LABELS } };
 
 /**
  * A hook downloads and loads in one uninterrupted pass, so the fake program has
@@ -56,38 +56,36 @@ describe('useClassifier', () => {
       programLoader: { size: () => 0, load: () => new ArrayBuffer(0) },
       dataMapLoader: { size: () => 0, load: () => new ArrayBuffer(0) },
     },
-  ])('loads, executes, and disposes model source %p', async (modelSource) => {
-    if (typeof modelSource === 'object' && 'programPath' in modelSource) {
+  ])('loads, executes, and disposes model source %p', async (modelPath) => {
+    if (typeof modelPath === 'object' && 'programPath' in modelPath) {
       const paths =
-        typeof modelSource.dataMapPath === 'string'
-          ? [modelSource.dataMapPath]
-          : modelSource.dataMapPath;
+        typeof modelPath.dataMapPath === 'string' ? [modelPath.dataMapPath] : modelPath.dataMapPath;
       for (const path of paths) fakeNet.serve(path);
       registerModelAtCachePath();
     } else {
-      fakeJsi.registerModel(modelSource, {
+      fakeJsi.registerModel(modelPath, {
         schema: exported(method('forward', [f32(1, 3, 4, 4)], [f32(1, 2)])),
         execute: writesOutputs([0, 5]),
       });
     }
-    const { result, unmount } = await renderHook(() => useClassifier({ ...config, modelSource }));
+    const { result, unmount } = await renderHook(() => useClassifier({ ...config, modelPath }));
     await waitFor(() => expect(result.current.isReady).toBe(true));
     expect((await result.current.classify!(imageBuffer(8, 8))).map(({ label }) => label)).toEqual([
       'dog',
       'cat',
     ]);
 
-    if (typeof modelSource === 'object' && 'programPath' in modelSource) {
-      const resolved = result.current.resource?.modelSource;
+    if (typeof modelPath === 'object' && 'programPath' in modelPath) {
+      const resolved = result.current.resource?.modelPath;
       expect(resolved).toEqual({
         programPath: cachePathFor(MODEL_URL),
         dataMapPath:
-          typeof modelSource.dataMapPath === 'string'
-            ? cachePathFor(modelSource.dataMapPath)
-            : modelSource.dataMapPath.map(cachePathFor),
+          typeof modelPath.dataMapPath === 'string'
+            ? cachePathFor(modelPath.dataMapPath)
+            : modelPath.dataMapPath.map(cachePathFor),
       });
     } else {
-      expect(result.current.resource?.modelSource).toBe(modelSource);
+      expect(result.current.resource?.modelPath).toBe(modelPath);
     }
     await unmount();
     expect(fakeJsi.liveModels()).toEqual([]);
@@ -101,7 +99,7 @@ describe('useClassifier', () => {
 
     await waitFor(() => expect(result.current.resource).toBeDefined());
 
-    expect(result.current.resource?.modelSource).toBe(cachePathFor(MODEL_URL));
+    expect(result.current.resource?.modelPath).toBe(cachePathFor(MODEL_URL));
   });
 
   it('reports not-ready while the download is still in flight', async () => {
@@ -195,13 +193,13 @@ describe('useClassifier', () => {
     });
 
     const { result, rerender } = await renderHook(
-      ({ modelSource }: { modelSource: string }) => useClassifier({ ...config, modelSource }),
-      { initialProps: { modelSource: MODEL_URL } }
+      ({ modelPath }: { modelPath: string }) => useClassifier({ ...config, modelPath }),
+      { initialProps: { modelPath: MODEL_URL } }
     );
     await waitFor(() => expect(result.current.isReady).toBe(true));
 
-    await rerender({ modelSource: otherUrl });
-    await waitFor(() => expect(result.current.resource?.modelSource).toBe(cachePathFor(otherUrl)));
+    await rerender({ modelPath: otherUrl });
+    await waitFor(() => expect(result.current.resource?.modelPath).toBe(cachePathFor(otherUrl)));
 
     expect(fakeJsi.liveModels()).toEqual([cachePathFor(otherUrl)]);
   });
@@ -235,7 +233,7 @@ describe('useTokenizer', () => {
 describe('useColbertEmbedder', () => {
   const seq = RangeDim(2, 16);
   const colbertConfig = {
-    modelSource: MODEL_URL,
+    modelPath: MODEL_URL,
     tokenizerPath: TOKENIZER_URL,
     modelOpts: {
       queryPrefixToken: '[Q]',

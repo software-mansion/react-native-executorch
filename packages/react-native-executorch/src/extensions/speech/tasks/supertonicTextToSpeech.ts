@@ -75,7 +75,7 @@ export type SupertonicTtsModel<K extends PropertyKey> = {
   /** Discriminates this config from the other Text-to-Speech pipelines. */
   readonly name: 'supertonic';
   /** Model sources for the 4 Supertonic sub-models. */
-  readonly modelSources: {
+  readonly modelPaths: {
     /** Duration predictor model source. */
     readonly durationPredictor: ModelSource;
     /** Vector estimator model source. */
@@ -185,10 +185,10 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
 
   try {
     const load = wrapAsync(loadModel, runtime);
-    const durationPredictor = scope.track(await load(config.modelSources.durationPredictor));
-    const vectorEstimator = scope.track(await load(config.modelSources.vectorEstimator));
-    const textEncoder = scope.track(await load(config.modelSources.textEncoder));
-    const vocoder = scope.track(await load(config.modelSources.vocoder));
+    const durationPredictor = scope.track(await load(config.modelPaths.durationPredictor));
+    const vectorEstimator = scope.track(await load(config.modelPaths.vectorEstimator));
+    const textEncoder = scope.track(await load(config.modelPaths.textEncoder));
+    const vocoder = scope.track(await load(config.modelPaths.vocoder));
     const models = { durationPredictor, textEncoder, vectorEstimator, vocoder };
 
     validateSpec(models.durationPredictor.schema, {

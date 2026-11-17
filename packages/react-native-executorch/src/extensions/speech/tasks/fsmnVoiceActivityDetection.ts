@@ -61,7 +61,7 @@ export type VadOptions = {
  */
 export type FsmnVadModel = {
   /** Local path or remote URL of the `.pte` model. */
-  readonly modelSource: ModelSource;
+  readonly modelPath: ModelSource;
   /**
    * Detection thresholds tuned for this model, overridable per `detectVoice`
    * call. Defined alongside the model in the `models` registry so defaults
@@ -250,9 +250,9 @@ export async function createFsmnVoiceActivityDetector(
   const dispose = scope.dispose;
 
   try {
-    const { modelSource, defaultOptions } = config;
+    const { modelPath, defaultOptions } = config;
 
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
     // Input is [frames, fftLength] with a dynamic frame count; the output is
     // [1, frames, classes] where class 0 is the non-speech class. The output frame

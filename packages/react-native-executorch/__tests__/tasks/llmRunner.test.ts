@@ -98,7 +98,7 @@ const GEMMA_SPEC = exported({
 function registerModelWithSchema(
   schema: any,
   options: {
-    modelSource?: ModelSource;
+    modelPath?: ModelSource;
     maxContextLen?: number;
     tokenIds?: readonly number[];
     onForward?: (inputs: readonly FakeTensor[]) => void;
@@ -107,7 +107,7 @@ function registerModelWithSchema(
 ) {
   const maxContextLen = options.maxContextLen ?? 512;
   let step = 0;
-  fakeJsi.registerModel(options.modelSource ?? MODEL_PATH, {
+  fakeJsi.registerModel(options.modelPath ?? MODEL_PATH, {
     schema,
     execute: (methodName, _inputs, outputs) => {
       switch (methodName) {
@@ -410,7 +410,7 @@ describe('createLLMRunner — variant dispatch & modalities validation', () => {
       dataMapLoader: { size: () => 0, load: () => new ArrayBuffer(0) },
     },
   ])('prefills a runner loaded from an object source: %o', async (source) => {
-    registerModelWithSchema(TEXT_SPEC, { modelSource: source });
+    registerModelWithSchema(TEXT_SPEC, { modelPath: source });
     const runner = tracked(await createLLMRunner(source, TOKENIZER_PATH));
     expect(runner.modelPath).toBe(
       typeof source === 'string' || 'programPath' in source ? MODEL_PATH : undefined

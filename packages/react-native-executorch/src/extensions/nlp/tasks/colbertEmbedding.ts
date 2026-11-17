@@ -67,7 +67,7 @@ export type ColbertEmbedderOptions = {
  */
 export type ColbertEmbedderModel = {
   /** Model source: a local or remote path, program and data paths, or callback loaders. */
-  readonly modelSource: ModelSource;
+  readonly modelPath: ModelSource;
   /** Local path or remote URL of the tokenizer file. */
   readonly tokenizerPath: string;
   /** Tokenization settings of the model. See {@link ColbertEmbedderOptions}. */
@@ -240,8 +240,8 @@ export async function createColbertEmbedder(
   const dispose = scope.dispose;
 
   try {
-    const { modelSource, tokenizerPath, modelOpts } = config;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
+    const { modelPath, tokenizerPath, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
     // Token ids and attention mask in, one vector per token out, all sharing

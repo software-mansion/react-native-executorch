@@ -211,16 +211,16 @@ function LLMContent() {
           onPress: async () => {
             try {
               const pathsToUnlink = [resource.tokenizerPath, resource.tokenizerConfigPath];
-              const { modelSource } = resource;
+              const { modelPath } = resource;
 
-              if (typeof modelSource === 'string') {
-                pathsToUnlink.push(modelSource);
-              } else if ('programPath' in modelSource) {
-                pathsToUnlink.push(modelSource.programPath);
-                if (typeof modelSource.dataMapPath === 'string') {
-                  pathsToUnlink.push(modelSource.dataMapPath);
+              if (typeof modelPath === 'string') {
+                pathsToUnlink.push(modelPath);
+              } else if ('programPath' in modelPath) {
+                pathsToUnlink.push(modelPath.programPath);
+                if (typeof modelPath.dataMapPath === 'string') {
+                  pathsToUnlink.push(modelPath.dataMapPath);
                 } else {
-                  pathsToUnlink.push(...modelSource.dataMapPath);
+                  pathsToUnlink.push(...modelPath.dataMapPath);
                 }
               }
 

@@ -19,7 +19,7 @@ const options = {
   outInterpolation: 'nearest',
 } as const;
 
-const config = { modelSource: MODEL_PATH, modelOpts: options };
+const config = { modelPath: MODEL_PATH, modelOpts: options };
 
 /** An identity model: whatever preprocessing produced comes straight back. */
 const registerIdentity = () => {

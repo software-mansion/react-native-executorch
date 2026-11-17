@@ -77,7 +77,7 @@ export type KokoroTtsModel<K extends PropertyKey> = {
   /** Discriminates this config from the other Text-to-Speech pipelines. */
   readonly name: 'kokoro';
   /** Model sources for the 2 Kokoro sub-models. */
-  readonly modelSources: {
+  readonly modelPaths: {
     /** Duration predictor model source. */
     readonly durationPredictor: ModelSource;
     /** Synthesizer model source. */
@@ -197,8 +197,8 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
 
   try {
     const load = wrapAsync(loadModel, runtime);
-    const durationPredictor = scope.track(await load(config.modelSources.durationPredictor));
-    const synthesizer = scope.track(await load(config.modelSources.synthesizer));
+    const durationPredictor = scope.track(await load(config.modelPaths.durationPredictor));
+    const synthesizer = scope.track(await load(config.modelPaths.synthesizer));
     const models = { durationPredictor, synthesizer };
     const predictorSpec = validateSpec(models.durationPredictor.schema, {
       dynamic: method(

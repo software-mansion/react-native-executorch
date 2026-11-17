@@ -19,7 +19,7 @@ import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils
  */
 export type ImageEmbedderModel = {
   /** Model source: a local or remote path, program and data paths, or callback loaders. */
-  readonly modelSource: ModelSource;
+  readonly modelPath: ModelSource;
   /**
    * Image preprocessing (resize, color conversion, normalization) for embedding
    * models.
@@ -80,8 +80,8 @@ export async function createImageEmbedder(
   const dispose = scope.dispose;
 
   try {
-    const { modelSource, modelOpts } = config;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
+    const { modelPath, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
     const { variant, dims } = validateSpec(model.schema, {
       batched: method(

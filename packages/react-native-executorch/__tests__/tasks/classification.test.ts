@@ -1,3 +1,4 @@
+import type { ModelSource } from '../../src/core/model';
 import { f32, method } from '../../src/core/schema';
 import { createClassifier } from '../../src/extensions/cv/tasks/classification';
 import { fakeJsi } from '../support/fakeJsi';
@@ -18,11 +19,27 @@ const registerBatched = (labels: readonly string[] = LABELS) => {
 };
 
 const config = (labels: readonly string[] = LABELS) => ({
-  modelSource: MODEL_PATH,
+  modelPath: MODEL_PATH,
   modelOpts: { ...STRETCH_PREPROCESSING, labels },
 });
 
 describe('createClassifier — model acceptance', () => {
+  it.each<ModelSource>([
+    { programPath: MODEL_PATH, dataMapPath: '/models/classifier.ptd' },
+    { programLoader: { size: () => 0, load: () => new ArrayBuffer(0) } },
+  ])('accepts a structured source through modelPath: %p', async (modelPath) => {
+    fakeJsi.registerModel(modelPath, {
+      schema: exported(method('forward', [f32(1, 3, 4, 4)], [f32(1, 3)])),
+      execute: writesOutputs(LOGITS),
+    });
+    const classifier = tracked(await createClassifier({ ...config(), modelPath }));
+    expect((await classifier.classify(imageBuffer(4, 4))).map((result) => result.label)).toEqual([
+      'bird',
+      'cat',
+      'dog',
+    ]);
+  });
+
   it('accepts a batched [1, 3, H, W] -> [1, N] model', async () => {
     registerBatched();
     const classifier = tracked(await createClassifier(config()));
@@ -56,7 +73,7 @@ describe('createClassifier — model acceptance', () => {
 
   it('surfaces a load failure', async () => {
     await expect(
-      createClassifier({ ...config(), modelSource: '/models/absent.pte' })
+      createClassifier({ ...config(), modelPath: '/models/absent.pte' })
     ).rejects.toThrow(/absent.pte/);
   });
 });

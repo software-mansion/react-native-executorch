@@ -38,7 +38,7 @@ const CHAT_TEMPLATE = [
 ].join('');
 
 const config = {
-  modelSource: MODEL_PATH,
+  modelPath: MODEL_PATH,
   tokenizerPath: TOKENIZER_PATH,
   tokenizerConfigPath: TOKENIZER_CONFIG_PATH,
 };
@@ -112,12 +112,12 @@ describe('createLLMChatSession — construction', () => {
   it.each<ModelSource>([
     { programPath: MODEL_PATH, dataMapPath: ['/models/weights.0.ptd', '/models/weights.1.ptd'] },
     { programLoader: { size: () => 0, load: () => new ArrayBuffer(0) } },
-  ])('generates with model source %p', async (modelSource) => {
-    registerFakeLLM(modelSource, TOKENIZER_PATH, {
+  ])('generates with model source %p', async (modelPath) => {
+    registerFakeLLM(modelPath, TOKENIZER_PATH, {
       eosToken: EOS,
       generations: [{ response: 'hello there ' }],
     });
-    const session = tracked(await createLLMChatSession({ ...config, modelSource }));
+    const session = tracked(await createLLMChatSession({ ...config, modelPath }));
     await session.sendMessage('hi');
     expect(session.getHistory()).toEqual(
       expect.arrayContaining([

@@ -170,7 +170,7 @@ export type LLMRunner = {
  * Loads the model and its tokenizer, validates the model's exported methods
  * against the supported runner specs, and returns the matching runner.
  * @category LLM / Functions
- * @param modelSource Local program path, program with external data paths, or
+ * @param modelPath Local program path, program with external data paths, or
  * initialization-only callback readers. See {@link ModelSource}.
  * @param tokenizerPath Path to the local tokenizer file (e.g. `tokenizer.json`).
  * @param modalities List of supported input non-text modalities (e.g.
@@ -180,14 +180,14 @@ export type LLMRunner = {
  * @returns A promise resolving to the {@link LLMRunner} instance.
  */
 export async function createLLMRunner(
-  modelSource: ModelSource,
+  modelPath: ModelSource,
   tokenizerPath: string,
   modalities?: readonly Modality[],
   runtime?: WorkletRuntime
 ): Promise<LLMRunner> {
   const scope = createResourceScope();
   try {
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
     const { variant } = validateSpec(model.schema, {

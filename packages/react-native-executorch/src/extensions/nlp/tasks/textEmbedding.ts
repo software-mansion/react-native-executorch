@@ -26,7 +26,7 @@ import { createResourceScope } from '../../../core/lifetime';
  */
 export type TextEmbedderModel = {
   /** Model source: a local or remote path, program and data paths, or callback loaders. */
-  readonly modelSource: ModelSource;
+  readonly modelPath: ModelSource;
   /** Local path or remote URL of the tokenizer file. */
   readonly tokenizerPath: string;
   /** Optional default prompt prefix added to input text before embedding. */
@@ -92,8 +92,8 @@ export async function createTextEmbedder(
   const dispose = scope.dispose;
 
   try {
-    const { modelSource, tokenizerPath, defaultPrompt } = config;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
+    const { modelPath, tokenizerPath, defaultPrompt } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
     // Text embedding models take two int64 inputs: the token ids and the

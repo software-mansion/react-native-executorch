@@ -45,7 +45,7 @@ const NOISE_COEFF = -14.579279;
  */
 export type SdxsTextToImageModel = {
   /** Local path to the model `.pte`. */
-  readonly modelSource: ModelSource;
+  readonly modelPath: ModelSource;
   /** Local path to the CLIP `tokenizer.json`. */
   readonly tokenizerPath: string;
 };
@@ -99,8 +99,8 @@ export async function createSdxsTextToImage(
   const dispose = scope.dispose;
 
   try {
-    const { modelSource, tokenizerPath } = config;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
+    const { modelPath, tokenizerPath } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
     validateSpec(model.schema, {

@@ -58,7 +58,7 @@ export type InpainterOptions = Omit<ImagePreprocessorOptions, 'resizeMode' | 'pa
  */
 export type InpainterModel = {
   /** Model source: a local or remote path, program and data paths, or callback loaders. */
-  readonly modelSource: ModelSource;
+  readonly modelPath: ModelSource;
   /**
    * Input preprocessing, output postprocessing and blending options.
    * `resizeMode` is fixed to `'stretch'`. See {@link InpainterOptions}.
@@ -131,8 +131,8 @@ export async function createInpainter(
   const dispose = scope.dispose;
 
   try {
-    const { modelSource, modelOpts } = config;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
+    const { modelPath, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
     const { variant, dims } = validateSpec(model.schema, {
       batched: method(

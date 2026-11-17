@@ -42,7 +42,7 @@ export type MarianTranslatorModel = {
   /** Identifies the pipeline this config belongs to. */
   readonly name: 'marian';
   /** Model source: a local or remote path, program and data paths, or callback loaders. */
-  readonly modelSource: ModelSource;
+  readonly modelPath: ModelSource;
   /** Local path or remote URL of the tokenizer file. */
   readonly tokenizerPath: string;
   /** ISO 639-1 code of the language the model translates from. */
@@ -92,8 +92,8 @@ export async function createMarianTranslator(
   const dispose = scope.dispose;
 
   try {
-    const { modelSource, tokenizerPath } = config;
-    const model = scope.track(await wrapAsync(loadModel, runtime)(modelSource));
+    const { modelPath, tokenizerPath } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(tokenizerPath));
 
     // The source length S must agree across the ids, the mask and every
