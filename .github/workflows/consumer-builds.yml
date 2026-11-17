@@ -184,10 +184,8 @@ jobs:
           ./gradlew :app:assembleRelease --no-daemon --stacktrace --max-workers=2 \
             2>&1 | tee "$LOG_DIR/android.log"
           apk=app/build/outputs/apk/release/app-release.apk
-          unzip -l "$apk" | tee "$LOG_DIR/apk-files.log"
-          for library in RnExecutorch executorch xnnpack_executorch_backend vulkan_executorch_backend; do
-            grep -F "lib/${CONSUMER_ABI}/lib${library}.so" "$LOG_DIR/apk-files.log"
-          done
+          unzip -Z1 "$apk" | tee "$LOG_DIR/apk-files.log"
+          node "$GITHUB_WORKSPACE/.github/consumer-builds/android-entries.mjs" apk "$CONSUMER_ABI" "$LOG_DIR/apk-files.log"
           cp "$apk" "$LOG_DIR/ConsumerBuild.apk"
       - name: Build Android App Bundle
         if: matrix.aab
@@ -213,11 +211,10 @@ jobs:
           $zip = [System.IO.Compression.ZipFile]::OpenRead($apk)
           try {
             $entries = @($zip.Entries | ForEach-Object { $_.FullName })
-            $entries | Out-File "$env:LOG_DIR/apk-files.log" -Encoding utf8
-            foreach ($library in @('RnExecutorch', 'executorch', 'xnnpack_executorch_backend', 'vulkan_executorch_backend')) {
-              if ($entries -notcontains "lib/arm64-v8a/lib$library.so") { throw "APK is missing $library" }
-            }
+            $entries | Set-Content "$env:LOG_DIR/apk-files.log" -Encoding utf8
           } finally { $zip.Dispose() }
+          & node "$env:GITHUB_WORKSPACE/.github/consumer-builds/android-entries.mjs" apk $env:CONSUMER_ABI "$env:LOG_DIR/apk-files.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Copy-Item $apk "$env:LOG_DIR/ConsumerBuild.apk"
       - name: Install iOS pods
         if: matrix.platform == 'ios'

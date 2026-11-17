@@ -88,7 +88,8 @@ remain separate coverage to add.
 All optional native libraries for the selected platform are enabled. Postinstall
 fetches only that platform via `RNET_TARGET`. Explicit x86_64 installs also fetch
 the arm64 core archive because existing releases carry the ABI-independent
-`executorch.jar` there. This does not test cross-host Expo
+`executorch.jar` there. APK and AAB checks share `android-entries.mjs`.
+This does not test cross-host Expo
 fingerprint equality or backend opt-outs.
 
 ## Production packaging and integration coverage

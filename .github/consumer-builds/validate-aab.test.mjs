@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { androidLibraries, verifyAndroidEntries } from './android-entries.mjs';
 import { verifyBundleEntries } from './validate-aab.mjs';
 
 const entries = [
@@ -7,9 +8,7 @@ const entries = [
   'base/manifest/AndroidManifest.xml',
   'base/dex/classes.dex',
   'base/assets/index.android.bundle',
-  ...['RnExecutorch', 'executorch', 'xnnpack_executorch_backend', 'vulkan_executorch_backend'].map(
-    (library) => `base/lib/arm64-v8a/lib${library}.so`
-  ),
+  ...androidLibraries.map((library) => `base/lib/arm64-v8a/lib${library}.so`),
 ];
 
 test('bundle packaging rejects missing JS, dex or native libraries, including libraries in the wrong ABI', () => {
@@ -25,3 +24,28 @@ test('bundle packaging rejects missing JS, dex or native libraries, including li
     /AAB is missing/
   );
 });
+
+for (const abi of ['arm64-v8a', 'x86_64']) {
+  test(`APK validation checks JS, dex and all libraries for ${abi}`, () => {
+    const apk = entries
+      .filter((entry) => entry !== 'BundleConfig.pb')
+      .map((entry) =>
+        entry
+          .replace(/^base\//, '')
+          .replace(/^manifest\//, '')
+          .replace(/^dex\//, '')
+          .replace('arm64-v8a', abi)
+      );
+    verifyAndroidEntries(apk.join('\r\n'), 'apk', abi);
+    for (const missing of apk) {
+      assert.throws(
+        () => verifyAndroidEntries(apk.filter((entry) => entry !== missing).join('\n'), 'apk', abi),
+        /APK is missing/
+      );
+    }
+    assert.throws(
+      () => verifyAndroidEntries(apk.join('\n'), 'apk', abi === 'x86_64' ? 'arm64-v8a' : 'x86_64'),
+      /APK is missing/
+    );
+  });
+}

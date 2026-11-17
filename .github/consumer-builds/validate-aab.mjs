@@ -5,24 +5,13 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+import { verifyAndroidEntries } from './android-entries.mjs';
+
 const version = '1.18.3';
 const checksum = 'a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29';
 
 export function verifyBundleEntries(listing) {
-  const entries = new Set(listing.trim().split(/\r?\n/));
-  for (const file of [
-    'BundleConfig.pb',
-    'base/manifest/AndroidManifest.xml',
-    'base/dex/classes.dex',
-    'base/assets/index.android.bundle',
-    ...[
-      'RnExecutorch',
-      'executorch',
-      'xnnpack_executorch_backend',
-      'vulkan_executorch_backend',
-    ].map((library) => `base/lib/arm64-v8a/lib${library}.so`),
-  ])
-    assert.ok(entries.has(file), `AAB is missing ${file}`);
+  verifyAndroidEntries(listing, 'aab', 'arm64-v8a');
 }
 
 function run(command, args, capture = false) {
