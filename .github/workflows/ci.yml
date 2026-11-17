@@ -167,7 +167,8 @@ jobs:
     name: C++ unit tests
     needs: changes
     if: needs.changes.outputs.native == 'true'
-    runs-on: ubuntu-latest
+    # Hermes v0.14.1 does not build with ubuntu-26.04's GCC 15 (missing <cstdint>).
+    runs-on: ubuntu-24.04
     # Well clear of a cold run (the Hermes + ExecuTorch dependency build is the
     # bulk of it) but far below the 6 h default, so a stalled download fails
     # with logs instead of hanging.
