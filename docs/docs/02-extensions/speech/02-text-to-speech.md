@@ -109,7 +109,7 @@ On-device text-to-speech is built for instant audio feedback:
 
 ## Voice Cloning (Reverb)
 
-Reverb speaks in the voice of a reference recording. It ships three preset voices ([`REVERB_DEFAULT_VOICE_NAMES`](../../06-api-reference/variables/REVERB_DEFAULT_VOICE_NAMES.md)), and [`encodeVoice()`](../../06-api-reference/type-aliases/ReverbTextToSpeech.md#encodevoice) turns any recording and its transcript into a new one. A voice carries more than the timbre: Reverb also copies the pace, the mood and the recording conditions of the reference.
+Reverb speaks in the voice of a reference recording. It ships 16 preset voices in all 7 languages, named `<language>_<gender>_<style>` ([`REVERB_DEFAULT_VOICE_NAMES`](../../06-api-reference/variables/REVERB_DEFAULT_VOICE_NAMES.md)), and [`encodeVoice()`](../../06-api-reference/type-aliases/ReverbTextToSpeech.md#encodevoice) turns any recording and its transcript into a new one. A voice carries more than the timbre: Reverb also copies the pace, the mood and the recording conditions of the reference.
 
 ```tsx
 import { models, useTextToSpeech } from 'react-native-executorch';
@@ -117,7 +117,10 @@ import { models, useTextToSpeech } from 'react-native-executorch';
 const tts = useTextToSpeech(models.textToSpeech.REVERB.DEFAULT);
 
 // A preset voice; `language` is the language of the text to speak
-const preset = tts.synthesize('Hello from Reverb!', { voice: 'standard_male', language: 'en' });
+const preset = tts.synthesize('Hello from Reverb!', {
+  voice: 'en_male_narrator_1',
+  language: 'en',
+});
 
 // A cloned voice: 24 kHz mono audio, 1-20 s, and what it says, word for word
 const voice = await tts.encodeVoice(recording, 'What the recording says.', 'en');

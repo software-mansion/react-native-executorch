@@ -1340,9 +1340,22 @@ export type SupertonicDefaultVoiceName = (typeof SUPERTONIC_DEFAULT_VOICE_NAMES)
  * @category Speech / Constants
  */
 export const REVERB_DEFAULT_VOICE_NAMES = [
-  'standard_male',
-  'angry_male',
-  'sensual_female',
+  'de_female_standard',
+  'de_male_standard',
+  'en_female_narrator',
+  'en_female_whisper',
+  'en_male_angry',
+  'en_male_narrator_1',
+  'en_male_narrator_2',
+  'es_male_standard_1',
+  'es_male_standard_2',
+  'fr_female_standard',
+  'fr_male_standard',
+  'it_male_expressive',
+  'it_male_standard',
+  'pl_male_standard',
+  'pt_female_standard',
+  'pt_male_standard',
 ] as const;
 
 /**

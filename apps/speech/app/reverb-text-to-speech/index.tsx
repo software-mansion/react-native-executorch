@@ -67,9 +67,22 @@ const SAMPLE_TEXTS: Record<ReverbLanguage, string> = {
 // cspell:enable
 
 const PRESETS: { name: ReverbDefaultVoiceName; title: string; subtitle: string }[] = [
-  { name: 'standard_male', title: 'Standard', subtitle: 'Male · calm' },
-  { name: 'angry_male', title: 'Angry', subtitle: 'Male · intense' },
-  { name: 'sensual_female', title: 'Sensual', subtitle: 'Female · soft' },
+  { name: 'de_female_standard', title: 'Standard', subtitle: 'German · female' },
+  { name: 'de_male_standard', title: 'Standard', subtitle: 'German · male' },
+  { name: 'en_female_narrator', title: 'Narrator', subtitle: 'English · female' },
+  { name: 'en_female_whisper', title: 'Whisper', subtitle: 'English · female' },
+  { name: 'en_male_angry', title: 'Angry', subtitle: 'English · male' },
+  { name: 'en_male_narrator_1', title: 'Narrator 1', subtitle: 'English · male' },
+  { name: 'en_male_narrator_2', title: 'Narrator 2', subtitle: 'English · male' },
+  { name: 'es_male_standard_1', title: 'Standard 1', subtitle: 'Spanish · male' },
+  { name: 'es_male_standard_2', title: 'Standard 2', subtitle: 'Spanish · male' },
+  { name: 'fr_female_standard', title: 'Standard', subtitle: 'French · female' },
+  { name: 'fr_male_standard', title: 'Standard', subtitle: 'French · male' },
+  { name: 'it_male_expressive', title: 'Expressive', subtitle: 'Italian · male' },
+  { name: 'it_male_standard', title: 'Standard', subtitle: 'Italian · male' },
+  { name: 'pl_male_standard', title: 'Standard', subtitle: 'Polish · male' },
+  { name: 'pt_female_standard', title: 'Standard', subtitle: 'Portuguese · female' },
+  { name: 'pt_male_standard', title: 'Standard', subtitle: 'Portuguese · male' },
 ];
 
 const SPEED_OPTIONS = [0.8, 0.9, 1.0, 1.1, 1.25].map((value) => ({ label: `${value}x`, value }));
@@ -341,7 +354,7 @@ function ReverbContent() {
   );
   const [language, setLanguage] = useState<ReverbLanguage>('en');
   const [text, setText] = useState(SAMPLE_TEXTS.en);
-  const [choice, setChoice] = useState<VoiceChoice>({ kind: 'preset', name: 'standard_male' });
+  const [choice, setChoice] = useState<VoiceChoice>({ kind: 'preset', name: 'en_male_narrator_1' });
   const [presetInfo, setPresetInfo] = useState<Partial<Record<ReverbDefaultVoiceName, PresetInfo>>>(
     {}
   );
@@ -504,7 +517,7 @@ function ReverbContent() {
   const removeVoice = (id: number) => {
     setCustomVoices((voices) => voices.filter((v) => v.id !== id));
     if (choice.kind === 'custom' && choice.id === id) {
-      setChoice({ kind: 'preset', name: 'standard_male' });
+      setChoice({ kind: 'preset', name: 'en_male_narrator_1' });
     }
   };
 
