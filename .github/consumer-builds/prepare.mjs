@@ -207,7 +207,7 @@ registerRootComponent(App);
 `
   );
   copyFileSync(join(appFixtures, 'App.jsx'), join(directory, 'App.jsx'));
-  if (profile.smoke) await prepareSmokeFixture(directory);
+  if (profile.smoke) await prepareSmokeFixture(directory, bundleIdentifier);
   if (profile.integrations) prepareIntegrationFixture(directory, appFixtures, bundleIdentifier);
 }
 copyFileSync(archive, join(directory, 'react-native-executorch.tgz'));

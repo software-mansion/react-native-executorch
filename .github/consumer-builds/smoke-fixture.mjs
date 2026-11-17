@@ -9,7 +9,7 @@ export const modelUrl =
   'https://huggingface.co/software-mansion/MediaPipe-Selfie-Segmentation-ExecuTorch/resolve/13a9494d8230279b47973b91c94b1aa902d307a6/xnnpack/selfie_segmentation_xnnpack_fp32.pte';
 export const modelChecksum = '176aba6a0719b56391586a3d19396315305c7adb5c16aafda350fecc596cebf9';
 
-export async function prepareSmokeFixture(directory) {
+export async function prepareSmokeFixture(directory, bundleIdentifier) {
   const response = await fetch(modelUrl, { signal: AbortSignal.timeout(120000) });
   if (!response.ok) throw new Error(`Model fixture download failed: ${response.status}`);
   const bytes = Buffer.from(await response.arrayBuffer());
@@ -23,7 +23,7 @@ export async function prepareSmokeFixture(directory) {
       {
         token: randomUUID(),
         port: 18765,
-        bundleIdentifier: 'com.swmansion.executorch.consumersmoke',
+        bundleIdentifier,
       },
       null,
       2
