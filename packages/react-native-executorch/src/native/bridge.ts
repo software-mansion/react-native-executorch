@@ -31,7 +31,7 @@ if (!rnexecutorchJsi) {
  * has no OpenCV.
  * @internal
  */
-export function cvJsi() {
+export function tryInitJsiCv() {
   'worklet';
   if (!rnexecutorchJsi.cv) {
     throw RnExecuTorchError(

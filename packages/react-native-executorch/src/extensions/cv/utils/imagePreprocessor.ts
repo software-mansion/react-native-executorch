@@ -17,7 +17,7 @@ import {
   normalize,
 } from '../ops/image';
 import { RnExecuTorchError } from '../../../core/error';
-import { cvJsi } from '../../../native/bridge';
+import { tryInitJsiCv } from '../../../native/bridge';
 
 /**
  * Options for configuring the image preprocessor pipeline.
@@ -81,7 +81,7 @@ export function createImagePreprocessor(
 ): ImagePreprocessor {
   'worklet';
   // Fail when the task is created, not on its first frame.
-  cvJsi();
+  tryInitJsiCv();
   const numRgbChannels = 3;
   const isRank3 = outputShape.length === 3 && outputShape[0] === numRgbChannels;
   const isRank4 = outputShape.length === 4 && outputShape[1] === numRgbChannels;
