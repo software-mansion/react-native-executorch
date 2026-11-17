@@ -220,10 +220,7 @@ writeFileSync(
   join(directory, 'consumer-profile.json'),
   JSON.stringify({ ...profile, platform }, null, 2) + '\n'
 );
-// Emulator installs need the default downloads: the ABI-independent
-// executorch.jar is distributed in the arm64 core archive.
-if (platform === 'android' && profile.smoke) delete process.env.RNET_TARGET;
-else process.env.RNET_TARGET = platform === 'android' ? `android-${abi}` : 'ios';
+process.env.RNET_TARGET = platform === 'android' ? `android-${abi}` : 'ios';
 run('npm', ['install', '--foreground-scripts', '--no-audit', '--no-fund'], directory);
 const installed = join(directory, 'node_modules/react-native-executorch');
 if (lstatSync(installed).isSymbolicLink() || !isInside(directory, realpathSync(installed)))

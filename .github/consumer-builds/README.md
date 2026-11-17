@@ -86,7 +86,9 @@ remain separate coverage to add.
   pass `plutil` validation.
 
 All optional native libraries for the selected platform are enabled. Postinstall
-fetches only that platform via `RNET_TARGET`. This does not test cross-host Expo
+fetches only that platform via `RNET_TARGET`. Explicit x86_64 installs also fetch
+the arm64 core archive because existing releases carry the ABI-independent
+`executorch.jar` there. This does not test cross-host Expo
 fingerprint equality or backend opt-outs.
 
 ## Production packaging and integration coverage
