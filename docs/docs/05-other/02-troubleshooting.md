@@ -22,7 +22,7 @@ The native artifacts are not in the npm tarball. They are downloaded by a
 
 - **pnpm 10 and later block dependency build scripts by default** and print
   `Ignored build scripts: react-native-executorch` during install. Installing
-  with `--allow-build=react-native-executorch` avoids it.
+  with `--allow-build=react-native-executorch` (pnpm 10.4+) avoids it.
 - **bun** does the same for any package not in `trustedDependencies`.
 - **npm 12 and later** (and npm 11.16+ with `strict-allow-scripts=true`) skip
   install scripts of packages not listed in `allowScripts`, with only a warning.
@@ -34,7 +34,7 @@ for the file. Recent versions fail during `pod install` (and during the Android
 configure phase) with this fix in the message instead. Re-run the hook:
 
 ```bash
-pnpm approve-builds                           # pnpm, select it
+pnpm approve-builds                           # pnpm 10.1+, select it
 bun pm trust react-native-executorch          # bun
 npm approve-scripts react-native-executorch   # npm 12+, then:
 npm rebuild react-native-executorch           # npm

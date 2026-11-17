@@ -80,7 +80,7 @@ fun requireNativeArtifacts() {
         skips install scripts not listed in `allowScripts`, and
         `--ignore-scripts` does the same. Re-run the hook:
 
-          pnpm approve-builds                           # pnpm, select it
+          pnpm approve-builds                           # pnpm 10.1+, select it
           bun pm trust react-native-executorch          # bun
           npm approve-scripts react-native-executorch   # npm 12+, then:
           npm rebuild react-native-executorch           # npm

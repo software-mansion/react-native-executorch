@@ -89,6 +89,7 @@ yarn add react-native-executorch react-native-worklets react-native-blob-util
   <TabItem value="pnpm" label="pnpm">
 
 ```bash
+# pnpm < 10.4: drop --allow-build
 pnpm add react-native-executorch react-native-worklets react-native-blob-util --allow-build=react-native-executorch
 ```
 

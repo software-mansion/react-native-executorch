@@ -60,7 +60,7 @@ actually resolved, and the install log names the manifest it read.
 pnpm 10 and later, bun, and npm 12 and later do not run dependency install scripts
 unless you allow them, so the download never happens and the native build fails
 later on a missing file. Install with `--allow-build=react-native-executorch`
-(pnpm), run `bun pm trust react-native-executorch` (bun) or
+(pnpm 10.4+), run `bun pm trust react-native-executorch` (bun) or
 `npm approve-scripts react-native-executorch` (npm 12) once. See
 [Troubleshooting](../05-other/02-troubleshooting.md).
 :::
