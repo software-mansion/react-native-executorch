@@ -167,7 +167,8 @@ jobs:
     name: C++ unit tests
     needs: changes
     if: needs.changes.outputs.native == 'true'
-    runs-on: ubuntu-latest
+    # Hermes v0.14.1 does not build with ubuntu-26.04's GCC 15 (missing <cstdint>).
+    runs-on: ubuntu-24.04
     # Well clear of a cold run (the Hermes + ExecuTorch dependency build is the
     # bulk of it) but far below the 6 h default, so a stalled download fails
     # with logs instead of hanging.
@@ -243,17 +244,22 @@ jobs:
           echo "ExecuTorch $headers on both sides"
 
       # Hermes and ExecuTorch are pinned to exact tags, so the cache only misses
-      # when scripts/build-native-test-deps.sh changes those pins.
+      # when scripts/build-native-test-deps.sh changes those pins or the runner
+      # image changes (Hermes links the image's system ICU).
       #
       # Split restore/save rather than actions/cache: the combined action only
       # saves in a post step when the job succeeds, so a failing test would throw
       # away the ~9 min dependency build and rebuild it on every retry.
+      - name: Resolve runner image
+        id: runner-image
+        run: echo "os=$ImageOS" >> "$GITHUB_OUTPUT"
+
       - name: Restore native test dependencies
         id: deps-cache
         uses: actions/cache/restore@v5
         with:
           path: packages/react-native-executorch/.native-test-deps
-          key: ${{ runner.os }}-native-test-deps-${{ hashFiles('packages/react-native-executorch/scripts/build-native-test-deps.sh') }}
+          key: ${{ runner.os }}-${{ steps.runner-image.outputs.os }}-native-test-deps-${{ hashFiles('packages/react-native-executorch/scripts/build-native-test-deps.sh') }}
 
       - name: Build native test dependencies
         if: steps.deps-cache.outputs.cache-hit != 'true'
