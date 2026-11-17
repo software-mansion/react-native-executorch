@@ -64,6 +64,29 @@ export async function startReporter(token, port = 18765, timeout = 180000) {
   };
 }
 
+export function selectSimulator(devices, runtimes) {
+  return runtimes
+    .filter(
+      (runtime) =>
+        runtime.isAvailable &&
+        runtime.identifier.includes('.iOS-') &&
+        /^\d+(\.\d+)*$/.test(runtime.version) &&
+        !/beta|rc|preview/i.test(runtime.name) &&
+        Number(runtime.version.split('.')[0]) >= 17
+    )
+    .sort((a, b) => {
+      const left = a.version.split('.').map(Number);
+      const right = b.version.split('.').map(Number);
+      for (let i = 0; i < Math.max(left.length, right.length); i++) {
+        const difference = (right[i] ?? 0) - (left[i] ?? 0);
+        if (difference) return difference;
+      }
+      return 0;
+    })
+    .flatMap((runtime) => devices[runtime.identifier] ?? [])
+    .find((device) => device.isAvailable && device.name.startsWith('iPhone'));
+}
+
 async function main() {
   const [platform, artifact, consumer, logs] = process.argv.slice(2);
   if (!['android', 'ios'].includes(platform) || !artifact || !consumer || !logs) {
@@ -100,11 +123,11 @@ async function main() {
       const devices = JSON.parse(
         (await execute('xcrun', ['simctl', 'list', 'devices', 'available', '-j'])).stdout
       );
-      const device = Object.entries(devices.devices)
-        .filter(([runtime]) => runtime.includes('.iOS-'))
-        .flatMap(([, devices]) => devices)
-        .find((device) => device.isAvailable && device.name.startsWith('iPhone'));
-      if (!device) throw new Error('No available iPhone simulator');
+      const runtimes = JSON.parse(
+        (await execute('xcrun', ['simctl', 'list', 'runtimes', '-j'])).stdout
+      );
+      const device = selectSimulator(devices.devices, runtimes.runtimes);
+      if (!device) throw new Error('No available stable iPhone simulator running iOS 17 or newer');
       udid = device.udid;
       if (device.state !== 'Booted') {
         await execute('xcrun', ['simctl', 'boot', udid]);
@@ -161,9 +184,7 @@ async function main() {
         timeout: 15000,
       }).catch(() => {});
       if (bootedByUs) {
-        await execute('xcrun', ['simctl', 'shutdown', udid], { timeout: 15000 }).catch(
-          () => {}
-        );
+        await execute('xcrun', ['simctl', 'shutdown', udid], { timeout: 15000 }).catch(() => {});
       }
     }
   }

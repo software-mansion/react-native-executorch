@@ -62,7 +62,6 @@ test('an app crash or missing callback fails with a timeout', async () => {
   }
 });
 
-
 test('simulator setup does not consume the app deadline, and waiting again does not reset it', async (t) => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
   const reporter = await startReporter('cold-boot', 0, 100);
@@ -72,8 +71,12 @@ test('simulator setup does not consume the app deadline, and waiting again does 
     const result = reporter.waitForReport();
     let settled = false;
     result.then(
-      () => { settled = true; },
-      () => { settled = true; }
+      () => {
+        settled = true;
+      },
+      () => {
+        settled = true;
+      }
     );
     t.mock.timers.tick(99);
     await Promise.resolve();
@@ -86,4 +89,30 @@ test('simulator setup does not consume the app deadline, and waiting again does 
     await reporter.close();
     t.mock.timers.reset();
   }
+});
+
+test('simulators use the newest available stable iOS >=17, skipping runtimes without iPhones', async () => {
+  const { selectSimulator } = await import('./smoke-runner.mjs');
+  const runtime = (version, name = `iOS ${version}`, isAvailable = true) => ({
+    identifier: `com.apple.CoreSimulator.SimRuntime.iOS-${version.replaceAll('.', '-')}`,
+    version,
+    name,
+    isAvailable,
+  });
+  const runtimes = [
+    runtime('16.4'),
+    runtime('17.9'),
+    runtime('18.2'),
+    runtime('18.10'),
+    runtime('19.0', 'iOS 19.0 Beta'),
+    runtime('20.0', 'iOS 20.0', false),
+    runtime('21.0'),
+  ];
+  const devices = Object.fromEntries(
+    runtimes.map((r) => [r.identifier, [{ name: 'iPhone 16', isAvailable: true, udid: r.version }]])
+  );
+  devices[runtimes.at(-1).identifier] = [{ name: 'iPad', isAvailable: true }];
+  assert.equal(selectSimulator(devices, runtimes).udid, '18.10');
+  assert.equal(selectSimulator(devices, runtimes.slice(0, 1)), undefined);
+  assert.equal(selectSimulator({}, runtimes), undefined);
 });
