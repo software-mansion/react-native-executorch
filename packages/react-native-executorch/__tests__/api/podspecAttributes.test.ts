@@ -21,6 +21,7 @@
  * value being subtly wrong.
  */
 import { execFileSync } from 'child_process';
+import { existsSync } from 'fs';
 import { join } from 'path';
 
 const PACKAGE_ROOT = join(__dirname, '..', '..');
@@ -147,6 +148,7 @@ const UNCONDITIONAL_ATTRIBUTES = [
   'vendored_frameworks',
   'libraries',
   'frameworks',
+  'resource_bundles',
 ];
 
 /**
@@ -173,6 +175,10 @@ const CONFIGS: Record<string, Record<string, boolean> | null> = {
 };
 
 describe('podspec attributes', () => {
+  it('ships the privacy manifest its resource bundle names (#1616)', () => {
+    expect(existsSync(join(PACKAGE_ROOT, 'ios', 'PrivacyInfo.xcprivacy'))).toBe(true);
+  });
+
   describe.each(Object.entries(CONFIGS))('with %s', (_label, config) => {
     it('evaluates and assigns every attribute the build depends on', () => {
       const assigned = assignedAttributes(config);
