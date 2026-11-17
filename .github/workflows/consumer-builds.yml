@@ -12,6 +12,9 @@ on:
       - 'package.json'
       - 'yarn.lock'
       - '.nvmrc'
+      - '.yarnrc.yml'
+      - '.yarn/**'
+      - '.gitmodules'
   workflow_dispatch:
     inputs:
       scope:
