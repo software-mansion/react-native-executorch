@@ -28,7 +28,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: consumer-builds-${{ github.ref }}
+  group: consumer-builds-${{ github.ref }}-${{ github.event_name }}-${{ inputs.scope || 'expo' }}
   cancel-in-progress: true
 
 jobs:
