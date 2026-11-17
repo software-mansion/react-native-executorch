@@ -181,7 +181,6 @@ AppRegistry.registerComponent('ConsumerBuild', () => App);
               'expo-build-properties',
               {
                 ios: {
-                  deploymentTarget: '17.0',
                   ...(profile.integrations ? { useFrameworks: 'dynamic' } : {}),
                 },
                 android: {
@@ -242,5 +241,12 @@ if (profile.family === 'expo') {
     ['--no-install', 'expo', 'prebuild', '--platform', platform, '--no-install'],
     directory
   );
+  if (platform === 'ios') {
+    replaceInFile(
+      join(directory, 'ios/Podfile'),
+      /^platform :ios, (.+)$/m,
+      "platform :ios, [Gem::Version.new(min_ios_version_supported), Gem::Version.new('17.0'), Gem::Version.new(($1).to_s)].max.to_s"
+    );
+  }
   if (profile.integrations) verifyIntegrationFixture(directory, platform);
 }
