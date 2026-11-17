@@ -450,3 +450,7 @@ eurollm
 doclayout
 netp
 Uyghur
+cocoapods
+ARCHS
+Podfile
+armeabi

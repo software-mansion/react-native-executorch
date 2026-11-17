@@ -89,7 +89,8 @@ yarn add react-native-executorch react-native-worklets react-native-blob-util
   <TabItem value="pnpm" label="pnpm">
 
 ```bash
-pnpm add react-native-executorch react-native-worklets react-native-blob-util
+# pnpm < 10.4: drop --allow-build
+pnpm add react-native-executorch react-native-worklets react-native-blob-util --allow-build=react-native-executorch
 ```
 
   </TabItem>
@@ -131,12 +132,13 @@ worklets 0.10 accepts.
 
 ### Babel
 
-The library runs inference on worklet threads, so add the worklets Babel plugin
-to `babel.config.js`. It must be the **last** entry in `plugins`:
+The library runs inference on worklet threads. Expo's `babel-preset-expo` adds
+the worklets plugin by itself, so an Expo app needs no `babel.config.js` for it.
+In a bare app, add the plugin as the **last** entry in `plugins`:
 
 ```js
 module.exports = {
-  presets: ['module:@react-native/babel-preset'], // or 'babel-preset-expo'
+  presets: ['module:@react-native/babel-preset'],
   plugins: [
     // ...your other plugins
     'react-native-worklets/plugin',
