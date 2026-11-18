@@ -31,15 +31,13 @@ expands it across Android and iOS. One workflow plans, packs and builds them.
 | Latest Expo, integrations    | Sentry, Firebase, Vision Camera, audio-api                   | 2                  |
 | **Total**                    | **32 bare + 8 Expo + 1 Windows + 2 runtime + 2 integration** | **45**             |
 
-- **Relevant pull requests:** thirteen app builds: eight SDK/platform builds,
+- **Daily at 04:17 UTC:** thirteen app builds: eight SDK/platform builds,
   one additional Expo 58 Android build on Windows, and two latest-Expo runtime
   smoke apps (Android emulator on Linux, iOS simulator on macOS), plus two
   latest-Expo integration builds.
 - **Manual dispatch:** `expo` (the default) runs those thirteen builds; `full`
   adds all 32 bare RN/Worklets builds for **45 app builds**. Use `full` for
   releases, native changes and compatibility investigations.
-- **No scheduled runs yet.** A TODO tracks considering daily Expo coverage after
-  validation; the broader bare RN matrix remains manual.
 
 Each run also has one planning/test job and one shared library build/package job:
 **15 jobs for regular coverage, 47 for manual full coverage**. Matrix jobs can
