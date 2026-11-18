@@ -122,6 +122,10 @@ file(GLOB ET_ABSEIL_LIBS "${ET_BUILD_DIR}/extension/llm/tokenizers/third-party/a
 # the LLM runner's load_tokenizer pulls in even for a HuggingFace tokenizer.
 file(GLOB ET_SENTENCEPIECE_LIBS "${ET_BUILD_DIR}/extension/llm/tokenizers/sp-build/src/lib*.a")
 
+# Since ExecuTorch 1.6 the PCRE2 fallback regex (create_fallback_regex) lives in
+# its own archive next to libtokenizers.a, which the third-party glob misses.
+file(GLOB ET_REGEX_LOOKAHEAD_LIBS "${ET_BUILD_DIR}/extension/llm/tokenizers/libregex_lookahead.a")
+
 # Attach them to et_tokenizers rather than to each test executable, so CMake
 # emits them *after* libtokenizers.a. GNU ld resolves archives left to right and
 # only pulls members that satisfy an already-undefined symbol, so listing re2
@@ -132,7 +136,7 @@ file(GLOB ET_SENTENCEPIECE_LIBS "${ET_BUILD_DIR}/extension/llm/tokenizers/sp-bui
 # reference cycles between the abseil archives (the glob above cannot order them
 # topologically). It is a GNU ld feature; Apple's linker neither needs nor
 # accepts it.
-set(TOKENIZER_DEP_LIBS ${ET_TOKENIZER_LIBS} ${ET_ABSEIL_LIBS} ${ET_SENTENCEPIECE_LIBS})
+set(TOKENIZER_DEP_LIBS ${ET_REGEX_LOOKAHEAD_LIBS} ${ET_TOKENIZER_LIBS} ${ET_ABSEIL_LIBS} ${ET_SENTENCEPIECE_LIBS})
 if(NOT APPLE AND TOKENIZER_DEP_LIBS)
   set(TOKENIZER_DEP_LIBS "-Wl,--start-group" ${TOKENIZER_DEP_LIBS} "-Wl,--end-group")
 endif()
