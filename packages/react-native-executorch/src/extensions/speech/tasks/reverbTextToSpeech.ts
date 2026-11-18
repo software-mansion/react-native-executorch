@@ -32,6 +32,7 @@ import {
   pauseAfter,
   prepareText,
   roundHalfEven,
+  speechLength,
   trimSilence,
 } from '../utils/reverbUtils';
 
@@ -93,6 +94,8 @@ export type ReverbVoice = {
   readonly transcript: string;
   /** The clip's language. */
   readonly language: ReverbLanguage;
+  /** Frames of the clip spent speaking: without its silent edges, and with pauses over 0.5 s counted as 0.5 s. */
+  readonly speechFrames?: number;
 };
 
 /**
@@ -123,8 +126,10 @@ export type ReverbTtsModel<K extends PropertyKey = never> = {
  * @category Speech / Types
  */
 export type ReverbSamplingOptions = {
-  /** Main passes. Defaults to 8.
-   * NOTE: total number of steps (including polish pass) is always N + 2 */
+  /**
+   * Main passes. Defaults to 8.
+   * NOTE: total number of steps (including polish pass) is always N + 2
+   */
   readonly steps?: number;
   /** Held codes re-masked per new commit, in `[0, 1]`. Defaults to 0.25. */
   readonly remaskRatio?: number;
@@ -157,6 +162,12 @@ export type ReverbTtsOptions<K extends PropertyKey = never> = {
   readonly language: ReverbLanguage;
   /** Speech speed factor, 0.5 to 2.0. Defaults to 1.0. */
   readonly speed?: number;
+  /**
+   * The voice's length the speech length is estimated from:
+   * `'speech'`: its speaking time ({@link ReverbVoice.speechFrames}),
+   * `'recording'`: the whole clip, pauses included.
+   */
+  readonly pace?: 'speech' | 'recording';
   /** Max seconds of speech per chunk. Defaults to 20. */
   readonly maxChunkDuration?: number;
   /** Post-processing, or `false` for the raw decoder output. */
@@ -364,13 +375,15 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
         frames <= referenceFrames.max &&
         voice.codes.every((c) => c >= 0n && c < MASK_CODE) &&
         voice.transcript.trim().length > 0 &&
-        REVERB_LANGUAGES.includes(voice.language);
+        REVERB_LANGUAGES.includes(voice.language) &&
+        (voice.speechFrames === undefined ||
+          (Number.isInteger(voice.speechFrames) && voice.speechFrames > 0));
       if (!valid) {
         throw RnExecuTorchError(
           code,
           `${ctx}: A voice holds [${CODEBOOKS}, frames] codes below ${CODES}, with ` +
-            `${referenceFrames.min} to ${referenceFrames.max} frames, a transcript, and a ` +
-            `supported language.`
+            `${referenceFrames.min} to ${referenceFrames.max} frames, a transcript, a ` +
+            `supported language, and, if given, a positive integer of speech frames.`
         );
       }
       return voice;
@@ -554,9 +567,14 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
             `(got ${audio.length / REVERB_SAMPLE_RATE} s).`
         );
       }
-      const codes = await encode(audio.slice(0, count * FRAME_SAMPLES));
+      const clip = audio.slice(0, count * FRAME_SAMPLES);
+      const codes = await encode(clip);
+      // The clip stays whole; only its speaking time is measured, for the length estimate.
+      const speechFrames = roundHalfEven(
+        speechLength(clip, REVERB_SAMPLE_RATE) * REVERB_FRAME_RATE
+      );
 
-      return { codes, transcript: prepareText(transcript, language), language };
+      return { codes, transcript: prepareText(transcript, language), language, speechFrames };
     };
 
     let isSynthesizing = false;
@@ -580,6 +598,16 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
       checkLanguage(language, 'synthesize');
       const voice = resolveVoice(options.voice);
       const references = voice.codes.length / CODEBOOKS;
+      const pace = options.pace ?? 'speech';
+      if (pace !== 'speech' && pace !== 'recording') {
+        throw RnExecuTorchError(
+          'INVALID_ARGUMENT',
+          "synthesize: pace must be 'speech' or 'recording'."
+        );
+      }
+      // The reference length the estimate follows; the model still takes every reference frame.
+      const paceFrames =
+        pace === 'speech' ? Math.min(voice.speechFrames ?? references, references) : references;
 
       const speed = options.speed ?? DEFAULT_SPEED;
       if (!(speed >= MIN_SPEED && speed <= MAX_SPEED)) {
@@ -634,7 +662,7 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
         );
       }
       const targetLength = (chunk: string) =>
-        estimateTargetFrames(chunk, voice.transcript, references) / speed;
+        estimateTargetFrames(chunk, voice.transcript, paceFrames) / speed;
 
       isSynthesizing = true;
       try {

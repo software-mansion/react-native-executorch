@@ -130,7 +130,7 @@ const cloned = tts.synthesize('Any text, now in the recorded voice.', { voice, l
 - **Reference audio**: [`encodeVoice()`](../../06-api-reference/type-aliases/ReverbTextToSpeech.md#encodevoice) takes 24 kHz ([`REVERB_SAMPLE_RATE`](../../06-api-reference/variables/REVERB_SAMPLE_RATE.md)) mono PCM of 1 to 20 seconds and does not resample; 5 to 15 seconds of clear speech, without long silences at the edges, work best. With [`react-native-audio-api`](https://github.com/software-mansion/react-native-audio-api), request 24 kHz from the `AudioRecorder`, or decode files with `decodeAudioData(uri, REVERB_SAMPLE_RATE)`.
 - **Transcript**: it has to match the recording word for word. To transcribe on-device, run [Speech-to-Text](./03-speech-to-text.md) on the same audio resampled to 16 kHz.
 - **Languages**: the text can be in any of the 7 languages ([`REVERB_LANGUAGES`](../../06-api-reference/variables/REVERB_LANGUAGES.md)); a voice sounds most natural in the language of its recording. Numbers, symbols and abbreviations in the text are written out as words before synthesis.
-- **Reuse**: a [`ReverbVoice`](../../06-api-reference/type-aliases/ReverbVoice.md) is plain data — the reference's codec `codes`, its `transcript` and `language` — so it can be stored and passed to later sessions without encoding the recording again. Preset voices use the same fields, as JSON files listed in the model config's `voices`.
+- **Reuse**: a [`ReverbVoice`](../../06-api-reference/type-aliases/ReverbVoice.md) is plain data — the reference's codec `codes`, its `transcript`, `language` and `speechFrames` — so it can be stored and passed to later sessions without encoding the recording again. Preset voices use the same fields, as JSON files listed in the model config's `voices`.
 - **Downloads**: the codec encoder (135-176 MB) loads on the first `encodeVoice()` call. An app that only uses preset voices can drop it from the config so it is not downloaded:
 
 ```typescript
@@ -138,7 +138,9 @@ const { codecEncoder, ...modelPaths } = models.textToSpeech.REVERB.DEFAULT.model
 const tts = useTextToSpeech({ ...models.textToSpeech.REVERB.DEFAULT, modelPaths });
 ```
 
-[`ReverbTtsOptions`](../../06-api-reference/type-aliases/ReverbTtsOptions.md) also set the `speed` (0.5 to 2.0), the `sampling` (`steps`, `remaskRatio` and a `seed` for reproducible takes), whether to `postprocess` (trim silent edges) and `maxChunkDuration`. Reverb packs whole sentences into chunks of up to `maxChunkDuration` seconds (20 by default), so the first audio arrives once the first chunk is synthesized.
+- **Speaking rate**: the speech length is estimated from the text and the voice's speaking rate. The rate counts only the time the reference spends speaking (`speechFrames`, measured by `encodeVoice()` and stored in preset files): its silent edges are left out and pauses over 0.5 s count as 0.5 s, so a recording with long pauses doesn't slow the speech down. The recording itself is used whole. `pace: 'recording'` estimates from the whole recording instead.
+
+[`ReverbTtsOptions`](../../06-api-reference/type-aliases/ReverbTtsOptions.md) also set the `speed` (0.5 to 2.0), the `pace` (`'speech'` or `'recording'`), the `sampling` (`steps`, `remaskRatio` and a `seed` for reproducible takes), whether to `postprocess` (trim silent edges) and `maxChunkDuration`. Reverb packs whole sentences into chunks of up to `maxChunkDuration` seconds (20 by default), so the first audio arrives once the first chunk is synthesized.
 
 ## Imperative Pipelines
 

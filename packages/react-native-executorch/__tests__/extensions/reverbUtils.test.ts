@@ -9,6 +9,7 @@ import {
   pauseAfter,
   prepareText,
   roundHalfEven,
+  speechLength,
   trimSilence,
 } from '../../src/extensions/speech/utils/reverbUtils';
 
@@ -205,12 +206,70 @@ describe('parseVoice', () => {
     });
   });
 
+  // The voice file's key, written as Echo writes it.
+  const SPEECH_FRAMES = 'speech_frames';
+  const voiceFile = (speechFrames?: unknown) => ({
+    codes: [0],
+    transcript: 'Hi.',
+    language: 'en',
+    ...(speechFrames === undefined ? {} : { [SPEECH_FRAMES]: speechFrames }),
+  });
+
+  it('reads the speech frames when the file has them', () => {
+    expect(parseVoice(voiceFile(4)).speechFrames).toBe(4);
+    expect('speechFrames' in parseVoice(voiceFile())).toBe(false);
+  });
+
   it.each([
     ['no codes', { transcript: 'Hi.', language: 'en' }],
     ['a fractional code', { codes: [0.5], transcript: 'Hi.', language: 'en' }],
     ['no transcript', { codes: [0], language: 'en' }],
     ['no language', { codes: [0], transcript: 'Hi.' }],
+    ['zero speech frames', voiceFile(0)],
+    ['fractional speech frames', voiceFile(2.5)],
+    ['speech frames as text', voiceFile('4')],
   ])('rejects a voice with %s', (_label, json) => {
     expect(() => parseVoice(json)).toThrow(/Invalid voice JSON/);
+  });
+});
+
+describe('speechLength', () => {
+  // The expected lengths are Echo's speech_length on the same clips.
+  const RATE = 24000;
+  const tone = (seconds: number, amplitude = 0.3) =>
+    Float32Array.from(
+      { length: Math.round(seconds * RATE) },
+      (_, i) => amplitude * Math.sin((2 * Math.PI * 220 * i) / RATE)
+    );
+  const quiet = (seconds: number) => new Float32Array(Math.round(seconds * RATE));
+  const join = (...parts: Float32Array[]) => {
+    const out = new Float32Array(parts.reduce((n, p) => n + p.length, 0));
+    let at = 0;
+    for (const part of parts) {
+      out.set(part, at);
+      at += part.length;
+    }
+    return out;
+  };
+
+  it('keeps short edges, counts a sentence pause whole, and caps a long one', () => {
+    // 1 s edges; a 1.5 s and a 0.3 s pause between three 1 s sounds.
+    const clip = join(quiet(1), tone(1), quiet(1.5), tone(1), quiet(0.3), tone(1), quiet(1));
+
+    expect(speechLength(clip, RATE)).toBeCloseTo(4.1, 10); // 3 + 0.5 + 0.3 + 0.1 + 0.2
+    expect(speechLength(clip, RATE, 0.2)).toBeCloseTo(3.7, 10);
+  });
+
+  it('measures clean speech whole', () => {
+    expect(speechLength(tone(2), RATE)).toBeCloseTo(2, 10);
+  });
+
+  it('levels a quiet clip before telling sound from silence', () => {
+    expect(speechLength(join(tone(1, 1e-4), quiet(2), tone(1, 1e-4)), RATE)).toBeCloseTo(2.5, 10);
+  });
+
+  it('counts a silent or tiny clip whole', () => {
+    expect(speechLength(quiet(2), RATE)).toBe(2);
+    expect(speechLength(new Float32Array(10), RATE)).toBe(10 / RATE);
   });
 });

@@ -322,6 +322,30 @@ describe('createReverbTextToSpeech — synthesis', () => {
     expect(calls[1]!.shapes[0]).toEqual([8, roundHalfEven(estimate(TEXT) / 0.8)]);
   });
 
+  it("estimates the length from the voice's speech frames, or from the whole clip", async () => {
+    const tts = tracked(await createReverbTextToSpeech(config));
+    const paused = { ...preset, speechFrames: 15 };
+
+    await collect(tts.synthesize(TEXT, { voice: paused, language: 'en' }));
+    await collect(tts.synthesize(TEXT, { voice: paused, language: 'en', pace: 'recording' }));
+
+    const steps = calls.filter(({ methodName }) => methodName === 'step');
+    const expected = (references: number) =>
+      Math.max(
+        10,
+        roundHalfEven(estimateTargetFrames(prepareText(TEXT, 'en'), PRESET.transcript, references))
+      );
+    expect(steps[0]!.shapes[0]).toEqual([8, expected(15)]);
+    expect(steps[8]!.shapes[0]).toEqual([8, expected(30)]);
+    // Either way the model takes the whole reference.
+    expect(
+      calls.filter(({ methodName }) => methodName === 'prefill').map((c) => c.shapes[1])
+    ).toEqual([
+      [8, 30],
+      [8, 30],
+    ]);
+  });
+
   it('prompts with the language, the voice transcript and the prepared text', async () => {
     const vocabulary: string[] = [];
     fakeJsi.registerTokenizer(TOKENIZER_PATH, { tokens: vocabulary, open: true });
@@ -394,10 +418,29 @@ describe('createReverbTextToSpeech — synthesis', () => {
 
     expect(voice.transcript).toBe('I have two cats.');
     expect(voice.codes).toEqual(new BigInt64Array(8 * 62).fill(BigInt(ENCODED)));
+    expect(voice.speechFrames).toBe(62); // a silent clip counts whole
     expect(calls.find(({ methodName }) => methodName === 'encoder.forward')!.shapes).toEqual([
       [62, FRAME_SAMPLES],
     ]);
     expect(calls.find(({ methodName }) => methodName === 'prefill')!.shapes[1]).toEqual([8, 62]);
+  });
+
+  it("measures an encoded voice's speech frames, rounding halves to even as Echo does", async () => {
+    const tts = tracked(await createReverbTextToSpeech(config));
+    // 0.5 s of silence, 1.72 s of tone, 0.78 s of silence: 0.1 + 1.72 + 0.2 = 2.02 s of speech, exactly 50.5 frames.
+    const rate = REVERB_SAMPLE_RATE;
+    const audio = new Float32Array(3 * rate);
+    for (
+      let i = 12000;
+      i < 53280;
+      i++ // 0.5 s to 2.22 s, as whole samples
+    )
+      audio[i] = 0.3 * Math.sin((2 * Math.PI * 220 * i) / rate);
+
+    const voice = await tts.encodeVoice(audio, 'I have 2 cats.', 'en');
+
+    expect(voice.codes.length / 8).toBe(75);
+    expect(voice.speechFrames).toBe(50); // Math.round would give 51
   });
 
   it('stops streaming when synthesizeStop is called mid-stream', async () => {
@@ -442,6 +485,7 @@ describe('createReverbTextToSpeech — argument validation', () => {
     ['a fractional step count', { sampling: { steps: 2.5 } }, 'Hello.', /positive integer/],
     ['a remask ratio above 1', { sampling: { remaskRatio: 1.5 } }, 'Hello.', /\[0, 1\]/],
     ['a fractional seed', { sampling: { seed: 0.5 } }, 'Hello.', /seed must be an integer/],
+    ['an unknown pace', { pace: 'audio' }, 'Hello.', /pace must be/],
   ])('rejects %s', async (_label, options, text, error) => {
     await expect(synthesizeWith(options, text)).rejects.toThrow(error);
   });
@@ -451,6 +495,7 @@ describe('createReverbTextToSpeech — argument validation', () => {
     ['a reference shorter than 2 frames', { ...preset, codes: new BigInt64Array(8) }],
     ['a code out of range', { ...preset, codes: new BigInt64Array(16).fill(1024n) }],
     ['no transcript', { ...preset, transcript: ' ' }],
+    ['fractional speech frames', { ...preset, speechFrames: 2.5 }],
   ])('rejects a voice with %s', async (_label, voice) => {
     await expect(synthesizeWith({ voice })).rejects.toThrow(/A voice holds/);
   });

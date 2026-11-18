@@ -15,6 +15,7 @@ import { RnExecuTorchError } from '../../../core/error';
 import type { ReverbLanguage, ReverbVoice } from '../tasks/reverbTextToSpeech';
 
 const BLIP_WINDOWS = 12; // an edge sound of at most 120 ms is a codec burst
+const SILENCE_DB = -50; // a 10 ms window of a leveled clip below this is silent
 const SOUND_GAP_WINDOWS = 20; // loud windows over 200 ms apart are separate sounds
 
 const VERBALIS_LANGUAGES: Record<ReverbLanguage, () => LanguageHandle> = {
@@ -30,19 +31,20 @@ const verbalizers: Partial<Record<ReverbLanguage, Verbalizer>> = {};
 
 /**
  * Parses a voice file's JSON: `{ codes, transcript, language }`, the codes as
- * `8 × frames` integers, row-major.
+ * `8 × frames` integers, row-major, with an optional `speech_frames`.
  * @param json The parsed JSON.
  * @returns The voice.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` on a missing or
  * mistyped field.
  */
 export function parseVoice(json: any): ReverbVoice {
-  const { codes, transcript, language } = json ?? {};
+  const { codes, transcript, language, speech_frames: speechFrames } = json ?? {};
   const valid =
     Array.isArray(codes) &&
     codes.every((code) => Number.isInteger(code)) &&
     typeof transcript === 'string' &&
-    typeof language === 'string';
+    typeof language === 'string' &&
+    (speechFrames === undefined || (Number.isInteger(speechFrames) && speechFrames > 0));
   if (!valid) {
     throw RnExecuTorchError('LOAD_FAILED', 'parseVoice: Invalid voice JSON format.');
   }
@@ -50,7 +52,66 @@ export function parseVoice(json: any): ReverbVoice {
     codes: BigInt64Array.from(codes as number[], BigInt),
     transcript,
     language: language as ReverbLanguage,
+    ...(speechFrames === undefined ? {} : { speechFrames }),
   };
+}
+
+/**
+ * Seconds of a voice clip that set the speaker's pace, as Echo's
+ * `speech_length` measures them: the clip without its silent edges,
+ * with every pause inside the speech counted as at most `maxPause` seconds.
+ *
+ * Silence is judged in 10 ms windows after leveling the clip to an RMS of 0.1.
+ * @param audio The clip.
+ * @param sampleRate Its sampling rate in Hz.
+ * @param maxPause Seconds an inner pause counts at most.
+ * @param lead Seconds of leading silence counted at most.
+ * @param trail Seconds of trailing silence counted at most.
+ * @returns The speaking time in seconds.
+ */
+export function speechLength(
+  audio: Float32Array,
+  sampleRate: number,
+  maxPause = 0.5,
+  lead = 0.1,
+  trail = 0.2
+): number {
+  const window = Math.floor(sampleRate / 100);
+  const windows = Math.floor(audio.length / window);
+  if (windows === 0) return audio.length / sampleRate;
+
+  const energies = new Float64Array(windows);
+  let total = 0;
+  for (let w = 0; w < windows; w++) {
+    let energy = 0;
+    for (let i = w * window; i < (w + 1) * window; i++) {
+      const sample = audio[i]!;
+      energy += sample * sample; // `** 2` makes this loop 2.5x slower in Hermes
+    }
+    energies[w] = energy;
+    total += energy;
+  }
+
+  // Leveled to RMS 0.1: a window is loud when its RMS, times this gain, reaches SILENCE_DB.
+  const gain = 0.1 / Math.max(Math.sqrt(total / (windows * window)), 1e-8);
+  const cap = roundHalfEven(maxPause * 100);
+  let first = -1;
+  let last = -1;
+  let kept = 0;
+  for (let w = 0; w < windows; w++) {
+    if (20 * Math.log10(gain * Math.sqrt(energies[w]! / window) + 1e-10) < SILENCE_DB) continue;
+    kept += first < 0 ? 1 : 1 + Math.min(w - last - 1, cap);
+    if (first < 0) first = w;
+    last = w;
+  }
+
+  if (first < 0) return audio.length / sampleRate;
+
+  const edges =
+    Math.min(first, roundHalfEven(lead * 100)) +
+    Math.min(windows - 1 - last, roundHalfEven(trail * 100));
+
+  return (kept + edges) / 100;
 }
 
 /**
