@@ -369,6 +369,17 @@ function getArtifacts(targets, { backends, libs }) {
     return artifacts;
   }
 
+  // Existing releases carry the ABI-independent Java API only in arm64 core.
+  // Explicit emulator-only installs need that archive too, even with no backends.
+  if (
+    targets.some((target) => target.startsWith('android')) &&
+    !targets.includes('android-arm64-v8a')
+  ) {
+    artifacts.push(
+      makeArtifact('core-android-arm64-v8a', path.join(THIRD_PARTY_DIR, 'android', 'libs'))
+    );
+  }
+
   for (const target of targets) {
     const destDir = target.startsWith('android')
       ? path.join(THIRD_PARTY_DIR, 'android', 'libs')
@@ -708,6 +719,7 @@ module.exports = {
   ALL_LIBS,
   BACKEND_FILES,
   detectTargets,
+  getArtifacts,
   FEATURE_MAP,
   findUserConfig,
   readUserConfig,

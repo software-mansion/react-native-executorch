@@ -108,6 +108,17 @@ phoneme output. Use device/emulator integration for those behaviors.
 
 ## Native app verification
 
+The [consumer build matrix](../../../.github/consumer-builds/README.md) checks a
+packed library in fresh bare RN and Expo applications on Android and iOS. It
+runs Expo profiles on relevant PRs, including Windows-hosted Android and two
+emulator/simulator runtime smoke cells, Android AAB validation, and Expo
+config-plugin integration builds for Sentry, Firebase, Vision Camera and audio-api. Manual dispatch can also select the full
+bare RN/Worklets matrix.
+Use it for publication, installation, autolinking, release bundling and
+native build regressions. Only the smoke cells launch apps and verify a bundled
+XNNPACK model; other backends and physical devices still need separate verification. The linked README owns its version pins, commands,
+artifacts and limitations.
+
 Choose the relevant app (`computer-vision`, `nlp` or `speech`) and inspect its current native setup.
 Provision matching native libraries before rebuilding. If iOS native projects already exist, run
 `pod install` in the app's `ios/` directory when dependencies, podspec files or source discovery change.
