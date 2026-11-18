@@ -2102,6 +2102,19 @@ const REVERB_VULKAN_INT4: ReverbTtsModel<ReverbDefaultVoiceName> = {
   tokenizerPath: REVERB_TOKENIZER,
   voices: REVERB_DEFAULT_VOICES,
 };
+// The backbone on the Hexagon NPU, the codec on the GPU as in VULKAN_INT4.
+// Resolves to this device's Hexagon version; off Snapdragon the v81 file stands
+// in, and DEFAULT never picks it there.
+const REVERB_QNN_VULKAN_INT4: ReverbTtsModel<ReverbDefaultVoiceName> = {
+  name: 'reverb',
+  modelPaths: {
+    backbone: `${REVERB_ROOT}/model/executorch/qnn/int4/reverb_qnn_int4_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+    codecDecoder: `${REVERB_CODEC_ROOT}/decoder/vulkan/fp16/codec_decoder_vulkan_fp16.pte`,
+    codecEncoder: `${REVERB_CODEC_ROOT}/encoder/vulkan/int8/codec_encoder_vulkan_int8.pte`,
+  },
+  tokenizerPath: REVERB_TOKENIZER,
+  voices: REVERB_DEFAULT_VOICES,
+};
 
 // =============================================================================
 // Privacy Filter
@@ -4043,6 +4056,7 @@ export const models = {
       MLX_COREML_INT8: REVERB_MLX_COREML_INT8,
       MLX_COREML_FP16: REVERB_MLX_COREML_FP16,
       MLX_COREML_INT4: REVERB_MLX_COREML_INT4,
+      QNN_VULKAN_INT4: REVERB_QNN_VULKAN_INT4,
       VULKAN_INT4: REVERB_VULKAN_INT4,
     }),
   },
