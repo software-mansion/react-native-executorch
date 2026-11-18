@@ -12,11 +12,9 @@ import {
   validateSpec,
   method,
   i64,
-  f16,
   f32,
   DynamicDim as Dyn,
   constraint,
-  type DimRef,
   type Range,
 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
@@ -24,6 +22,15 @@ import { createResourceScope } from '../../../core/lifetime';
 import { RnExecuTorchError } from '../../../core/error';
 import { mulberry32 } from '../../math';
 import { loadTokenizer } from '../../nlp/tokenizer';
+import {
+  CODEBOOKS,
+  CODES,
+  MASK_CODE,
+  createReverbBackbone,
+  frameDim,
+  type ReverbPass,
+  type ReverbSession,
+} from '../utils/reverbBackbone';
 import { partitionReverbText } from '../utils/reverbPartitioner';
 import {
   buildPrompt,
@@ -55,13 +62,6 @@ export const REVERB_FRAME_RATE = 25;
 export const REVERB_LANGUAGES = ['de', 'en', 'es', 'fr', 'it', 'pl', 'pt'] as const;
 
 const FRAME_SAMPLES = REVERB_SAMPLE_RATE / REVERB_FRAME_RATE; // 960
-const CODEBOOKS = 8;
-const CODES = 1024; // per codebook; the next id marks a masked slot
-const MASK_CODE = BigInt(CODES);
-// K/V cache: [keys and values, layers, KV heads, prefix, head dim]
-const CACHE_LAYERS = 24;
-const CACHE_HEADS = 6;
-const CACHE_HEAD_DIM = 128;
 
 // Voice Studio's sampler
 const T_SHIFT = 0.1; // few commits early, most in the last passes
@@ -108,7 +108,7 @@ export type ReverbTtsModel<K extends PropertyKey = never> = {
   readonly name: 'reverb';
   /** Local or remote paths to the `.pte` programs. */
   readonly modelPaths: {
-    /** The backbone: `prefill`, `step`, `polish`. */
+    /** The backbone: `prefill`, `step` and `polish`, or `prefill` and `step` methods of fixed sizes. */
     readonly backbone: string;
     /** The codec decoder: codes to audio. */
     readonly codecDecoder: string;
@@ -236,34 +236,6 @@ export type ReverbTextToSpeech<K extends PropertyKey = never> = {
   readonly synthesizeStop: () => void;
 };
 
-const frameDim = (paramSide: 'input' | 'output', tensorIdx: number, dimIdx = 1): DimRef => ({
-  paramSide,
-  tensorIdx,
-  dimIdx,
-});
-const cache = () => f16(2, CACHE_LAYERS, CACHE_HEADS, Dyn('P'), CACHE_HEAD_DIM);
-
-// prettier-ignore
-const BACKBONE_SPEC = {
-  ...method(
-    'prefill',
-    [i64(Dyn('L')), i64(CODEBOOKS, Dyn('R'))], // prompt tokens, reference codes
-    [cache()]
-  ),
-  ...method(
-    'step',
-    [i64(CODEBOOKS, Dyn('T')), cache()], // tokens
-    [f32(2, Dyn('T')), i64(2, Dyn('T')), f32(2, Dyn('T'))], // confidence, prediction, held
-    [constraint.equality(frameDim('input', 0), frameDim('output', 0), frameDim('output', 1), frameDim('output', 2))]
-  ),
-  ...method(
-    'polish',
-    [i64(CODEBOOKS, Dyn('T')), i64(1), cache()], // tokens, reference frames
-    [i64(CODEBOOKS - 2, Dyn('T'))], // codebooks 2-7
-    [constraint.equality(frameDim('input', 0), frameDim('output', 0))]
-  ),
-};
-
 const DECODER_SPEC = method(
   'forward',
   [i64(CODEBOOKS, Dyn('T'))], // codes
@@ -294,7 +266,7 @@ function commitSchedule(steps: number): number[] {
 function samplePass(
   tokens: BigInt64Array,
   frames: number,
-  pass: { confidence: Float32Array; prediction: BigInt64Array; held: Float32Array },
+  pass: ReverbPass,
   step: number,
   schedule: readonly number[],
   remaskRatio: number,
@@ -352,12 +324,14 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
 
   try {
     const load = wrapAsync(loadModel, runtime);
-    const backbone = scope.track(await load(config.modelPaths.backbone));
+    const backbone = scope.track(
+      createReverbBackbone(scope.track(await load(config.modelPaths.backbone)))
+    );
     const decoder = scope.track(await load(config.modelPaths.codecDecoder));
     const tokenizer = scope.track(await wrapAsync(loadTokenizer, runtime)(config.tokenizerPath));
 
-    const backboneSpec = validateSpec(backbone.schema, { default: BACKBONE_SPEC });
-    const [promptTokens, referenceFrames, targetFrames] = backboneSpec.dims.range('L', 'R', 'T');
+    const { promptTokens, referenceFrames, targetFrames } = backbone.limits;
+    const openBackbone = backbone.open;
     const [decodedFrames] = validateSpec(decoder.schema, { default: DECODER_SPEC }).dims.range('T');
     const minFrames = Math.max(MIN_FRAMES, targetFrames.min, decodedFrames.min);
     const maxFrames = Math.min(targetFrames.max, decodedFrames.max);
@@ -410,7 +384,6 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
       'worklet';
 
       const { steps, remaskRatio, seed, postprocess, pause } = chunkOpts;
-      const references = voice.codes.length / CODEBOOKS;
       const slots = 2 * frames;
       const tokens = new BigInt64Array(CODEBOOKS * frames).fill(MASK_CODE);
       const pass = {
@@ -429,44 +402,25 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
         return t;
       };
 
+      let session: ReverbSession | undefined;
+
       try {
-        // 1. Prefill the prompt and the reference into the K/V cache
-        const tCache = alloc('float16', [
-          2,
-          CACHE_LAYERS,
-          CACHE_HEADS,
-          ids.length + references,
-          CACHE_HEAD_DIM,
-        ]);
-        const tIds = alloc('int64', [ids.length], BigInt64Array.from(ids, BigInt));
-        const tReference = alloc('int64', [CODEBOOKS, references], voice.codes);
-        backbone.execute('prefill', [tIds, tReference], [tCache]);
+        // 1. Prefill the prompt and the reference
+        session = openBackbone(ids, voice.codes, frames);
 
         // 2. Main passes over codebooks 0-1
-        const tTokens = alloc('int64', [CODEBOOKS, frames]);
-        const tConfidence = alloc('float32', [2, frames]);
-        const tPrediction = alloc('int64', [2, frames]);
-        const tHeld = alloc('float32', [2, frames]);
         for (let step = 0; step < steps; step++) {
-          tTokens.setData(tokens);
-          backbone.execute('step', [tTokens, tCache], [tConfidence, tPrediction, tHeld]);
-          tConfidence.getData(pass.confidence);
-          tPrediction.getData(pass.prediction);
-          tHeld.getData(pass.held);
+          session.step(tokens, pass);
           samplePass(tokens, frames, pass, step, schedule, remaskRatio, random);
         }
 
         // 3. Polish codebooks 2-7
-        const tReferenceFrames = alloc('int64', [1], BigInt64Array.of(BigInt(references)));
-        const tFine = alloc('int64', [CODEBOOKS - 2, frames]);
-        tTokens.setData(tokens);
-        backbone.execute('polish', [tTokens, tReferenceFrames, tCache], [tFine]);
-        tokens.set(tFine.getData(new BigInt64Array((CODEBOOKS - 2) * frames)), slots);
+        session.polish(tokens);
 
         // 4. Decode
+        const tCodes = alloc('int64', [CODEBOOKS, frames], tokens);
         const tAudio = alloc('float32', [frames * FRAME_SAMPLES]);
-        tTokens.setData(tokens);
-        decoder.execute('forward', [tTokens], [tAudio]);
+        decoder.execute('forward', [tCodes], [tAudio]);
         let audio: Float32Array = tAudio.getData(new Float32Array(frames * FRAME_SAMPLES));
 
         // 5. Cut the end, then trim the silent edges
@@ -481,6 +435,7 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
         result.set(audio);
         return result;
       } finally {
+        session?.dispose();
         auxTensors.forEach((t) => t.dispose());
       }
     };

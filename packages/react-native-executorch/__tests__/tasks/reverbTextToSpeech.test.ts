@@ -3,7 +3,7 @@
  * and shapes that make a chunk, the sampler, chunking, validation, the lazy
  * encoder, and disposal. The speech itself needs real weights.
  */
-import { RangeDim, constraint, f16, f32, i64, method } from '../../src/core/schema';
+import { RangeDim, constraint, f16, f32, i32, i64, method } from '../../src/core/schema';
 import {
   REVERB_SAMPLE_RATE,
   createReverbTextToSpeech,
@@ -464,6 +464,79 @@ describe('createReverbTextToSpeech — synthesis', () => {
     const stream = tts.synthesize(text, { voice: 'anna', language: 'en', maxChunkDuration: 1.5 });
     await stream.next();
     await stream.return(undefined as never);
+
+    expect(fakeJsi.liveTensors()).toBe(0);
+  });
+});
+
+describe('createReverbTextToSpeech — a program with fixed shapes', () => {
+  // The QNN export: a padded prefix, a `step` method per target size, no `polish`.
+  const TEXT = 'Hello world, this is a test.';
+  const targetFrames = (text: string) =>
+    Math.max(10, estimateTargetFrames(prepareText(text, 'en'), PRESET.transcript, 30));
+  const PREFIX = 2 * MAX_PROMPT;
+  const pieces = () => Array.from({ length: 48 }, () => f16(6, PREFIX, 128));
+  const stepMethod = (name: string, size: number) =>
+    method(
+      name,
+      [i32(8, size), ...pieces(), i32(4), f16(size, 4, 1024)],
+      [f32(2, size), i32(2, size), f32(2, size), i32(6, size), f16(size, 4, 1024)]
+    );
+
+  beforeEach(() => {
+    registerModels();
+    fakeJsi.registerModel(BACKBONE_PATH, {
+      schema: exported({
+        ...method('prefill', [i32(PREFIX), i32(8, PREFIX), i32(2)], pieces()),
+        ...stepMethod('step_t128', 128),
+        ...stepMethod('step', 512),
+      }),
+      execute: (methodName, inputs, outputs) => {
+        const tensors = inputs as FakeTensor[];
+        calls.push({ methodName, shapes: tensors.map((t) => t.shape), inputs: tensors });
+        if (methodName === 'prefill') return;
+        fill(outputs[0]!, -1);
+        fill(outputs[1]!, PREDICTED);
+        outputs[2]!.data.forEach((_, i) => outputs[2]!.setElement(i, -i));
+        fill(outputs[3]!, POLISHED);
+      },
+    });
+  });
+
+  it('makes a chunk from a prefill, 8 steps and 2 more for the polish, on one step method', async () => {
+    const tts = tracked(await createReverbTextToSpeech(config));
+
+    await collect(tts.synthesize(TEXT, { voice: 'anna', language: 'en' }));
+
+    const step = targetFrames(TEXT) <= 128 ? 'step_t128' : 'step';
+    expect(methodsCalled()).toEqual(['prefill', ...new Array(10).fill(step), 'decoder.forward']);
+  });
+
+  it('decodes the codes its passes and its polish produced', async () => {
+    const tts = tracked(await createReverbTextToSpeech(config));
+
+    await collect(tts.synthesize(TEXT, { voice: 'anna', language: 'en' }));
+
+    const codes = calls.find(({ methodName }) => methodName === 'decoder.forward')!.inputs[0]!;
+    const target = targetFrames(TEXT);
+    expect(codes.shape).toEqual([8, target]);
+    const rows = Array.from({ length: 8 }, (_, c) => codes.getElement(c * target));
+    expect(rows).toEqual([PREDICTED, PREDICTED, ...new Array(6).fill(POLISHED)]);
+  });
+
+  it('rejects a chunk longer than its largest step method', async () => {
+    const tts = tracked(await createReverbTextToSpeech(config));
+
+    await expect(
+      collect(tts.synthesize('Hello.', { voice: 'anna', language: 'en', maxChunkDuration: 30 }))
+    ).rejects.toThrow(/at most 20.48/);
+  });
+
+  it('releases every tensor on dispose', async () => {
+    const tts = await createReverbTextToSpeech(config);
+    await collect(tts.synthesize(TEXT, { voice: 'anna', language: 'en' }));
+
+    tts.dispose();
 
     expect(fakeJsi.liveTensors()).toBe(0);
   });

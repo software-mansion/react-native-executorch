@@ -39,6 +39,10 @@ const MODEL_OPTIONS: { label: string; value: ReverbVariant; platform: typeof Pla
   { label: 'MLX fp16', value: 'MLX_COREML_FP16', platform: 'ios' },
   { label: 'MLX int4', value: 'MLX_COREML_INT4', platform: 'ios' },
   { label: 'Vulkan int4', value: 'VULKAN_INT4', platform: 'android' },
+  // Offered where the registry would pick it: a Snapdragon with the QNN backend linked.
+  ...(models.textToSpeech.REVERB.DEFAULT === models.textToSpeech.REVERB.QNN_VULKAN_INT4
+    ? [{ label: 'QNN int4', value: 'QNN_VULKAN_INT4', platform: 'android' } as const]
+    : []),
 ];
 
 // Transcribes the recordings a new voice is made from.
