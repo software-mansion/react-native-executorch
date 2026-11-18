@@ -8,7 +8,7 @@
  */
 
 import type { Model } from '../../../core/model';
-import { tensor, type Tensor } from '../../../core/tensor';
+import { sharedTensor, tensor, type Tensor } from '../../../core/tensor';
 import {
   validateSpec,
   method,
@@ -211,26 +211,27 @@ function bucketedBackbone(model: Model, match: SpecMatch): ReverbBackbone {
     }))
     .sort((a, b) => a.frames - b.frames);
 
-  // Shapes never change, so every tensor is made once and serves every chunk.
-  const tText = tensor('int32', [prefix]);
-  const tReference = tensor('int32', [CODEBOOKS, prefix]);
-  const tPrefixLengths = tensor('int32', [2]);
-  const tLengths = tensor('int32', [4]);
+  // Shapes never change, so every tensor is made once and serves every chunk, in memory the NPU maps
+  // instead of copying: the cache alone is 75 MB a pass.
+  const tText = sharedTensor('int32', [prefix]);
+  const tReference = sharedTensor('int32', [CODEBOOKS, prefix]);
+  const tPrefixLengths = sharedTensor('int32', [2]);
+  const tLengths = sharedTensor('int32', [4]);
   const tCache = Array.from({ length: 2 * CACHE_LAYERS }, () =>
-    tensor('float16', [CACHE_HEADS, prefix, CACHE_HEAD_DIM])
+    sharedTensor('float16', [CACHE_HEADS, prefix, CACHE_HEAD_DIM])
   );
   const buckets = sizes.map(({ name, frames }) => ({
     name,
     frames,
-    tTokens: tensor('int32', [CODEBOOKS, frames]),
-    tConfidence: tensor('float32', [2, frames]),
-    tPrediction: tensor('int32', [2, frames]),
-    tHeld: tensor('float32', [2, frames]),
-    tFine: tensor('int32', [CODEBOOKS - 2, frames]),
+    tTokens: sharedTensor('int32', [CODEBOOKS, frames]),
+    tConfidence: sharedTensor('float32', [2, frames]),
+    tPrediction: sharedTensor('int32', [2, frames]),
+    tHeld: sharedTensor('float32', [2, frames]),
+    tFine: sharedTensor('int32', [CODEBOOKS - 2, frames]),
     // Two, to hand one pass's logits to the next as its prior.
     tLogits: [
-      tensor('float16', [frames, LATE_CODEBOOKS, CODES]),
-      tensor('float16', [frames, LATE_CODEBOOKS, CODES]),
+      sharedTensor('float16', [frames, LATE_CODEBOOKS, CODES]),
+      sharedTensor('float16', [frames, LATE_CODEBOOKS, CODES]),
     ] as const,
   }));
   const dispose = (): void => {

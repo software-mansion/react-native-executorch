@@ -1,4 +1,5 @@
-import { tensor } from '../../src/core/tensor';
+import { sharedTensor, tensor } from '../../src/core/tensor';
+import { fakeJsi } from '../support/fakeJsi';
 
 describe('tensor()', () => {
   it('allocates with the requested dtype and shape', () => {
@@ -138,5 +139,21 @@ describe('Tensor.dispose', () => {
     const t = tensor('float32', [2]);
     t.dispose();
     expect(() => t.dispose()).not.toThrow();
+  });
+});
+
+describe('sharedTensor()', () => {
+  it('allocates a zeroed tensor of the requested dtype and shape, asking for shared memory', () => {
+    const t = sharedTensor('int32', [2, 3]);
+    expect(t.dtype).toBe('int32');
+    expect([...t.shape]).toEqual([2, 3]);
+    expect([...t.getData(new Int32Array(6))]).toEqual([0, 0, 0, 0, 0, 0]);
+    expect(fakeJsi.sharedTensors()).toBe(1);
+    t.dispose();
+  });
+
+  it('is what tensor() does not ask for', () => {
+    tensor('float32', [4]).dispose();
+    expect(fakeJsi.sharedTensors()).toBe(0);
   });
 });

@@ -254,10 +254,11 @@ describe('the bucketed backbone', () => {
     expect(rows).toEqual([7, 7, 10, 11, 22, 23, 24, 25]);
   });
 
-  it('keeps its tensors between chunks and releases them on dispose', () => {
+  it('keeps its tensors between chunks, in shared memory, and releases them on dispose', () => {
     const model = loadModel(PATH);
     const backbone = createReverbBackbone(model);
     const held = fakeJsi.liveTensors();
+    expect(fakeJsi.sharedTensors()).toBe(held);
 
     backbone.open(Int32Array.of(1), codesOf(1), 4).dispose();
     backbone.open(Int32Array.of(1), codesOf(1), 9).dispose();
