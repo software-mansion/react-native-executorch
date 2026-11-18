@@ -34,13 +34,21 @@ import { theme } from '../../theme';
 
 type ReverbVariant = Exclude<keyof typeof models.textToSpeech.REVERB, 'DEFAULT'>;
 
+// The variant the registry resolves `DEFAULT` to on this device.
+const DEFAULT_VARIANT = (
+  Object.keys(models.textToSpeech.REVERB) as (keyof typeof models.textToSpeech.REVERB)[]
+).find(
+  (key): key is ReverbVariant =>
+    key !== 'DEFAULT' && models.textToSpeech.REVERB[key] === models.textToSpeech.REVERB.DEFAULT
+)!;
+
 const MODEL_OPTIONS: { label: string; value: ReverbVariant; platform: typeof Platform.OS }[] = [
   { label: 'MLX int8', value: 'MLX_COREML_INT8', platform: 'ios' },
   { label: 'MLX fp16', value: 'MLX_COREML_FP16', platform: 'ios' },
   { label: 'MLX int4', value: 'MLX_COREML_INT4', platform: 'ios' },
   { label: 'Vulkan int4', value: 'VULKAN_INT4', platform: 'android' },
-  // Offered where the registry would pick it: a Snapdragon with the QNN backend linked.
-  ...(models.textToSpeech.REVERB.DEFAULT === models.textToSpeech.REVERB.QNN_VULKAN_INT4
+  // Offered where the registry picks it: a Snapdragon with the QNN backend linked.
+  ...(DEFAULT_VARIANT === 'QNN_VULKAN_INT4'
     ? [{ label: 'QNN int4', value: 'QNN_VULKAN_INT4', platform: 'android' } as const]
     : []),
 ];
@@ -353,9 +361,7 @@ function LevelMeter({ level, active }: { level: number; active: boolean }) {
 }
 
 function ReverbContent() {
-  const [selectedModel, setSelectedModel] = useState<ReverbVariant>(
-    Platform.OS === 'android' ? 'VULKAN_INT4' : 'MLX_COREML_INT8'
-  );
+  const [selectedModel, setSelectedModel] = useState<ReverbVariant>(DEFAULT_VARIANT);
   const [language, setLanguage] = useState<ReverbLanguage>('en');
   const [text, setText] = useState(SAMPLE_TEXTS.en);
   const [choice, setChoice] = useState<VoiceChoice>({ kind: 'preset', name: 'en_male_narrator_1' });
