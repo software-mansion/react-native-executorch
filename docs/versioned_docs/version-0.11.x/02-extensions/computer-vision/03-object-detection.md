@@ -98,7 +98,7 @@ function MyComponent() {
 ```
 
 :::tip Full Interactive Example in Gallery App
-See [`src/app/(screens)/object-detection.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/object-detection.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen with photo picker, bounding box overlays, and latency tracking.
+See [`src/app/(screens)/object-detection.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/v0.1.0/src/app/(screens)/object-detection.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery/tree/v0.1.0) for a complete, runnable screen with photo picker, bounding box overlays, and latency tracking.
 :::
 
 ## Output Format

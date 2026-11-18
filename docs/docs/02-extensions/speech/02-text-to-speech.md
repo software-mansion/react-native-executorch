@@ -18,6 +18,8 @@ keywords:
   ]
 ---
 
+import TaskShowcase from '@site/src/components/TaskShowcase';
+
 # Text-to-Speech (TTS)
 
 The Text-to-Speech extension synthesizes natural, expressive spoken audio waveforms directly on-device from input text.
@@ -29,47 +31,7 @@ Speech synthesis operates through multi-stage neural pipelines that combine phon
 
 Both pipelines are wrapped uniformly by the [`useTextToSpeech`](../../06-api-reference/functions/useTextToSpeech.md) React hook.
 
-<table className="showcase-table">
-  <thead>
-    <tr>
-      <th>iOS</th>
-      <th>Android</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-        <div className="device-phone iphone-chassis">
-          <div className="device-screen iphone-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/text-to-speech-ios.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-      <td>
-        <div className="device-phone s24-chassis">
-          <div className="s24-camera-hole"></div>
-          <div className="device-screen s24-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/text-to-speech-android.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<TaskShowcase task="text-to-speech" />
 
 ## Quick Start
 
@@ -109,7 +71,7 @@ function SpeechComponent() {
 ```
 
 :::tip Full Interactive Example in Gallery App
-See [`src/app/(screens)/text-to-speech.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/text-to-speech.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen featuring voice selection, buffer queue streaming, Time-to-First-Audio (TTFA) benchmarking, and live waveform visualization.
+See [`src/app/(screens)/text-to-speech.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/text-to-speech.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen featuring streamed playback and synchronized word highlighting.
 :::
 
 ## Output Format

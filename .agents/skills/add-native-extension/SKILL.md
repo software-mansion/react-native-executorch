@@ -1,9 +1,9 @@
 ---
 name: add-native-extension
-description: Use when adding a C++ extension, writing native JSI host functions, registering functions in C++ install maps, or compiling native code.
+description: Use when implementing native C++ operations, exposing them through JSI, or updating domain installation and TypeScript wrappers. For build/debug workflows use verify-and-build.
 metadata:
   id: add_native_extension
-  scope: cpp/extensions/*, src/extensions/*
+  scope: packages/react-native-executorch/cpp/extensions/*, packages/react-native-executorch/src/extensions/*
 ---
 
 # Skill: Add a Native C++ Extension & JSI Bindings
@@ -17,7 +17,9 @@ Use this guide to add custom, performance-critical native operations in C++ and 
 Before writing any C++ code, ensure you adhere to the following principles:
 
 1. **Amdahl's Law & Premature Optimization**:
-   - Evaluate what percentage of total inference/pipeline time the processing step occupies. If the preprocessing/postprocessing step takes `< 5%` of the total inference budget, write it in **pure TypeScript** to reduce codebase complexity and maintenance overhead.
+   - Prefer existing operations and TypeScript orchestration. Add native code when a missing platform
+     capability, memory/threading requirement or measured bottleneck justifies it. Record relevant
+     measurements when performance is the reason; there is no universal percentage cutoff.
 
 2. **Destination Tensors & Local Memory**:
    - **Local Memory is Allowed**: You can allocate temporary native C++ memory (such as stack variables, `std::vector`s, or dynamic memory cleaned up before the function exits) for intermediate calculations.
@@ -129,7 +131,7 @@ namespace rnexecutorch::extensions::<domain>
 
 ---
 
-### Step 2: Register in Extension and Core JSI Installs
+### Step 2: Register the Operation and, If New, Its Domain
 
 1. **Extension Register** (`cpp/extensions/<domain>/install.cpp`):
 
@@ -148,7 +150,7 @@ namespace rnexecutorch::extensions::<domain>
    }
    ```
 
-2. **Core Register** ([cpp/RnExecutorch.cpp](../../../packages/react-native-executorch/cpp/RnExecutorch.cpp)):
+2. **New domain only** ([cpp/RnExecutorch.cpp](../../../packages/react-native-executorch/cpp/RnExecutorch.cpp)):
    ```cpp
    #include "extensions/<domain>/install.h"
    // ... inside rnexecutorch::install ...
@@ -161,7 +163,9 @@ namespace rnexecutorch::extensions::<domain>
 
 **Where the wrapper file goes — general vs. model-specific ops:**
 
-- **Domain-general ops** (reusable across every task in the domain, e.g. `image_ops`, `box_ops`) go in the domain's shared op files (`src/extensions/<domain>/ops.ts`), re-exported from `src/extensions/<domain>/index.ts`.
+- **Domain-general ops** go in the domain's existing shared op layout, re-exported from its `index.ts`.
+  For example, CV uses `src/extensions/cv/ops/image.ts` and `ops/box.ts`; inspect the domain before
+  creating a new `ops.ts`.
 - **Model- or task-specific ops** (only meaningful to one model/pipeline, e.g. FSMN-VAD framing) **must** go under `src/extensions/<domain>/utils/<name>.ts` — one file per model/task, named for it (e.g. `vadUtils.ts`, `supertonicUtils.ts`). Keep them out of the shared `ops.ts` so it stays a home for genuinely reusable ops, and group each model's helpers together under `utils/`. Re-export them from the domain `index.ts` too so power users can reach them.
 
 Then, in that wrapper file:
@@ -172,8 +176,9 @@ Then, in that wrapper file:
 - Mark wrapper functions with the `"worklet";` directive.
 
 ```typescript
-import { rnexecutorchJsi } from '../native/bridge';
-import { type Tensor } from '../core/tensor';
+// For src/extensions/<domain>/ops.ts; adjust depth for nested ops/<name>.ts.
+import { rnexecutorchJsi } from '../../native/bridge';
+import { type Tensor } from '../../core/tensor';
 
 /**
  * Applies a custom operation scaling the src tensor by factor.
@@ -193,7 +198,7 @@ export function customOp(src: Tensor, dst: Tensor, factor: number = 1.0): Tensor
 
 When adding a native extension, verify that:
 
-- [ ] You only implemented in C++ if the operation takes `> 5%` of the total inference budget.
+- [ ] A native capability or measured performance/memory/threading need justifies the C++ implementation.
 - [ ] No JSI Tensors are implicitly allocated and returned in the C++ code.
 - [ ] Input and output tensors are extracted and validated using `tensor::fromJs` with strict expected `DType` and shape constraints where possible.
 - [ ] Primitive arguments are extracted and converted using `conversions::asType<T>`.
@@ -203,7 +208,10 @@ When adding a native extension, verify that:
 - [ ] Every failure is raised through a factory, `error::X(message)`; no raw `jsi::JSError` / `std::runtime_error` / `std::invalid_argument` was introduced.
 - [ ] The host function is registered through `error::guarded(fnBody)`, not a bare `fnBody`.
 - [ ] `#include "core/error.h"` and the `namespace error = ...` alias sit at file scope, outside any `#if defined(__ANDROID__)` / `#elif defined(__APPLE__)` branch.
-- [ ] The custom operation install function is registered in both the domain `install` function and core [cpp/RnExecutorch.cpp](../../../packages/react-native-executorch/cpp/RnExecutorch.cpp).
-- [ ] The TypeScript wrapper lives in the right place: domain-general ops in the shared `ops.ts`, model-/task-specific ops under `src/extensions/<domain>/utils/<name>.ts`.
+- [ ] The operation is registered in the domain install; a new domain is registered in [cpp/RnExecutorch.cpp](../../../packages/react-native-executorch/cpp/RnExecutorch.cpp).
+- [ ] The TypeScript wrapper follows the domain's existing shared op or task utility layout.
 - [ ] The TypeScript wrapper imports and uses `rnexecutorchJsi` instead of the global `__rnexecutorch_jsi__`.
 - [ ] The TypeScript wrapper is marked with the `"worklet";` directive and defines all default parameter values.
+
+Use [error handling](../error-handling/SKILL.md) for error-code/guard conventions and
+[verify and build](../verify-and-build/SKILL.md#verification-matrix) for static, host and device checks.

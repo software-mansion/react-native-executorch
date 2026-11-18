@@ -18,53 +18,15 @@ keywords:
   ]
 ---
 
+import TaskShowcase from '@site/src/components/TaskShowcase';
+
 # Text Embeddings
 
 Text embedding models convert sentences, paragraphs, or documents into dense numeric vectors (embeddings). Sentences with similar semantic meaning map to nearby points in the vector space, even when using completely different vocabulary.
 
 This enables on-device semantic search, offline Retrieval-Augmented Generation (RAG) against local SQLite vector stores, intent classification, and cross-modal text-to-image queries when paired with [Image Embeddings](../computer-vision/09-image-embeddings.md) — entirely on the client without sending private text to cloud APIs.
 
-<table className="showcase-table">
-  <thead>
-    <tr>
-      <th>iOS</th>
-      <th>Android</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-        <div className="device-phone iphone-chassis">
-          <div className="device-screen iphone-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/image-embeddings-ios.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-      <td>
-        <div className="device-phone s24-chassis">
-          <div className="s24-camera-hole"></div>
-          <div className="device-screen s24-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/image-embeddings-android.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<TaskShowcase task="image-embeddings" label="Text embeddings" />
 
 ## Quick Start
 
@@ -95,7 +57,7 @@ function MyComponent() {
 ```
 
 :::tip Full Interactive Example in Gallery App
-See [`src/app/(screens)/image-embeddings.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/image-embeddings.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen combining text and image embeddings for real-time cross-modal search.
+See [`src/app/(screens)/image-embeddings.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/image-embeddings.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen combining text and image embeddings for interactive on-device photo search.
 :::
 
 ## Output Format
@@ -144,7 +106,7 @@ const matches = store.query(await embedder.embed('How do I change my password?')
 // [{ id, score, metadata: { text } }, ...] — most similar first
 ```
 
-The store is in memory and searches exhaustively, which takes a few milliseconds for tens of thousands of vectors. `remove`, `get`, `has` and per-query `filter`/`minScore` are also available. Nothing is persisted.
+The store is in memory and searches exhaustively, which takes a few milliseconds for tens of thousands of vectors. `remove`, `get`, `has` and per-query `filter`/`minScore` are also available. Nothing is persisted. For a persistent store, document splitting and retrieval-augmented generation with an [LLM](./02-llm-chat-and-generation.md), see [React Native RAG](https://github.com/software-mansion-labs/react-native-rag).
 
 ## Asymmetric Retrieval & Prompt Prefixes
 
@@ -212,7 +174,7 @@ const customEmbedder = await createTextEmbedder({
 });
 ```
 
-The pipeline automatically verifies that the model's exported input and output shapes match its requirements. To prepare and export your own `.pte` model to match this pipeline, see [Exporting Custom Models](../../03-core-and-advanced/07-exporting-custom-models.md#using-a-built-in-pipeline).
+The pipeline automatically verifies that the model's exported input and output shapes match its requirements. The tokenizer adds no special tokens, so a model that expects them (for example `[CLS]` and `[SEP]` for BERT-style models) must add them inside its exported graph. To prepare and export your own `.pte` model to match this pipeline, see [Exporting Custom Models](../../03-core-and-advanced/07-exporting-custom-models.md#using-a-built-in-pipeline).
 :::
 
 ## API Reference

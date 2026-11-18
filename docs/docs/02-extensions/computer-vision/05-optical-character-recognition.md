@@ -14,53 +14,17 @@ keywords:
   ]
 ---
 
+<!-- cspell:ignore dewarping -->
+
+import TaskShowcase from '@site/src/components/TaskShowcase';
+
 # Optical Character Recognition (OCR)
 
 Optical Character Recognition (OCR) detects and extracts text from images. The pipeline identifies text regions with oriented quadrilateral boundaries ([`Quad`](../../06-api-reference/react-native-executorch/namespaces/cv/type-aliases/Quad.md)) and transcribes their characters in reading order (top-to-bottom, left-to-right columns).
 
 It is used for document digitizing, receipt scanning, license plate reading, sign translation, and invoice processing. Because inference runs entirely on-device with zero network latency, sensitive documents never leave the phone.
 
-<table className="showcase-table">
-  <thead>
-    <tr>
-      <th>iOS</th>
-      <th>Android</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-        <div className="device-phone iphone-chassis">
-          <div className="device-screen iphone-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/optical-character-recognition-ios.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-      <td>
-        <div className="device-phone s24-chassis">
-          <div className="s24-camera-hole"></div>
-          <div className="device-screen s24-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/optical-character-recognition-android.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<TaskShowcase task="optical-character-recognition" />
 
 ## Quick Start
 
@@ -183,8 +147,8 @@ The library provides mixed-precision fused PP-OCRv6 models from the [Software Ma
 | :----------------- | :----------------------------------------------------------------------- | :--------------- | :----------------------------------------------- | :--------------------------------------------------------------------------- |
 | **PP-OCRv6 Small** | [See](../../06-api-reference/variables/models.md#ocrpaddleppocrv6_small) | 7.9 MB – 25.0 MB | XNNPACK (CPU), Core ML (Apple), Vulkan (Android) | Full end-to-end on-device text detection & recognition in a single pipeline. |
 
-:::note Legacy CRAFT Models & Future EasyOCR Package
-The HuggingFace OCR collection may also list legacy **CRAFT** text detector models. Direct CRAFT support has been deprecated in core `react-native-executorch` in favor of the significantly faster and lighter fused **PP-OCRv6** pipeline. Advanced EasyOCR-style recognition features will be introduced in a dedicated companion package.
+:::note Legacy CRAFT Models & EasyOCR
+The HuggingFace OCR collection may also list legacy **CRAFT** text detector models. Direct CRAFT support has been deprecated in core `react-native-executorch` in favor of the significantly faster and lighter fused **PP-OCRv6** pipeline. EasyOCR alphabets, vertical text and document features (layout, tables, dewarping) are available in the companion [React Native OCR](https://github.com/software-mansion-labs/react-native-ocr) package.
 :::
 
 :::tip Using Custom Models

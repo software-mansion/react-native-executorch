@@ -70,11 +70,11 @@ jobs:
 
           # eslint, tsc and jest read none of the C++ trees, and none of the
           # documentation.
-          ts_irrelevant='^(docs/|[^/]+\.md$|packages/react-native-executorch/(cpp|legacy/cpp)/)'
+          ts_irrelevant='^(docs/|[^/]+\.md$|packages/react-native-executorch/cpp/)'
           if echo "$files" | grep -qvE "$ts_irrelevant"; then ts=true; else ts=false; fi
 
           # The C++ suite compiles cpp/ only (cpp/tests/CMakeLists.txt globs
-          # core/ and extensions/, never legacy/). The rest of this list is what
+          # core/ and extensions/). The rest of this list is what
           # decides which ExecuTorch release it builds and links against:
           # package.json carries nativeLibsVersion, which download-libs.js reads
           # to pick the headers release, and the CI job cross-checks that
@@ -147,7 +147,7 @@ jobs:
         run: yarn lint
 
       - name: Typecheck files
-        run: yarn workspaces foreach --all --exclude react-native-executorch-webrtc --topological-dev run prepare && yarn typecheck
+        run: yarn workspaces foreach --all --topological-dev run prepare && yarn typecheck
 
   build-library:
     needs: changes
@@ -161,13 +161,14 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build all packages
-        run: yarn workspaces foreach --all --exclude react-native-executorch-webrtc --topological-dev run prepare
+        run: yarn workspaces foreach --all --topological-dev run prepare
 
   native-tests:
     name: C++ unit tests
     needs: changes
     if: needs.changes.outputs.native == 'true'
-    runs-on: ubuntu-latest
+    # Hermes v0.14.1 does not build with ubuntu-26.04's GCC 15 (missing <cstdint>).
+    runs-on: ubuntu-24.04
     # Well clear of a cold run (the Hermes + ExecuTorch dependency build is the
     # bulk of it) but far below the 6 h default, so a stalled download fails
     # with logs instead of hanging.
@@ -186,7 +187,7 @@ jobs:
       - name: Check out the submodules the tests build
         run: |
           git submodule update --init --depth 1 third-party/googletest
-          GIT_LFS_SKIP_SMUDGE=1 git submodule update --init --depth 1 \
+          GIT_LFS_SKIP_SMUDGE=1 git submodule update --init --recursive --depth 1 \
             packages/react-native-executorch/third-party/common/phonemis
         working-directory: ${{ github.workspace }}
 
@@ -243,17 +244,22 @@ jobs:
           echo "ExecuTorch $headers on both sides"
 
       # Hermes and ExecuTorch are pinned to exact tags, so the cache only misses
-      # when scripts/build-native-test-deps.sh changes those pins.
+      # when scripts/build-native-test-deps.sh changes those pins or the runner
+      # image changes (Hermes links the image's system ICU).
       #
       # Split restore/save rather than actions/cache: the combined action only
       # saves in a post step when the job succeeds, so a failing test would throw
       # away the ~9 min dependency build and rebuild it on every retry.
+      - name: Resolve runner image
+        id: runner-image
+        run: echo "os=$ImageOS" >> "$GITHUB_OUTPUT"
+
       - name: Restore native test dependencies
         id: deps-cache
         uses: actions/cache/restore@v5
         with:
           path: packages/react-native-executorch/.native-test-deps
-          key: ${{ runner.os }}-native-test-deps-${{ hashFiles('packages/react-native-executorch/scripts/build-native-test-deps.sh') }}
+          key: ${{ runner.os }}-${{ steps.runner-image.outputs.os }}-native-test-deps-${{ hashFiles('packages/react-native-executorch/scripts/build-native-test-deps.sh') }}
 
       - name: Build native test dependencies
         if: steps.deps-cache.outputs.cache-hit != 'true'
@@ -286,6 +292,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      # The podspec suites evaluate the podspec, which requires phonemis'
+      # phonemis_sources.rb. Nothing reads phonemis' Git LFS `data/`.
+      - name: Check out phonemis
+        run: |
+          GIT_LFS_SKIP_SMUDGE=1 git submodule update --init --depth 1 \
+            packages/react-native-executorch/third-party/common/phonemis
 
       - name: Setup
         uses: ./.github/actions/setup

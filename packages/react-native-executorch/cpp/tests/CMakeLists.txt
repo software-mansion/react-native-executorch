@@ -227,18 +227,6 @@ endif()
 if(RNE_TESTS_ENABLE_PHONEMIS)
   add_subdirectory("${PHONEMIS_DIR}" "${CMAKE_BINARY_DIR}/phonemis" EXCLUDE_FROM_ALL)
   list(APPEND RNE_SOURCES ${PHONEMIS_SOURCES})
-
-  # Two phonemis headers use std::optional and std::u32string without including
-  # <optional> / <string>. libc++ pulls both in transitively, so the Android
-  # (NDK) and iOS builds never notice; libstdc++ does not, and the member
-  # declarations then fail to parse, leaving a pile of "no declaration matches"
-  # errors on their definitions. Force-include the two headers rather than patch
-  # a pinned submodule; drop this once upstream adds the includes.
-  # SHELL: keeps the two -include flags paired; without it CMake de-duplicates
-  # the repeated -include and the second header becomes an input file.
-  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(phonemis PRIVATE "SHELL:-include optional" "SHELL:-include string")
-  endif()
 endif()
 
 add_library(rne_under_test STATIC ${RNE_SOURCES})
@@ -296,7 +284,7 @@ if(RNE_TESTS_ENABLE_OPENCV)
 endif()
 
 # --- Test support -----------------------------------------------------------
-add_library(rne_test_support STATIC support/JsiTestEnv.cpp)
+add_library(rne_test_support STATIC support/JsiTestEnv.cpp support/Snapshots.cpp)
 target_link_libraries(rne_test_support PUBLIC rne_under_test gtest gmock)
 target_include_directories(rne_test_support PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
@@ -305,6 +293,11 @@ target_include_directories(rne_test_support PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}"
 # path; it is in the tree, no provisioning involved.
 target_compile_definitions(rne_test_support PUBLIC
   RNE_ERROR_TS_SOURCE="${PACKAGE_DIR}/src/core/error.ts")
+
+# Snapshots of what third-party code produces, committed and updated with
+# RNE_UPDATE_SNAPSHOTS=1 (support/Snapshots.h).
+target_compile_definitions(rne_test_support PUBLIC
+  RNE_SNAPSHOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/snapshots")
 
 # --- Model fixture ----------------------------------------------------------
 # Suites that read ExecuTorch MethodMeta need a real .pte. It is downloaded
@@ -337,6 +330,25 @@ else()
     "  scripts/fetch-test-fixtures.sh")
 endif()
 
+# With Kokoro's tagger, segmenter and lexicons, phonemis produces real
+# phonemes, so what it outputs can be pinned, not only how it is called. Same
+# story again.
+set(PHONEMIZER_FIXTURE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/fixtures/phonemizer")
+set(RNE_HAVE_PHONEMIZER_FIXTURE ${RNE_TESTS_ENABLE_PHONEMIS})
+foreach(file en-us/tags.json en-us/lexicon.json en-gb/lexicon.json zh/segmenter.json zh/lexicon.json)
+  if(NOT EXISTS "${PHONEMIZER_FIXTURE_DIR}/${file}")
+    set(RNE_HAVE_PHONEMIZER_FIXTURE OFF)
+  endif()
+endforeach()
+if(RNE_HAVE_PHONEMIZER_FIXTURE)
+  target_compile_definitions(rne_test_support PUBLIC
+    RNE_PHONEMIZER_FIXTURE_DIR="${PHONEMIZER_FIXTURE_DIR}")
+elseif(RNE_TESTS_ENABLE_PHONEMIS)
+  message(WARNING
+    "Phonemizer fixtures missing, skipping the PhonemizerOutputTest suite. Fetch them with:\n"
+    "  scripts/fetch-test-fixtures.sh")
+endif()
+
 # --- Test binaries ----------------------------------------------------------
 enable_testing()
 include(GoogleTest)
@@ -359,7 +371,7 @@ if(RNE_TESTS_ENABLE_OPENCV)
 endif()
 
 if(RNE_TESTS_ENABLE_PHONEMIS)
-  list(APPEND TEST_SUITES extensions/PhonemizerTest.cpp)
+  list(APPEND TEST_SUITES extensions/PhonemizerTest.cpp extensions/PreprocessingTest.cpp)
 endif()
 
 if(RNE_HAVE_MODEL_FIXTURE)
@@ -368,6 +380,10 @@ endif()
 
 if(RNE_HAVE_TOKENIZER_FIXTURE)
   list(APPEND TEST_SUITES extensions/TokenizerTest.cpp)
+endif()
+
+if(RNE_HAVE_PHONEMIZER_FIXTURE)
+  list(APPEND TEST_SUITES extensions/PhonemizerOutputTest.cpp)
 endif()
 
 foreach(suite_path IN LISTS TEST_SUITES)

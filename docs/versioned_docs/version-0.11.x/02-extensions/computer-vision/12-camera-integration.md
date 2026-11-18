@@ -193,7 +193,7 @@ Vision models predict spatial outputs—such as bounding boxes (object detection
 - **Coordinate Remapping**: Mapping normalized or pixel `(x, y)` coordinates from the cropped tensor space back onto the visible camera viewport coordinates.
 
 :::tip Reference Implementation in Gallery App
-See [`src/app/(screens)/realtime-object-detection.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/realtime-object-detection.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete reference implementation of viewport coordinate transforms, orientation normalization, and real-time visual overlays.
+See [`src/app/(screens)/realtime-object-detection.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/v0.1.0/src/app/(screens)/realtime-object-detection.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery/tree/v0.1.0) for a complete reference implementation of viewport coordinate transforms, orientation normalization, and real-time visual overlays.
 :::
 
 ## Performance & Best Practices

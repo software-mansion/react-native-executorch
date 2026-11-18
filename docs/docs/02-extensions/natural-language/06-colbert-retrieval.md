@@ -18,9 +18,13 @@ keywords:
   ]
 ---
 
+import TaskShowcase from '@site/src/components/TaskShowcase';
+
 # ColBERT Retrieval
 
 A [Text Embeddings](./03-text-embeddings.md) model pools a whole text into one vector. A ColBERT model instead keeps **one vector per token** and scores a query against a document with **MaxSim**: for every query token, the similarity of the closest document token, summed over the query. Matching at the token level makes it more accurate on retrieval than a single pooled vector, at the cost of a larger index (one 128-dimensional vector per document token).
+
+<TaskShowcase task="colbert-retrieval" />
 
 ## Quick Start
 
@@ -49,6 +53,10 @@ function Search({ documents }: { documents: string[] }) {
   // ...
 }
 ```
+
+:::tip Full Interactive Example in Gallery App
+See [`src/app/(screens)/colbert-retrieval.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/colbert-retrieval.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen with a small city guide, MaxSim scoring, and ranked result cards.
+:::
 
 ## Output Format
 

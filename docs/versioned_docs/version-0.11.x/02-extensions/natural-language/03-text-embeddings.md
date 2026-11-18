@@ -95,7 +95,7 @@ function MyComponent() {
 ```
 
 :::tip Full Interactive Example in Gallery App
-See [`src/app/(screens)/image-embeddings.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/image-embeddings.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen combining text and image embeddings for real-time cross-modal search.
+See [`src/app/(screens)/image-embeddings.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/v0.1.0/src/app/(screens)/image-embeddings.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery/tree/v0.1.0) for a complete, runnable screen combining text and image embeddings for real-time cross-modal search.
 :::
 
 ## Output Format
@@ -212,7 +212,7 @@ const customEmbedder = await createTextEmbedder({
 });
 ```
 
-The pipeline automatically verifies that the model's exported input and output shapes match its requirements. To prepare and export your own `.pte` model to match this pipeline, see [Exporting Custom Models](../../03-core-and-advanced/07-exporting-custom-models.md#using-a-built-in-pipeline).
+The pipeline automatically verifies that the model's exported input and output shapes match its requirements. The tokenizer adds no special tokens, so a model that expects them (for example `[CLS]` and `[SEP]` for BERT-style models) must add them inside its exported graph. To prepare and export your own `.pte` model to match this pipeline, see [Exporting Custom Models](../../03-core-and-advanced/07-exporting-custom-models.md#using-a-built-in-pipeline).
 :::
 
 ## API Reference

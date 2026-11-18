@@ -49,11 +49,11 @@ Add a `react-native-executorch` block to your `package.json`:
 
 ### Options
 
-| Option     | Purpose                                                                              | Accepted values                                                                                                                                                                                                                                                                                                                                                           |
-| ---------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `features` | High-level tasks — each automatically expands to the backends and libraries it needs | `"classification"`, `"imageEmbeddings"`, `"inpainting"`, `"instanceSegmentation"`, `"keypointDetection"`, `"llm"`, `"multimodalLLM"`, `"objectDetection"`, `"ocr"`, `"privacyFilter"`, `"segmentAnything"`, `"semanticSegmentation"`, `"speechToText"`, `"styleTransfer"`, `"textEmbeddings"`, `"textToImage"`, `"textToSpeech"`, `"tokenizer"`, `"vad"`, `"verticalOCR"` |
-| `backends` | Hardware acceleration backends directly                                              | `"xnnpack"`, `"coreml"`, `"mlx"`, `"vulkan"`, `"qnn"`                                                                                                                                                                                                                                                                                                                     |
-| `libs`     | Extra native C++ libraries                                                           | `"opencv"`, `"phonemis"`                                                                                                                                                                                                                                                                                                                                                  |
+| Option     | Purpose                                                                              | Accepted values                                                                                                                                                                                                                                                                                                                                                                            |
+| ---------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `features` | High-level tasks — each automatically expands to the backends and libraries it needs | `"classification"`, `"imageEmbeddings"`, `"inpainting"`, `"instanceSegmentation"`, `"keypointDetection"`, `"llm"`, `"multimodalLLM"`, `"objectDetection"`, `"ocr"`, `"privacyFilter"`, `"segmentAnything"`, `"semanticSegmentation"`, `"speechToText"`, `"styleTransfer"`, `"textEmbeddings"`, `"textToImage"`, `"textToSpeech"`, `"tokenizer"`, `"translation"`, `"vad"`, `"verticalOCR"` |
+| `backends` | Hardware acceleration backends directly                                              | `"xnnpack"`, `"coreml"`, `"mlx"`, `"vulkan"`, `"qnn"`                                                                                                                                                                                                                                                                                                                                      |
+| `libs`     | Extra native C++ libraries                                                           | `"opencv"`, `"phonemis"`                                                                                                                                                                                                                                                                                                                                                                   |
 
 The three lists are merged, so you can pair high-level `features` with specific `backends` or `libs`. Re-run your package manager install after editing.
 
@@ -66,11 +66,12 @@ The block is read from the directory the install was run in, then from every
 actually resolved, and the install log names the manifest it read.
 :::
 
-:::caution pnpm and npm 12
-pnpm 10 and later, and npm 12 and later, do not run dependency install scripts
+:::caution pnpm, bun and npm 12
+pnpm 10 and later, bun, and npm 12 and later do not run dependency install scripts
 unless you allow them, so the download never happens and the native build fails
-later on a missing file. Run `pnpm approve-builds react-native-executorch` or
-`npm approve-scripts react-native-executorch` once. See
+later on a missing file. Install with `--allow-build=react-native-executorch`
+(pnpm 10.4+), run `bun pm trust react-native-executorch` (bun) or
+`npm approve-scripts react-native-executorch` (npm 12) once. See
 [Troubleshooting](../05-other/02-troubleshooting.md).
 :::
 
@@ -101,13 +102,14 @@ Specifying a task under `features` is shorthand: it automatically expands to the
 | `speechToText`         | xnnpack, coreml, mlx, vulkan | —                   |
 | `textToSpeech`         | xnnpack, coreml, mlx, vulkan | phonemis            |
 | `vad`                  | xnnpack                      | —                   |
+| `translation`          | xnnpack, mlx                 | —                   |
 | `textEmbeddings`       | xnnpack, coreml, mlx, vulkan | —                   |
 | `imageEmbeddings`      | xnnpack, coreml, mlx, vulkan | opencv              |
 | `classification`       | xnnpack, coreml              | opencv              |
 | `depthEstimation`      | xnnpack, coreml, vulkan      | opencv              |
 | `objectDetection`      | xnnpack, coreml, vulkan      | opencv              |
-| `keypointDetection`    | xnnpack, coreml, mlx, vulkan | opencv              |
-| `semanticSegmentation` | xnnpack, coreml              | opencv              |
+| `keypointDetection`    | xnnpack, coreml, vulkan      | opencv              |
+| `semanticSegmentation` | xnnpack, coreml, vulkan      | opencv              |
 | `instanceSegmentation` | xnnpack, coreml, vulkan      | opencv              |
 | `ocr`                  | xnnpack, coreml, vulkan      | opencv              |
 | `verticalOCR`          | xnnpack                      | opencv              |

@@ -14,9 +14,13 @@ keywords:
   ]
 ---
 
+import TaskShowcase from '@site/src/components/TaskShowcase';
+
 # Depth Estimation
 
 Depth estimation predicts a depth value for every pixel in an image. The pipeline returns a floating-point depth map matching the original image dimensions, which can be used for portrait blur, photo animation, and scene understanding.
+
+<TaskShowcase task="depth-estimation" />
 
 ## Quick Start
 
@@ -50,7 +54,7 @@ function MyComponent() {
 ```
 
 :::tip Full Interactive Example
-See [`apps/computer-vision/app/depthEstimation/index.tsx`](https://github.com/software-mansion/react-native-executorch/blob/main/apps/computer-vision/app/depthEstimation/index.tsx) for a complete screen with model selection, photo capture, depth visualization, interactive photo effects, and latency tracking.
+See [`src/app/(screens)/depth-estimation.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/depth-estimation.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen with depth-guided tap-to-focus effects.
 :::
 
 ## Output Format

@@ -1,7 +1,7 @@
 ---
 title: Speech-to-Text (STT)
 slug: /extensions/speech-to-text
-description: 'Transcribe spoken audio in real time on-device in React Native using OpenAI Whisper with integrated Voice Activity Detection.'
+description: 'Transcribe spoken audio in real time on-device in React Native using OpenAI Whisper or Qwen3-ASR with integrated Voice Activity Detection.'
 keywords:
   [
     react native,
@@ -9,6 +9,7 @@ keywords:
     stt,
     asr,
     whisper,
+    qwen3-asr,
     voice recognition,
     transcription,
     vad,
@@ -18,56 +19,20 @@ keywords:
   ]
 ---
 
+import TaskShowcase from '@site/src/components/TaskShowcase';
+
 # Speech-to-Text (STT)
 
-The Speech-to-Text extension transcribes spoken audio into text directly on-device using OpenAI's Whisper model paired with an integrated FSMN Voice Activity Detector (VAD).
+The Speech-to-Text extension transcribes spoken audio into text directly on-device using OpenAI's Whisper or Alibaba's [Qwen3-ASR](https://huggingface.co/Qwen/Qwen3-ASR-0.6B) paired with an integrated FSMN Voice Activity Detector (VAD).
 
 The pipeline supports two primary workflows:
 
 - [**Live Microphone Streaming**](#output-format--live-streaming): Streams real-time audio straight from the microphone. As the user speaks, Whisper continuously returns draft transcripts and automatically commits finalized sentences upon pauses.
 - [**Pre-recorded Audio Transcription**](#pre-recorded-audio-transcription): Transcribes pre-recorded audio buffers or audio files in a single pass, with optional token-by-token streaming callbacks.
 
-<table className="showcase-table">
-  <thead>
-    <tr>
-      <th>iOS</th>
-      <th>Android</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-        <div className="device-phone iphone-chassis">
-          <div className="device-screen iphone-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/speech-to-text-ios.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-      <td>
-        <div className="device-phone s24-chassis">
-          <div className="s24-camera-hole"></div>
-          <div className="device-screen s24-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/speech-to-text-android.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<TaskShowcase task="speech-to-text" />
+
+The showcase streams a fixed speech-and-silence sample through the on-device model for repeatable results.
 
 ## Quick Start
 
@@ -206,11 +171,12 @@ See [Worklets & Threading](../../03-core-and-advanced/06-worklets-and-threading.
 
 The library provides ready-to-use Whisper models from the [Software Mansion HuggingFace Whisper Collection](https://huggingface.co/collections/software-mansion/whisper), available in [`models.speechToText`](../../06-api-reference/variables/models.md#speechtotext):
 
-| Model Family      | Variants                                                                                                                                                                  | Size Range         | Supported Backends                                            | Languages                                                                                              | Notes                                                           |
-| :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :----------------- | :------------------------------------------------------------ | :----------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------- |
-| **Whisper Tiny**  | [`Multilingual`](../../06-api-reference/variables/models.md#speechtotextwhispertiny), [`English`](../../06-api-reference/variables/models.md#speechtotextwhisperentiny)   | 57.1 MB – 221.8 MB | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | English / [`WHISPER_LANGUAGES`](../../06-api-reference/variables/WHISPER_LANGUAGES.md) (99+ languages) | Ultra-fast transcription with minimal RAM usage.                |
-| **Whisper Base**  | [`Multilingual`](../../06-api-reference/variables/models.md#speechtotextwhisperbase), [`English`](../../06-api-reference/variables/models.md#speechtotextwhisperenbase)   | 97.8 MB – 380.2 MB | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | English / [`WHISPER_LANGUAGES`](../../06-api-reference/variables/WHISPER_LANGUAGES.md) (99+ languages) | Balanced accuracy and speed for general voice dictation.        |
-| **Whisper Small** | [`Multilingual`](../../06-api-reference/variables/models.md#speechtotextwhispersmall), [`English`](../../06-api-reference/variables/models.md#speechtotextwhisperensmall) | 276.0 MB – 1.05 GB | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | English / [`WHISPER_LANGUAGES`](../../06-api-reference/variables/WHISPER_LANGUAGES.md) (99+ languages) | High-capacity model for complex, noisy, or multi-speaker audio. |
+| Model Family       | Variants                                                                                                                                                                  | Size Range          | Supported Backends                                            | Languages                                                                                              | Notes                                                           |
+| :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------ | :------------------------------------------------------------ | :----------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------- |
+| **Whisper Tiny**   | [`Multilingual`](../../06-api-reference/variables/models.md#speechtotextwhispertiny), [`English`](../../06-api-reference/variables/models.md#speechtotextwhisperentiny)   | 57.1 MB – 221.8 MB  | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | English / [`WHISPER_LANGUAGES`](../../06-api-reference/variables/WHISPER_LANGUAGES.md) (99+ languages) | Ultra-fast transcription with minimal RAM usage.                |
+| **Whisper Base**   | [`Multilingual`](../../06-api-reference/variables/models.md#speechtotextwhisperbase), [`English`](../../06-api-reference/variables/models.md#speechtotextwhisperenbase)   | 97.8 MB – 380.2 MB  | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | English / [`WHISPER_LANGUAGES`](../../06-api-reference/variables/WHISPER_LANGUAGES.md) (99+ languages) | Balanced accuracy and speed for general voice dictation.        |
+| **Whisper Small**  | [`Multilingual`](../../06-api-reference/variables/models.md#speechtotextwhispersmall), [`English`](../../06-api-reference/variables/models.md#speechtotextwhisperensmall) | 276.0 MB – 1.05 GB  | XNNPACK (CPU), Core ML (Apple), MLX (Apple), Vulkan (Android) | English / [`WHISPER_LANGUAGES`](../../06-api-reference/variables/WHISPER_LANGUAGES.md) (99+ languages) | High-capacity model for complex, noisy, or multi-speaker audio. |
+| **Qwen3-ASR 0.6B** | [`0.6B`](../../06-api-reference/variables/models.md#speechtotextqwen3_asr)                                                                                                | 707.7 MB – 808.1 MB | XNNPACK (CPU), Core ML + MLX (Apple)                          | [`QWEN3_ASR_LANGUAGES`](../../06-api-reference/variables/QWEN3_ASR_LANGUAGES.md) (30 languages)        | Detects the language; pass `language` only to force one.        |
 
 ## API Reference
 
@@ -218,6 +184,7 @@ The library provides ready-to-use Whisper models from the [Software Mansion Hugg
 
 - [`useSpeechToText()`](../../06-api-reference/functions/useSpeechToText.md) — React hook for Whisper model loading, downloading, and live transcription state.
 - [`createWhisperSpeechToText()`](../../06-api-reference/functions/createWhisperSpeechToText.md) — Imperative factory for Whisper Speech-to-Text pipelines.
+- [`createQwen3AsrSpeechToText()`](../../06-api-reference/functions/createQwen3AsrSpeechToText.md) — Imperative factory for Qwen3-ASR Speech-to-Text pipelines.
 
 ### Types & Options
 
@@ -226,15 +193,18 @@ The library provides ready-to-use Whisper models from the [Software Mansion Hugg
 - [`WhisperSttOptions`](../../06-api-reference/type-aliases/WhisperSttOptions.md) — Per-call transcription options (`language`).
 - [`WhisperStreamOptions`](../../06-api-reference/type-aliases/WhisperStreamOptions.md) — Live microphone streaming options (`language`, `vadOptions`).
 - [`WhisperLanguage`](../../06-api-reference/type-aliases/WhisperLanguage.md) — Union of supported Whisper language codes.
+- [`Qwen3AsrSttModel`](../../06-api-reference/type-aliases/Qwen3AsrSttModel.md), [`Qwen3AsrSttOptions`](../../06-api-reference/type-aliases/Qwen3AsrSttOptions.md), [`Qwen3AsrLanguage`](../../06-api-reference/type-aliases/Qwen3AsrLanguage.md) — Qwen3-ASR counterparts.
 
 ### Constants & Model Presets
 
 - [`WHISPER_SAMPLE_RATE_HZ`](../../06-api-reference/variables/WHISPER_SAMPLE_RATE_HZ.md) — Target audio sample rate expected by Whisper models (16000 Hz).
 - [`WHISPER_LANGUAGES`](../../06-api-reference/variables/WHISPER_LANGUAGES.md) — Array of 99+ supported language codes.
+- [`QWEN3_ASR_LANGUAGES`](../../06-api-reference/variables/QWEN3_ASR_LANGUAGES.md) — Language codes Qwen3-ASR can be forced to.
 - [`models.speechToText`](../../06-api-reference/variables/models.md#speechtotext) — Pre-configured Whisper models registry.
 
 :::info Source Code
 View the implementation on GitHub:
 
 - [`src/extensions/speech/tasks/whisperSpeechToText.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/speech/tasks/whisperSpeechToText.ts)
+- [`src/extensions/speech/tasks/qwen3AsrSpeechToText.ts` ↗](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/extensions/speech/tasks/qwen3AsrSpeechToText.ts)
   :::

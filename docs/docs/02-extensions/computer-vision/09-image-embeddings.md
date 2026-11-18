@@ -16,53 +16,15 @@ keywords:
   ]
 ---
 
+import TaskShowcase from '@site/src/components/TaskShowcase';
+
 # Image Embeddings
 
 Image embedding models extract high-dimensional semantic feature vectors (embeddings) from raw images. When paired with multimodal models like OpenAI CLIP (Contrastive Language-Image Pretraining) and [Text Embeddings](../../02-extensions/natural-language/03-text-embeddings.md), image and text embeddings share the same joint vector space.
 
 This enables on-device cross-modal photo search (finding pictures with natural language queries), zero-shot image classification, visual similarity clustering, and vector search against local SQLite vector stores — all computed entirely on-device without network latency or cloud costs.
 
-<table className="showcase-table">
-  <thead>
-    <tr>
-      <th>iOS</th>
-      <th>Android</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-        <div className="device-phone iphone-chassis">
-          <div className="device-screen iphone-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/image-embeddings-ios.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-      <td>
-        <div className="device-phone s24-chassis">
-          <div className="s24-camera-hole"></div>
-          <div className="device-screen s24-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/image-embeddings-android.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<TaskShowcase task="image-embeddings" />
 
 ## Quick Start
 
@@ -94,7 +56,7 @@ function MyComponent() {
 ```
 
 :::tip Full Interactive Example in Gallery App
-See [`src/app/(screens)/image-embeddings.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/image-embeddings.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen combining image and text embeddings for real-time zero-shot photo ranking.
+See [`src/app/(screens)/image-embeddings.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/image-embeddings.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen combining image and text embeddings for interactive on-device photo ranking.
 :::
 
 ## Output Format

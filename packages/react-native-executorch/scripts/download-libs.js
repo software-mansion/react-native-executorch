@@ -44,7 +44,7 @@
  * Recognized values:
  *   backends:  xnnpack, coreml (iOS), mlx (iOS), vulkan (Android), qnn (Android arm64)
  *   libs:      opencv, phonemis
- *   features:  llm, multimodalLLM, speechToText, textToSpeech, vad, privacyFilter,
+ *   features:  llm, multimodalLLM, speechToText, textToSpeech, vad, privacyFilter, translation,
  *              textEmbeddings, imageEmbeddings,
  *              classification, objectDetection, depthEstimation, semanticSegmentation, instanceSegmentation,
  *              ocr, verticalOCR, keypointDetection, styleTransfer, textToImage, segmentAnything,
@@ -141,7 +141,8 @@ const FEATURE_MAP = {
   multimodalLLM: { backends: ['xnnpack', 'mlx', 'vulkan'], libs: ['opencv'] },
   // Privacy filter classifiers ship xnnpack + an MLX iOS export.
   privacyFilter: { backends: ['xnnpack', 'mlx'], libs: [] },
-  // Whisper ships xnnpack, coreml, an MLX iOS export and a Vulkan Android one.
+  // Whisper ships xnnpack, coreml, an MLX iOS export and a Vulkan Android one;
+  // Qwen3-ASR's MLX file also needs coreml, which runs its audio tower.
   speechToText: { backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'], libs: [] },
   // Kokoro ships xnnpack + coreml; Supertonic adds an MLX iOS export and a
   // Vulkan Android one.
@@ -151,6 +152,8 @@ const FEATURE_MAP = {
   },
   // FSMN VAD — xnnpack only.
   vad: { backends: ['xnnpack'], libs: [] },
+  // Opus-MT ships xnnpack int8 only: it beat Core ML, MLX and Vulkan on device.
+  translation: { backends: ['xnnpack', 'mlx'], libs: [] },
   // The MiniLM/CLIP-text/distiluse family ships coreml alongside xnnpack,
   // LFM2.5-Embedding and distiluse add MLX iOS exports, and every sentence
   // transformer now ships a vulkan Android export.
@@ -165,18 +168,16 @@ const FEATURE_MAP = {
   objectDetection: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
   // Keypoint detection (#1280): BlazeFace + YOLO26-pose ship xnnpack; RF-DETR
   // keypoint and the face mesh (#1140) add coreml, and BlazeFace, YOLO26-pose
-  // and RF-DETR keypoint add vulkan Android exports → union. mlx stays for the
-  // legacy API, whose RF_DETR_KEYPOINT_PREVIEW_MLX_FP32_MODEL outlived the new
-  // registry's MLX keypoint export (dropped in #1418).
+  // and RF-DETR keypoint add vulkan Android exports → union.
   // (Named to track the useKeypointDetector hook; main calls this poseEstimation.)
   keypointDetection: {
-    backends: ['xnnpack', 'coreml', 'mlx', 'vulkan'],
+    backends: ['xnnpack', 'coreml', 'vulkan'],
     libs: ['opencv'],
   },
   // Depth Anything V2, V3 and ZipDepth ship xnnpack, coreml and vulkan.
   depthEstimation: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
-  // DeepLab/FCN/LR-ASPP/selfie all ship xnnpack + coreml.
-  semanticSegmentation: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  // DeepLab/FCN/LR-ASPP/selfie ship xnnpack + coreml; U2NetP adds vulkan.
+  semanticSegmentation: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
   // YOLO-seg xnnpack-only, rf_detr-seg/fastsam add coreml, and all three ship
   // vulkan Android exports → union.
   instanceSegmentation: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
@@ -385,6 +386,17 @@ function getArtifacts(targets, { backends, libs }) {
   // include paths but never links or runs the binaries.
   if (process.env.RNET_HEADERS_ONLY) {
     return artifacts;
+  }
+
+  // Existing releases carry the ABI-independent Java API only in arm64 core.
+  // Explicit emulator-only installs need that archive too, even with no backends.
+  if (
+    targets.some((target) => target.startsWith('android')) &&
+    !targets.includes('android-arm64-v8a')
+  ) {
+    artifacts.push(
+      makeArtifact('core-android-arm64-v8a', path.join(THIRD_PARTY_DIR, 'android', 'libs'))
+    );
   }
 
   for (const target of targets) {
@@ -732,6 +744,7 @@ module.exports = {
   ALL_LIBS,
   BACKEND_FILES,
   detectTargets,
+  getArtifacts,
   FEATURE_MAP,
   findUserConfig,
   readUserConfig,

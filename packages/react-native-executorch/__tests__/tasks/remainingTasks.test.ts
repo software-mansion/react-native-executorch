@@ -21,6 +21,7 @@ import { createSdxsTextToImage } from '../../src/extensions/cv/tasks/sdxsTextToI
 import { createFsmnVoiceActivityDetector } from '../../src/extensions/speech/tasks/fsmnVoiceActivityDetection';
 import { createWhisperSpeechToText } from '../../src/extensions/speech/tasks/whisperSpeechToText';
 import { fakeJsi } from '../support/fakeJsi';
+import type { FakeTensor } from '../support/fakeTensor';
 import { tracked } from '../support/lifetime';
 import { STRETCH_PREPROCESSING, exported, imageBuffer, writesOutputs } from '../support/fixtures';
 
@@ -332,6 +333,26 @@ describe('createFsmnVoiceActivityDetector', () => {
     expect(await vad.detectVoice(new Float32Array(100))).toEqual([]);
     vad.dispose();
   });
+
+  it('falls back to the default options for fields passed as undefined', async () => {
+    // Every frame scores 0 non-speech probability, so the defaults find speech.
+    fakeJsi.registerModel(VAD_PATH, { schema: VAD_SCHEMA });
+
+    const vad = await createFsmnVoiceActivityDetector(VAD_CONFIG);
+    const waveform = new Float32Array(16000);
+    const expected = await vad.detectVoice(waveform);
+    expect(expected.length).toBeGreaterThan(0);
+    expect(
+      await vad.detectVoice(waveform, {
+        speechThreshold: undefined,
+        minSpeechDurationMs: undefined,
+        minSilenceDurationMs: undefined,
+        speechPadMs: undefined,
+        mergeGapMs: undefined,
+      })
+    ).toEqual(expected);
+    vad.dispose();
+  });
 });
 
 // ============================================================================
@@ -414,6 +435,51 @@ describe('createWhisperSpeechToText', () => {
 
     await expect(createWhisperSpeechToText(config)).rejects.toThrow(/<\|endoftext\|>/);
   });
+
+  it('encodes each stretch of speech the VAD finds, skipping the pause between', async () => {
+    register();
+    const encoded: number[] = [];
+    fakeJsi.registerModel(MODEL_PATH, {
+      schema: exported({
+        ...method('encode', [f32(AUDIO_SAMPLES)], [f32(1, 1500, 384)]),
+        ...method('decode', [i64(1, 1), i64(1), f32(1, 1500, 384)], [f32(1, 1, 51865)]),
+      }),
+      execute: (name, inputs) => {
+        if (name === 'encode') encoded.push((inputs[0] as FakeTensor).numel);
+      },
+    });
+    // Speech in every frame that is not all zeros.
+    fakeJsi.registerModel(VAD_PATH, {
+      schema: VAD_SCHEMA,
+      execute: (_, inputs, outputs) => {
+        const frames = inputs[0] as FakeTensor;
+        const [rows, width] = frames.shape as [number, number];
+        for (let r = 0; r < rows; r++) {
+          let silent = true;
+          for (let c = 0; c < width && silent; c++) silent = frames.getElement(r * width + c) === 0;
+          outputs[0]!.setElement(r * 2, silent ? 1 : 0);
+        }
+      },
+    });
+    fakeJsi.registerTokenizer(TOKENIZER_PATH, {
+      tokens: ['<|endoftext|>', '<|startoftranscript|>', '<|notimestamps|>'],
+      specialIds: [0, 1, 2],
+    });
+    const stt = await createWhisperSpeechToText(config);
+
+    // 40 s with a 2 s pause at 20 s: cut there, not at 29 s. Pieces carry the
+    // 30 ms VAD padding, plus 20 ms where a 25 ms frame overlaps the speech.
+    const audio = new Float32Array(40 * 16000).map((_, i) => (i % 2 ? 0.5 : -0.5));
+    audio.fill(0, 20 * 16000, 22 * 16000);
+    await stt.transcribe(audio, { language: 'en' });
+    expect(encoded).toEqual([20.03 * 16000, 18.05 * 16000]);
+
+    // Pure silence is not transcribed at all.
+    encoded.length = 0;
+    expect(await stt.transcribe(new Float32Array(5 * 16000), { language: 'en' })).toBe('');
+    expect(encoded).toEqual([]);
+    stt.dispose();
+  });
 });
 
 // ============================================================================
@@ -440,6 +506,35 @@ describe('createSdxsTextToImage', () => {
     expect(fakeJsi.liveTensors()).toBe(0);
     expect(fakeJsi.liveModels()).toEqual([]);
     expect(fakeJsi.liveTokenizers()).toEqual([]);
+  });
+
+  /** Generates once and returns the token ids passed to `encode`. */
+  const encodedIds = async (vocabulary: string[], prompt: string) => {
+    const encoded: number[][] = [];
+    fakeJsi.registerModel(MODEL_PATH, {
+      schema: SDXS_SCHEMA,
+      execute: (methodName, inputs) => {
+        if (methodName !== 'encode') return;
+        const ids = inputs[0] as FakeTensor;
+        encoded.push(Array.from({ length: ids.numel }, (_, i) => ids.getElement(i)));
+      },
+    });
+    fakeJsi.registerTokenizer(TOKENIZER_PATH, { tokens: vocabulary });
+    const tti = tracked(await createSdxsTextToImage(config));
+    await tti.generate(prompt, 0);
+    return encoded;
+  };
+
+  it('frames the prompt with <|startoftext|> and pads with <|endoftext|>', async () => {
+    const encoded = await encodedIds(['a', 'cat'], 'a cat');
+
+    expect(encoded).toEqual([[49406, 0, 1, ...new Array<number>(74).fill(49407)]]);
+  });
+
+  it('keeps <|endoftext|> after a prompt longer than the context', async () => {
+    const encoded = await encodedIds(['word'], new Array(100).fill('word').join(' '));
+
+    expect(encoded).toEqual([[49406, ...new Array<number>(75).fill(0), 49407]]);
   });
 
   it('rejects a model that is missing the denoise method', async () => {

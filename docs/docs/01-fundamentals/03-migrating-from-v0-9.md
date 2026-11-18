@@ -2,16 +2,7 @@
 title: Migrating from v0.9.x
 slug: /fundamentals/migrating-from-v0-9
 description: 'Step-by-step migration guide from legacy v0.9.x to the new v0.10.0 architecture in React Native ExecuTorch.'
-keywords:
-  [
-    react native,
-    react native ai,
-    executorch,
-    migration guide,
-    v0.10,
-    legacy api,
-    react-native-executorch/legacy,
-  ]
+keywords: [react native, react native ai, executorch, migration guide, v0.10, legacy api]
 ---
 
 import Tabs from '@theme/Tabs';
@@ -28,53 +19,16 @@ While the new API is not backwards-compatible with v0.9.x, the library provides
 **100% functional parity**: every single task, model, and capability supported in
 v0.9.x is supported in v0.10.0, alongside numerous new models and features.
 
-To ensure your existing applications continue to function without requiring an
-immediate code overhaul, v0.10.0 ships the complete pre-0.10 implementation under
-a dedicated legacy entry point: `'react-native-executorch/legacy'`.
+The legacy compatibility entry point has been removed. Applications upgrading
+from v0.9.x must migrate to the new API.
 
-## Upgrading Paths
-
-When updating to `0.10.x`, you have two ways forward:
-
-### Option A: The Legacy Compatibility Module (`/legacy`)
-
-We did not want to break existing applications overnight with an abrupt, all-or-nothing
-upgrade. To support a **gradual refactoring process**, we preserved the entire v0.9.x API
-under a dedicated legacy subpath. You can update your package version right away and
-transition individual screens or pipelines to the new v0.10 architecture at your own pace.
-
-To keep existing code working, simply update your imports to point to `'react-native-executorch/legacy'`:
-
-```typescript
-// Before (v0.9.x)
-import { initExecutorch, useClassification, models } from 'react-native-executorch';
-
-// After (v0.10.0 legacy compatibility)
-import { initExecutorch, useClassification, models } from 'react-native-executorch/legacy';
-```
-
-All previous hooks, modules (`ClassificationModule`, `LLMModule`, etc.), options,
-and types will continue to function exactly as they did in v0.9.x. Both the legacy and
-new APIs can even coexist in the same project while you migrate component by component.
-
-:::caution Legacy Deprecation
-The legacy API is deprecated and will be removed in a future release. We
-recommend using this entry point as a temporary stepping stone to migrate to the
-new v0.10 API incrementally. Refer to the [v0.10.0-legacy archived documentation](/react-native-executorch/docs/0.10.0-legacy/fundamentals/getting-started)
-for legacy reference.
-:::
-
-### Option B: Migrating to the New v0.10 Architecture
+## Migrating to the New Architecture
 
 Migrating to the new v0.10 API gives you access to transparent pipelines,
 deterministic memory management, worklet-safe thread dispatch, and lower-level
 runtime primitives.
 
 ## Dependencies
-
-The peer dependencies required by your application depend on which API you use:
-
-### For the New v0.10 API
 
 In v0.10, resource fetching and threading have been built directly into the core
 runtime:
@@ -125,17 +79,6 @@ pnpm add react-native-executorch react-native-worklets react-native-blob-util
 
   </TabItem>
 </Tabs>
-
-### For the Legacy API (`react-native-executorch/legacy`)
-
-If you remain on `'react-native-executorch/legacy'`, you must keep your existing
-fetcher adapter package:
-
-- Bare React Native: `@software-mansion/react-native-executorch-bare-resource-fetcher`
-- Expo: `@software-mansion/react-native-executorch-expo-resource-fetcher`
-
-You must also continue calling `initExecutorch({ resourceFetcher: ... })` at the
-root of your application before using any legacy modules.
 
 ## Old vs. New: What Changed and Why
 
@@ -213,8 +156,7 @@ However, the internal mechanics and Developer Experience have been fundamentally
   the app binary, inflating application size regardless of which tasks were used.
 - **In v0.10**: Native libraries and hardware backends are now downloaded on demand at install
   time and can be selectively filtered through the `react-native-executorch` block in your
-  `package.json`. This optimization benefits all applications upgrading to v0.10, even those
-  temporarily using the legacy compatibility entry point (`react-native-executorch/legacy`).
+  `package.json`. This optimization benefits all applications using the new API.
   See [Native Libraries](../03-core-and-advanced/08-native-libraries.md).
 
 ## Next Steps

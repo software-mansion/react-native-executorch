@@ -284,6 +284,48 @@ export function parseLfmToolCalls(text: string): llm.ToolParserResult | undefine
   return { toolCalls, textContent: textContent || undefined };
 }
 
+export function parseLfm3ToolCalls(
+  text: string,
+  enableThinking = true
+): llm.ToolParserResult | undefined {
+  // With thinking on, the generation prompt opens <think>: only parse the
+  // final answer. With it off, the prompt already closes it.
+  const thinkingEnd = text.lastIndexOf('</think>');
+  if (thinkingEnd === -1 && (enableThinking || text.includes('<think>'))) return undefined;
+  const answer = thinkingEnd === -1 ? text : text.slice(thinkingEnd + '</think>'.length);
+  // <tool_call>\n<function=NAME>\n<parameter=KEY>\nVALUE\n</parameter>\n</function>\n</tool_call>
+  const callRegex = /<tool_call>\s*<function=([^>\n]+)>([\s\S]*?)<\/function>\s*<\/tool_call>/g;
+  const toolCalls: llm.ToolCall[] = [];
+
+  for (const match of answer.matchAll(callRegex)) {
+    const name = match[1]!.trim();
+    const tool = TOOLS.find((candidate) => candidate.function.name === name);
+    if (!tool) return undefined;
+    const params = tool.function.parameters;
+    const paramRegex = /<parameter=([^>\n]+)>\n?([\s\S]*?)\n?<\/parameter>/g;
+    const args: Record<string, unknown> = {};
+    try {
+      for (const param of match[2]!.matchAll(paramRegex)) {
+        const key = param[1]!.trim();
+        const schema = params?.properties?.[key] as { type?: string } | undefined;
+        if (!schema || Object.prototype.hasOwnProperty.call(args, key)) return undefined;
+        // The template renders strings verbatim and everything else as JSON.
+        args[key] = schema.type === 'string' ? param[2]! : JSON.parse(param[2]!);
+      }
+    } catch {
+      return undefined;
+    }
+    toolCalls.push({ type: 'function', function: { name, arguments: args } });
+  }
+
+  if (toolCalls.length === 0) return undefined;
+  const textContent = answer
+    .replace(callRegex, '')
+    .replace(/<\|im_end\|>/g, '')
+    .trim();
+  return { toolCalls, textContent: textContent || undefined };
+}
+
 function decodeMiniCpmArgument(value: string): string {
   const trimmed = value.trim();
   if (trimmed.startsWith('<![CDATA[') && trimmed.endsWith(']]>')) {
@@ -609,9 +651,17 @@ export const BIELIK_V3_GENERATION_CONFIG: llm.LLMGenerationConfig = {
 
 export const DEFAULT_SYSTEM_PROMPT = 'You are a helpful assistant. Your name is HAL-9000';
 
+// LFM 3 Audio model card prompt for transcription.
+export const LFM3_AUDIO_SYSTEM_PROMPT = 'Perform ASR in English.';
+
 export const LFM_TOOL_OPTS: LLMToolOpts = {
   tools: TOOLS,
   parseToolCalls: parseLfmToolCalls,
+};
+
+export const LFM3_TOOL_OPTS: LLMToolOpts = {
+  tools: TOOLS,
+  parseToolCalls: parseLfm3ToolCalls,
 };
 
 export const MINICPM5_TOOL_OPTS: LLMToolOpts = {
@@ -637,6 +687,18 @@ export const QWEN_TOOL_OPTS: LLMToolOpts = {
 export const LLAMA_TOOL_OPTS: LLMToolOpts = {
   tools: TOOLS,
   parseToolCalls: parseLlamaToolCalls,
+};
+
+/**
+ * LFM3 sampling defaults from the upstream generation_config.json.
+ * @see https://huggingface.co/LiquidAI/LFM3-1.7B/raw/main/generation_config.json
+ */
+export const LFM3_GENERATION_CONFIG: llm.LLMGenerationConfig = {
+  temperature: 0.1,
+  topP: 1,
+  topK: 50,
+  repetitionPenalty: 1.1,
+  maxNewTokens: 512,
 };
 
 // --- Model Config Type ---
@@ -677,6 +739,72 @@ export const LLM_MODELS: LLMModelConfig[] = [
     generationConfig: MINICPM5_GENERATION_CONFIG,
     systemPrompt: `${DEFAULT_SYSTEM_PROMPT}. Always reply in the language of the user's latest message.`,
     toolOpts: MINICPM5_TOOL_OPTS,
+    iosOnly: true,
+  },
+
+  // LFM 3 family
+  {
+    id: 'lfm-3-1.7b-xnnpack',
+    name: 'LFM 3 1.7B',
+    backend: 'xnnpack',
+    model: models.llm.LFM3_1_7B.XNNPACK_8DA4W,
+    generationConfig: LFM3_GENERATION_CONFIG,
+    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    stopRegex: undefined,
+    toolOpts: LFM3_TOOL_OPTS,
+  },
+  {
+    id: 'lfm-3-1.7b-mlx',
+    name: 'LFM 3 1.7B',
+    backend: 'mlx',
+    model: models.llm.LFM3_1_7B.MLX_INT4,
+    generationConfig: LFM3_GENERATION_CONFIG,
+    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    stopRegex: undefined,
+    toolOpts: LFM3_TOOL_OPTS,
+    iosOnly: true,
+  },
+  {
+    id: 'lfm-3-vl-2b-xnnpack',
+    name: 'LFM 3 VL 2B',
+    backend: 'xnnpack',
+    model: models.llm.LFM3_VL_2B.XNNPACK_8DA4W,
+    generationConfig: LFM3_GENERATION_CONFIG,
+    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    stopRegex: undefined,
+    toolOpts: undefined,
+  },
+  {
+    id: 'lfm-3-vl-2b-mlx',
+    name: 'LFM 3 VL 2B',
+    backend: 'mlx',
+    model: models.llm.LFM3_VL_2B.MLX_INT4,
+    generationConfig: LFM3_GENERATION_CONFIG,
+    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    stopRegex: undefined,
+    toolOpts: undefined,
+    iosOnly: true,
+  },
+
+  {
+    id: 'lfm-3-audio-2b-xnnpack',
+    name: 'LFM 3 Audio 2B',
+    backend: 'xnnpack',
+    model: models.llm.LFM3_AUDIO_2B.XNNPACK_8DA4W,
+    generationConfig: LFM3_GENERATION_CONFIG,
+    systemPrompt: LFM3_AUDIO_SYSTEM_PROMPT,
+    stopRegex: undefined,
+    toolOpts: undefined,
+  },
+  {
+    id: 'lfm-3-audio-2b-mlx',
+    name: 'LFM 3 Audio 2B',
+    backend: 'mlx',
+    model: models.llm.LFM3_AUDIO_2B.MLX_INT4,
+    generationConfig: LFM3_GENERATION_CONFIG,
+    systemPrompt: LFM3_AUDIO_SYSTEM_PROMPT,
+    stopRegex: undefined,
+    toolOpts: undefined,
     iosOnly: true,
   },
 

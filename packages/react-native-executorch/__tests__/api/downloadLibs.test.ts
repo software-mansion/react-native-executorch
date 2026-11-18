@@ -188,3 +188,27 @@ describe('download', () => {
     expect(filesIn(workDir)).toEqual(['core.tar.gz']);
   });
 });
+
+describe('Android Java API provisioning', () => {
+  const { getArtifacts } = require('../../scripts/download-libs.js');
+  const config = { backends: [], libs: [] };
+  const names = (targets: string[]) =>
+    getArtifacts(targets, config).map((artifact: { name: string }) => artifact.name);
+
+  it('includes the archive carrying executorch.jar for an explicit x86_64 target', () => {
+    expect(names(['android-x86_64'])).toEqual([
+      'headers',
+      'core-android-arm64-v8a',
+      'core-android-x86_64',
+    ]);
+  });
+
+  it('does not duplicate arm64 core or download Android artifacts for iOS', () => {
+    expect(names(['android-arm64-v8a', 'android-x86_64'])).toEqual([
+      'headers',
+      'core-android-arm64-v8a',
+      'core-android-x86_64',
+    ]);
+    expect(names(['ios'])).toEqual(['headers', 'core-ios']);
+  });
+});

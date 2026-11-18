@@ -8,6 +8,8 @@ import { loadModel } from './core/model';
 import type { ModelSpec, ConcreteDim } from './core/schema';
 import RNBlobUtil from 'react-native-blob-util';
 
+export { getResourceCachePath } from './fetcher/fetcher';
+
 /**
  * Options accepted by {@link useResourceDownload} and by every `use<Task>` hook
  * built on top of it.

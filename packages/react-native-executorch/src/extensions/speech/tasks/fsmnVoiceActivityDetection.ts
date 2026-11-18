@@ -276,7 +276,13 @@ export async function createFsmnVoiceActivityDetector(
 
     const detectVoiceWorklet = (waveform: Float32Array, options?: VadOptions): VadSegment[] => {
       'worklet';
-      const mergedOpts: Required<VadOptions> = { ...defaultOptions, ...options };
+      const mergedOpts: Required<VadOptions> = {
+        speechThreshold: options?.speechThreshold ?? defaultOptions.speechThreshold,
+        minSpeechDurationMs: options?.minSpeechDurationMs ?? defaultOptions.minSpeechDurationMs,
+        minSilenceDurationMs: options?.minSilenceDurationMs ?? defaultOptions.minSilenceDurationMs,
+        speechPadMs: options?.speechPadMs ?? defaultOptions.speechPadMs,
+        mergeGapMs: options?.mergeGapMs ?? defaultOptions.mergeGapMs,
+      };
       const numFrames = Math.floor((waveform.length - FRAME_LENGTH) / HOP_LENGTH);
       if (numFrames <= 0) return [];
 

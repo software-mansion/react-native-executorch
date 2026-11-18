@@ -43,11 +43,8 @@ each tag currently points at.
 
 In scope, because they are what users install and run:
 
-- The published npm packages: `react-native-executorch`, its
-  `react-native-executorch-bare-resource-fetcher` and
-  `react-native-executorch-expo-resource-fetcher` adapters, and
-  `react-native-executorch-webrtc`. This includes the C++, Kotlin, Swift and
-  Objective-C sources they ship.
+- The published npm package `react-native-executorch`, including the C++,
+  Kotlin, Swift and Objective-C sources it ships.
 - The prebuilt native artifacts the package downloads on install, published as
   GitHub Releases tagged `v<version>-libs`.
 - The model files we publish under

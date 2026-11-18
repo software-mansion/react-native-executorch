@@ -17,53 +17,15 @@ keywords:
   ]
 ---
 
+import TaskShowcase from '@site/src/components/TaskShowcase';
+
 # Instance Segmentation
 
 Instance segmentation combines object detection and semantic segmentation. For every detected individual object in an image, the pipeline predicts its bounding box, category label, detection confidence, and a pixel-accurate binary mask cropped to the instance bounds.
 
 Unlike semantic segmentation (which groups all pixels of the same category into a single collective mask), instance segmentation distinguishes between separate instances of the same class (e.g. `person #1`, `person #2`). It powers interactive photo cutouts, object isolation, background effects, AR occlusions, and automated video editing.
 
-<table className="showcase-table">
-  <thead>
-    <tr>
-      <th>iOS</th>
-      <th>Android</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-        <div className="device-phone iphone-chassis">
-          <div className="device-screen iphone-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/instance-segmentation-ios.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-      <td>
-        <div className="device-phone s24-chassis">
-          <div className="s24-camera-hole"></div>
-          <div className="device-screen s24-screen">
-            <video
-              className="device-video"
-              src="/react-native-executorch/media/instance-segmentation-android.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-        </div>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<TaskShowcase task="instance-segmentation" />
 
 ## Quick Start
 

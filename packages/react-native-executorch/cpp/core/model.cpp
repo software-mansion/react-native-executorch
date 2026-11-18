@@ -1,5 +1,7 @@
 #include "model.h"
 
+#include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <cstdint>
 #include <exception>
@@ -42,6 +44,25 @@ void unwrap(RnExecuTorchErrorCode code, const std::string &ctx, executorch::runt
     }
 }
 
+// A file can mix backends across methods: Qwen3-ASR's MLX file runs its audio
+// tower on Core ML. Name the backend an app did not link instead of leaving
+// load_method to fail with a generic error.
+void requireRegisteredBackends(const std::string &modelPath, const std::string &methodName,
+                               const std::vector<std::string> &backends) {
+    for (const auto &name : backends) {
+        if (executorch::runtime::get_backend_class(name.c_str()) != nullptr) {
+            continue;
+        }
+        auto configName = name.substr(0, name.rfind("Backend"));
+        std::ranges::transform(configName, configName.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        throw rnexecutorch::core::error::LoadFailed(
+            std::format("Model '{}': method '{}' runs on {}, which this app does not link. Add \"{}\" to "
+                        "\"react-native-executorch\".backends in the app's package.json.",
+                        modelPath, methodName, name, configName),
+            executorch::runtime::Error::NotFound);
+    }
+}
+
 } // namespace
 
 namespace rnexecutorch::core::model {
@@ -78,29 +99,20 @@ ModelHostObject::ModelHostObject(const std::string &modelPath, const bool eagerL
     }
 
     for (const auto &methodName : methodNames) {
-        if (eagerLoadMethods && methodName != kGetModelSchemaMethod) {
-            auto ctx = std::format("Load method '{}' failed.\n"
-                                   "\n"
-                                   "Common causes:\n"
-                                   "  1. Backend not registered\n"
-                                   "     Ensure backends from `model.backends` are registered\n"
-                                   "     in the ExecuTorch runtime\n"
-                                   "     (use `getRegisteredBackends()` to check registered backends).\n"
-                                   "\n"
-                                   "  2. Bad model export\n"
-                                   "     The model export itself might be broken or incompatible\n"
-                                   "     with the currently linked ExecuTorch runtime version.\n"
-                                   "\n"
-                                   "Error",
-                                   methodName);
-            unwrap(RnExecuTorchErrorCode::LoadFailed, ctx, etModule_->load_method(methodName));
-        }
-
         auto ctx = std::format("Method '{}'", methodName);
         auto methodMeta = unwrap(RnExecuTorchErrorCode::LoadFailed, ctx, etModule_->method_meta(methodName));
+        backends_[methodName] = schema::getUsedBackends(methodMeta);
+
+        if (eagerLoadMethods && methodName != kGetModelSchemaMethod) {
+            requireRegisteredBackends(modelPath_, methodName, backends_[methodName]);
+            // Every backend is registered by now, so a failure points at the export.
+            auto loadCtx = std::format("Load method '{}' failed. The model export might be broken or "
+                                       "incompatible with the linked ExecuTorch runtime version. Error",
+                                       methodName);
+            unwrap(RnExecuTorchErrorCode::LoadFailed, loadCtx, etModule_->load_method(methodName));
+        }
 
         spec_[methodName] = schema::methodSpecFromMetadata(methodMeta);
-        backends_[methodName] = schema::getUsedBackends(methodMeta);
 
         if (overrideSpec.contains(methodName)) {
             spec_[methodName] = std::move(overrideSpec[methodName]);
@@ -199,6 +211,9 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
             schema::validateRuntimeConstraints(rt, methodSpec.runtimeConstraints, inputShapes,
                                                std::format("execute: method '{}'", methodName));
+            if (!self->etModule_->is_method_loaded(methodName)) {
+                requireRegisteredBackends(self->modelPath_, methodName, self->backends_.at(methodName));
+            }
 
             auto startTime = std::chrono::high_resolution_clock::now();
             auto executeResult = self->etModule_->execute(methodName, inputs);

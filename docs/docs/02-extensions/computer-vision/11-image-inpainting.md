@@ -17,11 +17,15 @@ keywords:
   ]
 ---
 
+import TaskShowcase from '@site/src/components/TaskShowcase';
+
 # Image Inpainting
 
 Image inpainting fills a region of a photo with content that matches its surroundings: paint over an unwanted object, a blemish, or a passer-by, and the model reconstructs what would plausibly be behind it.
 
 The pipeline runs entirely on-device. It runs the model on the whole photo resized to the model's resolution and blends the result back into the full-resolution photo through the mask, so the rest of the image is returned pixel for pixel as it came in.
+
+<TaskShowcase task="image-inpainting" />
 
 ## Quick Start
 
@@ -53,7 +57,7 @@ function MyComponent() {
 ```
 
 :::tip Full Interactive Example
-See [`apps/computer-vision/app/inpainting`](https://github.com/software-mansion/react-native-executorch/tree/main/apps/computer-vision/app/inpainting) in this repository for a complete screen with a photo picker, a brush to paint the mask over the photo, and before/after comparison.
+See [`src/app/(screens)/inpainting.tsx`](<https://github.com/software-mansion-labs/react-native-executorch-gallery/blob/main/src/app/(screens)/inpainting.tsx>) in the [React Native ExecuTorch Gallery](https://github.com/software-mansion-labs/react-native-executorch-gallery) for a complete, runnable screen with brush masking and hold-to-compare interaction.
 :::
 
 ## The Mask

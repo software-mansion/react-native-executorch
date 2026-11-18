@@ -20,6 +20,11 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v6
+        with:
+          # The Supported Models page dates each model from the release tags;
+          # blobs are fetched only for the files it reads.
+          fetch-depth: 0
+          filter: blob:none
 
       - name: Generate docs
         run: >-
@@ -29,9 +34,29 @@ jobs:
           && yarn
           && yarn build
 
-      - name: Publish generated content to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@releases/v3
+      - name: Upload generated docs
+        uses: actions/upload-artifact@v4
         with:
-          FOLDER: docs/build
-          BRANCH: gh-pages
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: docs-build
+          path: docs/build
+
+  deploy:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      # The deploy action re-fetches from origin, which fails in the
+      # blobless clone above, so deploy from a plain checkout.
+      - name: Check out
+        uses: actions/checkout@v6
+
+      - name: Download generated docs
+        uses: actions/download-artifact@v4
+        with:
+          name: docs-build
+          path: docs/build
+
+      - name: Publish generated content to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: docs/build
+          branch: gh-pages

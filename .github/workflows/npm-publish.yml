@@ -78,7 +78,7 @@ jobs:
         if: ${{ env.EXECUTORCH_VERSION == 'PLACEHOLDER' }}
         run: exit 1 # this should never happen
 
-      # The root workspaces glob is packages/* + apps/* + apps/legacy/*, so a
+      # The root workspaces glob is packages/* + apps/*, so a
       # plain `yarn install` pulled 1659 packages (597 MiB) to build one of
       # them: 164s of a 197s job, against 19s for the actual build. `workspaces
       # focus` installs only this package's tree; it is built into Yarn 4, the

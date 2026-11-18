@@ -81,8 +81,10 @@ has already been disposed.
 
 Defined in: [extensions/nlp/tokenizer.ts:27](https://github.com/software-mansion/react-native-executorch/blob/182f231651acee34a84d33d6f9965acdd10c0767/packages/react-native-executorch/src/extensions/nlp/tokenizer.ts#L27)
 
-Encodes a string into token ids (special tokens are added according to the
-`tokenizer.json` post_processor).
+Encodes a string into token ids. Special tokens from the `tokenizer.json`
+post_processor (e.g. `[CLS]`/`[SEP]` or BOS/EOS) are not added. The
+`truncation` and `padding` settings of `tokenizer.json` still apply.
+Special tokens written in `text` are still encoded.
 
 #### Parameters
 

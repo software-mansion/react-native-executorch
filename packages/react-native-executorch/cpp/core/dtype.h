@@ -13,6 +13,7 @@ enum class DType {
     uint8,
     int32,
     int64,
+    float16,
     float32,
     boolean
 };
@@ -20,7 +21,7 @@ enum class DType {
 /**
  * Parses a string representation into a DType enum value.
  *
- * @param s The string name of the data type (e.g. "uint8", "int32", "int64", "float32", "bool").
+ * @param s The string name of the data type (e.g. "uint8", "int32", "int64", "float16", "float32", "bool").
  * @return The corresponding DType enum value.
  * @throws error::RnExecuTorchException with code InvalidArgument if the string
  * does not match any known DType.

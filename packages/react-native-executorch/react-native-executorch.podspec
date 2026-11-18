@@ -1,5 +1,6 @@
 require "fileutils"
 require "json"
+require_relative "third-party/common/phonemis/phonemis_sources"
 
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
@@ -49,12 +50,13 @@ unless missing.empty?
     #{missing.map { |path| "  #{path}" }.join("\n")}
 
     They are downloaded by this package's postinstall hook, which your package
-    manager did not run. pnpm 10 and later block dependency build scripts by
-    default ("Ignored build scripts"), npm 12 skips install scripts not listed
-    in `allowScripts`, and `--ignore-scripts` does the same. Re-run the hook,
+    manager did not run. pnpm 10 and later, and bun, block dependency build
+    scripts by default ("Ignored build scripts"), npm 12 skips install scripts
+    not listed in `allowScripts`, and `--ignore-scripts` does the same. Re-run the hook,
     then `pod install` again:
 
-      pnpm approve-builds react-native-executorch   # pnpm
+      pnpm approve-builds                           # pnpm 10.1+, select it
+      bun pm trust react-native-executorch          # bun
       npm approve-scripts react-native-executorch   # npm 12+, then:
       npm rebuild react-native-executorch           # npm
       node node_modules/react-native-executorch/scripts/download-libs.js
@@ -99,77 +101,26 @@ Pod::Spec.new do |s|
 
   # phonemis is built from in-tree source (third-party/common/phonemis submodule);
   # its runner entrypoint is excluded so only the library sources compile.
+  phonemis_root = "third-party/common/phonemis"
   phonemis_source_files = [
     "cpp/extensions/speech/phonemizer.{cpp,h}",
-    "third-party/common/phonemis/src/**/*.{cpp,hpp,h}",
-  ]
+  ] + PhonemisSources.source_files(phonemis_root)
 
   source_files = [
     "ios/**/*.{h,m,mm}",
     "cpp/**/*.{cpp,c,h,hpp}",
   ]
-  # ==============================================================================
-  # LEGACY SUPPORT: include legacy sources (Remove when react-native-executorch/legacy is dropped)
-  # ==============================================================================
-  source_files += [
-    "legacy/ios/**/*.{h,m,mm}",
-    "legacy/cpp/**/*.{cpp,c,h,hpp}",
-  ]
-  # ==============================================================================
   source_files += phonemis_source_files if enable_phonemis
   s.source_files = source_files
 
   # cpp/tests holds the host GoogleTest suites, built by cpp/tests/CMakeLists.txt
   # and never by the app: `cpp/**` above sweeps them in, and the pod carries no
   # googletest headers, so an app build fails on <gmock/gmock.h>.
-  exclude_files = [
-    "third-party/common/phonemis/src/phonemis/main.cpp",
+  exclude_files = PhonemisSources.exclude_files(phonemis_root) + [
     "cpp/tests/**/*",
   ]
-  # ==============================================================================
-  # LEGACY SUPPORT: exclude legacy tests and preserve jsi headers
-  # (Remove when react-native-executorch/legacy is dropped)
-  # ==============================================================================
-  exclude_files += [
-    "legacy/cpp/rnexecutorch/tests/**/*",
-    "legacy/cpp/rnexecutorch/jsi/*.{h,hpp}",
-  ]
-  s.preserve_paths = "legacy/cpp/rnexecutorch/jsi/*.{h,hpp}"
-  # ==============================================================================
   exclude_files += opencv_source_files unless enable_opencv
   exclude_files += phonemis_source_files unless enable_phonemis
-  # ==============================================================================
-  # LEGACY SUPPORT: the legacy TTS models need phonemis too, and `legacy/cpp/**`
-  # above sweeps them in unconditionally. Without this they compile — the
-  # phonemis headers stay on HEADER_SEARCH_PATHS — and fail at link with
-  # undefined phonemis::Pipeline symbols.
-  # (Remove when react-native-executorch/legacy is dropped)
-  # ==============================================================================
-  unless enable_phonemis
-    exclude_files += ["legacy/cpp/rnexecutorch/models/text_to_speech/**/*.{cpp,c,h,hpp}"]
-  end
-  # ==============================================================================
-  # LEGACY SUPPORT: the same for opencv. The legacy vision models, the
-  # image/frame helpers they share and the multimodal LLM's vision encoder all
-  # compile against opencv2, which is not linked when opencv is off. Only the
-  # sources are excluded: the `Types.h` headers sitting next to them are
-  # opencv-free and `JsiConversions.h` includes them unconditionally.
-  # (Remove when react-native-executorch/legacy is dropped)
-  # ==============================================================================
-  unless enable_opencv
-    legacy_dir = "legacy/cpp/rnexecutorch"
-    exclude_files += [
-      "#{legacy_dir}/data_processing/ImageProcessing.cpp",
-      "#{legacy_dir}/models/VisionModel.cpp",
-      "#{legacy_dir}/utils/Frame*.cpp",
-      "legacy/cpp/runner/encoders/vision_encoder.cpp",
-    ]
-    exclude_files += %w[
-      classification embeddings/image instance_segmentation object_detection ocr
-      pose_estimation semantic_segmentation style_transfer text_to_image vertical_ocr
-    ].map { |task| "#{legacy_dir}/models/#{task}/**/*.{cpp,c}" }
-  end
-  # ==============================================================================
   s.exclude_files = exclude_files
 
   # --- Public headers ---
@@ -190,14 +141,6 @@ Pod::Spec.new do |s|
   public_header_files = [
     "ios/**/*.h",
   ]
-  # ==============================================================================
-  # LEGACY SUPPORT: include the legacy entry point
-  # (Remove when react-native-executorch/legacy is dropped)
-  # ==============================================================================
-  public_header_files += [
-    "legacy/ios/**/*.h",
-  ]
-  # ==============================================================================
   s.public_header_files = public_header_files
 
   # --- Preprocessor flags ---
@@ -311,13 +254,8 @@ Pod::Spec.new do |s|
       "$(inherited)",
       "EXECUTORCH_ENABLE_EXECUTION_PROFILING=1",
     ].join(' '),
-    "HEADER_SEARCH_PATHS" => [
+    "HEADER_SEARCH_PATHS" => ([
       "\"$(PODS_TARGET_SRCROOT)/cpp\"",
-      # ==============================================================================
-      # LEGACY SUPPORT: legacy header search path (Remove when react-native-executorch/legacy is dropped)
-      # ==============================================================================
-      "\"$(PODS_TARGET_SRCROOT)/legacy/cpp\"",
-      # ==============================================================================
       "\"$(PODS_TARGET_SRCROOT)/#{third_party_include}\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/cpuinfo\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/pthreadpool\"",
@@ -325,10 +263,7 @@ Pod::Spec.new do |s|
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/json/include\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/re2\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/abseil-cpp\"",
-      "\"$(PODS_TARGET_SRCROOT)/third-party/common/phonemis/src\"",
-      # phonemis's vendored xsimd includes itself as `xsimd/...` (its CMakeLists adds this too).
-      "\"$(PODS_TARGET_SRCROOT)/third-party/common/phonemis/src/third-party\"",
-    ].join(' '),
+    ] + PhonemisSources.header_search_paths(phonemis_root).map { |p| "\"$(PODS_TARGET_SRCROOT)/#{p}\"" }).join(' '),
     "WARNING_CFLAGS" => "-Wno-documentation",
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
   }
@@ -350,6 +285,11 @@ Pod::Spec.new do |s|
   # app's main executable, the metallib has to land in the app bundle's main
   # resource path. `s.ios.resource` achieves that via CocoaPods' resource copy.
   s.ios.resource = "third-party/ios/libs/executorch/mlx.metallib" if enable_mlx
+
+  # Required-reason APIs (stat/fstat in ExecutorchLib and the Core ML backend)
+  # and the download telemetry. The file must exist: a missing one globs to an
+  # empty bundle without any error.
+  s.resource_bundles = { "RnExecutorchPrivacyInfo" => ["ios/PrivacyInfo.xcprivacy"] }
 
   # An app that turns on `use_frameworks!` without naming a linkage gets the
   # default, dynamic - which is what Firebase's own setup instructions show.

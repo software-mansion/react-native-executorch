@@ -25,6 +25,7 @@ import { Button } from '../../components/Button';
 import { getImage, skImageToBuffer } from '../../utils';
 import {
   LLM_MODELS,
+  parseLfm3ToolCalls,
   parseMiniCpmToolCalls,
   type LLMModelConfig,
   type LLMBackend,
@@ -47,6 +48,13 @@ function formatStats(stats: llm.LLMGenerationStats): string {
     `${stats.prefill.durationMs.toFixed(0)}ms prefill · ` +
     `${(totalMs / 1000).toFixed(2)}s`
   );
+}
+
+// With thinking off, LFM 3 can still write a short draft closed by </think>
+// before its answer; show only the answer.
+function stripDraft(text: string): string {
+  const end = text.lastIndexOf('</think>');
+  return end === -1 ? text : text.slice(end + '</think>'.length).trimStart();
 }
 
 function LLMContent() {
@@ -103,10 +111,15 @@ function LLMContent() {
   const thinkingRef = useRef(enableThinking);
   const supportsThinkingSwitch = activeModel.supportsThinkingSwitch !== false;
   const toolOpts = useMemo(() => {
-    if (activeModel.toolOpts?.parseToolCalls !== parseMiniCpmToolCalls) return activeModel.toolOpts;
+    // Parsers whose output layout depends on the thinking switch.
+    const opts = activeModel.toolOpts;
+    const thinkingAware = [parseMiniCpmToolCalls, parseLfm3ToolCalls].find(
+      (p) => p === opts?.parseToolCalls
+    );
+    if (!opts || !thinkingAware) return opts;
     return {
-      ...activeModel.toolOpts,
-      parseToolCalls: (text: string) => parseMiniCpmToolCalls(text, thinkingRef.current),
+      ...opts,
+      parseToolCalls: (text: string) => thinkingAware(text, thinkingRef.current),
     };
   }, [activeModel]);
 
@@ -303,6 +316,7 @@ function LLMContent() {
         payload = textMessage;
       }
 
+      const thinkingOff = supportsThinkingSwitch && !enableThinking;
       const result = await sendMessage(
         payload,
         (token) => {
@@ -319,7 +333,8 @@ function LLMContent() {
         )
         .map((m) => ({
           role: m.role,
-          content: typeof m.content === 'string' ? m.content : '',
+          content:
+            typeof m.content !== 'string' ? '' : thinkingOff ? stripDraft(m.content) : m.content,
           stats: m.role === 'assistant' ? result.stats[assistantIdx++] : undefined,
           toolCalls: m.role === 'assistant' ? m.toolCalls : undefined,
         }));
@@ -533,7 +548,11 @@ function LLMContent() {
             {streamingResponse !== null && (
               <View style={styles.turn}>
                 <View style={[styles.bubble, styles.assistantBubble]}>
-                  <Text style={styles.assistantText}>{streamingResponse || '…'}</Text>
+                  <Text style={styles.assistantText}>
+                    {(supportsThinkingSwitch && !enableThinking
+                      ? stripDraft(streamingResponse)
+                      : streamingResponse) || '…'}
+                  </Text>
                 </View>
               </View>
             )}
