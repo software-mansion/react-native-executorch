@@ -139,12 +139,12 @@ CMake package when present and otherwise locates the two libraries directly.
   so the tests run on the engine the apps run on.
 - `EXECUTORCH_VERSION` should match the ExecuTorch release that
   `third-party/include` is vendored from — the release tagged
-  `v${nativeLibsVersion}-libs`, currently ExecuTorch 1.3.1. The tests compile
+  `v${nativeLibsVersion}-libs`, currently ExecuTorch 1.6.0. The tests compile
   against those vendored headers and link these host-built libraries, so a drift
   between the two shows up as a link error — noisy, but at least not silent.
 - `TOKENIZERS_COMMIT` pins `software-mansion-labs/pytorch-tokenizers`, which the
   script swaps in for ExecuTorch's own tokenizers submodule. The shipped
-  libraries are built from `software-mansion-labs/executorch@rne-split-build`,
+  libraries are built from `software-mansion-labs/executorch@@ms/separate-backends-1.6.0`,
   which does the same, and `third-party/include` carries that fork's headers
   (they add the WordPiece/Unigram models and the NFC normalizer upstream has
   not taken). This is the one drift that does *not* show up as a link error:

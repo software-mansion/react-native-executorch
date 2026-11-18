@@ -38,34 +38,41 @@ XCFRAMEWORK_NAME="$SCHEME_NAME.xcframework"
 XCFRAMEWORK_PATH="$OUTPUT_FOLDER/$XCFRAMEWORK_NAME"
 
 # --- KleidiAI ---
-# libkernels_torchao references kai_* symbols, and the framework is a dylib, so
-# they have to resolve at link time. ExecuTorch used to ship a standalone
-# libkleidiai_<platform>.a but no longer does: as of 1.4.1 the kai_* objects are
-# folded into libbackend_xnnpack, which ships as its own force_loaded
-# xcframework and is deliberately NOT linked here. Rebuild the standalone
-# archive from those objects when it is missing so the framework still links.
+# libkernels_torchao and libbackend_xnnpack both reference kai_* symbols. The
+# framework is a dylib that links the standalone libkleidiai_<platform>.a, but
+# does not re-export it, so libbackend_xnnpack (its own force_loaded
+# xcframework) must carry the kai_* objects itself. ExecuTorch 1.4.1 folded them
+# into libbackend_xnnpack and shipped no standalone archive; 1.6 ships them only
+# standalone. Fill in whichever side is missing.
 for platform in ios simulator; do
   kleidiai="$LIBS_DIR/libkleidiai_$platform.a"
   xnnpack="$LIBS_DIR/libbackend_xnnpack_$platform.a"
 
-  if [ -f "$kleidiai" ] || [ ! -f "$xnnpack" ]; then
+  if [ ! -f "$xnnpack" ]; then
     continue
   fi
 
-  echo "Rebuilding $(basename "$kleidiai") from $(basename "$xnnpack")"
-  staging=$(mktemp -d)
-  (
-    cd "$staging"
-    ar x "$xnnpack"
-    kai_objects=$(ls | grep -i '^kai_' || true)
-    if [ -z "$kai_objects" ]; then
-      echo "  No kai_* objects found; leaving it to the linker to complain." >&2
-      exit 0
-    fi
-    # shellcheck disable=SC2086
-    xcrun ar rcs "$kleidiai" $kai_objects
-  )
-  rm -rf "$staging"
+  if [ ! -f "$kleidiai" ]; then
+    echo "Rebuilding $(basename "$kleidiai") from $(basename "$xnnpack")"
+    staging=$(mktemp -d)
+    (
+      cd "$staging"
+      ar x "$xnnpack"
+      kai_objects=$(ls | grep -i '^kai_' || true)
+      if [ -z "$kai_objects" ]; then
+        echo "  No kai_* objects found; leaving it to the linker to complain." >&2
+        exit 0
+      fi
+      # shellcheck disable=SC2086
+      xcrun ar rcs "$kleidiai" $kai_objects
+    )
+    rm -rf "$staging"
+  elif ! ar t "$xnnpack" | grep -qi '^kai_'; then
+    echo "Merging $(basename "$kleidiai") into $(basename "$xnnpack")"
+    merged=$(mktemp)
+    xcrun libtool -static -no_warning_for_no_symbols -o "$merged" "$xnnpack" "$kleidiai" 2>/dev/null
+    mv "$merged" "$xnnpack"
+  fi
 done
 
 # --- Script ---
