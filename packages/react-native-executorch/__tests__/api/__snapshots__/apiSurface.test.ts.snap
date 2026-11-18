@@ -192,7 +192,6 @@ exports[`public API surface matches the recorded export list 1`] = `
   "profiler",
   "schema",
   "setTelemetryEnabled",
-  "sharedTensor",
   "speech",
   "tensor",
   "useClassifier",

@@ -35,8 +35,8 @@ public:
     /** Total memory size of the tensor data buffer in bytes. */
     const size_t size_;
 
-    /** Owning byte buffer holding the raw tensor data, with the release its allocation calls for. */
-    std::unique_ptr<std::uint8_t[], void (*)(std::uint8_t *)> data_; // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays): owning runtime-sized byte buffer
+    /** Owning byte buffer holding the raw tensor data. */
+    std::unique_ptr<std::uint8_t[]> data_; // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays): owning runtime-sized byte buffer
     /** ExecuTorch TensorPtr instance wrapping the data buffer. */
     executorch::extension::TensorPtr tensor_;
 
@@ -50,10 +50,8 @@ public:
      *
      * @param shape The dimensions of the tensor.
      * @param dtype The data type of the tensor elements.
-     * @param shared Whether to ask for memory a backend can map instead of copying. Honoured where the build
-     * links such a backend and the device supports it; ordinary memory otherwise.
      */
-    TensorHostObject(const std::vector<std::int32_t> &shape, types::DType dtype, bool shared = false);
+    TensorHostObject(const std::vector<std::int32_t> &shape, types::DType dtype);
 
     jsi::Value get(jsi::Runtime &rt, const jsi::PropNameID &name) override;
     std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime &rt) override;

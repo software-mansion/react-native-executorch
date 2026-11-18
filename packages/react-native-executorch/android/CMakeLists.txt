@@ -164,6 +164,4 @@ if(RNE_ENABLE_VULKAN)
 endif()
 if(TARGET qnn_executorch_backend)
   target_link_libraries(${CMAKE_PROJECT_NAME} qnn_executorch_backend)
-  # Shared tensors (cpp/core/tensor.cpp) take their memory from the backend's allocator.
-  target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE RNE_ENABLE_QNN)
 endif()

@@ -14,10 +14,6 @@
 #include "tensor_helpers.h"
 
 #include <executorch/extension/tensor/tensor_ptr_maker.h>
-#ifdef RNE_ENABLE_QNN
-#include <executorch/backends/qualcomm/runtime/QnnExecuTorch.h>
-#include <executorch/runtime/core/memory_allocator.h>
-#endif
 
 #include "core/error.h"
 
@@ -28,35 +24,13 @@ namespace conversions = rnexecutorch::core::conversions;
 using rnexecutorch::core::conversions::getOptionalProperty;
 using rnexecutorch::core::conversions::getRequiredProperty;
 
-namespace {
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays): owning runtime-sized byte buffer
-using Buffer = std::unique_ptr<std::uint8_t[], void (*)(std::uint8_t *)>;
-
-// Zeroed memory for a tensor's data. A shared buffer comes from QNN's allocator, which the Hexagon NPU maps instead
-// of copying, and is declared to the backend so that every graph binding it reuses one registration (registering
-// the same memory twice fails). Without the QNN backend in the build, or where its allocator has nothing to give
-// (no Hexagon NPU), the buffer is ordinary memory and the backend copies as usual.
-Buffer allocate(size_t size, [[maybe_unused]] bool shared) {
-#ifdef RNE_ENABLE_QNN
-    if (shared) {
-        if (void *ptr = QnnExecuTorchAllocCustomMem(size, executorch::runtime::MemoryAllocator::kDefaultAlignment)) {
-            QnnExecuTorchAddCustomMemTensorAddr(ptr, ptr);
-            std::memset(ptr, 0, size);
-            return {static_cast<std::uint8_t *>(ptr), [](std::uint8_t *buffer) { QnnExecuTorchFreeCustomMem(buffer); }};
-        }
-    }
-#endif
-    // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): released by the deleter beside it
-    return {new std::uint8_t[size](), [](std::uint8_t *buffer) { delete[] buffer; }};
-}
-} // namespace
-
-TensorHostObject::TensorHostObject(const std::vector<std::int32_t> &shape, DType dtype, bool shared)
+TensorHostObject::TensorHostObject(const std::vector<std::int32_t> &shape, DType dtype)
     : dtype_(dtype),
       shape_(shape),
       numel_(std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1), std::multiplies<>())),
-      size_(numel_ * types::elementSize(dtype)),
-      data_(allocate(size_, shared)) {
+      size_(numel_ * types::elementSize(dtype)) {
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays): owning runtime-sized byte buffer
+    data_ = std::make_unique<std::uint8_t[]>(size_);
     tensor_ = executorch::extension::from_blob(data_.get(), shape_, types::dtypeToScalarType(dtype));
 }
 
@@ -271,8 +245,8 @@ std::vector<jsi::PropNameID> TensorHostObject::getPropertyNames(jsi::Runtime &rt
 void install_createTensor(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "createTensor";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
-        if (count != 2 && count != 3) {
-            throw error::InvalidArgument("createTensor: Usage: createTensor(shape, dtype, shared?)");
+        if (count != 2) {
+            throw error::InvalidArgument("createTensor: Usage: createTensor(shape, dtype)");
         }
 
         auto shape = conversions::asVector<int32_t>(rt, "createTensor: shape", args[0]);
@@ -282,8 +256,7 @@ void install_createTensor(jsi::Runtime &rt, jsi::Object &module) {
 
         const auto dtype = types::dtypeFromString(conversions::asType<std::string>(rt, "createTensor: dtype", args[1]));
         try {
-            const bool shared = count == 3 && conversions::asType<bool>(rt, "createTensor: shared", args[2]);
-            return jsi::Object::createFromHostObject(rt, std::make_shared<TensorHostObject>(shape, dtype, shared));
+            return jsi::Object::createFromHostObject(rt, std::make_shared<TensorHostObject>(shape, dtype));
         } catch (const std::exception &e) {
             throw error::Unknown(std::format("createTensor: Error creating tensor: {}", e.what()));
         }

@@ -221,16 +221,12 @@ function createFakeTokenizer(path: string, vocabulary: FakeVocabulary) {
 // ============================================================================
 
 let registeredBackends: string[] = ['XnnpackBackend', 'CoreMLBackend'];
-let sharedTensors = 0;
 
 const jsi = {
   isEmulator: false,
   qnnHtpArch: undefined as string | undefined,
 
-  createTensor: (shape: number[], dtype: DType, shared = false) => {
-    if (shared) sharedTensors++;
-    return new FakeTensor(dtype, shape);
-  },
+  createTensor: (shape: number[], dtype: DType) => new FakeTensor(dtype, shape),
 
   loadModel: (path: string, _options?: { eagerLoadMethods?: boolean }) => {
     const program = programs.get(path);
@@ -338,11 +334,6 @@ export const fakeJsi = {
     return tensorTracker.liveCount();
   },
 
-  /** @returns How many tensors were asked for in shared memory so far. */
-  sharedTensors(): number {
-    return sharedTensors;
-  },
-
   /** @returns A readable description of every tensor still allocated. */
   liveTensorDescriptions(): string[] {
     return tensorTracker.liveDescriptions();
@@ -361,6 +352,5 @@ export const fakeJsi = {
     fakePhonemizer.reset();
     llm.reset();
     tensorTracker.reset();
-    sharedTensors = 0;
   },
 };

@@ -157,23 +157,3 @@ export function tensor(
   if (src) t.setData(src);
   return t;
 }
-
-/**
- * Creates a zero-initialized tensor in memory a backend can map instead of
- * copying, for inputs and outputs that are large or passed on every call.
- *
- * Today that is the QNN backend on a Snapdragon's Hexagon NPU, with models
- * exported for shared buffers. Everywhere else the tensor is an ordinary one,
- * as {@link tensor} makes. Keep such a tensor for as long as the model runs
- * with it: the backend registers its memory on first use.
- * @category Core / Functions
- * @param dtype The data type of the tensor elements.
- * @param shape The dimensions of the tensor (positive integers).
- * @returns The newly allocated {@link Tensor}.
- * @throws {RnExecuTorchError} Thrown with code `INVALID_ARGUMENT` if the shape
- * is invalid or the dtype is unsupported.
- */
-export function sharedTensor(dtype: DType, shape: number[]): Tensor {
-  'worklet';
-  return rnexecutorchJsi.createTensor(shape, dtype, true);
-}
