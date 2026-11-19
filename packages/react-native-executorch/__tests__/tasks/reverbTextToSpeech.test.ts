@@ -31,6 +31,7 @@ const MAX_PROMPT = 64; // tokens; the fake tokenizer makes one per whitespace-se
 const PREDICTED = 5; // every step predicts this code
 const POLISHED = 9; // polish fills codebooks 2-7 with this code
 const ENCODED = 17; // the encoder's codes
+const STEPS = 6; // main passes by default
 
 const frames = (min: number, max: number) => RangeDim(min, max);
 const tDim = (paramSide: 'input' | 'output', tensorIdx: number, dimIdx = 1) => ({
@@ -234,14 +235,14 @@ describe('createReverbTextToSpeech — synthesis', () => {
     estimateTargetFrames(prepareText(text, 'en'), PRESET.transcript, 30);
   const targetFrames = (text: string) => Math.max(10, estimate(text));
 
-  it('makes a chunk from a prefill, 8 steps, the polish and the decoder, in that order', async () => {
+  it('makes a chunk from a prefill, 6 steps, the polish and the decoder, in that order', async () => {
     const tts = tracked(await createReverbTextToSpeech(config));
 
     await collect(tts.synthesize(TEXT, { voice: 'anna', language: 'en' }));
 
     expect(methodsCalled()).toEqual([
       'prefill',
-      ...new Array(8).fill('step'),
+      ...new Array(STEPS).fill('step'),
       'polish',
       'decoder.forward',
     ]);
@@ -300,7 +301,11 @@ describe('createReverbTextToSpeech — synthesis', () => {
     const tts = tracked(await createReverbTextToSpeech(config));
 
     const [chunk] = await collect(
-      tts.synthesize('No mark here', { voice: 'anna', language: 'en', postprocess: false })
+      tts.synthesize('No mark here', {
+        voice: 'anna',
+        language: 'en',
+        postprocess: { enabled: false },
+      })
     );
 
     expect(chunk!.audio.length).toBe(targetFrames('No mark here') * FRAME_SAMPLES);
@@ -336,7 +341,7 @@ describe('createReverbTextToSpeech — synthesis', () => {
         roundHalfEven(estimateTargetFrames(prepareText(TEXT, 'en'), PRESET.transcript, references))
       );
     expect(steps[0]!.shapes[0]).toEqual([8, expected(15)]);
-    expect(steps[8]!.shapes[0]).toEqual([8, expected(30)]);
+    expect(steps[STEPS]!.shapes[0]).toEqual([8, expected(30)]);
     // Either way the model takes the whole reference.
     expect(
       calls.filter(({ methodName }) => methodName === 'prefill').map((c) => c.shapes[1])
@@ -366,14 +371,14 @@ describe('createReverbTextToSpeech — synthesis', () => {
 
     await collect(tts.synthesize(TEXT, { voice: 'anna', language: 'en' }));
 
-    // 8 passes: each commits its share of the slots, then all but the last
+    // 6 passes: each commits its share of the slots, then all but the last
     // re-mask a quarter as many held codes. The polish gets none masked.
     const slots = 2 * targetFrames(TEXT);
-    const share = (i: number) => (0.1 * (i / 8)) / (1 - (1 - 0.1) * (i / 8));
+    const share = (i: number) => (0.1 * (i / STEPS)) / (1 - (1 - 0.1) * (i / STEPS));
     const expected = [slots];
-    for (let pass = 0; pass < 8; pass++) {
+    for (let pass = 0; pass < STEPS; pass++) {
       const open = expected[pass]!;
-      const last = pass === 7;
+      const last = pass === STEPS - 1;
       const commits = last
         ? open
         : Math.min(open, Math.ceil(slots * (share(pass + 1) - share(pass))));
@@ -503,13 +508,17 @@ describe('createReverbTextToSpeech — a program with fixed shapes', () => {
     });
   });
 
-  it('makes a chunk from a prefill, 8 steps and 2 more for the polish, on one step method', async () => {
+  it('makes a chunk from a prefill, 6 steps and 2 more for the polish, on one step method', async () => {
     const tts = tracked(await createReverbTextToSpeech(config));
 
     await collect(tts.synthesize(TEXT, { voice: 'anna', language: 'en' }));
 
     const step = targetFrames(TEXT) <= 128 ? 'step_t128' : 'step';
-    expect(methodsCalled()).toEqual(['prefill', ...new Array(10).fill(step), 'decoder.forward']);
+    expect(methodsCalled()).toEqual([
+      'prefill',
+      ...new Array(STEPS + 2).fill(step),
+      'decoder.forward',
+    ]);
   });
 
   it('decodes the codes its passes and its polish produced', async () => {

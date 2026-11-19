@@ -27,7 +27,6 @@ const VERBALIS_LANGUAGES: Record<ReverbLanguage, () => LanguageHandle> = {
   pl,
   pt,
 };
-const verbalizers: Partial<Record<ReverbLanguage, Verbalizer>> = {};
 
 /**
  * Parses a voice file's JSON: `{ codes, transcript, language }`, the codes as
@@ -123,8 +122,7 @@ export function speechLength(
  * @returns The prepared text.
  */
 export function prepareText(text: string, language: ReverbLanguage): string {
-  const verbalizer = (verbalizers[language] ??= new Verbalizer(VERBALIS_LANGUAGES[language]()));
-  return verbalizer.process(text);
+  return new Verbalizer(VERBALIS_LANGUAGES[language]()).process(text);
 }
 
 /**

@@ -51,6 +51,8 @@ const MODEL_OPTIONS: { label: string; value: ReverbVariant; platform: typeof Pla
   ...(DEFAULT_VARIANT === 'QNN_VULKAN_INT4'
     ? [{ label: 'QNN int4', value: 'QNN_VULKAN_INT4', platform: 'android' } as const]
     : []),
+  // On the CPU, the codec included.
+  { label: 'XNNPACK int8', value: 'XNNPACK_8DA8W', platform: 'android' },
 ];
 
 // Transcribes the recordings a new voice is made from.
@@ -552,7 +554,7 @@ function ReverbContent() {
         language,
         speed,
         sampling: { steps, remaskRatio, seed },
-        postprocess: trimEdges ? undefined : false,
+        postprocess: { enabled: trimEdges },
       });
       await playStream(
         chunks,

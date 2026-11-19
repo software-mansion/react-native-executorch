@@ -3,10 +3,13 @@
  */
 
 import { RnExecuTorchError } from '../../../core/error';
-import { EOS_PATTERN, PAUSE_PATTERN } from './textPartitioner';
 
 const DEFAULT_MAX_DURATION = 20;
 const CLOSERS = /["'”’»)\]}]+$/u; // closing quotes and brackets after a word's punctuation
+
+// Punctuation patterns
+const EOS_PATTERN = /[.?!;…|।॥¿¡。．！？；]/;
+const PAUSE_PATTERN = /[,:\u2014\u00AB\u00BB、，：〜～]/;
 
 /**
  * Options for {@link partitionReverbText}.

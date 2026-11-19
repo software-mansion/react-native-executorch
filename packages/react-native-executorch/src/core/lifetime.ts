@@ -66,10 +66,12 @@ export type ResourceScope = {
  * ```
  */
 export function createResourceScope(): ResourceScope {
+  'worklet';
   const allocated: NativeResource[] = [];
 
   return {
     track: <R extends NativeResource>(resource: R): R => {
+      'worklet';
       allocated.push(resource);
       return resource;
     },
@@ -77,6 +79,7 @@ export function createResourceScope(): ResourceScope {
     // from. `splice` empties the list as it goes, which is what makes a second
     // call a no-op rather than a double dispose.
     dispose: (): void => {
+      'worklet';
       for (const resource of allocated.splice(0).reverse()) resource.dispose();
     },
   };

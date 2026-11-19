@@ -238,7 +238,6 @@ describe('DEFAULT variant resolution', () => {
     expect(offenders).toEqual([]);
   });
 
-  // Reverb publishes no XNNPACK export, so it has nothing to fall back to.
   it('falls back to XNNPACK on the iOS simulator, which runs neither Core ML nor MLX', () => {
     const offenders = defaultsOf(registryFor({ os: 'ios', isEmulator: true }))
       .filter(({ offers }) => offers.some((key) => key.startsWith('XNNPACK')))
@@ -383,7 +382,19 @@ describe('QNN variants', () => {
       backends: ['XnnpackBackend', 'QnnBackend'],
       qnnHtpArch: 'v75',
     });
-    expect(defaultKeyOf(reverb(registry))).not.toBe('QNN_VULKAN_INT4');
+    expect(defaultKeyOf(reverb(registry))).toBe('XNNPACK_8DA8W');
+  });
+
+  it('runs Reverb on the CPU alone where no accelerator is linked', () => {
+    // The backbone and both halves of the codec: a variant that reached for
+    // the GPU's codec would not load in a build without Vulkan.
+    for (const os of ['android', 'ios'] as const) {
+      const registry = registryFor({ os, backends: ['XnnpackBackend'] });
+      expect(defaultKeyOf(reverb(registry))).toBe('XNNPACK_8DA8W');
+      expect(modelPathsOf(reverb(registry).DEFAULT as Node)).not.toMatch(
+        /\/(vulkan|qnn|coreml|mlx)\//
+      );
+    }
   });
 
   it('never picks QNN on iOS', () => {

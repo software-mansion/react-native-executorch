@@ -6,17 +6,9 @@
 import { RnExecuTorchError } from '../../../core/error';
 type Tag = 'eos' | 'pause' | 'whitespace';
 
-/**
- * Sentence-ending punctuation.
- * @category Speech / Constants
- */
-export const EOS_PATTERN = /[.?!;…|।॥¿¡。．！？；]/;
-
-/**
- * Punctuation pausing within a sentence: commas, colons, dashes.
- * @category Speech / Constants
- */
-export const PAUSE_PATTERN = /[,:\u2014\u00AB\u00BB、，：〜～]/;
+// Punctuation patterns
+const EOS_PATTERN = /[.?!;…|।॥¿¡。．！？；]/;
+const PAUSE_PATTERN = /[,:\u2014\u00AB\u00BB、，：〜～]/;
 const WHITESPACE_PATTERN = /\s/;
 
 // Standard Partitioning Constants

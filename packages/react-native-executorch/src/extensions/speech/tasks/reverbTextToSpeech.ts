@@ -6,7 +6,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import RNBlobUtil from 'react-native-blob-util';
 
-import { tensor, type Tensor } from '../../../core/tensor';
+import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import {
   validateSpec,
@@ -29,7 +29,6 @@ import {
   createReverbBackbone,
   frameDim,
   type ReverbPass,
-  type ReverbSession,
 } from '../utils/reverbBackbone';
 import { partitionReverbText } from '../utils/reverbPartitioner';
 import {
@@ -63,19 +62,26 @@ export const REVERB_LANGUAGES = ['de', 'en', 'es', 'fr', 'it', 'pl', 'pt'] as co
 
 const FRAME_SAMPLES = REVERB_SAMPLE_RATE / REVERB_FRAME_RATE; // 960
 
-// Voice Studio's sampler
+/**
+ * Sampler setup.
+ *
+ * The sampler is a modified version of a standard diffusion masked-language-model,
+ * steered with Gumbel noise. It consists of 2 phases:
+ * - **Main pass**: fills the first two codebooks of the RVQ codec, which corresponds to content & prosody
+ * - **Polish pass**: fills the upper codebooks (2-7), which encode timbre and acoustic details.
+ */
 const T_SHIFT = 0.1; // few commits early, most in the last passes
 const CODEBOOK_PENALTY = 5; // per codebook index: codebook 0 commits before 1
 const POSITION_TEMPERATURE = 5; // scales confidence and penalty against the Gumbel noise
-const DEFAULT_STEPS = 8;
-const DEFAULT_REMASK_RATIO = 0.25;
+const DEFAULT_STEPS = 6; // main passes; the polish pass adds 2 more
+const DEFAULT_REMASK_RATIO = 0.25; // held codes re-masked per new commit
 
-const MIN_FRAMES = 10;
-const DEFAULT_SPEED = 1.0;
-const MIN_SPEED = 0.5;
-const MAX_SPEED = 2.0;
-const DEFAULT_MAX_CHUNK_DURATION = 20;
-const DEFAULT_POSTPROCESS = { endCut: 0.2, silenceThreshold: -50, keep: 0.1 };
+const MIN_FRAMES = 10; // shortest take in codec frames, whatever the estimate
+const DEFAULT_SPEED = 1.0; // the voice's own pace
+const MIN_SPEED = 0.5; // slowest allowed speed factor
+const MAX_SPEED = 2.0; // fastest allowed speed factor
+const DEFAULT_MAX_CHUNK_DURATION = 20; // max seconds of speech per chunk
+const DEFAULT_POSTPROCESS = { enabled: true, endCut: 0.2, silenceThreshold: -50, keep: 0.1 };
 
 /**
  * A language Reverb speaks.
@@ -127,7 +133,7 @@ export type ReverbTtsModel<K extends PropertyKey = never> = {
  */
 export type ReverbSamplingOptions = {
   /**
-   * Main passes. Defaults to 8.
+   * Main passes. Defaults to 6.
    * NOTE: total number of steps (including polish pass) is always N + 2
    */
   readonly steps?: number;
@@ -142,6 +148,8 @@ export type ReverbSamplingOptions = {
  * @category Speech / Types
  */
 export type ReverbPostprocessOptions = {
+  /** `false` returns the raw decoder output. Defaults to `true`. */
+  readonly enabled?: boolean;
   /** Seconds cut from the end. Defaults to 0.2. */
   readonly endCut?: number;
   /** Level in dBFS below which an edge window is silent. Defaults to -50. */
@@ -170,8 +178,8 @@ export type ReverbTtsOptions<K extends PropertyKey = never> = {
   readonly pace?: 'speech' | 'recording';
   /** Max seconds of speech per chunk. Defaults to 20. */
   readonly maxChunkDuration?: number;
-  /** Post-processing, or `false` for the raw decoder output. */
-  readonly postprocess?: ReverbPostprocessOptions | false;
+  /** Post-processing of each chunk's audio. */
+  readonly postprocess?: ReverbPostprocessOptions;
   /** Sampler settings. */
   readonly sampling?: ReverbSamplingOptions;
 };
@@ -209,8 +217,7 @@ export type ReverbTextToSpeech<K extends PropertyKey = never> = {
    * @param language The recording's language.
    * @returns The voice.
    * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` on a bad argument,
-   * `INVALID_STATE` without a codec encoder, or `RESOURCE_DISPOSED` if
-   * disposed.
+   * or `INVALID_STATE` without a codec encoder
    */
   readonly encodeVoice: (
     audio: Float32Array,
@@ -224,8 +231,7 @@ export type ReverbTextToSpeech<K extends PropertyKey = never> = {
    * @param options See {@link ReverbTtsOptions}.
    * @returns An AsyncGenerator of {@link ReverbTtsChunk}s.
    * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` on a bad argument,
-   * `INVALID_STATE` if a synthesis is running, `RESOURCE_BUSY` if the model is
-   * in use, or `RESOURCE_DISPOSED` if disposed.
+   * `INVALID_STATE` if a synthesis is running, `RESOURCE_BUSY` if the model is in use
    */
   readonly synthesize: (
     text: string,
@@ -316,9 +322,7 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
   runtime?: WorkletRuntime
 ): Promise<ReverbTextToSpeech<K>> {
   const scope = createResourceScope();
-  let disposed = false;
   const dispose = (): void => {
-    disposed = true;
     scope.dispose();
   };
 
@@ -377,7 +381,7 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
         steps: number;
         remaskRatio: number;
         seed: number;
-        postprocess: Required<ReverbPostprocessOptions> | false;
+        postprocess: Required<ReverbPostprocessOptions>;
         pause: number;
       }
     ): Float32Array => {
@@ -394,19 +398,12 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
       const schedule = commitSchedule(steps);
       const random = mulberry32(seed);
 
-      // Collect execution tensors for cleanup in a single try/finally block
-      const auxTensors: Tensor[] = [];
-      const alloc = (...args: Parameters<typeof tensor>): Tensor => {
-        const t = tensor(...args);
-        auxTensors.push(t);
-        return t;
-      };
-
-      let session: ReverbSession | undefined;
+      // The chunk's session and tensors, released together when it ends
+      const local = createResourceScope();
 
       try {
         // 1. Prefill the prompt and the reference
-        session = openBackbone(ids, voice.codes, frames);
+        const session = local.track(openBackbone(ids, voice.codes, frames));
 
         // 2. Main passes over codebooks 0-1
         for (let step = 0; step < steps; step++) {
@@ -418,13 +415,13 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
         session.polish(tokens);
 
         // 4. Decode
-        const tCodes = alloc('int64', [CODEBOOKS, frames], tokens);
-        const tAudio = alloc('float32', [frames * FRAME_SAMPLES]);
+        const tCodes = local.track(tensor('int64', [CODEBOOKS, frames], tokens));
+        const tAudio = local.track(tensor('float32', [frames * FRAME_SAMPLES]));
         decoder.execute('forward', [tCodes], [tAudio]);
         let audio: Float32Array = tAudio.getData(new Float32Array(frames * FRAME_SAMPLES));
 
         // 5. Cut the end, then trim the silent edges
-        if (postprocess) {
+        if (postprocess.enabled) {
           const { endCut, silenceThreshold, keep } = postprocess;
           const end = Math.max(0, audio.length - Math.floor(endCut * REVERB_SAMPLE_RATE));
           audio = trimSilence(audio.subarray(0, end), REVERB_SAMPLE_RATE, silenceThreshold, keep);
@@ -435,8 +432,7 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
         result.set(audio);
         return result;
       } finally {
-        session?.dispose();
-        auxTensors.forEach((t) => t.dispose());
+        local.dispose();
       }
     };
 
@@ -468,9 +464,6 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
       }
       const model = await load(config.modelPaths.codecEncoder);
       try {
-        if (disposed) {
-          throw RnExecuTorchError('RESOURCE_DISPOSED', 'encodeVoice: The pipeline was disposed.');
-        }
         const [frames] = validateSpec(model.schema, { default: ENCODER_SPEC }).dims.range('F');
         scope.track(model);
         const encodeWorklet = (audio: Float32Array): BigInt64Array => {
@@ -498,9 +491,6 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
       transcript: string,
       language: ReverbLanguage
     ): Promise<ReverbVoice> => {
-      if (disposed) {
-        throw RnExecuTorchError('RESOURCE_DISPOSED', 'encodeVoice: The pipeline was disposed.');
-      }
       checkLanguage(language, 'encodeVoice');
       if (!transcript.trim()) {
         throw RnExecuTorchError('INVALID_ARGUMENT', 'encodeVoice: The transcript cannot be empty.');
@@ -597,15 +587,13 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
       if (!Number.isInteger(seed)) {
         throw RnExecuTorchError('INVALID_ARGUMENT', 'synthesize: seed must be an integer.');
       }
-      const postprocess =
-        options.postprocess === false
-          ? false
-          : {
-              endCut: options.postprocess?.endCut ?? DEFAULT_POSTPROCESS.endCut,
-              silenceThreshold:
-                options.postprocess?.silenceThreshold ?? DEFAULT_POSTPROCESS.silenceThreshold,
-              keep: options.postprocess?.keep ?? DEFAULT_POSTPROCESS.keep,
-            };
+      const postprocess = {
+        enabled: options.postprocess?.enabled ?? DEFAULT_POSTPROCESS.enabled,
+        endCut: options.postprocess?.endCut ?? DEFAULT_POSTPROCESS.endCut,
+        silenceThreshold:
+          options.postprocess?.silenceThreshold ?? DEFAULT_POSTPROCESS.silenceThreshold,
+        keep: options.postprocess?.keep ?? DEFAULT_POSTPROCESS.keep,
+      };
 
       const encodePrompt = (chunk: string) =>
         tokenizer.encode(buildPrompt(language, voice.transcript, chunk));

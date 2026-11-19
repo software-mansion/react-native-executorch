@@ -98,11 +98,9 @@ exports[`public API surface matches the recorded contents of each namespace 1`] 
     "validateSpec",
   ],
   "speech": [
-    "EOS_PATTERN",
     "KOKORO_PAUSE_MS",
     "KOKORO_TICKS_PER_DURATION",
     "KOKORO_VOICE_REF_SIZE",
-    "PAUSE_PATTERN",
     "SUPERTONIC_SUPPORTED_LANGUAGES",
     "cleanText",
     "createPhonemizer",

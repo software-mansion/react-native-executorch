@@ -2115,6 +2115,19 @@ const REVERB_QNN_VULKAN_INT4: ReverbTtsModel<ReverbDefaultVoiceName> = {
   tokenizerPath: REVERB_TOKENIZER,
   voices: REVERB_DEFAULT_VOICES,
 };
+// The backbone and the codec on the CPU, where no accelerator is linked. The
+// backbone's attention and parts of the codec are fp16: they need a CPU with
+// fp16 arithmetic (ARMv8.2).
+const REVERB_XNNPACK_8DA8W: ReverbTtsModel<ReverbDefaultVoiceName> = {
+  name: 'reverb',
+  modelPaths: {
+    backbone: `${REVERB_ROOT}/model/executorch/xnnpack/int8a8/reverb_xnnpack_8da8w.pte`,
+    codecDecoder: `${REVERB_CODEC_ROOT}/decoder/xnnpack/fp16/codec_decoder_xnnpack_fp16.pte`,
+    codecEncoder: `${REVERB_CODEC_ROOT}/encoder/xnnpack/int8/codec_encoder_xnnpack_int8.pte`,
+  },
+  tokenizerPath: REVERB_TOKENIZER,
+  voices: REVERB_DEFAULT_VOICES,
+};
 
 // =============================================================================
 // Privacy Filter
@@ -4051,13 +4064,14 @@ export const models = {
     // int8 leads on iOS: within ~20% of fp16's speed in the app at 260 MB
     // less. All decode with the fp16 codec (the int8 Core ML one holds ~600 MB
     // more on the GPU); INT4 encodes with int4 (40 MB smaller), the rest with
-    // int8. No XNNPACK export: the backbone needs MLX or Vulkan.
+    // int8. XNNPACK is the fallback on both platforms.
     REVERB: variants({
       MLX_COREML_INT8: REVERB_MLX_COREML_INT8,
       MLX_COREML_FP16: REVERB_MLX_COREML_FP16,
       MLX_COREML_INT4: REVERB_MLX_COREML_INT4,
       QNN_VULKAN_INT4: REVERB_QNN_VULKAN_INT4,
       VULKAN_INT4: REVERB_VULKAN_INT4,
+      XNNPACK_8DA8W: REVERB_XNNPACK_8DA8W,
     }),
   },
 
