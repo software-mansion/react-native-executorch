@@ -343,10 +343,12 @@ describe('QNN variants', () => {
   const ANDROID_WITH_QNN = ['XnnpackBackend', 'VulkanBackend', 'QnnBackend'];
   const efficientnet = (registry: Node): Node =>
     (registry.classification as Node).EFFICIENTNET_V2_S as Node;
+  const reverb = (registry: Node): Node => (registry.textToSpeech as Node).REVERB as Node;
 
   it('prefers QNN on Android when the backend is linked and the SoC is known', () => {
     const registry = registryFor({ os: 'android', backends: ANDROID_WITH_QNN, qnnHtpArch: 'v75' });
     expect(defaultKeyOf(efficientnet(registry))).toBe('QNN_A16W8');
+    expect(defaultKeyOf(reverb(registry))).toBe('QNN_VULKAN_INT4');
   });
 
   it("resolves a QNN variant to the device's Hexagon version", () => {
@@ -354,16 +356,43 @@ describe('QNN variants', () => {
     expect(modelPathsOf(efficientnet(registry).DEFAULT as Node)).toMatch(
       /\/qnn\/efficientnet_v2_s_qnn_a16w8_v75\.pte$/
     );
+    expect(modelPathsOf(reverb(registry).DEFAULT as Node)).toMatch(
+      /\/qnn\/int4\/reverb_qnn_int4_v75\.pte/
+    );
   });
 
   it('skips QNN on a device that cannot run it, even with the backend linked', () => {
     const registry = registryFor({ os: 'android', backends: ANDROID_WITH_QNN });
     expect(defaultKeyOf(efficientnet(registry))).toBe('XNNPACK_INT8');
+    expect(defaultKeyOf(reverb(registry))).toBe('VULKAN_INT4');
   });
 
   it('skips QNN when the app did not link the backend', () => {
     const registry = registryFor({ os: 'android', qnnHtpArch: 'v81' });
     expect(defaultKeyOf(efficientnet(registry))).toBe('XNNPACK_INT8');
+    expect(defaultKeyOf(reverb(registry))).toBe('VULKAN_INT4');
+  });
+
+  it('skips a QNN variant whose second backend is not linked', () => {
+    // QNN_VULKAN_INT4 decodes on Vulkan, so QNN alone is not enough.
+    const registry = registryFor({
+      os: 'android',
+      backends: ['XnnpackBackend', 'QnnBackend'],
+      qnnHtpArch: 'v75',
+    });
+    expect(defaultKeyOf(reverb(registry))).toBe('XNNPACK_8DA8W');
+  });
+
+  it('runs Reverb on the CPU alone where no accelerator is linked', () => {
+    // The backbone and both halves of the codec: a variant that reached for
+    // the GPU's codec would not load in a build without Vulkan.
+    for (const os of ['android', 'ios'] as const) {
+      const registry = registryFor({ os, backends: ['XnnpackBackend'] });
+      expect(defaultKeyOf(reverb(registry))).toBe('XNNPACK_8DA8W');
+      expect(modelPathsOf(reverb(registry).DEFAULT as Node)).not.toMatch(
+        /\/(vulkan|qnn|coreml|mlx)\//
+      );
+    }
   });
 
   it('never picks QNN on iOS', () => {

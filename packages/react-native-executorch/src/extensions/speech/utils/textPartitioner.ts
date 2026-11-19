@@ -6,7 +6,7 @@
 import { RnExecuTorchError } from '../../../core/error';
 type Tag = 'eos' | 'pause' | 'whitespace';
 
-// Punctuation Regex Patterns
+// Punctuation patterns
 const EOS_PATTERN = /[.?!;…|।॥¿¡。．！？；]/;
 const PAUSE_PATTERN = /[,:\u2014\u00AB\u00BB、，：〜～]/;
 const WHITESPACE_PATTERN = /\s/;

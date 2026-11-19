@@ -24,6 +24,12 @@ module.exports = {
     '^react-native-worklets$': '<rootDir>/__tests__/support/workletsMock.ts',
   },
 
+  // Verbalis ships ES modules only, so it is compiled like the React Native
+  // packages the preset already lets through.
+  transformIgnorePatterns: [
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|verbalis)/)',
+  ],
+
   // Snapshot of the public export surface — see `api/apiSurface.test.ts`.
   snapshotFormat: { escapeString: false, printBasicPrototype: false },
 
