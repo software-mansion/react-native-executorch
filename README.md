@@ -43,7 +43,7 @@ To explore all on-device capabilities in an interactive showcase app, check out 
   - [2. Run the Model](#2-run-the-model)
 - [Documentation](#documentation)
 - [Powered by React Native ExecuTorch](#powered-by-react-native-executorch)
-- [Created by Software Mansion](#created-by-software-mansion)
+- [Created by Software Mansion AI Labs](#react-native-executorch-is-created-by-software-mansion-ai-labs)
 
 ## Key Features
 
@@ -151,9 +151,13 @@ It also powers these libraries:
 - [React Native RAG](https://github.com/software-mansion-labs/react-native-rag): private, on-device retrieval-augmented generation for your own documents.
 - [React Native OCR](https://github.com/software-mansion-labs/react-native-ocr): on-device document OCR with page layout, tables, dewarping and vertical text.
 
-## Created by Software Mansion
+## React Native ExecuTorch is created by Software Mansion AI Labs
 
-Since 2012, [Software Mansion](https://swmansion.com) has been building mobile and web apps, contributing to open-source software, and dealing with all kinds of React Native challenges. We are Core React Native Contributors. We can help you build your next AI product – [Hire us](https://swmansion.com/contact?utm_source=react-native-executorch&utm_medium=readme).
+<a href="https://ai.swmansion.com/?utm_source=react-native-executorch&utm_medium=readme">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/software-mansion/react-native-executorch/raw/main/docs/static/img/swm_ai_labs_dark.svg">
+    <img src="https://github.com/software-mansion/react-native-executorch/raw/main/docs/static/img/swm_ai_labs.svg" alt="Software Mansion AI Labs" width="122" height="80" align="left">
+  </picture>
+</a>
 
-[![swm](https://logo.swmansion.com/logo?color=white&variant=desktop&width=150&tag=react-native-executorch-github 'Software Mansion')](https://swmansion.com)
-
+We're an end-to-end AI development lab focused on local and hybrid AI. We build and fine-tune models, deploy them anywhere and turn them into agents that solve real business problems. [Hire us](https://ai.swmansion.com/?utm_source=react-native-executorch&utm_medium=readme#contact).
