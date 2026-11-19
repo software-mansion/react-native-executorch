@@ -235,7 +235,6 @@ const EFFICIENTNET_V2_S_QNN_A16W8: ClassifierModel<ImageNet1KLabel> = {
   modelPath: `${BASE_URL}/EfficientNetV2-S-ExecuTorch/${VERSION_TAG}/qnn/efficientnet_v2_s_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: EFFICIENTNET_V2_S_OPTS,
 };
-// 1.75x faster than QNN_A16W8 for 1.4 top-1 on an S26 Ultra, so not the default.
 const EFFICIENTNET_V2_S_QNN_A8W8: ClassifierModel<ImageNet1KLabel> = {
   modelPath: `${BASE_URL}/EfficientNetV2-S-ExecuTorch/${VERSION_TAG}/qnn/efficientnet_v2_s_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: EFFICIENTNET_V2_S_OPTS,
@@ -326,8 +325,6 @@ const DEPTH_ANYTHING_V2_SMALL_VULKAN_FP16: DepthEstimatorModel = {
   modelPath: `${BASE_URL}/Depth-Anything-V2-ExecuTorch/${VERSION_TAG}/small/vulkan/depth_anything_v2_small_vulkan_fp16.pte`,
   modelOpts: DEPTH_ANYTHING_OPTS,
 };
-// fp16 on the HTP; NYUv2 AbsRel 6.24% against 6.22% for fp32 on an S26 Ultra,
-// 9x faster than the XNNPACK int8 and Vulkan exports there.
 const DEPTH_ANYTHING_V2_SMALL_QNN_FP16: DepthEstimatorModel = {
   modelPath: `${BASE_URL}/Depth-Anything-V2-ExecuTorch/${VERSION_TAG}/small/qnn/depth_anything_v2_small_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: DEPTH_ANYTHING_OPTS,
@@ -349,8 +346,6 @@ const DEPTH_ANYTHING_V3_SMALL_VULKAN_FP16: DepthEstimatorModel = {
   modelPath: `${BASE_URL}/Depth-Anything-3-Small-ExecuTorch/${VERSION_TAG}/small/vulkan/depth_anything_v3_small_vulkan_fp16.pte`,
   modelOpts: DEPTH_ANYTHING_OPTS,
 };
-// fp16 on the HTP; NYUv2 AbsRel 8.50% against 8.49% for fp32 on an S26 Ultra,
-// 5.6x faster than the Vulkan export there.
 const DEPTH_ANYTHING_V3_SMALL_QNN_FP16: DepthEstimatorModel = {
   modelPath: `${BASE_URL}/Depth-Anything-3-Small-ExecuTorch/${VERSION_TAG}/small/qnn/depth_anything_v3_small_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: DEPTH_ANYTHING_OPTS,
@@ -375,8 +370,6 @@ const ZIPDEPTH_BASE_VULKAN_FP16: DepthEstimatorModel = {
   modelPath: `${BASE_URL}/ZipDepth-ExecuTorch/${VERSION_TAG}/base/vulkan/zipdepth_base_384_vulkan_fp16.pte`,
   modelOpts: ZIPDEPTH_OPTS,
 };
-// fp16 on the HTP; NYUv2 AbsRel 13.56% against 13.55% for fp32 on an S26 Ultra,
-// 3.8x faster than the Vulkan export there.
 const ZIPDEPTH_BASE_QNN_FP16: DepthEstimatorModel = {
   modelPath: `${BASE_URL}/ZipDepth-ExecuTorch/${VERSION_TAG}/base/qnn/zipdepth_base_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: ZIPDEPTH_OPTS,
@@ -617,8 +610,6 @@ const SSDLITE320_MOBILENET_V3_LARGE_COREML_FP16: ObjectDetectorModel<'xyxy', Coc
   modelPath: `${BASE_URL}/SSDlite320-MobileNetV3-Large-ExecuTorch/${VERSION_TAG}/coreml/ssdlite320_mobilenet_v3_large_coreml_fp16.pte`,
   modelOpts: SSDLITE320_MOBILENET_V3_LARGE_OPTS,
 };
-// fp16 on the HTP with TopK on the CPU; 22.32 mAP50-95 against 22.40 for fp32 on an
-// S26 Ultra, and 3x faster than XNNPACK there.
 const SSDLITE320_MOBILENET_V3_LARGE_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClass> = {
   modelPath: `${BASE_URL}/SSDlite320-MobileNetV3-Large-ExecuTorch/${VERSION_TAG}/qnn/ssdlite320_mobilenet_v3_large_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: SSDLITE320_MOBILENET_V3_LARGE_OPTS,
@@ -645,8 +636,6 @@ const RFDETR_NANO_DETECTOR_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClass> =
   modelPath: `${BASE_URL}/rf-detr-nano-ExecuTorch/${VERSION_TAG}/vulkan/rfdetr_nano_vulkan_fp16.pte`,
   modelOpts: RFDETR_NANO_DETECTOR_OPTS,
 };
-// fp16 on the HTP; 50.05 mAP50-95 against 50.08 for fp32 on an S26 Ultra, and
-// 12x faster than XNNPACK int8 there.
 const RFDETR_NANO_DETECTOR_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClass> = {
   modelPath: `${BASE_URL}/rf-detr-nano-ExecuTorch/${VERSION_TAG}/qnn/rfdetr_nano_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: RFDETR_NANO_DETECTOR_OPTS,
@@ -678,8 +667,6 @@ const YOLO26_NANO_512_XNNPACK_INT8: ObjectDetectorModel<'xyxy', CocoClassYolo> =
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/xnnpack/yolo26n_512_xnnpack_int8.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
-// fp16 on the HTP with TopK on the CPU; within 0.6 mAP50-95 of fp32 at every size
-// and resolution on an S26 Ultra, and 5-11x faster than Vulkan there.
 const YOLO26_NANO_384_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/qnn/yolo26n_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
