@@ -26,9 +26,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.speech",
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "permissions": ["android.permission.RECORD_AUDIO"]
     },
     "web": {
       "favicon": "./assets/icons/favicon.png"
@@ -39,7 +37,8 @@
         "expo-build-properties",
         {
           "android": {
-            "minSdkVersion": 26
+            "minSdkVersion": 26,
+            "useLegacyPackaging": true
           },
           "ios": {
             "deploymentTarget": "17.0"

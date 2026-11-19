@@ -134,6 +134,7 @@
     "jsonrepair": "^3.12.0",
     "jsonschema": "^1.5.0",
     "react-native-device-info": "^15.0.2",
+    "verbalis": "^0.1.1",
     "zod": "^4.3.6"
   },
   "// === LEGACY SUPPORT: peerDependencies ===": "@kesha-antonov/react-native-background-downloader is only needed for legacy API (remove when legacy is dropped)",

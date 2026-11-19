@@ -12,7 +12,8 @@
  */
 import { models } from '../../src/models';
 
-const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorch';
+const HF_ORG_URL = 'https://huggingface.co/software-mansion';
+const BASE_URL = `${HF_ORG_URL}/react-native-executorch`;
 
 type Node = Record<string, unknown>;
 
@@ -134,8 +135,13 @@ describe('models registry — URLs', () => {
     }
   });
 
+  // Reverb ships its programs in the model's own repo, the one exception to the
+  // `-ExecuTorch` naming.
   it.each(urls)('%s is served over https from the software-mansion org', (_path, url) => {
-    expect(url.startsWith(`${BASE_URL}-`)).toBe(true);
+    // Backported models (QNN, Reverb) live in the renamed per-model repos.
+    expect(url).toMatch(
+      new RegExp(`^(${BASE_URL}-|${HF_ORG_URL}/([A-Za-z0-9._-]+-ExecuTorch|Reverb-TTS)/)`)
+    );
   });
 
   it.each(urls)('%s pins an explicit revision', (_path, url) => {

@@ -35,6 +35,12 @@ export default function Home() {
         >
           <Text style={styles.buttonText}>Text-to-Speech (Kokoro)</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.navigate('reverb-text-to-speech/')}
+        >
+          <Text style={styles.buttonText}>Text-to-Speech (Reverb)</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

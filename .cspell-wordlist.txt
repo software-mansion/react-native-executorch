@@ -446,3 +446,10 @@ Picsart
 FFHQ
 grayscale
 Premul
+codebook
+codebooks
+remask
+higgs
+verbalizers
+workletized
+partitioners
