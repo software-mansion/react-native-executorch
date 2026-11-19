@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { commonStyles, theme } from '../../theme';
 import {

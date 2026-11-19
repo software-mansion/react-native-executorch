@@ -143,13 +143,21 @@ const CANDIDATE_BACKENDS = getCandidateBackends();
  */
 function pickVariant(keys: readonly string[], pin?: string): string {
   const backendOf = (key: string) => key.toLowerCase().split('_')[0] as BackendTag;
+  // A key may name a second backend the file also needs (`QNN_VULKAN_INT4`
+  // decodes on Vulkan); every one of them has to be linked.
+  const isLinked = (key: string) =>
+    key
+      .toLowerCase()
+      .split('_')
+      .filter((part): part is BackendTag => (ALL_BACKENDS as readonly string[]).includes(part))
+      .every((tag) => CANDIDATE_BACKENDS.includes(tag));
 
-  if (pin !== undefined && keys.includes(pin) && CANDIDATE_BACKENDS.includes(backendOf(pin))) {
+  if (pin !== undefined && keys.includes(pin) && isLinked(pin)) {
     return pin;
   }
 
   for (const tag of CANDIDATE_BACKENDS) {
-    const match = keys.find((key) => backendOf(key) === tag);
+    const match = keys.find((key) => backendOf(key) === tag && isLinked(key));
     if (match !== undefined) return match;
   }
 
@@ -258,6 +266,10 @@ const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorc
 // changes when its URL is moved here.
 const VERSION_TAG = 'resolve/v0.10.0';
 const NEXT_VERSION_TAG = 'resolve/v0.11.0';
+// Models backported to 0.11.x from the per-model repos the registry moved to
+// after v0.11.0.
+const HF_ORG_URL = 'https://huggingface.co/software-mansion';
+const V1_VERSION_TAG = 'resolve/v1.0.0';
 
 // =============================================================================
 // Classification
@@ -283,11 +295,11 @@ const EFFICIENTNET_V2_S_COREML_FP16: ClassifierModel<ImageNet1KLabel> = {
 // Resolves to this device's Hexagon version; off Snapdragon the v81 file stands
 // in, and DEFAULT never picks it there.
 const EFFICIENTNET_V2_S_QNN_A16W8: ClassifierModel<ImageNet1KLabel> = {
-  modelPath: `${BASE_URL}/EfficientNetV2-S-ExecuTorch/${VERSION_TAG}/qnn/efficientnet_v2_s_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/EfficientNetV2-S-ExecuTorch/${NEXT_VERSION_TAG}/qnn/efficientnet_v2_s_qnn_a16w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: EFFICIENTNET_V2_S_OPTS,
 };
 const EFFICIENTNET_V2_S_QNN_A8W8: ClassifierModel<ImageNet1KLabel> = {
-  modelPath: `${BASE_URL}/EfficientNetV2-S-ExecuTorch/${VERSION_TAG}/qnn/efficientnet_v2_s_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/EfficientNetV2-S-ExecuTorch/${NEXT_VERSION_TAG}/qnn/efficientnet_v2_s_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: EFFICIENTNET_V2_S_OPTS,
 };
 
@@ -393,7 +405,7 @@ const DEPTH_ANYTHING_V2_SMALL_VULKAN_FP16: DepthEstimatorModel = {
   modelOpts: DEPTH_ANYTHING_OPTS,
 };
 const DEPTH_ANYTHING_V2_SMALL_QNN_FP16: DepthEstimatorModel = {
-  modelPath: `${BASE_URL}/Depth-Anything-V2-ExecuTorch/${VERSION_TAG}/small/qnn/depth_anything_v2_small_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/Depth-Anything-V2-ExecuTorch/${NEXT_VERSION_TAG}/small/qnn/depth_anything_v2_small_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: DEPTH_ANYTHING_OPTS,
 };
 
@@ -414,7 +426,7 @@ const DEPTH_ANYTHING_V3_SMALL_VULKAN_FP16: DepthEstimatorModel = {
   modelOpts: DEPTH_ANYTHING_OPTS,
 };
 const DEPTH_ANYTHING_V3_SMALL_QNN_FP16: DepthEstimatorModel = {
-  modelPath: `${BASE_URL}/Depth-Anything-3-Small-ExecuTorch/${VERSION_TAG}/small/qnn/depth_anything_v3_small_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/Depth-Anything-3-Small-ExecuTorch/${NEXT_VERSION_TAG}/small/qnn/depth_anything_v3_small_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: DEPTH_ANYTHING_OPTS,
 };
 
@@ -438,7 +450,7 @@ const ZIPDEPTH_BASE_VULKAN_FP16: DepthEstimatorModel = {
   modelOpts: ZIPDEPTH_OPTS,
 };
 const ZIPDEPTH_BASE_QNN_FP16: DepthEstimatorModel = {
-  modelPath: `${BASE_URL}/ZipDepth-ExecuTorch/${VERSION_TAG}/base/qnn/zipdepth_base_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/ZipDepth-ExecuTorch/${NEXT_VERSION_TAG}/base/qnn/zipdepth_base_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: ZIPDEPTH_OPTS,
 };
 
@@ -546,7 +558,7 @@ const LRASPP_MOBILENET_V3_LARGE_COREML_FP16: SemanticSegmenterModel<PascalVocLab
 // Same Hexagon-version resolution and index-map output as the DeepLabV3 QNN
 // variants.
 const LRASPP_MOBILENET_V3_LARGE_QNN_A8W8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/LRASPP-MobileNetV3-Large-ExecuTorch/${VERSION_TAG}/qnn/lraspp_mobilenet_v3_large_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/LRASPP-MobileNetV3-Large-ExecuTorch/${NEXT_VERSION_TAG}/qnn/lraspp_mobilenet_v3_large_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: LRASPP_MOBILENET_V3_LARGE_OPTS,
 };
 
@@ -576,11 +588,11 @@ const DEEPLAB_V3_RESNET101_XNNPACK_FP32: SemanticSegmenterModel<PascalVocLabel> 
 // Same Hexagon-version resolution and index-map output as the MobileNetV3 QNN
 // variant below.
 const DEEPLAB_V3_RESNET50_QNN_A8W8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/qnn/deeplab_v3_resnet50_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/DeepLabV3-ExecuTorch/${NEXT_VERSION_TAG}/qnn/deeplab_v3_resnet50_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_RESNET101_QNN_A8W8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/qnn/deeplab_v3_resnet101_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/DeepLabV3-ExecuTorch/${NEXT_VERSION_TAG}/qnn/deeplab_v3_resnet101_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 const DEEPLAB_V3_RESNET101_XNNPACK_INT8: SemanticSegmenterModel<PascalVocLabel> = {
@@ -607,7 +619,7 @@ const DEEPLAB_V3_MOBILENET_V3_LARGE_COREML_FP16: SemanticSegmenterModel<PascalVo
 // in, and DEFAULT never picks it there. Returns a class index per pixel rather
 // than 21 logit planes, which the segmenter reads as its index-map variant.
 const DEEPLAB_V3_MOBILENET_V3_LARGE_QNN_A8W8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/DeepLabV3-ExecuTorch/${VERSION_TAG}/qnn/deeplab_v3_mobilenet_v3_large_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/DeepLabV3-ExecuTorch/${NEXT_VERSION_TAG}/qnn/deeplab_v3_mobilenet_v3_large_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: DEEPLAB_V3_OPTS,
 };
 
@@ -645,11 +657,11 @@ const FCN_RESNET101_COREML_FP16: SemanticSegmenterModel<PascalVocLabel> = {
 // Same Hexagon-version resolution and index-map output as the DeepLabV3 QNN
 // variants.
 const FCN_RESNET50_QNN_A8W8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/FCN-ExecuTorch/${VERSION_TAG}/qnn/fcn_resnet50_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/FCN-ExecuTorch/${NEXT_VERSION_TAG}/qnn/fcn_resnet50_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: FCN_OPTS,
 };
 const FCN_RESNET101_QNN_A8W8: SemanticSegmenterModel<PascalVocLabel> = {
-  modelPath: `${BASE_URL}/FCN-ExecuTorch/${VERSION_TAG}/qnn/fcn_resnet101_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/FCN-ExecuTorch/${NEXT_VERSION_TAG}/qnn/fcn_resnet101_qnn_a8w8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: FCN_OPTS,
 };
 
@@ -674,7 +686,7 @@ const SSDLITE320_MOBILENET_V3_LARGE_COREML_FP16: ObjectDetectorModel<'xyxy', Coc
   modelOpts: SSDLITE320_MOBILENET_V3_LARGE_OPTS,
 };
 const SSDLITE320_MOBILENET_V3_LARGE_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClass> = {
-  modelPath: `${BASE_URL}/SSDlite320-MobileNetV3-Large-ExecuTorch/${VERSION_TAG}/qnn/ssdlite320_mobilenet_v3_large_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/SSDlite320-MobileNetV3-Large-ExecuTorch/${NEXT_VERSION_TAG}/qnn/ssdlite320_mobilenet_v3_large_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: SSDLITE320_MOBILENET_V3_LARGE_OPTS,
 };
 
@@ -704,7 +716,7 @@ const RFDETR_NANO_DETECTOR_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClass> =
   modelOpts: RFDETR_NANO_DETECTOR_OPTS,
 };
 const RFDETR_NANO_DETECTOR_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClass> = {
-  modelPath: `${BASE_URL}/rf-detr-nano-ExecuTorch/${VERSION_TAG}/qnn/rfdetr_nano_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/rf-detr-nano-ExecuTorch/${NEXT_VERSION_TAG}/qnn/rfdetr_nano_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: RFDETR_NANO_DETECTOR_OPTS,
 };
 
@@ -743,7 +755,7 @@ const YOLO26_NANO_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> =
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_NANO_384_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/qnn/yolo26n_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/YOLO26-ExecuTorch/${NEXT_VERSION_TAG}/n/qnn/yolo26n_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_NANO_512_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
@@ -763,7 +775,7 @@ const YOLO26_NANO_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> =
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_NANO_512_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/qnn/yolo26n_512_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/YOLO26-ExecuTorch/${NEXT_VERSION_TAG}/n/qnn/yolo26n_512_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_NANO_640_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
@@ -775,7 +787,7 @@ const YOLO26_NANO_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = 
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_NANO_640_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/n/qnn/yolo26n_640_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/YOLO26-ExecuTorch/${NEXT_VERSION_TAG}/n/qnn/yolo26n_640_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
@@ -804,7 +816,7 @@ const YOLO26_SMALL_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> 
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_SMALL_384_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/qnn/yolo26s_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/YOLO26-ExecuTorch/${NEXT_VERSION_TAG}/s/qnn/yolo26s_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_SMALL_512_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
@@ -824,7 +836,7 @@ const YOLO26_SMALL_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> 
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_SMALL_512_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/qnn/yolo26s_512_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/YOLO26-ExecuTorch/${NEXT_VERSION_TAG}/s/qnn/yolo26s_512_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_SMALL_640_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
@@ -836,7 +848,7 @@ const YOLO26_SMALL_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> =
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_SMALL_640_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/s/qnn/yolo26s_640_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/YOLO26-ExecuTorch/${NEXT_VERSION_TAG}/s/qnn/yolo26s_640_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
@@ -865,7 +877,7 @@ const YOLO26_MEDIUM_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo>
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_MEDIUM_384_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/qnn/yolo26m_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/YOLO26-ExecuTorch/${NEXT_VERSION_TAG}/m/qnn/yolo26m_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_MEDIUM_512_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
@@ -885,7 +897,7 @@ const YOLO26_MEDIUM_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo>
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_MEDIUM_512_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/qnn/yolo26m_512_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/YOLO26-ExecuTorch/${NEXT_VERSION_TAG}/m/qnn/yolo26m_512_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_MEDIUM_640_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
@@ -897,7 +909,7 @@ const YOLO26_MEDIUM_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> 
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_MEDIUM_640_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/m/qnn/yolo26m_640_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/YOLO26-ExecuTorch/${NEXT_VERSION_TAG}/m/qnn/yolo26m_640_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
@@ -926,7 +938,7 @@ const YOLO26_LARGE_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> 
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_LARGE_384_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/qnn/yolo26l_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/YOLO26-ExecuTorch/${NEXT_VERSION_TAG}/l/qnn/yolo26l_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_LARGE_512_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
@@ -946,7 +958,7 @@ const YOLO26_LARGE_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> 
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_LARGE_512_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/qnn/yolo26l_512_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/YOLO26-ExecuTorch/${NEXT_VERSION_TAG}/l/qnn/yolo26l_512_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_LARGE_640_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
@@ -958,7 +970,7 @@ const YOLO26_LARGE_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> =
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_LARGE_640_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/l/qnn/yolo26l_640_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/YOLO26-ExecuTorch/${NEXT_VERSION_TAG}/l/qnn/yolo26l_640_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
@@ -987,7 +999,7 @@ const YOLO26_XLARGE_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo>
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_XLARGE_384_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/qnn/yolo26x_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/YOLO26-ExecuTorch/${NEXT_VERSION_TAG}/x/qnn/yolo26x_384_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_XLARGE_512_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
@@ -1007,7 +1019,7 @@ const YOLO26_XLARGE_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo>
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_XLARGE_512_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/qnn/yolo26x_512_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/YOLO26-ExecuTorch/${NEXT_VERSION_TAG}/x/qnn/yolo26x_512_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_XLARGE_640_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
@@ -1019,7 +1031,7 @@ const YOLO26_XLARGE_640_VULKAN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> 
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_XLARGE_640_QNN_FP16: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `${BASE_URL}/YOLO26-ExecuTorch/${VERSION_TAG}/x/qnn/yolo26x_640_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  modelPath: `${HF_ORG_URL}/YOLO26-ExecuTorch/${NEXT_VERSION_TAG}/x/qnn/yolo26x_640_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   modelOpts: YOLO26_DETECTOR_OPTS,
 };
 
@@ -1751,16 +1763,14 @@ const WHISPER_TINY_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_QNN_FP16: WhisperSttModel<'en'> = {
-  name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/qnn/whisper_tiny_en_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
-  tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
+  modelPath: `${HF_ORG_URL}/whisper-tiny.en-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_tiny_en_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  tokenizerPath: `${HF_ORG_URL}/whisper-tiny.en-ExecuTorch/${NEXT_VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_QNN_INT8: WhisperSttModel<'en'> = {
-  name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/qnn/whisper_tiny_en_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
-  tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
+  modelPath: `${HF_ORG_URL}/whisper-tiny.en-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_tiny_en_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  tokenizerPath: `${HF_ORG_URL}/whisper-tiny.en-ExecuTorch/${NEXT_VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
@@ -1808,16 +1818,14 @@ const WHISPER_TINY_VULKAN_INT8: WhisperSttModel = {
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_QNN_FP16: WhisperSttModel = {
-  name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/qnn/whisper_tiny_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
-  tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
+  modelPath: `${HF_ORG_URL}/whisper-tiny-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_tiny_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  tokenizerPath: `${HF_ORG_URL}/whisper-tiny-ExecuTorch/${NEXT_VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_QNN_INT8: WhisperSttModel = {
-  name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/qnn/whisper_tiny_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
-  tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
+  modelPath: `${HF_ORG_URL}/whisper-tiny-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_tiny_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  tokenizerPath: `${HF_ORG_URL}/whisper-tiny-ExecuTorch/${NEXT_VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
@@ -1865,16 +1873,14 @@ const WHISPER_BASE_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_QNN_FP16: WhisperSttModel<'en'> = {
-  name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/qnn/whisper_base_en_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
-  tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
+  modelPath: `${HF_ORG_URL}/whisper-base.en-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_base_en_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  tokenizerPath: `${HF_ORG_URL}/whisper-base.en-ExecuTorch/${NEXT_VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_QNN_INT8: WhisperSttModel<'en'> = {
-  name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/qnn/whisper_base_en_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
-  tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
+  modelPath: `${HF_ORG_URL}/whisper-base.en-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_base_en_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  tokenizerPath: `${HF_ORG_URL}/whisper-base.en-ExecuTorch/${NEXT_VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
@@ -1922,16 +1928,14 @@ const WHISPER_BASE_VULKAN_INT8: WhisperSttModel = {
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_QNN_FP16: WhisperSttModel = {
-  name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/qnn/whisper_base_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
-  tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
+  modelPath: `${HF_ORG_URL}/whisper-base-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_base_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  tokenizerPath: `${HF_ORG_URL}/whisper-base-ExecuTorch/${NEXT_VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_QNN_INT8: WhisperSttModel = {
-  name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/qnn/whisper_base_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
-  tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
+  modelPath: `${HF_ORG_URL}/whisper-base-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_base_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  tokenizerPath: `${HF_ORG_URL}/whisper-base-ExecuTorch/${NEXT_VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
@@ -1973,16 +1977,14 @@ const WHISPER_SMALL_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_EN_QNN_FP16: WhisperSttModel<'en'> = {
-  name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/qnn/whisper_small_en_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
-  tokenizerPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
+  modelPath: `${HF_ORG_URL}/whisper-small.en-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_small_en_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  tokenizerPath: `${HF_ORG_URL}/whisper-small.en-ExecuTorch/${NEXT_VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_EN_QNN_INT8: WhisperSttModel<'en'> = {
-  name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/qnn/whisper_small_en_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
-  tokenizerPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
+  modelPath: `${HF_ORG_URL}/whisper-small.en-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_small_en_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  tokenizerPath: `${HF_ORG_URL}/whisper-small.en-ExecuTorch/${NEXT_VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
@@ -2024,16 +2026,14 @@ const WHISPER_SMALL_VULKAN_INT8: WhisperSttModel = {
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_QNN_FP16: WhisperSttModel = {
-  name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/qnn/whisper_small_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
-  tokenizerPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
+  modelPath: `${HF_ORG_URL}/whisper-small-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_small_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  tokenizerPath: `${HF_ORG_URL}/whisper-small-ExecuTorch/${NEXT_VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_QNN_INT8: WhisperSttModel = {
-  name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/qnn/whisper_small_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
-  tokenizerPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
+  modelPath: `${HF_ORG_URL}/whisper-small-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_small_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
+  tokenizerPath: `${HF_ORG_URL}/whisper-small-ExecuTorch/${NEXT_VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
@@ -2302,8 +2302,8 @@ const KOKORO_ZH_COREML_FP32: KokoroTtsModel<KokoroZhVoice> = {
 
 // The backbone, tokenizer and voices live in the model's own repo, the one
 // registry repo without an -ExecuTorch name; the codec in the Higgs tokenizer's.
-const REVERB_ROOT = `${BASE_URL}/Reverb-TTS/${NEXT_VERSION_TAG}`;
-const REVERB_CODEC_ROOT = `${BASE_URL}/higgs-audio-v2-tokenizer-ExecuTorch/${NEXT_VERSION_TAG}`;
+const REVERB_ROOT = `${HF_ORG_URL}/Reverb-TTS/${V1_VERSION_TAG}`;
+const REVERB_CODEC_ROOT = `${HF_ORG_URL}/higgs-audio-v2-tokenizer-ExecuTorch/${V1_VERSION_TAG}`;
 const REVERB_TOKENIZER = `${REVERB_ROOT}/model/tokenizer.json`;
 const REVERB_DEFAULT_VOICES = REVERB_DEFAULT_VOICE_NAMES.reduce(
   (acc, name) => ({ ...acc, [name]: `${REVERB_ROOT}/voices/${name}.json` }),
@@ -2749,7 +2749,7 @@ const GEMMA4_OMNI_E2B_XNNPACK_8DA4W: LLMModel = {
   preprocessorConfig: GEMMA4_OMNI_PREPROCESSOR_CONFIG,
 };
 const GEMMA4_OMNI_E2B_VULKAN_8DA4W: LLMModel = {
-  modelPath: `${BASE_URL}/gemma-4-E2B-it-ExecuTorch/${NEXT_VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`,
+  modelPath: `${HF_ORG_URL}/gemma-4-E2B-it-ExecuTorch/${V1_VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
   modalities: ['image', 'audio'],

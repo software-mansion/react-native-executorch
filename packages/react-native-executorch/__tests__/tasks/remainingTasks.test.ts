@@ -21,6 +21,7 @@ import { createSdxsTextToImage } from '../../src/extensions/cv/tasks/sdxsTextToI
 import { createFsmnVoiceActivityDetector } from '../../src/extensions/speech/tasks/fsmnVoiceActivityDetection';
 import { createWhisperSpeechToText } from '../../src/extensions/speech/tasks/whisperSpeechToText';
 import { fakeJsi } from '../support/fakeJsi';
+import type { FakeTensor } from '../support/fakeTensor';
 import { tracked } from '../support/lifetime';
 import { STRETCH_PREPROCESSING, exported, imageBuffer, writesOutputs } from '../support/fixtures';
 
