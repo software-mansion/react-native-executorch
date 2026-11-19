@@ -54,6 +54,21 @@ describe('createClassifier — model acceptance', () => {
     );
   });
 
+  it('names the OpenCV lib when the app opted out of it (#1618)', async () => {
+    registerBatched();
+    const jsi = (globalThis as Record<string, any>).__rnexecutorch_jsi__;
+    const { cv } = jsi;
+    delete jsi.cv;
+    try {
+      await expect(createClassifier(config())).rejects.toMatchObject({
+        code: 'INVALID_STATE',
+        message: expect.stringContaining("Add the 'opencv' lib"),
+      });
+    } finally {
+      jsi.cv = cv;
+    }
+  });
+
   it('surfaces a load failure', async () => {
     await expect(
       createClassifier({ ...config(), modelPath: '/models/absent.pte' })

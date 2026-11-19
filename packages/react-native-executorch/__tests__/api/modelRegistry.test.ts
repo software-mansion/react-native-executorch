@@ -12,7 +12,8 @@
  */
 import { models } from '../../src/models';
 
-const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorch';
+const HF_ORG_URL = 'https://huggingface.co/software-mansion';
+const BASE_URL = `${HF_ORG_URL}/react-native-executorch`;
 
 type Node = Record<string, unknown>;
 
@@ -105,9 +106,16 @@ const namedVariants = (group: Node): Node[] =>
 const BACKENDS = /^(xnnpack|coreml|mlx|qnn|vulkan)$/;
 // `spinquant` is a quantization recipe rather than a plain precision, but it is
 // what the published Llama builds are named after.
-const PRECISIONS = /^(fp32|fp16|bf16|int8|int4|8da4w|8da8w|4w|dynamic|spinquant)$/;
+const PRECISIONS = /^(fp32|fp16|bf16|int8|int4|8da4w|8da8w|4w|a16w8|a8w8|dynamic|spinquant)$/;
 
-const basename = (url: string) => url.split('/').pop()!.replace('.pte', '');
+// A QNN .pte targets one Hexagon version and carries it as a trailing `_vNN`,
+// after the usual modelname_backend_precision.
+const basename = (url: string) =>
+  url
+    .split('/')
+    .pop()!
+    .replace('.pte', '')
+    .replace(/(_qnn_[a-z0-9]+)_v\d+$/, '$1');
 
 /** The backend a `.pte` filename declares, or `undefined` when it declares none. */
 const backendOf = (url: string): string | undefined => {
@@ -127,8 +135,13 @@ describe('models registry — URLs', () => {
     }
   });
 
+  // Reverb ships its programs in the model's own repo, the one exception to the
+  // `-ExecuTorch` naming.
   it.each(urls)('%s is served over https from the software-mansion org', (_path, url) => {
-    expect(url.startsWith(`${BASE_URL}-`)).toBe(true);
+    // Backported models (QNN, Reverb) live in the renamed per-model repos.
+    expect(url).toMatch(
+      new RegExp(`^(${BASE_URL}-|${HF_ORG_URL}/([A-Za-z0-9._-]+-ExecuTorch|Reverb-TTS)/)`)
+    );
   });
 
   it.each(urls)('%s pins an explicit revision', (_path, url) => {

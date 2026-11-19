@@ -55,6 +55,13 @@ export default function Layout() {
           title: 'Text-to-Speech (Kokoro)',
         }}
       />
+      <Drawer.Screen
+        name="reverb-text-to-speech/index"
+        options={{
+          drawerLabel: 'Text-to-Speech (Reverb)',
+          title: 'Text-to-Speech (Reverb)',
+        }}
+      />
     </Drawer>
   );
 }

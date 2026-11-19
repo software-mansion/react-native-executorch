@@ -299,14 +299,14 @@ export const cv = {
     opts: { alpha?: number | readonly number[]; beta?: number | readonly number[] }
   ): FakeTensor {
     expectShape(dst, src.shape, 'normalize: dst');
+    // Native requires both coefficients, so the TS wrapper must resolve them.
+    if (opts.alpha === undefined || opts.beta === undefined) {
+      throw new Error('normalize: alpha and beta are required');
+    }
     const channels = src.shape[0]!;
     const perChannel = src.numel / channels;
-    const coefficient = (
-      value: number | readonly number[] | undefined,
-      c: number,
-      fallback: number
-    ) =>
-      value === undefined ? fallback : typeof value === 'number' ? value : (value[c] ?? fallback);
+    const coefficient = (value: number | readonly number[], c: number, fallback: number) =>
+      typeof value === 'number' ? value : (value[c] ?? fallback);
 
     for (let i = 0; i < src.numel; i++) {
       const c = Math.floor(i / perChannel);

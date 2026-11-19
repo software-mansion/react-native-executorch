@@ -21,4 +21,14 @@ void install_getExecuTorchRegisteredBackends(facebook::jsi::Runtime &rt, faceboo
  * @param module The `__rnexecutorch_jsi__` module object to install onto.
  */
 void install_isEmulator(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
+
+/**
+ * Installs `qnnHtpArch`, the Hexagon version (`"v69"` … `"v81"`) QNN models
+ * must be compiled for on this device, or `undefined` when the device cannot
+ * run them: not a known Snapdragon, or the matching skel is not reachable.
+ *
+ * @param rt The active JavaScript runtime.
+ * @param module The `__rnexecutorch_jsi__` module object to install onto.
+ */
+void install_qnnHtpArch(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
 } // namespace rnexecutorch::core::utils

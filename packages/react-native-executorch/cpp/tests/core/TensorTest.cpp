@@ -53,6 +53,26 @@ TEST_F(TensorTest, AcceptsTheBoolDtype) {
     EXPECT_EQ(evalString(std::format("{} return rne.createTensor([2, 3], 'bool').dtype;", kNs)), "bool");
 }
 
+TEST_F(TensorTest, Float16TransfersRawHalfBitsAsUint16) {
+    // float16 tensors hold the K/V caches of fp16 programs; JS has no Float16Array on Hermes, so the data moves as
+    // the raw IEEE 754 bits in a Uint16Array (0x3C00 = 1.0, 0xC000 = -2.0), two bytes per element.
+    auto result = evalNumberArray(std::format(R"(
+        {}
+        const t = rne.createTensor([2, 2], 'float16');
+        t.setData(new Uint16Array([0x3C00, 0xC000, 0x0000, 0x7BFF]));
+        const out = new Uint16Array(4);
+        t.getData(out);
+        return [t.numel, ...Array.from(out)];
+    )",
+                                              kNs));
+    EXPECT_TRUE(almostEqual(result, {4, 0x3C00, 0xC000, 0x0000, 0x7BFF}));
+    EXPECT_EQ(evalString(std::format("{} return rne.createTensor([2], 'float16').dtype;", kNs)), "float16");
+    // A Float32Array of the same element count is twice the bytes, so it is rejected rather than reinterpreted.
+    EXPECT_TRUE(isCodedError(
+        evalThrowing(std::format("{} rne.createTensor([2, 2], 'float16').setData(new Float32Array(4));", kNs)),
+        "INVALID_ARGUMENT", "Data size mismatch"));
+}
+
 TEST_F(TensorTest, RejectsWrongArgumentCount) {
     EXPECT_THAT(evalThrowingMessage(std::format("{} rne.createTensor([2]);", kNs)),
                 HasSubstr("Usage: createTensor(shape, dtype)"));

@@ -6,7 +6,7 @@
  * pixel normalization, and colormap application.
  */
 
-import { rnexecutorchJsi } from '../../../native/bridge';
+import { tryInitJsiCv } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
 import type { ImageFormat } from '../image';
 
@@ -130,7 +130,7 @@ export type NormalizeOptions = {
  */
 export function resize(src: Tensor, dst: Tensor, options?: ResizeOptions): Tensor {
   'worklet';
-  return rnexecutorchJsi.cv.resize(src, dst, {
+  return tryInitJsiCv().resize(src, dst, {
     mode: options?.mode ?? 'stretch',
     interpolation: options?.interpolation ?? 'lanczos',
     padValue: options?.padValue ?? 0,
@@ -157,7 +157,7 @@ export function resize(src: Tensor, dst: Tensor, options?: ResizeOptions): Tenso
  */
 export function cvtColor(src: Tensor, dst: Tensor, code: ColorConversionCode): Tensor {
   'worklet';
-  return rnexecutorchJsi.cv.cvtColor(src, dst, code);
+  return tryInitJsiCv().cvtColor(src, dst, code);
 }
 
 /**
@@ -178,7 +178,7 @@ export function cvtColor(src: Tensor, dst: Tensor, code: ColorConversionCode): T
  */
 export function toChannelsFirst(src: Tensor, dst: Tensor): Tensor {
   'worklet';
-  return rnexecutorchJsi.cv.toChannelsFirst(src, dst);
+  return tryInitJsiCv().toChannelsFirst(src, dst);
 }
 
 /**
@@ -200,7 +200,7 @@ export function toChannelsFirst(src: Tensor, dst: Tensor): Tensor {
  */
 export function toChannelsLast(src: Tensor, dst: Tensor): Tensor {
   'worklet';
-  return rnexecutorchJsi.cv.toChannelsLast(src, dst);
+  return tryInitJsiCv().toChannelsLast(src, dst);
 }
 
 /**
@@ -228,11 +228,10 @@ export function toChannelsLast(src: Tensor, dst: Tensor): Tensor {
  */
 export function normalize(src: Tensor, dst: Tensor, options?: NormalizeOptions): Tensor {
   'worklet';
-  const defaultNormalizeOptions = {
-    alpha: 1 / 255.0,
-    beta: 0.0,
-  } as const;
-  return rnexecutorchJsi.cv.normalize(src, dst, { ...defaultNormalizeOptions, ...options });
+  return tryInitJsiCv().normalize(src, dst, {
+    alpha: options?.alpha ?? 1 / 255.0,
+    beta: options?.beta ?? 0.0,
+  });
 }
 
 /**
@@ -263,7 +262,7 @@ export function applyColormap(
   colormap: [number, number, number, number][]
 ): Tensor {
   'worklet';
-  return rnexecutorchJsi.cv.applyColormap(src, dst, colormap);
+  return tryInitJsiCv().applyColormap(src, dst, colormap);
 }
 
 /**
@@ -311,7 +310,7 @@ export function blendMasked(
   options?: BlendMaskedOptions
 ): Tensor {
   'worklet';
-  return rnexecutorchJsi.cv.blendMasked(src, overlay, mask, dst, {
+  return tryInitJsiCv().blendMasked(src, overlay, mask, dst, {
     shrink: options?.shrink ?? 0,
     feather: options?.feather ?? 0,
   });

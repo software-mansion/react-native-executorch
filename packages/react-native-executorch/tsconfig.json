@@ -28,5 +28,6 @@
     "target": "ESNext",
     // === LEGACY SUPPORT ===: false required for legacy re-exports
     "verbatimModuleSyntax": false
-  }
+  },
+  "exclude": ["node_modules", "lib", "third-party"]
 }

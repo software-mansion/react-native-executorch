@@ -23,7 +23,8 @@ import { toChannelsLast, normalize, cvtColor } from '../ops/image';
 // is no unconditional branch and no denoising loop.
 const CLIP_MAX_TOKENS = 77;
 const CLIP_HIDDEN_SIZE = 768;
-const CLIP_PAD_TOKEN_ID = 49407;
+const CLIP_BOS_TOKEN_ID = 49406; // <|startoftext|>
+const CLIP_EOS_TOKEN_ID = 49407; // <|endoftext|>, also the padding token
 
 const IMAGE_SIZE = 512;
 const LATENT_CHANNELS = 4;
@@ -147,10 +148,15 @@ export async function createSdxsTextToImage(
     const generateWorklet = (prompt: string, seed?: number): ImageBuffer => {
       'worklet';
 
+      // `encode` adds no special tokens and the exported `encode` method reads the
+      // ids as given, so the prompt is framed here like CLIPTokenizer does:
+      // <|startoftext|>, at most 75 ids, then <|endoftext|> up to 77 tokens.
       const ids = tokenizer.encode(prompt);
-      const tokens = new BigInt64Array(CLIP_MAX_TOKENS);
-      for (let i = 0; i < CLIP_MAX_TOKENS; i++) {
-        tokens[i] = BigInt(i < ids.length ? ids[i]! : CLIP_PAD_TOKEN_ID);
+      const numText = Math.min(ids.length, CLIP_MAX_TOKENS - 2);
+      const tokens = new BigInt64Array(CLIP_MAX_TOKENS).fill(BigInt(CLIP_EOS_TOKEN_ID));
+      tokens[0] = BigInt(CLIP_BOS_TOKEN_ID);
+      for (let i = 0; i < numText; i++) {
+        tokens[i + 1] = BigInt(ids[i]!);
       }
       tTokens.setData(tokens);
       model.execute('encode', [tTokens], [tEmbeddings]);
