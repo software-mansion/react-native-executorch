@@ -66,12 +66,12 @@ const backboneSchema = (cacheType = f16) => {
   });
 };
 
-const decoderSchema = (withConstraint = true) =>
+const decoderSchema = (withConstraint = true, maxFrames = 1024) =>
   exported(
     method(
       'forward',
-      [i64(8, frames(4, 1024))],
-      [f32(RangeDim(4 * FRAME_SAMPLES, 1024 * FRAME_SAMPLES, FRAME_SAMPLES))],
+      [i64(8, frames(4, maxFrames))],
+      [f32(RangeDim(4 * FRAME_SAMPLES, maxFrames * FRAME_SAMPLES, FRAME_SAMPLES))],
       withConstraint
         ? [constraint.linear(tDim('output', 0, 0), tDim('input', 0), FRAME_SAMPLES)]
         : []
@@ -541,6 +541,33 @@ describe('createReverbTextToSpeech — a program with fixed shapes', () => {
     ).rejects.toThrow(/at most 20.48/);
   });
 
+  it('ignores the post-processing settings when it is switched off', async () => {
+    const tts = tracked(await createReverbTextToSpeech(config));
+
+    await expect(
+      collect(
+        tts.synthesize('Hello.', {
+          voice: 'anna',
+          language: 'en',
+          postprocess: { enabled: false, keep: -1 },
+        })
+      )
+    ).resolves.not.toHaveLength(0);
+  });
+
+  it('caps the default chunk at what the models can speak', async () => {
+    // A 10 s decoder: the 20 s default would be out of range.
+    registerModels(backboneSchema(), decoderSchema(true, 250));
+    const tts = tracked(await createReverbTextToSpeech(config));
+
+    await expect(
+      collect(tts.synthesize('Hello.', { voice: 'anna', language: 'en' }))
+    ).resolves.not.toHaveLength(0);
+    await expect(
+      collect(tts.synthesize('Hello.', { voice: 'anna', language: 'en', maxChunkDuration: 20 }))
+    ).rejects.toThrow(/at most 10 s/);
+  });
+
   it('releases every tensor on dispose', async () => {
     const tts = await createReverbTextToSpeech(config);
     await collect(tts.synthesize(TEXT, { voice: 'anna', language: 'en' }));
@@ -568,6 +595,16 @@ describe('createReverbTextToSpeech — argument validation', () => {
     ['a remask ratio above 1', { sampling: { remaskRatio: 1.5 } }, 'Hello.', /\[0, 1\]/],
     ['a fractional seed', { sampling: { seed: 0.5 } }, 'Hello.', /seed must be an integer/],
     ['an unknown pace', { pace: 'audio' }, 'Hello.', /pace must be/],
+    ['an end cut that is not a number', { postprocess: { endCut: NaN } }, 'Hello.', /endCut must/],
+    ['a negative end cut', { postprocess: { endCut: -0.1 } }, 'Hello.', /endCut must/],
+    ['a negative kept silence', { postprocess: { keep: -1 } }, 'Hello.', /keep must/],
+    ['a kept silence that is not a number', { postprocess: { keep: NaN } }, 'Hello.', /keep must/],
+    [
+      'a silence threshold that is not a number',
+      { postprocess: { silenceThreshold: NaN } },
+      'Hello.',
+      /silenceThreshold must/,
+    ],
   ])('rejects %s', async (_label, options, text, error) => {
     await expect(synthesizeWith(options, text)).rejects.toThrow(error);
   });

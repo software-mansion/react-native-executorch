@@ -42,7 +42,8 @@ const DEFAULT_VARIANT = (
     key !== 'DEFAULT' && models.textToSpeech.REVERB[key] === models.textToSpeech.REVERB.DEFAULT
 )!;
 
-const MODEL_OPTIONS: { label: string; value: ReverbVariant; platform: typeof Platform.OS }[] = [
+// An option without a platform runs on both.
+const MODEL_OPTIONS: { label: string; value: ReverbVariant; platform?: typeof Platform.OS }[] = [
   { label: 'MLX int8', value: 'MLX_COREML_INT8', platform: 'ios' },
   { label: 'MLX fp16', value: 'MLX_COREML_FP16', platform: 'ios' },
   { label: 'MLX int4', value: 'MLX_COREML_INT4', platform: 'ios' },
@@ -52,7 +53,7 @@ const MODEL_OPTIONS: { label: string; value: ReverbVariant; platform: typeof Pla
     ? [{ label: 'QNN int4', value: 'QNN_VULKAN_INT4', platform: 'android' } as const]
     : []),
   // On the CPU, the codec included.
-  { label: 'XNNPACK int8', value: 'XNNPACK_8DA8W', platform: 'android' },
+  { label: 'XNNPACK int8', value: 'XNNPACK_8DA8W' },
 ];
 
 // Transcribes the recordings a new voice is made from.
@@ -101,7 +102,7 @@ const PRESETS: { name: ReverbDefaultVoiceName; title: string; subtitle: string }
 
 const SPEED_OPTIONS = [0.8, 0.9, 1.0, 1.1, 1.25].map((value) => ({ label: `${value}x`, value }));
 const STEPS_OPTIONS = [4, 6, 8, 12, 16].map((value) => ({
-  label: value === 8 ? '8 (default)' : `${value}`,
+  label: value === 6 ? '6 (default)' : `${value}`,
   value,
 }));
 const VARIATION_OPTIONS = [0, 0.15, 0.25, 0.4].map((value) => ({
@@ -623,7 +624,7 @@ function ReverbContent() {
           options={MODEL_OPTIONS.map((m) => ({
             label: m.label,
             value: m.value,
-            disabled: isBusy || m.platform !== Platform.OS,
+            disabled: isBusy || (m.platform !== undefined && m.platform !== Platform.OS),
           }))}
           selectedValue={selectedModel}
           onValueChange={setSelectedModel}

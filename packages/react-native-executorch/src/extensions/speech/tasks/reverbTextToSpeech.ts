@@ -171,12 +171,13 @@ export type ReverbTtsOptions<K extends PropertyKey = never> = {
   /** Speech speed factor, 0.5 to 2.0. Defaults to 1.0. */
   readonly speed?: number;
   /**
-   * The voice's length the speech length is estimated from:
-   * `'speech'`: its speaking time ({@link ReverbVoice.speechFrames}),
-   * `'recording'`: the whole clip, pauses included.
+   * The way we estimate duration of the output sample.
+   * The duration is relative to the reference length, which we can be measured it two ways:
+   * `'speech'`: we count only speech frames and inner pauses not longer than 0.5s
+   * `'recording'`: we count the whole clip, pauses and prefix/suffix silence included.
    */
   readonly pace?: 'speech' | 'recording';
-  /** Max seconds of speech per chunk. Defaults to 20. */
+  /** Max seconds of speech per chunk. Defaults to 20, or to the models' limit when that is shorter. */
   readonly maxChunkDuration?: number;
   /** Post-processing of each chunk's audio. */
   readonly postprocess?: ReverbPostprocessOptions;
@@ -563,8 +564,9 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
       }
 
       // A chunk at the limit must still fit the backbone's target window.
-      const maxChunkDuration = options.maxChunkDuration ?? DEFAULT_MAX_CHUNK_DURATION;
       const maxDuration = maxFrames / REVERB_FRAME_RATE;
+      const maxChunkDuration =
+        options.maxChunkDuration ?? Math.min(DEFAULT_MAX_CHUNK_DURATION, maxDuration);
       if (!(maxChunkDuration > 0 && maxChunkDuration <= maxDuration)) {
         throw RnExecuTorchError(
           'INVALID_ARGUMENT',
@@ -594,6 +596,27 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
           options.postprocess?.silenceThreshold ?? DEFAULT_POSTPROCESS.silenceThreshold,
         keep: options.postprocess?.keep ?? DEFAULT_POSTPROCESS.keep,
       };
+      if (postprocess.enabled) {
+        const { endCut, silenceThreshold, keep } = postprocess;
+        if (!(Number.isFinite(endCut) && endCut >= 0)) {
+          throw RnExecuTorchError(
+            'INVALID_ARGUMENT',
+            'synthesize: postprocess.endCut must be a finite number of seconds, 0 or more.'
+          );
+        }
+        if (!Number.isFinite(silenceThreshold)) {
+          throw RnExecuTorchError(
+            'INVALID_ARGUMENT',
+            'synthesize: postprocess.silenceThreshold must be a finite level in dBFS.'
+          );
+        }
+        if (!(Number.isFinite(keep) && keep >= 0)) {
+          throw RnExecuTorchError(
+            'INVALID_ARGUMENT',
+            'synthesize: postprocess.keep must be a finite number of seconds, 0 or more.'
+          );
+        }
+      }
 
       const encodePrompt = (chunk: string) =>
         tokenizer.encode(buildPrompt(language, voice.transcript, chunk));
