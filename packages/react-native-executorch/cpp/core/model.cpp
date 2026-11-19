@@ -215,37 +215,6 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 requireRegisteredBackends(self->modelPath_, methodName, self->backends_.at(methodName));
             }
 
-            // An output the export left out of the memory plan has no buffer of its own: the method writes it
-            // straight into the caller's tensor, bound here, and nothing is copied after the run.
-            auto methodMeta = unwrap(RnExecuTorchErrorCode::ExecutionFailed, std::format("execute: method '{}' metadata", methodName),
-                                     self->etModule_->method_meta(methodName));
-            for (size_t i = 0, tensorIdx = 0; i < methodSpec.outputs.size(); ++i) {
-                const auto &tSpec = methodSpec.outputs[i];
-                if (tSpec.tag != executorch::runtime::Tag::Tensor) {
-                    continue;
-                }
-                const auto placeholderIdx = tensorIdx++;
-                const auto info = methodMeta.output_tensor_meta(i);
-                if (!info.ok() || info->is_memory_planned()) {
-                    continue;
-                }
-                if (placeholderIdx >= outputTensorsArray.size(rt)) {
-                    throw error::InvalidArgument(std::format("execute: Not enough tensor output placeholders in outputTensors"
-                                                             " (provided {}, expected at least {})",
-                                                             outputTensorsArray.size(rt), placeholderIdx + 1));
-                }
-                auto ctx = std::format("execute: outputTensors[{}]", placeholderIdx);
-                auto tensorHostObject = tensor::fromJs(rt, ctx, outputTensorsArray.getValueAtIndex(rt, placeholderIdx),
-                                                       tSpec.dtype, tSpec.shape);
-                if (!lockedTensors.insert(tensorHostObject.get()).second) {
-                    throw error::InvalidArgument("execute: Tensor aliasing detected. "
-                                                 "The same tensor was passed multiple times.");
-                }
-                tensorLocks.emplace_back(tensor::tryLockUnique(rt, ctx, tensorHostObject));
-                unwrap(RnExecuTorchErrorCode::ExecutionFailed, ctx + " binding",
-                       self->etModule_->set_output(methodName, tensorHostObject->tensor_, i));
-            }
-
             auto startTime = std::chrono::high_resolution_clock::now();
             auto executeResult = self->etModule_->execute(methodName, inputs);
             auto finishTime = std::chrono::high_resolution_clock::now();
@@ -306,17 +275,14 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     auto shape = output.toTensor().sizes();
                     auto tensorHostObject = tensor::fromJs(rt, ctx, val, dtype, shape);
 
-                    // An output bound before the run was written in place.
-                    if (output.toTensor().const_data_ptr() != tensorHostObject->data_.get()) {
-                        if (!lockedTensors.insert(tensorHostObject.get()).second) {
-                            throw error::InvalidArgument("execute: Tensor aliasing detected. "
-                                                         "The same tensor was passed multiple times.");
-                        }
-                        tensorLocks.emplace_back(tensor::tryLockUnique(rt, ctx, tensorHostObject));
-                        std::memcpy(tensorHostObject->data_.get(),
-                                    output.toTensor().const_data_ptr(),
-                                    output.toTensor().nbytes());
+                    if (!lockedTensors.insert(tensorHostObject.get()).second) {
+                        throw error::InvalidArgument("execute: Tensor aliasing detected. "
+                                                     "The same tensor was passed multiple times.");
                     }
+                    tensorLocks.emplace_back(tensor::tryLockUnique(rt, ctx, tensorHostObject));
+                    std::memcpy(tensorHostObject->data_.get(),
+                                output.toTensor().const_data_ptr(),
+                                output.toTensor().nbytes());
 
                     jsOutputArray.setValueAtIndex(rt, outputIdx, val);
                     ++tensorOutputIdx;
