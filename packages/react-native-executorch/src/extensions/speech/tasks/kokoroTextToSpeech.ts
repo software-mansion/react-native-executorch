@@ -7,7 +7,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 import RNBlobUtil from 'react-native-blob-util';
 
 import { tensor, type Tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import {
   validateSpec,
   method,
@@ -76,12 +76,12 @@ const tokenBounds = (spec: SpecMatch<'dynamic' | 'padded'>) => {
 export type KokoroTtsModel<K extends PropertyKey> = {
   /** Discriminates this config from the other Text-to-Speech pipelines. */
   readonly name: 'kokoro';
-  /** Local or remote file paths to the 2 Kokoro `.pte` sub-models. */
+  /** Model sources for the 2 Kokoro sub-models. */
   readonly modelPaths: {
-    /** Path to the duration predictor `.pte` model. */
-    readonly durationPredictor: string;
-    /** Path to the synthesizer `.pte` model. */
-    readonly synthesizer: string;
+    /** Duration predictor model source. */
+    readonly durationPredictor: ModelSource;
+    /** Synthesizer model source. */
+    readonly synthesizer: ModelSource;
   };
   /** Grapheme-to-phoneme configuration matching the model's language. */
   readonly phonemizer: PhonemizerConfig;

@@ -41,8 +41,7 @@ export function useResourceDownload<T>(config: T | undefined, options?: Resource
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloadError, setDownloadError] = useState<Error | undefined>();
 
-  // Configs are plain JSON data, so serializing is a sound structural identity
-  // and keeps an inline `config` object from re-running the effect every render.
+  // Compare configs by their serialized value to keep inline objects stable.
   const configKey = useMemo(() => JSON.stringify(config), [config]);
 
   useEffect(() => {

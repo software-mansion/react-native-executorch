@@ -6,7 +6,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 import { scheduleOnRN, createSynchronizable } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import { wrapAsync } from '../../../core/runtime';
 import { f32, i64, method, validateSpec, DynamicDim as Dyn } from '../../../core/schema';
 
@@ -94,7 +94,7 @@ export type WhisperSttModel<L extends WhisperLanguage = WhisperLanguage> = {
   /** Pipeline tag, which tells {@link useSpeechToText} which runner to build. */
   readonly name?: 'whisper';
   /** Local path or remote URL of the `.pte` model. */
-  readonly modelPath: string;
+  readonly modelPath: ModelSource;
   /** Local path or remote URL of the tokenizer file. */
   readonly tokenizerPath: string;
   /** List of supported language codes for this model. */

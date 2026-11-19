@@ -6,7 +6,7 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor, type Tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { createResourceScope } from '../../../core/lifetime';
@@ -43,8 +43,8 @@ export type KeypointDetectorOptions<F extends BoxFormat, L extends PropertyKey> 
  * @category CV / Types
  */
 export type KeypointDetectorModel<F extends BoxFormat, L extends PropertyKey> = {
-  /** Local path or remote URL of the `.pte` model file. */
-  readonly modelPath: string;
+  /** Model source: a local or remote path, program and data paths, or callback loaders. */
+  readonly modelPath: ModelSource;
   /**
    * Image preprocessing, landmark names, bounding box format, and default
    * NMS/confidence thresholds.

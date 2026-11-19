@@ -33,13 +33,13 @@ const isConfig = (value: unknown): value is Node =>
 /**
  * The model file(s) a config names, as one comparable identity.
  */
-const modelPathsOf = (config: Node): string =>
-  typeof config.modelPath === 'string'
-    ? config.modelPath
-    : Object.values(config.modelPaths as Node)
-        .map(String)
-        .sort()
-        .join('|');
+const modelPathsOf = (config: Node): string => {
+  if (typeof config.modelPath === 'string') return config.modelPath;
+  return Object.values(config.modelPaths as Node)
+    .map(String)
+    .sort()
+    .join('|');
+};
 
 /**
  * A backend variant key, e.g. `XNNPACK_FP32`. Size keys (`TINY`) look the same.

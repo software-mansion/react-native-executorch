@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <format>
 #include <string>
 #include <vector>
@@ -28,7 +29,14 @@ using ::testing::HasSubstr;
 // The fixture's shape contract, from its published config.json:
 //   forward: input [1, 3, 256, 256] float32 -> output [1, 1, 256, 256] float32
 
+#ifdef RNE_MODEL_FIXTURE
 constexpr const char *kFixture = RNE_MODEL_FIXTURE;
+#else
+// Standalone compiler checks do not receive CMake's test definitions.
+const auto kFixture = (std::filesystem::path(__FILE__).parent_path().parent_path() /
+                       "fixtures/selfie_segmentation_xnnpack_fp32.pte")
+                          .string();
+#endif
 
 std::string loadFixtureJs() {
     return std::format("const model = __rnexecutorch_jsi__.loadModel('{}', {{ eagerLoadMethods: false }});", kFixture);
@@ -199,12 +207,12 @@ TEST_F(ModelTest, ReportsAMissingFileAsLoadFailed) {
 
 TEST_F(ModelTest, RejectsWrongArgumentCount) {
     EXPECT_THAT(evalThrowingMessage("__rnexecutorch_jsi__.loadModel();"),
-                HasSubstr("Usage: loadModel(path, options?)"));
+                HasSubstr("Usage: loadModel(source, options?)"));
 }
 
-TEST_F(ModelTest, RejectsANonStringPath) {
+TEST_F(ModelTest, RejectsAnInvalidSourceType) {
     EXPECT_THAT(evalThrowingMessage("__rnexecutorch_jsi__.loadModel(42);"),
-                HasSubstr("must be a string"));
+                HasSubstr("must be an object"));
 }
 
 TEST_F(ModelTest, ExecuteRejectsWrongArgumentCount) {

@@ -5,7 +5,7 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import {
   validateSpec,
   DynamicDim as Dyn,
@@ -25,8 +25,8 @@ import { createResourceScope } from '../../../core/lifetime';
  * @category NLP / Types
  */
 export type TextEmbedderModel = {
-  /** Local path or remote URL of the `.pte` model file. */
-  readonly modelPath: string;
+  /** Model source: a local or remote path, program and data paths, or callback loaders. */
+  readonly modelPath: ModelSource;
   /** Local path or remote URL of the tokenizer file. */
   readonly tokenizerPath: string;
   /** Optional default prompt prefix added to input text before embedding. */

@@ -312,7 +312,7 @@ if(EXISTS "${MODEL_FIXTURE}")
 else()
   set(RNE_HAVE_MODEL_FIXTURE OFF)
   message(WARNING
-    "Model fixture missing, skipping the ModelTest suite. Fetch it with:\n"
+    "Model fixture missing, skipping the ModelTest and ModelSourceTest suites. Fetch it with:\n"
     "  scripts/fetch-test-fixtures.sh")
 endif()
 
@@ -359,6 +359,7 @@ set(TEST_SUITES
   core/DTypeTest.cpp
   core/ErrorTest.cpp
   core/ConversionsTest.cpp
+  core/DataLoaderTest.cpp
   core/TensorTest.cpp
   core/SchemaTest.cpp
   core/UtilsTest.cpp
@@ -375,7 +376,7 @@ if(RNE_TESTS_ENABLE_PHONEMIS)
 endif()
 
 if(RNE_HAVE_MODEL_FIXTURE)
-  list(APPEND TEST_SUITES core/ModelTest.cpp)
+  list(APPEND TEST_SUITES core/ModelTest.cpp core/ModelSourceTest.cpp)
 endif()
 
 if(RNE_HAVE_TOKENIZER_FIXTURE)

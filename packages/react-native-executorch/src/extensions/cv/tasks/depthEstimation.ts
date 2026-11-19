@@ -5,7 +5,7 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { createResourceScope } from '../../../core/lifetime';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import { wrapAsync } from '../../../core/runtime';
 import { validateSpec, method, f32 } from '../../../core/schema';
 import { tensor } from '../../../core/tensor';
@@ -47,8 +47,8 @@ export type DepthEstimatorOptions = Omit<ImagePreprocessorOptions, 'resizeMode' 
  * @category CV / Types
  */
 export type DepthEstimatorModel = {
-  /** Local path or remote URL of the `.pte` model file. */
-  readonly modelPath: string;
+  /** Model source: a local or remote path, program and data paths, or callback loaders. */
+  readonly modelPath: ModelSource;
   /**
    * Input preprocessing and output depth map interpolation. `resizeMode` is
    * fixed to `'stretch'`. See {@link DepthEstimatorOptions}.

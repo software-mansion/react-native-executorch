@@ -8,7 +8,7 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { createResourceScope } from '../../../core/lifetime';
@@ -57,8 +57,8 @@ export type InpainterOptions = Omit<ImagePreprocessorOptions, 'resizeMode' | 'pa
  * @category CV / Types
  */
 export type InpainterModel = {
-  /** Local path or remote URL of the `.pte` model file. */
-  readonly modelPath: string;
+  /** Model source: a local or remote path, program and data paths, or callback loaders. */
+  readonly modelPath: ModelSource;
   /**
    * Input preprocessing, output postprocessing and blending options.
    * `resizeMode` is fixed to `'stretch'`. See {@link InpainterOptions}.

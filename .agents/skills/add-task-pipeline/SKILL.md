@@ -94,6 +94,10 @@ When implementing task constructors like `create<Task>` (e.g. `createClassifier`
    - **Corollary (a quick smell test):** if every variant in `models.ts` passes an _identical_ options object, those fields are not configuration — move them into the task file as constants and shrink the model type to the paths that actually differ.
    - Do not keep a loop, parameter, or code path solely because it _looks_ more general. If the surrounding math is only valid for one value (e.g. coefficients pinned to a single distilled timestep), the generality is fake and the parameter is a correctness trap.
 
+Task configs use `modelPath: ModelSource`, or `modelPaths` for multiple models. Pass each source
+unchanged to `loadModel`; tokenizer and other file-only resources keep their path fields. Callback
+loaders passed to a worklet runtime must have worklet-compatible methods and captures.
+
 ## 🚫 Avoid / Anti-Patterns
 
 - **Do NOT access tensors by index:** Avoid using `tensors[0]` or `tensors[1]` throughout the function body. Always destructure and name them explicitly.
@@ -123,7 +127,7 @@ returns scores; models returning logits may need a softmax or another decoder.
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { createResourceScope } from '../../../core/lifetime';
@@ -135,7 +139,7 @@ export type MyTaskOptions = ImagePreprocessorOptions & {
 };
 
 export type MyTaskModel = {
-  readonly modelPath: string;
+  readonly modelPath: ModelSource;
   readonly modelOpts: MyTaskOptions;
 };
 

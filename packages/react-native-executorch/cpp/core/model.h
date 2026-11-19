@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -34,20 +35,23 @@ class ModelHostObject final : public jsi::HostObject,
                               public std::enable_shared_from_this<ModelHostObject> {
 public:
     /**
-     * Loads the ExecuTorch model from the specified file path, initializes its
+     * Loads the supplied ExecuTorch module, initializes its
      * method metadata, parses schemas, and populates backend delegates.
      *
-     * @param modelPath Absolute file system path to the `.pte` model binary.
+     * @param modelPath Program path, absent for callback sources.
+     * @param module The module constructed for the requested source.
      * @param eagerLoadMethods Whether to eagerly load and compile all model methods.
      */
-    explicit ModelHostObject(const std::string &modelPath, bool eagerLoadMethods);
+    explicit ModelHostObject(std::optional<std::string> modelPath,
+                             std::unique_ptr<executorch::extension::Module> module,
+                             bool eagerLoadMethods);
 
     jsi::Value get(jsi::Runtime &rt, const jsi::PropNameID &name) override;
     std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime &rt) override;
 
 private:
-    /// File system path to the loaded ExecuTorch `.pte` model binary.
-    std::string modelPath_;
+    /// Program path, absent for a callback source.
+    std::optional<std::string> modelPath_;
 
     /**
      * Parsed model schema mapping method names to their input/output parameter

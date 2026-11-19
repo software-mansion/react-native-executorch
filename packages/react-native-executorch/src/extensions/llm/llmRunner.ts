@@ -10,7 +10,7 @@ import { type WorkletRuntime } from 'react-native-worklets';
 
 import type { Tensor } from '../../core/tensor';
 import { wrapAsync } from '../../core/runtime';
-import { loadModel } from '../../core/model';
+import { loadModel, type ModelSource } from '../../core/model';
 import { RnExecuTorchError } from '../../core/error';
 import { createResourceScope } from '../../core/lifetime';
 import { validateSpec } from '../../core/schema';
@@ -113,8 +113,8 @@ export type LLMKVCacheState = {
  * @category LLM / Types
  */
 export type LLMRunner = {
-  /** Path to the local model file. */
-  readonly modelPath: string;
+  /** Path to the local model file. Undefined for callback sources. */
+  readonly modelPath?: string;
   /** Path to the local tokenizer configuration file. */
   readonly tokenizerPath: string;
   /** List of supported non-text input modalities for this runner (e.g. `['image']`). */
@@ -170,7 +170,8 @@ export type LLMRunner = {
  * Loads the model and its tokenizer, validates the model's exported methods
  * against the supported runner specs, and returns the matching runner.
  * @category LLM / Functions
- * @param modelPath Path to the local `.pte` model file.
+ * @param modelPath Local program path, program with external data paths, or
+ * initialization-only callback readers. See {@link ModelSource}.
  * @param tokenizerPath Path to the local tokenizer file (e.g. `tokenizer.json`).
  * @param modalities List of supported input non-text modalities (e.g.
  * `['image']`). When omitted, defaults to text-only.
@@ -179,7 +180,7 @@ export type LLMRunner = {
  * @returns A promise resolving to the {@link LLMRunner} instance.
  */
 export async function createLLMRunner(
-  modelPath: string,
+  modelPath: ModelSource,
   tokenizerPath: string,
   modalities?: readonly Modality[],
   runtime?: WorkletRuntime

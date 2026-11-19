@@ -7,7 +7,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 import RNBlobUtil from 'react-native-blob-util';
 
 import { tensor, type Tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import {
   validateSpec,
   method,
@@ -74,16 +74,16 @@ function getDefaultMaxChunkLength(lang?: SupertonicLanguage): number {
 export type SupertonicTtsModel<K extends PropertyKey> = {
   /** Discriminates this config from the other Text-to-Speech pipelines. */
   readonly name: 'supertonic';
-  /** Local or remote file paths to the 4 Supertonic `.pte` sub-models. */
+  /** Model sources for the 4 Supertonic sub-models. */
   readonly modelPaths: {
-    /** Path to the duration predictor `.pte` model. */
-    readonly durationPredictor: string;
-    /** Path to the vector estimator `.pte` model. */
-    readonly vectorEstimator: string;
-    /** Path to the text encoder `.pte` model. */
-    readonly textEncoder: string;
-    /** Path to the vocoder `.pte` model. */
-    readonly vocoder: string;
+    /** Duration predictor model source. */
+    readonly durationPredictor: ModelSource;
+    /** Vector estimator model source. */
+    readonly vectorEstimator: ModelSource;
+    /** Text encoder model source. */
+    readonly textEncoder: ModelSource;
+    /** Vocoder model source. */
+    readonly vocoder: ModelSource;
   };
   /** Local or remote path to the `unicode_indexer.json` character mapping file. */
   readonly unicodeIndexerPath: string;
