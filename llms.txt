@@ -1,8 +1,8 @@
 # React Native ExecuTorch
 
 > Latest stable release: v0.11.x (npm `react-native-executorch`); this file was generated 2026-11-19.
-> 82 pre-exported models across 19 tasks, listed under "Supported Models" below.
-> Backends: XNNPACK (CPU, iOS and Android), Core ML (iOS), MLX (iOS), Vulkan (Android GPU). Precisions: fp32, fp16, bf16, int8, 8da8w, 8da4w, int4, spinquant, coreml_int4, a16w8, a8w8.
+> 83 pre-exported models across 19 tasks, listed under "Supported Models" below.
+> Backends: XNNPACK (CPU, iOS and Android), Core ML (iOS), MLX (iOS), Vulkan (Android GPU). Precisions: fp32, fp16, bf16, int8, 8da8w, 8da4w, int4, spinquant, coreml_int4, coreml_int8, coreml_fp16, vulkan_int4, a16w8, a8w8.
 > New in v0.11.x: `models.llm.MINICPM5_2B`, `models.llm.LFM2_5_2_6B`, `models.colbertEmbeddings.LFM2_5_COLBERT_350M`, `models.keypointDetection.FACEMESH`, `models.depthEstimation.DEPTH_ANYTHING_V2_SMALL`, `models.depthEstimation.DEPTH_ANYTHING_V3_SMALL`, `models.depthEstimation.ZIPDEPTH_BASE`, `models.inpainting.MIGAN`.
 >
 > React Native ExecuTorch is Software Mansion's library for running AI models on-device in React Native, built on Meta's ExecuTorch (PyTorch Edge). One package covers LLMs and VLMs (streaming chat, tool calling, thinking mode, constrained sampling), speech (speech-to-text, text-to-speech, voice activity detection), computer vision, image generation and inpainting, and local RAG (text, image and ColBERT embeddings), fully offline on iOS and Android. Unlike bindings to a single runtime, which leave model export, tokenizers and pre/post-processing to the app, it ships a registry of pre-exported models with typed hooks for each task and per-device benchmarks, and still loads any custom ExecuTorch .pte.
@@ -84,6 +84,7 @@ Chat sessions stream tokens and support tool calling, a thinking-mode switch, Ji
 
 - `models.textToSpeech.SUPERTONIC`: Supertonic 3 multilingual flow-matching Text-to-Speech model. Backends: XNNPACK, MLX, Vulkan. Added in v0.10.0.
 - `models.textToSpeech.KOKORO`: Kokoro — a lightweight phoneme-driven Text-to-Speech model. Variants: EN_US, EN_GB, ES, FR, IT, PT, HI, PL, DE, ZH. Backends: XNNPACK, Core ML. Added in v0.7.0.
+- `models.textToSpeech.REVERB`: Reverb — multilingual Text-to-Speech that speaks in the voice of any 1-20 s recording, given its transcript, in 7 languages. Backends: , XNNPACK, MLX, Vulkan. Added in the next release.
 
 ### Voice Activity Detection ([guide](https://docs.swmansion.com/react-native-executorch/docs/extensions/voice-activity-detection), [benchmarks](https://docs.swmansion.com/react-native-executorch/docs/benchmarks#voice-activity-detection))
 
