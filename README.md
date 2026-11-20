@@ -34,6 +34,7 @@ To explore all on-device capabilities in an interactive showcase app, check out 
 [![npm version](https://img.shields.io/npm/v/react-native-executorch?color=00008B)](https://www.npmjs.com/package/react-native-executorch)
 [![npm nightly](https://img.shields.io/npm/v/react-native-executorch/executorch-nightly?label=nightly&color=00008B)](https://www.npmjs.com/package/react-native-executorch)
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
+[![Consumer CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/consumer-builds.yml/badge.svg?branch=main&event=schedule)](https://github.com/software-mansion/react-native-executorch/actions/workflows/consumer-builds.yml?query=branch%3Amain+event%3Aschedule)
 
 ## Table of Contents
 
