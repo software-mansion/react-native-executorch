@@ -2,9 +2,10 @@ import { RnExecuTorchError } from '../core/error';
 
 const globalObj = globalThis as any;
 
+let installed = true;
 if (!globalObj.__rnexecutorch_jsi__) {
   const NativeRnExecutorch = require('./NativeRnExecutorch').default;
-  if (NativeRnExecutorch) NativeRnExecutorch.install();
+  if (NativeRnExecutorch) installed = NativeRnExecutorch.install();
 }
 
 /**
@@ -19,6 +20,13 @@ if (!globalObj.__rnexecutorch_jsi__) {
 export const rnexecutorchJsi = globalObj.__rnexecutorch_jsi__;
 
 if (!rnexecutorchJsi) {
+  if (!installed) {
+    throw RnExecuTorchError(
+      'LOAD_FAILED',
+      'react-native-executorch failed to install its native module. On Android this usually means ' +
+        'a 32-bit device: the native libraries ship for arm64-v8a and x86_64 only (see logcat).'
+    );
+  }
   throw RnExecuTorchError('UNKNOWN', "JSI global object '__rnexecutorch_jsi__' is not registered.");
 }
 
