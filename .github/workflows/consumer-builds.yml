@@ -1,4 +1,4 @@
-name: Consumer builds
+name: Consumer CI
 
 on:
   schedule:
@@ -65,7 +65,7 @@ jobs:
             exit 1
           fi
           cp packages/react-native-executorch/react-native-executorch-*.tgz "$RUNNER_TEMP/react-native-executorch.tgz"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: consumer-library
           path: ${{ runner.temp }}/react-native-executorch.tgz
@@ -108,7 +108,7 @@ jobs:
       - name: Validate Windows host helpers
         if: runner.os == 'Windows'
         run: node --test .github/consumer-builds/host.test.mjs
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: consumer-library
           path: ${{ runner.temp }}/consumer-package
@@ -267,7 +267,7 @@ jobs:
           if [[ -f "$CONSUMER_DIR/node_modules/react-native-executorch/rne-build-config.json" ]]; then
             cp "$CONSUMER_DIR/node_modules/react-native-executorch/rne-build-config.json" "$LOG_DIR/"
           fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: consumer-build-${{ matrix.id }}
