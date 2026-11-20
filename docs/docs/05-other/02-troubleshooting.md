@@ -183,8 +183,8 @@ were written.
 Native code is shipped for `arm64-v8a` and `x86_64` only. A build that also
 produces `armeabi-v7a` or `x86` splits (React Native's default
 `reactNativeArchitectures` lists all four) will package those without the
-library's `.so`, and loading it fails at runtime on such a device. Restrict the
-app to the supported ABIs:
+library's `.so`, and importing the library throws `LOAD_FAILED` on such a
+device. Restrict the app to the supported ABIs:
 
 ```properties
 reactNativeArchitectures=arm64-v8a,x86_64

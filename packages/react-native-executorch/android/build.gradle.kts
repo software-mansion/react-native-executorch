@@ -103,9 +103,17 @@ requireNativeArtifacts()
  */
 fun reactNativeArchitectures(): List<String> {
     val supported = listOf("arm64-v8a", "x86_64")
-    val value = rootProject.findProperty("reactNativeArchitectures") as String?
-    return value?.split(",")?.map { it.trim() }?.filter { it in supported }
-        ?.takeIf { it.isNotEmpty() } ?: supported
+    val requested = (rootProject.findProperty("reactNativeArchitectures") as String?)
+        ?.split(",")?.map { it.trim() }
+    val dropped = requested.orEmpty().filter { it !in supported }
+    if (dropped.isNotEmpty()) {
+        logger.warn(
+            "[RnExecutorch] No native libraries for ${dropped.joinToString()}; the app will fail " +
+                "to load react-native-executorch on such devices. Set " +
+                "reactNativeArchitectures=${supported.joinToString(",")} to exclude them."
+        )
+    }
+    return requested?.filter { it in supported }?.takeIf { it.isNotEmpty() } ?: supported
 }
 
 android {

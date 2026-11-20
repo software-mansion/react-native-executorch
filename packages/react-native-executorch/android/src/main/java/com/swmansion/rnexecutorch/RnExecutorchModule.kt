@@ -1,6 +1,7 @@
 package com.swmansion.rnexecutorch
 
 import android.system.Os
+import android.util.Log
 import com.facebook.react.bridge.JavaScriptContextHolder
 import com.facebook.react.bridge.ReactApplicationContext
 
@@ -12,6 +13,7 @@ class RnExecutorchModule(
   override fun install(): Boolean {
     val contextHolder: JavaScriptContextHolder =
       reactApplicationContext.javaScriptContextHolder ?: return false
+    if (!nativeLibrariesLoaded) return false
     exposeQnnSkels()
     nativeInstall(contextHolder.get())
     return true
@@ -37,9 +39,18 @@ class RnExecutorchModule(
   companion object {
     const val NAME = "RnExecutorch"
 
-    init {
-      System.loadLibrary("executorch")
-      System.loadLibrary("RnExecutorch")
+    // Loaded on first install() rather than in a static initializer, so a
+    // device the prebuilt libraries do not cover (32-bit ABIs) gets a JS error
+    // instead of a native crash when the module class is initialized.
+    private val nativeLibrariesLoaded: Boolean by lazy {
+      try {
+        System.loadLibrary("executorch")
+        System.loadLibrary("RnExecutorch")
+        true
+      } catch (e: UnsatisfiedLinkError) {
+        Log.e(NAME, "Failed to load native libraries", e)
+        false
+      }
     }
 
     @JvmStatic
