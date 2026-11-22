@@ -165,8 +165,20 @@ jobs:
         if: matrix.platform == 'android' && runner.os != 'Windows'
         working-directory: ${{ env.CONSUMER_DIR }}/android
         run: |
-          ./gradlew :app:assembleRelease --no-daemon --stacktrace --max-workers=2 \
-            2>&1 | tee "$LOG_DIR/android.log"
+          # Parallel cold-cache jobs intermittently fail to resolve Gradle plugins.
+          for attempt in 1 2 3; do
+            args=(); [[ $attempt == 1 ]] || args=(--refresh-dependencies)
+            if ./gradlew :app:assembleRelease --no-daemon --stacktrace --max-workers=2 "${args[@]}" \
+              2>&1 | tee "$LOG_DIR/android-attempt-$attempt.log"; then
+              break
+            fi
+            if [[ $attempt == 3 ]] || ! grep -qE 'Could not (find|resolve|parse POM)|Plugin \[id: .*\] was not found' \
+              "$LOG_DIR/android-attempt-$attempt.log"; then
+              exit 1
+            fi
+            echo "::warning::Gradle dependency resolution failed on attempt $attempt, retrying"
+            sleep $((attempt * 30))
+          done
           apk=app/build/outputs/apk/release/app-release.apk
           unzip -Z1 "$apk" | tee "$LOG_DIR/apk-files.log"
           node "$GITHUB_WORKSPACE/.github/consumer-builds/android-entries.mjs" apk "$CONSUMER_ABI" "$LOG_DIR/apk-files.log"
