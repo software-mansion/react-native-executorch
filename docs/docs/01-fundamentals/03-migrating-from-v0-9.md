@@ -24,6 +24,12 @@ continue using the v0.9.x API. v1.0.0 removes that entry point. If your app uses
 the v0.9.x API directly or through `react-native-executorch/legacy`, update your
 imports and migrate your calls to the v1.0 API before upgrading.
 
+If you need more time to migrate, use v0.11.1 as an intermediate step. Keep
+using `react-native-executorch/legacy` for tasks that still use the legacy API
+and move one task at a time to the main `react-native-executorch` entry point. Model support changes little
+between v0.11.1 and v1.0.0, so you can migrate most model integrations on
+v0.11.1. Upgrade to v1.0.0 once all calls use the new API.
+
 ## Migrating to the New Architecture
 
 Migrating to the new v1.0 API gives you access to transparent pipelines,
