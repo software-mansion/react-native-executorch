@@ -1,8 +1,8 @@
 ---
 title: Migrating from v0.9.x
 slug: /fundamentals/migrating-from-v0-9
-description: 'Step-by-step migration guide from legacy v0.9.x to the new v0.10.0 architecture in React Native ExecuTorch.'
-keywords: [react native, react native ai, executorch, migration guide, v0.10, legacy api]
+description: 'Step-by-step migration guide from legacy v0.9.x to React Native ExecuTorch v1.0.0.'
+keywords: [react native, react native ai, executorch, migration guide, v1.0, legacy api]
 ---
 
 import Tabs from '@theme/Tabs';
@@ -10,27 +10,35 @@ import TabItem from '@theme/TabItem';
 
 # Migrating from v0.9.x
 
-React Native ExecuTorch v0.10.0 is a complete, ground-up rewrite of the library.
-It replaces monolithic native modules with a two-layer architecture: a flexible,
+React Native ExecuTorch v1.0.0 builds on the architecture introduced in v0.10.0.
+This architecture replaces the monolithic native modules in v0.9.x with two layers: a flexible,
 lower-level Core API for raw model execution and tensor operations, and
 transparent, end-to-end pipeline implementations in TypeScript topped with declarative React hooks.
 
 While the new API is not backwards-compatible with v0.9.x, the library provides
 **100% functional parity**: every single task, model, and capability supported in
-v0.9.x is supported in v0.10.0, alongside numerous new models and features.
+v0.9.x is supported in v1.0.0, alongside numerous new models and features.
 
-The legacy compatibility entry point has been removed. Applications upgrading
-from v0.9.x must migrate to the new API.
+Starting in v0.10.0, the `react-native-executorch/legacy` entry point let apps
+continue using the v0.9.x API. v1.0.0 removes that entry point. If your app uses
+the v0.9.x API directly or through `react-native-executorch/legacy`, update your
+imports and migrate your calls to the v1.0 API before upgrading.
+
+If you need more time to migrate, use v0.11.1 as an intermediate step. Keep
+using `react-native-executorch/legacy` for tasks that still use the legacy API
+and move one task at a time to the main `react-native-executorch` entry point. Model support changes little
+between v0.11.1 and v1.0.0, so you can migrate most model integrations on
+v0.11.1. Upgrade to v1.0.0 once all calls use the new API.
 
 ## Migrating to the New Architecture
 
-Migrating to the new v0.10 API gives you access to transparent pipelines,
+Migrating to the new v1.0 API gives you access to transparent pipelines,
 deterministic memory management, worklet-safe thread dispatch, and lower-level
 runtime primitives.
 
 ## Dependencies
 
-In v0.10, resource fetching and threading have been built directly into the core
+In v1.0, resource fetching and threading have been built directly into the core
 runtime:
 
 - **Satellite fetcher packages are removed**: You no longer need
@@ -51,7 +59,7 @@ runtime:
 # 1. Uninstall legacy fetcher adapters if present
 npm uninstall @software-mansion/react-native-executorch-bare-resource-fetcher @software-mansion/react-native-executorch-expo-resource-fetcher
 
-# 2. Install v0.10 and peer dependencies
+# 2. Install v1.0 and peer dependencies
 npm install react-native-executorch react-native-worklets react-native-blob-util
 ```
 
@@ -62,7 +70,7 @@ npm install react-native-executorch react-native-worklets react-native-blob-util
 # 1. Uninstall legacy fetcher adapters if present
 yarn remove @software-mansion/react-native-executorch-bare-resource-fetcher @software-mansion/react-native-executorch-expo-resource-fetcher
 
-# 2. Install v0.10 and peer dependencies
+# 2. Install v1.0 and peer dependencies
 yarn add react-native-executorch react-native-worklets react-native-blob-util
 ```
 
@@ -73,7 +81,7 @@ yarn add react-native-executorch react-native-worklets react-native-blob-util
 # 1. Uninstall legacy fetcher adapters if present
 pnpm remove @software-mansion/react-native-executorch-bare-resource-fetcher @software-mansion/react-native-executorch-expo-resource-fetcher
 
-# 2. Install v0.10 and peer dependencies
+# 2. Install v1.0 and peer dependencies
 pnpm add react-native-executorch react-native-worklets react-native-blob-util
 ```
 
@@ -82,12 +90,12 @@ pnpm add react-native-executorch react-native-worklets react-native-blob-util
 
 ## Old vs. New: What Changed and Why
 
-React Native ExecuTorch v0.10 achieves **100% functional parity** with v0.9: every computer
-vision model, speech model, tokenizer, and LLM supported in v0.9 is supported in v0.10 with
+React Native ExecuTorch v1.0 achieves **100% functional parity** with v0.9: every computer
+vision model, speech model, tokenizer, and LLM supported in v0.9 is supported in v1.0 with
 matching or better performance.
 
-Crucially, v0.10 provides **vastly broader hardware backend coverage** than v0.9. While v0.9
-primarily relied on XNNPACK on CPU with limited delegate support, v0.10 deeply integrates
+Crucially, v1.0 provides **vastly broader hardware backend coverage** than v0.9. While v0.9
+primarily relied on XNNPACK on CPU with limited delegate support, v1.0 deeply integrates
 first-class hardware acceleration delegates across both platforms — including **Core ML**
 (leveraging Apple Neural Engine & GPU on iOS), **MLX** (Apple Metal compute shaders for high-performance
 LLMs on Apple silicon), **Vulkan** (mobile GPU acceleration on Android), and optimized **XNNPACK**.
@@ -103,7 +111,7 @@ However, the internal mechanics and Developer Experience have been fundamentally
   were buried in native code with rigid boundaries. If your model or workflow didn't fit a
   pre-packaged module, reverse-engineering its contracts required digging through multiple native
   abstraction layers, and customizing it was practically impossible without modifying C++ source code.
-- **In v0.10 (New)**: Pipelines are **composed from modular building blocks entirely in TypeScript**.
+- **In v1.0 (New)**: Pipelines are **composed from modular building blocks entirely in TypeScript**.
   Users and library maintainers build with the exact same tools: the native layer provides only fast
   operator primitives ([`cv`, `math`, `nlp`, `speech`](../03-core-and-advanced/04-operations-and-utilities.md)),
   while task orchestration is plain, readable TypeScript built on top of the
@@ -121,7 +129,7 @@ However, the internal mechanics and Developer Experience have been fundamentally
 - **In v0.9 (Legacy)**: Memory allocation was implicit and tied to native module handles. If
   model construction failed midway or references lingered across component remounts, native memory
   could leak silently.
-- **In v0.10 (New)**: Native tensors and models follow an explicit lifecycle contract. Resources
+- **In v1.0 (New)**: Native tensors and models follow an explicit lifecycle contract. Resources
   provide an explicit `.dispose()` method, and higher-level utilities like
   [`createResourceScope()`](../06-api-reference/functions/createResourceScope.md)
   ensure all intermediate tensors allocated during preprocessing and inference are automatically
@@ -132,7 +140,7 @@ However, the internal mechanics and Developer Experience have been fundamentally
 - **In v0.9 (Legacy)**: Worklet execution was restricted to a few ad-hoc methods
   (such as `generateFromFrame` on vision modules), while general model loading and
   inference were bound to their respective module implementations.
-- **In v0.10 (New)**: Every native JSI function and core primitive carries the
+- **In v1.0 (New)**: Every native JSI function and core primitive carries the
   `"worklet";` directive by default. You can dispatch any operation — from model
   compilation via [`loadModel()`](../06-api-reference/functions/loadModel.md) to
   inference and image processing — to background threads using
@@ -145,7 +153,7 @@ However, the internal mechanics and Developer Experience have been fundamentally
   for user `.pte` files (`ExecutorchModule`) only exposed a single rigid `forward` method with
   no way to execute arbitrary exported methods, inspect method signatures, or manipulate model
   inputs and outputs as native tensors.
-- **In v0.10 (New)**: The [`Model`](../06-api-reference/type-aliases/Model.md) primitive exposes
+- **In v1.0 (New)**: The [`Model`](../06-api-reference/type-aliases/Model.md) primitive exposes
   the full native ExecuTorch runtime. You can inspect exported methods and delegate backends,
   execute any method by name, provide pre-allocated output buffers, and compose arbitrary multi-step
   model workflows directly in TypeScript.
@@ -154,7 +162,7 @@ However, the internal mechanics and Developer Experience have been fundamentally
 
 - **In v0.9**: All hardware backends and third-party binaries were bundled statically into
   the app binary, inflating application size regardless of which tasks were used.
-- **In v0.10**: Native libraries and hardware backends are now downloaded on demand at install
+- **In v1.0**: Native libraries and hardware backends are now downloaded on demand at install
   time and can be selectively filtered through the `react-native-executorch` block in your
   `package.json`. This optimization benefits all applications using the new API.
   See [Native Libraries](../03-core-and-advanced/08-native-libraries.md).
