@@ -165,15 +165,26 @@ jobs:
         if: matrix.platform == 'android' && runner.os != 'Windows'
         working-directory: ${{ env.CONSUMER_DIR }}/android
         run: |
-          # Parallel cold-cache jobs intermittently fail to resolve Gradle plugins.
+          # Parallel cold-cache jobs intermittently fail to resolve Gradle plugins. The
+          # failure tends to persist on the same VM, so consumer-builds-rerun.yml
+          # re-runs jobs that end with the gradle-resolution annotation.
           for attempt in 1 2 3; do
             args=(); [[ $attempt == 1 ]] || args=(--refresh-dependencies)
             if ./gradlew :app:assembleRelease --no-daemon --stacktrace --max-workers=2 "${args[@]}" \
               2>&1 | tee "$LOG_DIR/android-attempt-$attempt.log"; then
               break
             fi
-            if [[ $attempt == 3 ]] || ! grep -qE 'Could not (find|resolve|parse POM)|Plugin \[id: .*\] was not found' \
+            if ! grep -qE 'Could not (find|resolve|parse POM)|Plugin \[id: .*\] was not found' \
               "$LOG_DIR/android-attempt-$attempt.log"; then
+              exit 1
+            fi
+            for url in \
+              https://plugins.gradle.org/m2/org/gradle/toolchains/foojay-resolver-convention/org.gradle.toolchains.foojay-resolver-convention.gradle.plugin/1.0.0/org.gradle.toolchains.foojay-resolver-convention.gradle.plugin-1.0.0.pom \
+              https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.9.1/gson-2.9.1.pom; do
+              curl -sSL -o /dev/null -w "%{http_code} $url\n" "$url" || true
+            done
+            if [[ $attempt == 3 ]]; then
+              echo "::error title=gradle-resolution::Gradle dependency resolution failed 3 times"
               exit 1
             fi
             echo "::warning::Gradle dependency resolution failed on attempt $attempt, retrying"

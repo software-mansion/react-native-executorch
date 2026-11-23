@@ -1,0 +1,37 @@
+name: Consumer CI rerun
+
+on:
+  workflow_run:
+    workflows: [Consumer CI]
+    types: [completed]
+
+permissions:
+  actions: write
+  checks: read
+
+jobs:
+  rerun:
+    # Gradle resolution flakes persist on the failing VM but pass on a fresh one.
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.event == 'schedule' &&
+      github.event.workflow_run.run_attempt < 3
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Re-run jobs that failed only on Gradle resolution
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          failed=$(gh api --paginate "repos/$GH_REPO/actions/runs/$RUN_ID/attempts/$ATTEMPT/jobs" \
+            --jq '.jobs[] | select(.conclusion == "failure") | .id')
+          for job in $failed; do
+            if ! gh api "repos/$GH_REPO/check-runs/$job/annotations" --jq '.[].title' |
+              grep -qx gradle-resolution; then
+              echo "Job $job failed for another reason, not re-running"
+              exit 0
+            fi
+          done
+          if [[ -n "$failed" ]]; then gh run rerun "$RUN_ID" --failed; fi
