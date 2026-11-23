@@ -2,8 +2,12 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <filesystem>
 #include <format>
+#include <fstream>
+#include <iterator>
 #include <thread>
+#include <vector>
 
 #include "core/data_loader.h"
 #include "support/JsiTestEnv.h"
@@ -168,6 +172,86 @@ TEST_F(DataLoaderTest, LoadModelPrefersThePathPairOverCallbackLoaders) {
         });
     )");
     EXPECT_TRUE(isCodedError(thrown, "LOAD_FAILED", "rne-program.pte"));
+}
+
+class SplitModelSourceTest : public JsiTestEnv {
+protected:
+    void SetUp() override {
+        JsiTestEnv::SetUp();
+        const auto fixtureDir = std::filesystem::path(__FILE__).parent_path().parent_path() / "fixtures/split";
+        const auto program = fixtureDir / "program.pte";
+        const auto weights = fixtureDir / "weights.ptd";
+        rt().global().setProperty(rt(), "programPath", jsi::String::createFromUtf8(rt(), program.string()));
+        rt().global().setProperty(rt(), "weightsPath", jsi::String::createFromUtf8(rt(), weights.string()));
+        ASSERT_NO_FATAL_FAILURE(installFixtureBytes("programBytes", program));
+        ASSERT_NO_FATAL_FAILURE(installFixtureBytes("weightsBytes", weights));
+        eval(R"(
+            globalThis.readWeights = (model) => {
+                const output = __rnexecutorch_jsi__.createTensor([2], 'float32');
+                try {
+                    model.execute('forward', [], [output]);
+                    const values = new Float32Array(2);
+                    output.getData(values);
+                    return Array.from(values);
+                } finally {
+                    output.dispose();
+                    model.dispose();
+                }
+            };
+        )");
+    }
+
+private:
+    void installFixtureBytes(const char *name, const std::filesystem::path &path) {
+        std::ifstream stream(path, std::ios::binary);
+        ASSERT_TRUE(stream.is_open()) << path;
+        const std::vector<char> bytes{std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>()};
+        ASSERT_FALSE(bytes.empty()) << path;
+        ASSERT_FALSE(stream.bad()) << path;
+        auto buffer = rt().global().getPropertyAsFunction(rt(), "ArrayBuffer").callAsConstructor(rt(), static_cast<double>(bytes.size())).getObject(rt());
+        std::memcpy(buffer.getArrayBuffer(rt()).data(rt()), bytes.data(), bytes.size());
+        rt().global().setProperty(rt(), name, std::move(buffer));
+    }
+};
+
+TEST_F(SplitModelSourceTest, ReadsExternalWeightsFromFile) {
+    EXPECT_THAT(evalNumberArray(R"(
+        return readWeights(__rnexecutorch_jsi__.loadModel({ programPath, dataMapPath: weightsPath }));
+    )"),
+                ::testing::ElementsAre(3, 7));
+}
+
+TEST_F(SplitModelSourceTest, ReadsExternalWeightsFromCallbacksDuringInitialization) {
+    EXPECT_THAT(evalNumberArray(R"(
+        let programReads = 0;
+        let weightReads = 0;
+        const reader = (bytes, onRead) => ({
+            size() { return bytes.byteLength; },
+            load(offset, length) {
+                onRead();
+                return bytes.slice(offset, offset + length);
+            }
+        });
+        const model = __rnexecutorch_jsi__.loadModel({
+            programLoader: reader(programBytes, () => programReads++),
+            dataMapLoader: reader(weightsBytes, () => weightReads++),
+        });
+        const readsAtLoad = [programReads, weightReads];
+        const values = readWeights(model);
+        if (readsAtLoad.some(count => count === 0) ||
+            programReads !== readsAtLoad[0] || weightReads !== readsAtLoad[1]) {
+            throw new Error('Expected both readers to be used only during initialization');
+        }
+        return values;
+    )"),
+                ::testing::ElementsAre(3, 7));
+}
+
+TEST_F(SplitModelSourceTest, ReportsMissingExternalWeights) {
+    const auto thrown = evalThrowing(R"(
+        __rnexecutorch_jsi__.loadModel({ programPath, dataMapPath: weightsPath + '.missing' });
+    )");
+    EXPECT_TRUE(isCodedError(thrown, "LOAD_FAILED", ""));
 }
 
 TEST_F(DataLoaderTest, LoadModelPreservesInitializationCallbackErrors) {
