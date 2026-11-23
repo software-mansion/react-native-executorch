@@ -39,7 +39,8 @@
             "deploymentTarget": "17.0"
           }
         }
-      ]
+      ],
+      "../plugins/withIosSceneLifecycle"
     ]
   }
 }
