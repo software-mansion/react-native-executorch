@@ -523,16 +523,18 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
       return { codes, transcript: prepareText(transcript, language), language, speechFrames };
     };
 
-    let isSynthesizing = false;
+    // Each run owns a token; a stopped run must not resume, or clear the lock,
+    // once a newer run has taken it.
+    let activeRun: symbol | null = null;
     const synthesizeStop = (): void => {
-      isSynthesizing = false;
+      activeRun = null;
     };
 
     async function* synthesize(
       text: string,
       options: ReverbTtsOptions<K>
     ): AsyncGenerator<ReverbTtsChunk> {
-      if (isSynthesizing) {
+      if (activeRun) {
         throw RnExecuTorchError('INVALID_STATE', 'synthesize: Synthesis is already in progress.');
       }
 
@@ -630,7 +632,8 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
       const targetLength = (chunk: string) =>
         estimateTargetFrames(chunk, voice.transcript, paceFrames) / speed;
 
-      isSynthesizing = true;
+      const run = Symbol('synthesis');
+      activeRun = run;
       try {
         const chunks = partitionReverbText(
           prepareText(text, language),
@@ -642,7 +645,7 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
         );
 
         for (const [chunkIndex, chunk] of chunks.entries()) {
-          if (!isSynthesizing) break;
+          if (activeRun !== run) break;
 
           const ids = encodePrompt(chunk);
           if (ids.length > promptTokens.max) {
@@ -671,7 +674,7 @@ export async function createReverbTextToSpeech<K extends PropertyKey = never>(
           };
         }
       } finally {
-        isSynthesizing = false;
+        if (activeRun === run) activeRun = null;
       }
     }
 

@@ -371,16 +371,18 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
 
     const synthesizeChunk = wrapAsync(synthesizeChunkWorklet, runtime);
 
-    let isSynthesizing = false;
+    // Each run owns a token; a stopped run must not resume, or clear the lock,
+    // once a newer run has taken it.
+    let activeRun: symbol | null = null;
     const synthesizeStop = (): void => {
-      isSynthesizing = false;
+      activeRun = null;
     };
 
     async function* synthesize(
       text: string,
       options: SupertonicTtsOptions<K>
     ): AsyncGenerator<SupertonicTtsChunk> {
-      if (isSynthesizing) {
+      if (activeRun) {
         throw RnExecuTorchError('INVALID_STATE', 'synthesize: Synthesis is already in progress.');
       }
 
@@ -420,17 +422,18 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
       const cleanedText = cleanText(text);
       const textChunks = partition(cleanedText, maxChunkLength);
 
-      isSynthesizing = true;
+      const run = Symbol('synthesis');
+      activeRun = run;
       try {
         for (const [chunkIndex, rawChunk] of textChunks.entries()) {
-          if (!isSynthesizing) break;
+          if (activeRun !== run) break;
 
           const textChunk = formatChunk(rawChunk, options.lang);
           const audioChunk = await synthesizeChunk(textChunk, { voiceStyle, speed, totalSteps });
           yield { ...audioChunk, chunkIndex, totalChunks: textChunks.length };
         }
       } finally {
-        isSynthesizing = false;
+        if (activeRun === run) activeRun = null;
       }
     }
 

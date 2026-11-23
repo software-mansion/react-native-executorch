@@ -498,16 +498,18 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
       return phonemizer.phonemize(text, { words: true });
     }, runtime);
 
-    let isSynthesizing = false;
+    // Each run owns a token; a stopped run must not resume, or clear the lock,
+    // once a newer run has taken it.
+    let activeRun: symbol | null = null;
     const synthesizeStop = (): void => {
-      isSynthesizing = false;
+      activeRun = null;
     };
 
     async function* synthesize(
       text: string,
       options: KokoroTtsOptions<K>
     ): AsyncGenerator<KokoroTtsChunk> {
-      if (isSynthesizing) {
+      if (activeRun) {
         throw RnExecuTorchError('INVALID_STATE', 'synthesize: Synthesis is already in progress.');
       }
 
@@ -532,7 +534,8 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
 
       const maxChunkLength = Math.min(options.maxChunkLength ?? maxTokens - 2, maxTokens - 2);
 
-      isSynthesizing = true;
+      const run = Symbol('synthesis');
+      activeRun = run;
 
       try {
         // Phonemize once up front, then partition the phonemes — every chunk is
@@ -549,7 +552,7 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
         let nextWord = 0;
 
         for (const [chunkIndex, chunk] of chunks.entries()) {
-          if (!isSynthesizing) break;
+          if (activeRun !== run) break;
 
           const {
             phonemeStarts: starts,
@@ -584,7 +587,7 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
           yield { ...audioChunk, words: chunkWords, chunkIndex, totalChunks: chunks.length };
         }
       } finally {
-        isSynthesizing = false;
+        if (activeRun === run) activeRun = null;
       }
     }
 

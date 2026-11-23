@@ -461,6 +461,22 @@ describe('createReverbTextToSpeech — synthesis', () => {
     expect(after.done).toBe(true);
   });
 
+  it('lets a stopped stream neither resume nor unlock a synthesis started after it', async () => {
+    const tts = tracked(await createReverbTextToSpeech(config));
+    const text = 'First sentence here. Second sentence follows it. Third one ends the text.';
+    const options = { voice: 'anna', language: 'en', maxChunkDuration: 1.5 } as const;
+
+    const old = tts.synthesize(text, options);
+    await old.next();
+    tts.synthesizeStop();
+    const next = tts.synthesize(text, options);
+    await next.next();
+
+    expect((await old.next()).done).toBe(true);
+    await expect(collect(tts.synthesize('Again.', options))).rejects.toThrow(/already in progress/);
+    expect(await collect(next)).not.toEqual([]);
+  });
+
   it('leaves no tensor behind once a stream is drained or abandoned', async () => {
     const tts = tracked(await createReverbTextToSpeech(config));
     const text = 'First sentence here. Second sentence follows it.';
