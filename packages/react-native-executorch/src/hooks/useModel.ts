@@ -16,7 +16,9 @@ import { useEffect, useMemo, useState } from 'react';
  * @param config The configuration to pass to `createModel`, or `undefined` if
  * the model shouldn't be loaded yet. It is tracked by value, so the model is
  * re-created whenever the config's contents change and passing an inline object
- * is safe.
+ * is safe. Function-valued fields, including callback reader methods, are
+ * omitted from the JSON comparison. To reload when only a reader changes,
+ * change the React key of the component that calls this hook.
  * @returns An object containing the loaded model instance and any instantiation
  * error.
  */
@@ -27,8 +29,7 @@ export function useModel<TConfig, TModel extends { dispose: () => void }>(
   const [model, setModel] = useState<TModel | undefined>();
   const [error, setError] = useState<Error | undefined>();
 
-  // Configs are plain JSON data, so serializing is a sound structural identity
-  // and keeps an inline `config` object from rebuilding the model every render.
+  // Compare JSON-serializable config fields so inline objects stay stable.
   const configKey = useMemo(() => JSON.stringify(config), [config]);
 
   useEffect(() => {
