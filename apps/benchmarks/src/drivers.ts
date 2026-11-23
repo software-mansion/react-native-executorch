@@ -32,6 +32,7 @@ import {
   createSupertonicTextToSpeech,
   createTextEmbedder,
   createWhisperSpeechToText,
+  createQwen3AsrSpeechToText,
   createResourceScope,
   defaultWorkletRuntime,
   llm as llmApi,
@@ -206,6 +207,15 @@ const speechToText: Driver = {
   // dominated by the encoder. The comparator invalidates the pipeline number
   // outright if the transcript length moves between runs.
   note: 'decode length is input-dependent; read Execute %',
+};
+
+const qwen3AsrSpeechToText: Driver = {
+  create: createQwen3AsrSpeechToText,
+  run: (instance) => () => {
+    'worklet';
+    return instance.transcribeWorklet(WHISPER_WAVEFORM, { language: 'en' }).length;
+  },
+  note: speechToText.note,
 };
 
 const ocr: Driver = {
@@ -400,11 +410,13 @@ const BY_TASK: Readonly<Record<string, Driver>> = {
 
 /**
  * Tasks whose models are driven by different factories, keyed by the first
- * segment of the model path. Text-to-speech is the only one: Kokoro and
- * Supertonic share a registry category but not an API.
+ * segment of the model path: Kokoro and Supertonic (text-to-speech), and
+ * Whisper and Qwen3-ASR (speech-to-text), share a registry category but not
+ * an API.
  */
 const BY_TASK_AND_MODEL: Readonly<Record<string, Readonly<Record<string, Driver>>>> = {
   textToSpeech: { SUPERTONIC: supertonicTts, KOKORO: kokoroTts },
+  speechToText: { WHISPER: speechToText, QWEN3_ASR: qwen3AsrSpeechToText },
 };
 
 /**
