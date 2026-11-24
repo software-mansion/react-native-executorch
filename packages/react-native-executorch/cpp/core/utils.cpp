@@ -47,8 +47,8 @@ std::string readProp(const char *key) {
 #endif
 
 // The Hexagon (HTP) version of this SoC. The published QNN files hold one
-// context per SoC listed here (export-recipes exporter.qnn.SOCS), so a SoC
-// added here needs a re-export to run at full speed. Only Snapdragon parts
+// context per SoC listed here (export-recipes exporter.qnn.SOC_GROUPS), so a
+// SoC added here needs a re-export to run at full speed. Only Snapdragon parts
 // ExecuTorch's QNN backend knows (backends/qualcomm/serialization/qc_schema.py)
 // are listed.
 // Returns nothing off Qualcomm, on an unlisted SoC, or when the skel for that
