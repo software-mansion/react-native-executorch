@@ -351,11 +351,17 @@ describe('QNN variants', () => {
     expect(defaultKeyOf(reverb(registry))).toBe('QNN_VULKAN_INT4');
   });
 
-  it("resolves a QNN variant to the device's Hexagon version", () => {
+  it('resolves a QNN variant to the one file for every SoC', () => {
+    for (const qnnHtpArch of ['v69', 'v81']) {
+      const registry = registryFor({ os: 'android', backends: ANDROID_WITH_QNN, qnnHtpArch });
+      expect(modelPathsOf(efficientnet(registry).DEFAULT as Node)).toMatch(
+        /\/qnn\/efficientnet_v2_s_qnn_a16w8\.pte$/
+      );
+    }
+  });
+
+  it("resolves Reverb's QNN backbone to the device's Hexagon version", () => {
     const registry = registryFor({ os: 'android', backends: ANDROID_WITH_QNN, qnnHtpArch: 'v75' });
-    expect(modelPathsOf(efficientnet(registry).DEFAULT as Node)).toMatch(
-      /\/qnn\/efficientnet_v2_s_qnn_a16w8_v75\.pte$/
-    );
     expect(modelPathsOf(reverb(registry).DEFAULT as Node)).toMatch(
       /\/qnn\/int4\/reverb_qnn_int4_v75\.pte/
     );

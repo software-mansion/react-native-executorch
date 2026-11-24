@@ -220,9 +220,10 @@ dependencies {
 
     // Qualcomm's QNN runtime (libQnnHtp, libQnnSystem and the per-arch Hexagon
     // stubs/skels) for the QNN backend. Its version must match the QAIRT SDK the
-    // backend and the .pte files were built with.
+    // backend was built with and be at least the one the .pte files were (2.48+
+    // for the one-file-for-every-SoC exports).
     if (enableQnn) {
-        implementation("com.qualcomm.qti:qnn-runtime:2.47.0")
+        implementation("com.qualcomm.qti:qnn-runtime:2.51.0")
     }
 
     // Recommended for modern Kotlin Android development

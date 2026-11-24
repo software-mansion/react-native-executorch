@@ -46,10 +46,11 @@ std::string readProp(const char *key) {
 }
 #endif
 
-// The Hexagon (HTP) version a QNN .pte has to be compiled for, from the SoC.
-// A QNN context binary targets one HTP version, so the registry publishes one
-// file per version and picks it from this. Only Snapdragon parts ExecuTorch's
-// QNN backend knows (backends/qualcomm/serialization/qc_schema.py) are listed.
+// The Hexagon (HTP) version of this SoC. The published QNN files hold one
+// context per SoC listed here (export-recipes exporter.qnn.SOCS), so a SoC
+// added here needs a re-export to run at full speed. Only Snapdragon parts
+// ExecuTorch's QNN backend knows (backends/qualcomm/serialization/qc_schema.py)
+// are listed.
 // Returns nothing off Qualcomm, on an unlisted SoC, or when the skel for that
 // version is not where the DSP will look for it (ADSP_LIBRARY_PATH, set by the
 // Android module), since a QNN model could not load then.
