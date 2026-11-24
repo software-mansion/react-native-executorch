@@ -108,9 +108,9 @@ const BACKEND_ORDER: Record<TargetPlatform, readonly BackendTag[]> = {
 /**
  * The Hexagon version (`v69` … `v81`) of this device, or `undefined` when it
  * cannot run QNN models. QNN models ship two files, each holding one context
- * per SoC: `<name>.pte` for v73 and newer, `<name>_v69.pte` for v69. Reverb's
- * backbone is still published once per version and resolves to this device's
- * file.
+ * per SoC: `<name>.pte` for v73 and newer, `<name>_v69.pte` for v69. Whisper
+ * and Reverb's backbone are still published once per version and resolve to
+ * this device's file.
  */
 const QNN_HTP_ARCH: string | undefined = rnexecutorchJsi.qnnHtpArch;
 
@@ -1512,14 +1512,14 @@ const WHISPER_TINY_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
 };
 const WHISPER_TINY_EN_QNN_FP16: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_tiny_en_qnn_fp16${QNN_SUFFIX}.pte`,
+  modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/qnn/whisper_tiny_en_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_QNN_INT8: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_tiny_en_qnn_int8${QNN_SUFFIX}.pte`,
+  modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/qnn/whisper_tiny_en_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1569,14 +1569,14 @@ const WHISPER_TINY_VULKAN_INT8: WhisperSttModel = {
 };
 const WHISPER_TINY_QNN_FP16: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_tiny_qnn_fp16${QNN_SUFFIX}.pte`,
+  modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/qnn/whisper_tiny_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_QNN_INT8: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_tiny_qnn_int8${QNN_SUFFIX}.pte`,
+  modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/qnn/whisper_tiny_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1626,14 +1626,14 @@ const WHISPER_BASE_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
 };
 const WHISPER_BASE_EN_QNN_FP16: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_base_en_qnn_fp16${QNN_SUFFIX}.pte`,
+  modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/qnn/whisper_base_en_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_QNN_INT8: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_base_en_qnn_int8${QNN_SUFFIX}.pte`,
+  modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/qnn/whisper_base_en_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1683,14 +1683,14 @@ const WHISPER_BASE_VULKAN_INT8: WhisperSttModel = {
 };
 const WHISPER_BASE_QNN_FP16: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_base_qnn_fp16${QNN_SUFFIX}.pte`,
+  modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/qnn/whisper_base_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_QNN_INT8: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_base_qnn_int8${QNN_SUFFIX}.pte`,
+  modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/qnn/whisper_base_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1733,14 +1733,14 @@ const WHISPER_SMALL_EN_VULKAN_INT8: WhisperSttModel<'en'> = {
 };
 const WHISPER_SMALL_EN_QNN_FP16: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_small_en_qnn_fp16${QNN_SUFFIX}.pte`,
+  modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/qnn/whisper_small_en_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_EN_QNN_INT8: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_small_en_qnn_int8${QNN_SUFFIX}.pte`,
+  modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/qnn/whisper_small_en_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1783,14 +1783,14 @@ const WHISPER_SMALL_VULKAN_INT8: WhisperSttModel = {
 };
 const WHISPER_SMALL_QNN_FP16: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_small_qnn_fp16${QNN_SUFFIX}.pte`,
+  modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/qnn/whisper_small_qnn_fp16_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_QNN_INT8: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${NEXT_VERSION_TAG}/qnn/whisper_small_qnn_int8${QNN_SUFFIX}.pte`,
+  modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/qnn/whisper_small_qnn_int8_${QNN_HTP_ARCH ?? 'v81'}.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
