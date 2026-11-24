@@ -254,6 +254,16 @@ See [Worklets & Threading](./06-worklets-and-threading.md) for how
 [`wrapAsync`](../06-api-reference/functions/wrapAsync.md) and worklet runtimes
 fit together.
 
+### Callback readers in task hooks
+
+Task hooks compare configurations by their JSON-serializable contents. Reader
+methods such as `size()` and `load()` are omitted from that comparison.
+Replacing a reader whose serializable fields are unchanged keeps the currently
+loaded model. To load a different model through a callback reader, change the
+React `key` of the component that calls the hook when the source changes.
+React will remount the component, and the hook will dispose of the previous
+model and load the new source.
+
 ### Inspecting metadata
 
 A loaded model exposes its file path, the schema of its exported methods, and the

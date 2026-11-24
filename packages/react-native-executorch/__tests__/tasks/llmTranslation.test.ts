@@ -5,6 +5,7 @@
  * is scripted (see `support/fakeLLM.ts`), so a test sees the exact prompt each
  * line was sent with.
  */
+import type { ModelSource } from '../../src/core/model';
 import { createLLMTranslator } from '../../src/extensions/llm/tasks/llmTranslation';
 import { fakeJsi } from '../support/fakeJsi';
 import { fakeFs } from '../support/blobUtilMock';
@@ -65,6 +66,18 @@ beforeEach(() => {
 });
 
 describe('createLLMTranslator', () => {
+  it.each<ModelSource>([
+    { programPath: MODEL_PATH, dataMapPath: ['/models/weights.0.ptd', '/models/weights.1.ptd'] },
+    { programLoader: { size: () => 0, load: () => new ArrayBuffer(0) } },
+  ])('generates with model source %p', async (modelPath) => {
+    registerFakeLLM(modelPath, TOKENIZER_PATH, {
+      eosToken: EOS,
+      generations: [{ response: 'hello there ' }],
+    });
+    const translator = tracked(await createLLMTranslator({ ...config, modelPath }));
+    expect(await translator.translate('Hello', EN_DE)).toBe('hello there ');
+  });
+
   it('sends each line with the model card prompt and keeps line breaks', async () => {
     script('Hallo Welt.', 'Guten Morgen.');
     const translator = tracked(await createLLMTranslator(config));

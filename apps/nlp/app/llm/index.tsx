@@ -210,11 +210,19 @@ function LLMContent() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const pathsToUnlink = [
-                resource.modelPath,
-                resource.tokenizerPath,
-                resource.tokenizerConfigPath,
-              ].filter(Boolean);
+              const pathsToUnlink = [resource.tokenizerPath, resource.tokenizerConfigPath];
+              const { modelPath } = resource;
+
+              if (typeof modelPath === 'string') {
+                pathsToUnlink.push(modelPath);
+              } else if ('programPath' in modelPath) {
+                pathsToUnlink.push(modelPath.programPath);
+                if (typeof modelPath.dataMapPath === 'string') {
+                  pathsToUnlink.push(modelPath.dataMapPath);
+                } else {
+                  pathsToUnlink.push(...modelPath.dataMapPath);
+                }
+              }
 
               for (const path of pathsToUnlink) {
                 if (path && (await RNBlobUtil.fs.exists(path))) {

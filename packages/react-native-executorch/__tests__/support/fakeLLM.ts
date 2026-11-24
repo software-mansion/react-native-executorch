@@ -15,6 +15,7 @@
  * the next scripted one — so prefilling the user message and the generation
  * prompt of the same turn does not skip a response.
  */
+import type { ModelSource } from '../../src/core/model';
 import type { ConcreteDim, ModelSpec } from '../../src/core/schema';
 import { fakeJsi } from './fakeJsi';
 import type { FakeTensor } from './fakeTensor';
@@ -49,12 +50,16 @@ const VOCAB_SIZE = 4096;
 
 /**
  * Registers a scripted LLM at `modelPath` and its tokenizer at `tokenizerPath`.
- * @param modelPath The `.pte` path the runner will load.
+ * @param modelPath The model source the runner will load.
  * @param tokenizerPath The tokenizer path the runner will load.
  * @param program The context window and the responses to generate.
  * @returns Accessors for what the model was asked to read.
  */
-export function registerFakeLLM(modelPath: string, tokenizerPath: string, program: FakeLLMProgram) {
+export function registerFakeLLM(
+  modelPath: ModelSource,
+  tokenizerPath: string,
+  program: FakeLLMProgram
+) {
   const { maxSeqLen = 128, maxContextLen = 1024, eosToken, generations = [], stripStart } = program;
 
   const tokens: string[] = [];

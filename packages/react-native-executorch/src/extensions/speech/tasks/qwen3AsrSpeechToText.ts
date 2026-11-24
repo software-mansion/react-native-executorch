@@ -6,7 +6,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 import { scheduleOnRN, createSynchronizable } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import { wrapAsync } from '../../../core/runtime';
 import {
   f32,
@@ -122,7 +122,7 @@ export type Qwen3AsrSttModel = {
   /** Pipeline tag, which tells {@link useSpeechToText} which runner to build. */
   readonly name: 'qwen3-asr';
   /** Local path or remote URL of the `.pte` model. */
-  readonly modelPath: string;
+  readonly modelPath: ModelSource;
   /** Local path or remote URL of the `tokenizer.json` file. */
   readonly tokenizerPath: string;
   /** VAD model configuration used for speech segmentation. */

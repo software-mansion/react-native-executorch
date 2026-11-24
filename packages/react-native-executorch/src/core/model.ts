@@ -36,8 +36,8 @@ export type ModelOutput = Tensor | number | boolean | string | null;
  * @category Core / Types
  */
 export type Model = {
-  /** The local filesystem path of the `.pte` model file. */
-  readonly path: string;
+  /** The program's local filesystem path. Undefined for callback sources. */
+  readonly path?: string;
   /** The exported schema of this model. */
   readonly schema: ModelSpec<ConcreteDim>;
   /** ExecuTorch backends used by a given method. */
@@ -90,23 +90,60 @@ export type LoadModelOptions = {
    * guaranteeing instantaneous first-inference latency.
    *
    * Set to `false` to lazily load and compile methods on their first execution.
+   * Callback sources require `true` because their callbacks are released when
+   * initialization finishes.
    * @default true
    */
   readonly eagerLoadMethods?: boolean;
 };
 
 /**
- * Loads and compiles an ExecuTorch `.pte` model from the local filesystem.
+ * Synchronous random-access reader used only during model initialization.
+ *
+ * Reads must return exactly the requested bytes. Native code copies each range
+ * into independently owned memory; its release timing depends on the backend.
+ * The callbacks are released before {@link loadModel} returns, including on
+ * failure. Backends requiring later reads or reads on worker threads are not
+ * supported by callback sources.
+ *
+ * When passed through {@link wrapAsync}, callbacks and their captures must be
+ * worklet-compatible. Avoid capturing a complete weight archive when the goal
+ * is to reduce memory use.
+ * @category Core / Types
+ */
+export type DataLoader = {
+  /** Returns the source byte length as a non-negative integer. */
+  size(): number;
+  /** Returns exactly `byteLength` bytes starting at `byteOffset`. */
+  load(byteOffset: number, byteLength: number): ArrayBuffer;
+};
+
+/**
+ * A local program path, program plus external `.ptd` paths, or
+ * initialization-only readers.
+ * @category Core / Types
+ */
+export type ModelSource = Readonly<
+  | string
+  | { programPath: string; dataMapPath: string | readonly string[] }
+  | { programLoader: DataLoader; dataMapLoader?: DataLoader }
+>;
+
+/**
+ * Loads and compiles an ExecuTorch `.pte` model from local files or callback readers.
  *
  * The model is loaded synchronously into native memory. Prefer calling this
  * inside a worklet runtime thread (via {@link wrapAsync}) to avoid blocking the
  * JS thread during compilation.
  * @category Core / Functions
- * @param modelPath The absolute local path to the `.pte` model file.
+ * @param modelSource Local program path, program with external data paths, or
+ * callback readers. See {@link ModelSource}.
  * @param options Optional loading configuration. See {@link LoadModelOptions}.
  * @returns The compiled {@link Model} instance, ready for execution.
  * @throws {RnExecuTorchError} Thrown with code `LOAD_FAILED` if the model file
  * cannot be opened, has an invalid format, or fails native initialization.
+ * With code `INVALID_ARGUMENT` if a source is malformed or callback loaders
+ * are combined with lazy loading. Exceptions from user callbacks propagate.
  * @see {@link wrapAsync}
  * @example
  * ```typescript
@@ -123,7 +160,7 @@ export type LoadModelOptions = {
  * }
  * ```
  */
-export function loadModel(modelPath: string, options?: LoadModelOptions): Model {
+export function loadModel(modelSource: ModelSource, options?: LoadModelOptions): Model {
   'worklet';
-  return rnexecutorchJsi.loadModel(modelPath, options) as Model;
+  return rnexecutorchJsi.loadModel(modelSource, options) as Model;
 }

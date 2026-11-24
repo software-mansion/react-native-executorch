@@ -7,6 +7,7 @@ import { scheduleOnRN, type WorkletRuntime } from 'react-native-worklets';
 import RNBlobUtil from 'react-native-blob-util';
 
 import { wrapAsync } from '../../../core/runtime';
+import type { ModelSource } from '../../../core/model';
 import { RnExecuTorchError } from '../../../core/error';
 import { createResourceScope } from '../../../core/lifetime';
 import {
@@ -32,8 +33,8 @@ import type { ToolDefinition, ToolParser } from '../utils/toolCalling';
  * @category LLM / Types
  */
 export type LLMModel = {
-  /** Local path or remote URL of the `.pte` model file. */
-  readonly modelPath: string;
+  /** Local/remote program path, program with data paths, or callback readers. */
+  readonly modelPath: ModelSource;
   /** Local path or remote URL of the `tokenizer.json` file. */
   readonly tokenizerPath: string;
   /** Local path or remote URL of the `tokenizer_config.json` file. */

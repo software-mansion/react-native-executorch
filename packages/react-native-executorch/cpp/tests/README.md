@@ -45,11 +45,50 @@ rather than a lookalike.
 | `support/JsiTestEnv.*` | Fixture owning a Hermes runtime with the module installed, plus `eval*` helpers and the `isCodedError` / `throwsCoded` assertions |
 | `core/` | `dtype`, `error`, `conversions`, `tensor`, `schema`, `model`, `utils` |
 | `extensions/` | `math`, `speech`, `nlp` (tokenizer), `llm`, and — behind OpenCV — `cv` and `ocr` ops; `phonemizer` behind phonemis |
-| `fixtures/` | Downloaded `.pte` program, `tokenizer.json` and phonemizer data (gitignored) |
+| `fixtures/` | Downloaded model, tokenizer and phonemizer data, plus the generated split-weight fixture |
 | `snapshots/` | Committed outputs of phonemis, see below |
 
 One binary per suite, so a crash in one area cannot take the run down with it
 and `ctest -R MathOpsTest` targets a single suite.
+
+## Split-weight fixture
+
+<!-- cspell:ignore pathlib exir -->
+
+`fixtures/split/` contains a generated program that returns a two-element tensor
+stored in the external archive. It requires neither kernels nor delegates. The
+host tests check that both filesystem and callback sources return the archived
+values. Run them with
+`RNE_SKIP_FIXTURES=1 scripts/run-native-tests.sh -R SplitModelSourceTest`. To
+regenerate the fixture, run this Python code from the package directory with
+ExecuTorch 1.4.1 and PyTorch 2.14.1 installed.
+
+```python
+from pathlib import Path
+
+import torch
+from executorch.exir import ExecutorchBackendConfig, to_edge
+
+
+class Fixture(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.register_buffer("weight", torch.tensor([3.0, 7.0]))
+
+    def forward(self):
+        return self.weight
+
+
+output = Path("cpp/tests/fixtures/split")
+exported = torch.export.export(Fixture().eval(), ())
+program = to_edge(exported).to_executorch(
+    ExecutorchBackendConfig(external_constants=True)
+)
+with (output / "program.pte").open("wb") as file:
+    program.write_to_file(file)
+program.write_tensor_data_to_file(output)
+(output / "_default_external_constant.ptd").replace(output / "weights.ptd")
+```
 
 ## Running them
 

@@ -6,7 +6,7 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import {
   validateSpec,
   DynamicDim as Dyn,
@@ -63,7 +63,7 @@ export type PrivacyFilterOptions<Label extends string = string> = {
  */
 export type PrivacyFilterModel<Label extends string = string> = {
   /** Local path or remote URL of the `.pte` model. */
-  readonly modelPath: string;
+  readonly modelPath: ModelSource;
   /** Local path or remote URL of the matching `tokenizer.json`. */
   readonly tokenizerPath: string;
   /**

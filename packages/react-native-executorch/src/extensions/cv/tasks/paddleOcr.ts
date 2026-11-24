@@ -6,7 +6,7 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 import RNBlobUtil from 'react-native-blob-util';
 
-import { loadModel } from '../../../core/model';
+import { loadModel, type ModelSource } from '../../../core/model';
 import { RnExecuTorchError } from '../../../core/error';
 import { wrapAsync } from '../../../core/runtime';
 import { tensor, type Tensor } from '../../../core/tensor';
@@ -90,7 +90,7 @@ export type RecognizeCharactersOptions = {
  */
 export type PaddleOcrModel = {
   /** The fused detect/recognize PTE. Resolved to a local path by the fetcher. */
-  readonly modelPath: string;
+  readonly modelPath: ModelSource;
   /**
    * The recognizer charset published beside the model: a JSON array of strings,
    * one per class, where `charset[i]` labels logit `i + 1` (logit 0 is the CTC
