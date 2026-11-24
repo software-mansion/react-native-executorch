@@ -373,6 +373,23 @@ describe('createKokoroTextToSpeech — synthesis', () => {
     expect(first.value!.totalChunks).toBeGreaterThan(1);
   });
 
+  it('lets a stopped stream neither resume nor unlock a synthesis started after it', async () => {
+    const tts = tracked(await createKokoroTextToSpeech(config));
+    const text = 'one two three four five six seven eight nine ten eleven twelve';
+
+    const old = tts.synthesize(text, { voice: 'af_heart' });
+    await old.next();
+    tts.synthesizeStop();
+    const next = tts.synthesize(text, { voice: 'af_heart' });
+    await next.next();
+
+    expect((await old.next()).done).toBe(true);
+    await expect(collect(tts.synthesize('again', { voice: 'af_heart' }))).rejects.toThrow(
+      /already in progress/
+    );
+    expect(await collect(next)).not.toEqual([]);
+  });
+
   it('leaves no per-call tensor behind once a stream is drained', async () => {
     const tts = tracked(await createKokoroTextToSpeech(config));
     const before = fakeJsi.liveTensors();
