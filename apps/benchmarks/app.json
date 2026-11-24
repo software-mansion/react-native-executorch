@@ -47,7 +47,8 @@
           }
         }
       ],
-      "./plugins/withBenchmarkBundleInputs"
+      "./plugins/withBenchmarkBundleInputs",
+      "../plugins/withIosSceneLifecycle"
     ]
   }
 }
