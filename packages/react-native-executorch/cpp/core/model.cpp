@@ -75,14 +75,26 @@ using rnexecutorch::core::tensor::TensorHostObject;
 
 ModelHostObject::ModelHostObject(std::optional<std::string> modelPath,
                                  std::unique_ptr<Module> module,
-                                 const bool eagerLoadMethods)
+                                 const bool eagerLoadMethods,
+                                 const std::vector<std::string> &dataPaths)
     : modelPath_(std::move(modelPath)),
       etModule_(std::move(module)) {
 
     auto loadError = etModule_->load();
     if (!etModule_->is_loaded()) {
+        std::string externalWeightsContext;
+
+        if (!dataPaths.empty()) {
+            externalWeightsContext = " (external weights:";
+            for (const auto &path : dataPaths) {
+                externalWeightsContext += std::format(" '{}'", path);
+            }
+            externalWeightsContext += ')';
+        }
+
         const std::string errorMsg = executorch::runtime::to_string(loadError);
-        throw error::LoadFailed(std::format("Failed to load model from '{}': {}", modelPath_.value_or("callback source"), errorMsg),
+        throw error::LoadFailed(std::format("Failed to load model from '{}'{}: {}",
+                                            modelPath_.value_or("callback source"), externalWeightsContext, errorMsg),
                                 loadError);
     }
 
@@ -108,9 +120,9 @@ ModelHostObject::ModelHostObject(std::optional<std::string> modelPath,
 
         if (eagerLoadMethods && methodName != kGetModelSchemaMethod) {
             requireRegisteredBackends(modelPath_.value_or("callback source"), methodName, backends_[methodName]);
-            // Every backend is registered by now, so a failure points at the export.
             auto loadCtx = std::format("Load method '{}' failed. The model export might be broken or "
-                                       "incompatible with the linked ExecuTorch runtime version. Error",
+                                       "incompatible with the linked ExecuTorch runtime version, or external weights "
+                                       "might be missing. Error",
                                        methodName);
             unwrap(RnExecuTorchErrorCode::LoadFailed, loadCtx, etModule_->load_method(methodName));
         }
@@ -370,7 +382,7 @@ void install_loadModel(jsi::Runtime &rt, jsi::Object &module) {
         if (args[0].isString()) {
             auto path = conversions::asType<std::string>(rt, "loadModel: source", args[0]);
             auto etModule = std::make_unique<Module>(path, Module::LoadMode::Mmap);
-            auto model = std::make_shared<ModelHostObject>(std::move(path), std::move(etModule), eagerLoadMethods);
+            auto model = std::make_shared<ModelHostObject>(std::move(path), std::move(etModule), eagerLoadMethods, std::vector<std::string>{});
             return jsi::Object::createFromHostObject(rt, std::move(model));
         }
 
@@ -394,8 +406,8 @@ void install_loadModel(jsi::Runtime &rt, jsi::Object &module) {
                 throw error::InvalidArgument("loadModel: source.dataMapPath must contain at least one nonempty path");
             }
 
-            auto etModule = std::make_unique<Module>(*programPath, std::move(dataPaths), Module::LoadMode::Mmap);
-            auto model = std::make_shared<ModelHostObject>(std::move(programPath), std::move(etModule), eagerLoadMethods);
+            auto etModule = std::make_unique<Module>(*programPath, dataPaths, Module::LoadMode::Mmap);
+            auto model = std::make_shared<ModelHostObject>(std::move(programPath), std::move(etModule), eagerLoadMethods, dataPaths);
 
             return jsi::Object::createFromHostObject(rt, std::move(model));
         }
@@ -416,7 +428,7 @@ void install_loadModel(jsi::Runtime &rt, jsi::Object &module) {
             auto etModule = std::make_unique<Module>(std::move(program), nullptr, nullptr, nullptr, std::move(data));
 
             try {
-                auto model = std::make_shared<ModelHostObject>(std::nullopt, std::move(etModule), eagerLoadMethods);
+                auto model = std::make_shared<ModelHostObject>(std::nullopt, std::move(etModule), eagerLoadMethods, std::vector<std::string>{});
                 loaders.rethrowIfFailed();
 
                 return jsi::Object::createFromHostObject(rt, std::move(model));

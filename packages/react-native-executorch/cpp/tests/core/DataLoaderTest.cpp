@@ -247,11 +247,13 @@ TEST_F(SplitModelSourceTest, ReadsExternalWeightsFromCallbacksDuringInitializati
                 ::testing::ElementsAre(3, 7));
 }
 
-TEST_F(SplitModelSourceTest, ReportsMissingExternalWeights) {
+TEST_F(SplitModelSourceTest, ReportsConfiguredArchivePathsWhenLoadingFails) {
     const auto thrown = evalThrowing(R"(
-        __rnexecutorch_jsi__.loadModel({ programPath, dataMapPath: weightsPath + '.missing' });
+        __rnexecutorch_jsi__.loadModel({ programPath, dataMapPath: [weightsPath, weightsPath + '.missing'] });
     )");
-    EXPECT_TRUE(isCodedError(thrown, "LOAD_FAILED", ""));
+    EXPECT_TRUE(isCodedError(thrown, "LOAD_FAILED", "program.pte"));
+    EXPECT_THAT(thrown.message, ::testing::HasSubstr("weights.ptd'"));
+    EXPECT_THAT(thrown.message, ::testing::HasSubstr("weights.ptd.missing'"));
 }
 
 TEST_F(DataLoaderTest, LoadModelPreservesInitializationCallbackErrors) {

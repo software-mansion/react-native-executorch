@@ -41,10 +41,12 @@ public:
      * @param modelPath Program path, absent for callback sources.
      * @param module The module constructed for the requested source.
      * @param eagerLoadMethods Whether to eagerly load and compile all model methods.
+     * @param dataPaths External weights' paths.
      */
     explicit ModelHostObject(std::optional<std::string> modelPath,
                              std::unique_ptr<executorch::extension::Module> module,
-                             bool eagerLoadMethods);
+                             bool eagerLoadMethods,
+                             const std::vector<std::string> &dataPaths);
 
     jsi::Value get(jsi::Runtime &rt, const jsi::PropNameID &name) override;
     std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime &rt) override;
