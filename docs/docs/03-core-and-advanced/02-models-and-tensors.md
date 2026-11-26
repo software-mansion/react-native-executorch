@@ -254,6 +254,97 @@ See [Worklets & Threading](./06-worklets-and-threading.md) for how
 [`wrapAsync`](../06-api-reference/functions/wrapAsync.md) and worklet runtimes
 fit together.
 
+### Split weights and callback readers
+
+Besides a single `.pte` path,
+[`loadModel()`](../06-api-reference/functions/loadModel.md) accepts the other
+forms of [`ModelSource`](../06-api-reference/type-aliases/ModelSource.md).
+
+When a model is exported with its weights in separate `.ptd` files, pass the
+program path together with the weight file paths:
+
+```typescript
+const model = await wrapAsync(loadModel)({
+  programPath: '/path/to/model.pte',
+  dataMapPath: '/path/to/model.ptd', // or an array of paths
+});
+```
+
+When the model is not a plain file on disk, for example an encrypted file or a
+custom container, pass callback readers instead. A
+[`DataLoader`](../06-api-reference/type-aliases/DataLoader.md) has two
+synchronous methods: `size()` returns the byte length, and
+`load(byteOffset, byteLength)` returns exactly `byteLength` bytes as an
+`ArrayBuffer`. Pass one reader for the program and, if the weights are in a
+separate archive, one for the weights:
+
+```typescript
+const model = await wrapAsync(loadModel)({ programLoader, dataMapLoader });
+```
+
+Readers follow a few rules:
+
+- They are only used while the model loads. Native code copies each range it
+  reads and releases the readers before `loadModel()` returns, even when loading
+  fails. For the same reason they require eager loading:
+  `eagerLoadMethods: false` throws `INVALID_ARGUMENT`.
+- Backends that read the model after loading, or from worker threads, cannot
+  use readers. XNNPACK works with them.
+- `load()` runs on the thread that calls `loadModel()`. Through
+  [`wrapAsync()`](../06-api-reference/functions/wrapAsync.md) that is a worklet
+  runtime, so mark both methods with `'worklet'`. Everything they call must be
+  available on that runtime. Avoid capturing a whole weight archive in a reader
+  when the goal is to save memory.
+- A buffer of the wrong length throws `INVALID_ARGUMENT`. An exception thrown by
+  a reader fails the load and reaches the caller.
+- A source uses either paths or readers. To pair a `.pte` file on disk with an
+  encrypted `.ptd`, read the `.pte` through a reader too.
+- A model loaded from readers has no file path: `model.path` is `undefined`,
+  and the [profiler](#profiling-execution) records it under `'callback source'`.
+
+The example below reads a model stored as fixed-size chunks. `readChunk(index)`
+returns one chunk, decrypted if needed, and must itself be a synchronous worklet.
+Because `load()` asks for arbitrary ranges, each chunk must decrypt on its own.
+
+```typescript
+import { loadModel, wrapAsync, type DataLoader } from 'react-native-executorch';
+
+function chunkedReader(
+  byteLength: number,
+  chunkSize: number,
+  readChunk: (index: number) => ArrayBuffer
+): DataLoader {
+  return {
+    size() {
+      'worklet';
+      return byteLength;
+    },
+    load(byteOffset, length) {
+      'worklet';
+      const bytes = new Uint8Array(length);
+      let written = 0;
+      while (written < length) {
+        const position = byteOffset + written;
+        const index = Math.floor(position / chunkSize);
+        const start = position - index * chunkSize;
+        const chunk = new Uint8Array(readChunk(index));
+        const part = chunk.subarray(start, start + length - written);
+        if (part.length === 0) throw new Error(`Chunk ${index} is too short`);
+        bytes.set(part, written);
+        written += part.length;
+      }
+      return bytes.buffer;
+    },
+  };
+}
+
+// The sizes, CHUNK_SIZE and the two readChunk worklets come from your container.
+const model = await wrapAsync(loadModel)({
+  programLoader: chunkedReader(programSize, CHUNK_SIZE, readProgramChunk),
+  dataMapLoader: chunkedReader(weightsSize, CHUNK_SIZE, readWeightsChunk),
+});
+```
+
 ### Callback readers in task hooks
 
 Task hooks compare configurations by their JSON-serializable contents. Reader
