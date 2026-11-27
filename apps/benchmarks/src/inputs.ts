@@ -177,6 +177,27 @@ export const SAMPLE_TEXT =
   'resolves the delegates it was exported against, and executes it against ' +
   'pre-allocated tensors so that inference costs no allocations per frame.';
 
+/**
+ * One fixed paragraph per translation source language, the same text in each,
+ * so every Opus-MT pair translates comparable work.
+ */
+/* cspell:disable */
+export const TRANSLATION_TEXT: Readonly<Record<string, string>> = {
+  en:
+    'The runtime loads a compiled program and runs it on the phone. ' +
+    'No user data leaves the device.',
+  de:
+    'Die Laufzeit lädt ein kompiliertes Programm und führt es auf dem Telefon aus. ' +
+    'Keine Nutzerdaten verlassen das Gerät.',
+  es:
+    'El entorno de ejecución carga un programa compilado y lo ejecuta en el teléfono. ' +
+    'Ningún dato del usuario sale del dispositivo.',
+  fr:
+    "L'environnement d'exécution charge un programme compilé et l'exécute sur le téléphone. " +
+    "Aucune donnée de l'utilisateur ne quitte l'appareil.",
+};
+/* cspell:enable */
+
 /** Fixed text seeded with the entity types a PII detector is expected to find. */
 export const SAMPLE_PII_TEXT =
   'Please forward the signed contract to Dana Whitfield at dana.whitfield@example.com ' +

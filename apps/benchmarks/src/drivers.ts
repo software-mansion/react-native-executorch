@@ -23,6 +23,8 @@ import {
   createInstanceSegmenter,
   createKeypointDetector,
   createKokoroTextToSpeech,
+  createLLMTranslator,
+  createMarianTranslator,
   createObjectDetector,
   createPaddleOcr,
   createPrivacyFilter,
@@ -38,6 +40,10 @@ import {
   llm as llmApi,
   wrapAsync,
   type LLMModel,
+  type LLMTranslator,
+  type LLMTranslatorModel,
+  type MarianTranslator,
+  type MarianTranslatorModel,
   FSMN_VAD_SAMPLE_RATE_HZ,
   WHISPER_SAMPLE_RATE_HZ,
 } from 'react-native-executorch';
@@ -55,6 +61,7 @@ import {
   SDXS_PROMPT,
   SDXS_SEED,
   syntheticWaveform,
+  TRANSLATION_TEXT,
   TTS_TEXT,
 } from './inputs';
 import type { RegistryVariant } from './registry';
@@ -387,6 +394,35 @@ function llmDriver(): Driver<LLMBenchmarkInstance> {
 
 const llm = llmDriver();
 
+type TranslationLanguages = Parameters<MarianTranslator['translateWorklet']>[1];
+type MarianInstance = MarianTranslator & { readonly languages: TranslationLanguages };
+
+/** Opus-MT: one fixed language pair per model, translated on the worklet. */
+const marianTranslation: Driver<MarianInstance> = {
+  create: async (config: MarianTranslatorModel) => {
+    const translator = await createMarianTranslator(config);
+    const { sourceLanguage, targetLanguage } = config;
+    return { ...translator, languages: { sourceLanguage, targetLanguage } };
+  },
+  run: ({ translateWorklet, languages }) => {
+    const text = TRANSLATION_TEXT[languages.sourceLanguage]!;
+    return () => {
+      'worklet';
+      return translateWorklet(text, languages).length;
+    };
+  },
+};
+
+/** EuroLLM and Hy-MT2: one model for many pairs, timed on English to German. */
+const llmTranslation: Driver<LLMTranslator> = {
+  create: (config: LLMTranslatorModel) => createLLMTranslator(config),
+  mode: 'async',
+  runAsync: (instance) => async () =>
+    (await instance.translate(TRANSLATION_TEXT.en!, { sourceLanguage: 'en', targetLanguage: 'de' }))
+      .length,
+  note: 'English to German; the output length decides the decode count.',
+};
+
 /** Drivers that serve a whole task. */
 const BY_TASK: Readonly<Record<string, Driver>> = {
   classification,
@@ -410,13 +446,23 @@ const BY_TASK: Readonly<Record<string, Driver>> = {
 
 /**
  * Tasks whose models are driven by different factories, keyed by the first
- * segment of the model path: Kokoro and Supertonic (text-to-speech), and
- * Whisper and Qwen3-ASR (speech-to-text), share a registry category but not
- * an API.
+ * segment of the model path: Kokoro and Supertonic (text-to-speech), Whisper
+ * and Qwen3-ASR (speech-to-text), and Opus-MT and the LLM translators
+ * (translation), share a registry category but not an API.
  */
 const BY_TASK_AND_MODEL: Readonly<Record<string, Readonly<Record<string, Driver>>>> = {
   textToSpeech: { SUPERTONIC: supertonicTts, KOKORO: kokoroTts },
   speechToText: { WHISPER: speechToText, QWEN3_ASR: qwen3AsrSpeechToText },
+  translation: {
+    OPUS_MT_EN_DE: marianTranslation,
+    OPUS_MT_DE_EN: marianTranslation,
+    OPUS_MT_EN_ES: marianTranslation,
+    OPUS_MT_ES_EN: marianTranslation,
+    OPUS_MT_EN_FR: marianTranslation,
+    OPUS_MT_FR_EN: marianTranslation,
+    EUROLLM_1_7B: llmTranslation,
+    HY_MT2_1_8B: llmTranslation,
+  },
 };
 
 /**
