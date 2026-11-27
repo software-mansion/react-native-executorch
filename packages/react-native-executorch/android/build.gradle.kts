@@ -222,7 +222,7 @@ dependencies {
     // stubs/skels) for the QNN backend. Its version must match the QAIRT SDK the
     // backend and the .pte files were built with.
     if (enableQnn) {
-        implementation("com.qualcomm.qti:qnn-runtime:2.47.0")
+        implementation("com.qualcomm.qti:qnn-runtime:2.51.0")
     }
 
     // Recommended for modern Kotlin Android development
