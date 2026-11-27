@@ -214,6 +214,8 @@ const BASE_URL = 'https://huggingface.co/software-mansion';
 // through NEXT_VERSION_TAG. Re-exported models move over to it as well.
 const VERSION_TAG = 'resolve/v0.11.0';
 const NEXT_VERSION_TAG = 'resolve/v1.0.0';
+// Files re-exported for ExecuTorch 1.6; older releases keep resolving VERSION_TAG.
+const ET16_VERSION_TAG = 'resolve/v0.11.1';
 
 // =============================================================================
 // Classification
@@ -397,7 +399,7 @@ const MIGAN_OPTS = {
   blendOpts: { shrink: 0, feather: 0 },
 };
 const MIGAN_512_XNNPACK_FP16: InpainterModel = {
-  modelPath: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/xnnpack/512/migan_512_xnnpack_fp16.pte`,
+  modelPath: `${BASE_URL}/MI-GAN-ExecuTorch/${ET16_VERSION_TAG}/xnnpack/512/migan_512_xnnpack_fp16.pte`,
   modelOpts: MIGAN_OPTS,
 };
 const MIGAN_512_COREML_FP16: InpainterModel = {
@@ -409,7 +411,7 @@ const MIGAN_512_VULKAN_FP16: InpainterModel = {
   modelOpts: MIGAN_OPTS,
 };
 const MIGAN_256_XNNPACK_FP16: InpainterModel = {
-  modelPath: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/xnnpack/256/migan_256_xnnpack_fp16.pte`,
+  modelPath: `${BASE_URL}/MI-GAN-ExecuTorch/${ET16_VERSION_TAG}/xnnpack/256/migan_256_xnnpack_fp16.pte`,
   modelOpts: MIGAN_OPTS,
 };
 const MIGAN_256_COREML_FP16: InpainterModel = {
@@ -421,7 +423,7 @@ const MIGAN_256_VULKAN_FP16: InpainterModel = {
   modelOpts: MIGAN_OPTS,
 };
 const MIGAN_FACES_256_XNNPACK_FP16: InpainterModel = {
-  modelPath: `${BASE_URL}/MI-GAN-ExecuTorch/${VERSION_TAG}/xnnpack/faces_256/migan_faces_256_xnnpack_fp16.pte`,
+  modelPath: `${BASE_URL}/MI-GAN-ExecuTorch/${ET16_VERSION_TAG}/xnnpack/faces_256/migan_faces_256_xnnpack_fp16.pte`,
   modelOpts: MIGAN_OPTS,
 };
 const MIGAN_FACES_256_COREML_FP16: InpainterModel = {
@@ -1360,7 +1362,7 @@ const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16: TextEmbedderModel = {
   tokenizerPath: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/mlx/distiluse_base_multilingual_cased_v2_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${ET16_VERSION_TAG}/mlx/distiluse_base_multilingual_cased_v2_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/distiluse-base-multilingual-cased-v2-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
 };
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_VULKAN_FP16: TextEmbedderModel = {
@@ -1389,7 +1391,7 @@ const LFM2_5_EMBEDDING_350M_EMBEDDINGS: TextEmbedderModel = {
   defaultPrompt: 'query: ',
 };
 const LFM2_5_EMBEDDING_350M_MLX_INT4: TextEmbedderModel = {
-  modelPath: `${BASE_URL}/LFM2.5-Embedding-350M-ExecuTorch/${VERSION_TAG}/mlx/lfm_2_5_embedding_350m_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/LFM2.5-Embedding-350M-ExecuTorch/${ET16_VERSION_TAG}/mlx/lfm_2_5_embedding_350m_mlx_int4.pte`,
   tokenizerPath: `${BASE_URL}/LFM2.5-Embedding-350M-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   defaultPrompt: 'query: ',
 };
@@ -1412,7 +1414,7 @@ const LFM2_5_COLBERT_350M_XNNPACK_8DA4W: ColbertEmbedderModel = {
   modelOpts: LFM2_5_COLBERT_350M_OPTS,
 };
 const LFM2_5_COLBERT_350M_MLX_INT4: ColbertEmbedderModel = {
-  modelPath: `${BASE_URL}/LFM2.5-ColBERT-350M-ExecuTorch/${VERSION_TAG}/mlx/lfm_2_5_colbert_350m_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/LFM2.5-ColBERT-350M-ExecuTorch/${ET16_VERSION_TAG}/mlx/lfm_2_5_colbert_350m_mlx_int4.pte`,
   tokenizerPath: `${BASE_URL}/LFM2.5-ColBERT-350M-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   modelOpts: LFM2_5_COLBERT_350M_OPTS,
 };
@@ -1439,7 +1441,7 @@ const CLIP_VIT_BASE_PATCH32_IMAGE_COREML_FP16: ImageEmbedderModel = {
   modelOpts: CLIP_IMAGE_EMBEDDINGS_OPTS,
 };
 const CLIP_VIT_BASE_PATCH32_IMAGE_MLX_INT8: ImageEmbedderModel = {
-  modelPath: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${VERSION_TAG}/mlx/clip_vit_base_patch32_image_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/clip-vit-base-patch32-ExecuTorch/${ET16_VERSION_TAG}/mlx/clip_vit_base_patch32_image_mlx_int8.pte`,
   modelOpts: CLIP_IMAGE_EMBEDDINGS_OPTS,
 };
 const CLIP_VIT_BASE_PATCH32_IMAGE_VULKAN_FP16: ImageEmbedderModel = {
@@ -1480,14 +1482,14 @@ const WHISPER_TINY_EN_COREML_FP16: WhisperSttModel<'en'> = {
 };
 const WHISPER_TINY_EN_MLX_BF16: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_tiny_en_mlx_bf16.pte`,
+  modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${ET16_VERSION_TAG}/mlx/whisper_tiny_en_mlx_bf16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_EN_MLX_INT8: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_tiny_en_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${ET16_VERSION_TAG}/mlx/whisper_tiny_en_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1537,14 +1539,14 @@ const WHISPER_TINY_COREML_FP16: WhisperSttModel = {
 };
 const WHISPER_TINY_MLX_BF16: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/mlx/whisper_tiny_mlx_bf16.pte`,
+  modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${ET16_VERSION_TAG}/mlx/whisper_tiny_mlx_bf16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_TINY_MLX_INT8: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/mlx/whisper_tiny_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${ET16_VERSION_TAG}/mlx/whisper_tiny_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-tiny-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1594,14 +1596,14 @@ const WHISPER_BASE_EN_COREML_FP16: WhisperSttModel<'en'> = {
 };
 const WHISPER_BASE_EN_MLX_BF16: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_base_en_mlx_bf16.pte`,
+  modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${ET16_VERSION_TAG}/mlx/whisper_base_en_mlx_bf16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_MLX_INT8: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_base_en_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${ET16_VERSION_TAG}/mlx/whisper_base_en_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1651,14 +1653,14 @@ const WHISPER_BASE_COREML_FP16: WhisperSttModel = {
 };
 const WHISPER_BASE_MLX_BF16: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/mlx/whisper_base_mlx_bf16.pte`,
+  modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${ET16_VERSION_TAG}/mlx/whisper_base_mlx_bf16.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_MLX_INT8: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/mlx/whisper_base_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/whisper-base-ExecuTorch/${ET16_VERSION_TAG}/mlx/whisper_base_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-base-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1708,7 +1710,7 @@ const WHISPER_SMALL_EN_COREML_FP16: WhisperSttModel<'en'> = {
 };
 const WHISPER_SMALL_EN_MLX_INT8: WhisperSttModel<'en'> = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/mlx/whisper_small_en_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${ET16_VERSION_TAG}/mlx/whisper_small_en_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small.en-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1758,7 +1760,7 @@ const WHISPER_SMALL_COREML_FP16: WhisperSttModel = {
 };
 const WHISPER_SMALL_MLX_INT8: WhisperSttModel = {
   name: 'whisper',
-  modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/mlx/whisper_small_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/whisper-small-ExecuTorch/${ET16_VERSION_TAG}/mlx/whisper_small_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}/whisper-small-ExecuTorch/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: WHISPER_LANGUAGES,
   vadModel: FSMN_VAD_XNNPACK_FP32,
@@ -1801,7 +1803,7 @@ const QWEN3_ASR_0_6B_XNNPACK_8DA4W: Qwen3AsrSttModel = {
 };
 const QWEN3_ASR_0_6B_MLX_COREML_INT4: Qwen3AsrSttModel = {
   name: 'qwen3-asr',
-  modelPath: `${BASE_URL}/Qwen3-ASR-ExecuTorch/${VERSION_TAG}/0_6b/mlx/qwen3_asr_0_6b_coreml_mlx_4w.pte`,
+  modelPath: `${BASE_URL}/Qwen3-ASR-ExecuTorch/${ET16_VERSION_TAG}/0_6b/mlx/qwen3_asr_0_6b_coreml_mlx_4w.pte`,
   tokenizerPath: QWEN3_ASR_0_6B_TOKENIZER,
   vadModel: FSMN_VAD_XNNPACK_FP32,
 };
@@ -1849,10 +1851,10 @@ const SUPERTONIC_3_XNNPACK_INT8: SupertonicTtsModel<SupertonicDefaultVoiceName> 
 const SUPERTONIC_3_MLX_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
   name: 'supertonic',
   modelPaths: {
-    durationPredictor: `${BASE_URL}/supertonic-ExecuTorch/${VERSION_TAG}/mlx/duration_predictor_mlx_fp32.pte`,
-    vectorEstimator: `${BASE_URL}/supertonic-ExecuTorch/${VERSION_TAG}/mlx/vector_estimator_mlx_fp32.pte`,
-    textEncoder: `${BASE_URL}/supertonic-ExecuTorch/${VERSION_TAG}/mlx/text_encoder_mlx_fp32.pte`,
-    vocoder: `${BASE_URL}/supertonic-ExecuTorch/${VERSION_TAG}/mlx/vocoder_mlx_fp32.pte`,
+    durationPredictor: `${BASE_URL}/supertonic-ExecuTorch/${ET16_VERSION_TAG}/mlx/duration_predictor_mlx_fp32.pte`,
+    vectorEstimator: `${BASE_URL}/supertonic-ExecuTorch/${ET16_VERSION_TAG}/mlx/vector_estimator_mlx_fp32.pte`,
+    textEncoder: `${BASE_URL}/supertonic-ExecuTorch/${ET16_VERSION_TAG}/mlx/text_encoder_mlx_fp32.pte`,
+    vocoder: `${BASE_URL}/supertonic-ExecuTorch/${ET16_VERSION_TAG}/mlx/vocoder_mlx_fp32.pte`,
   },
   unicodeIndexerPath: `${BASE_URL}/supertonic-ExecuTorch/${VERSION_TAG}/unicode_indexer.json`,
   voiceStyles: SUPERTONIC_DEFAULT_VOICE_STYLES,
@@ -2149,7 +2151,7 @@ const PRIVACY_FILTER_OPENAI_XNNPACK_8DA4W: PrivacyFilterModel<PrivacyFilterOpena
   modelOpts: PRIVACY_FILTER_OPENAI_OPTS,
 };
 const PRIVACY_FILTER_OPENAI_MLX_INT4: PrivacyFilterModel<PrivacyFilterOpenaiLabel> = {
-  modelPath: `${BASE_URL}/openai-privacy-filter-ExecuTorch/${VERSION_TAG}/mlx/privacy_filter_openai_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/openai-privacy-filter-ExecuTorch/${ET16_VERSION_TAG}/mlx/privacy_filter_openai_mlx_int4.pte`,
   tokenizerPath: PRIVACY_FILTER_OPENAI_TOKENIZER,
   modelOpts: PRIVACY_FILTER_OPENAI_OPTS,
 };
@@ -2165,7 +2167,7 @@ const PRIVACY_FILTER_NEMOTRON_XNNPACK_8DA4W: PrivacyFilterModel<PrivacyFilterNem
   modelOpts: PRIVACY_FILTER_NEMOTRON_OPTS,
 };
 const PRIVACY_FILTER_NEMOTRON_MLX_INT8: PrivacyFilterModel<PrivacyFilterNemotronLabel> = {
-  modelPath: `${BASE_URL}/privacy-filter-nemotron-ExecuTorch/${VERSION_TAG}/mlx/privacy_filter_nemotron_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/privacy-filter-nemotron-ExecuTorch/${ET16_VERSION_TAG}/mlx/privacy_filter_nemotron_mlx_int8.pte`,
   tokenizerPath: PRIVACY_FILTER_NEMOTRON_TOKENIZER,
   modelOpts: PRIVACY_FILTER_NEMOTRON_OPTS,
 };
@@ -2266,7 +2268,7 @@ const EUROLLM_1_7B_XNNPACK_8DA8W: LLMTranslatorModel = {
 };
 const EUROLLM_1_7B_MLX_INT8: LLMTranslatorModel = {
   name: 'llm',
-  modelPath: `${EUROLLM_BASE_URL}/mlx/eurollm_1_7b_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/EuroLLM-1.7B-Instruct-ExecuTorch/${ET16_VERSION_TAG}/1_7b/mlx/eurollm_1_7b_mlx_int8.pte`,
   tokenizerPath: `${EUROLLM_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${EUROLLM_BASE_URL}/tokenizer_config.json`,
   prompt: EUROLLM_PROMPT,
@@ -2299,7 +2301,7 @@ const HY_MT2_1_8B_XNNPACK_8DA4W: LLMTranslatorModel = {
 };
 const HY_MT2_1_8B_MLX_INT8: LLMTranslatorModel = {
   name: 'llm',
-  modelPath: `${HY_MT2_BASE_URL}/mlx/hy_mt2_1_8b_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/Hy-MT2-1.8B-ExecuTorch/${ET16_VERSION_TAG}/1_8b/mlx/hy_mt2_1_8b_mlx_int8.pte`,
   tokenizerPath: `${HY_MT2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HY_MT2_BASE_URL}/tokenizer_config.json`,
   ...HY_MT2_PROMPTS,
@@ -2316,7 +2318,7 @@ const MINICPM5_2B_XNNPACK_8DA4W: LLMModel = {
   tokenizerConfigPath: `${MINICPM5_BASE_URL}/tokenizer_config.json`,
 };
 const MINICPM5_2B_MLX_INT4: LLMModel = {
-  modelPath: `${MINICPM5_BASE_URL}/mlx/minicpm_5_2b_mlx_4w.pte`,
+  modelPath: `${BASE_URL}/MiniCPM5-2B-ExecuTorch/${ET16_VERSION_TAG}/mlx/minicpm_5_2b_mlx_4w.pte`,
   tokenizerPath: `${MINICPM5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${MINICPM5_BASE_URL}/tokenizer_config.json`,
 };
@@ -2329,7 +2331,7 @@ const LFM2_5_1_2B_XNNPACK_8DA4W: LLMModel = {
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer_config.json`,
 };
 const LFM2_5_1_2B_MLX_INT4: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/1_2b/mlx/lfm_2_5_1_2b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/LFM2.5-ExecuTorch/${ET16_VERSION_TAG}/1_2b/mlx/lfm_2_5_1_2b_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer_config.json`,
 };
@@ -2339,7 +2341,7 @@ const LFM2_5_350M_XNNPACK_8DA4W: LLMModel = {
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
 };
 const LFM2_5_350M_MLX_INT4: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/350m/mlx/lfm_2_5_350m_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/LFM2.5-ExecuTorch/${ET16_VERSION_TAG}/350m/mlx/lfm_2_5_350m_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
 };
@@ -2350,7 +2352,7 @@ const LFM2_5_2_6B_XNNPACK_8DA4W: LLMModel = {
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/2_6b/tokenizer_config.json`,
 };
 const LFM2_5_2_6B_MLX_INT4: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/2_6b/mlx/lfm_2_5_2_6b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/LFM2.5-ExecuTorch/${ET16_VERSION_TAG}/2_6b/mlx/lfm_2_5_2_6b_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/2_6b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/2_6b/tokenizer_config.json`,
 };
@@ -2374,7 +2376,7 @@ const LFM2_5_VL_450M_XNNPACK_8DA4W: LLMModel = {
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_450M_MLX_INT4: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_450m/mlx/lfm_2_5_vl_450m_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/LFM2.5-ExecuTorch/${ET16_VERSION_TAG}/vl_450m/mlx/lfm_2_5_vl_450m_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
   modalities: ['image'],
@@ -2388,28 +2390,28 @@ const LFM2_5_VL_1_6B_XNNPACK_8DA4W: LLMModel = {
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_450M_VULKAN_8DA4W: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_450m/vulkan/lfm_2_5_vl_450m_vulkan_8da4w.pte`,
+  modelPath: `${BASE_URL}/LFM2.5-ExecuTorch/${ET16_VERSION_TAG}/vl_450m/vulkan/lfm_2_5_vl_450m_vulkan_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_1_6B_VULKAN_8DA4W: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/vulkan/lfm_2_5_vl_1_6b_vulkan_8da4w.pte`,
+  modelPath: `${BASE_URL}/LFM2.5-ExecuTorch/${ET16_VERSION_TAG}/vl_1_6b/vulkan/lfm_2_5_vl_1_6b_vulkan_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_1_6B_MLX_INT4: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/mlx/lfm_2_5_vl_1_6b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/LFM2.5-ExecuTorch/${ET16_VERSION_TAG}/vl_1_6b/mlx/lfm_2_5_vl_1_6b_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 const LFM2_5_VL_1_6B_MLX_INT8: LLMModel = {
-  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/mlx/lfm_2_5_vl_1_6b_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/LFM2.5-ExecuTorch/${ET16_VERSION_TAG}/vl_1_6b/mlx/lfm_2_5_vl_1_6b_mlx_int8.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
   modalities: ['image'],
@@ -2424,12 +2426,12 @@ const LFM3_1_7B_XNNPACK_8DA4W: LLMModel = {
   tokenizerConfigPath: `${LFM3_BASE_URL}/1_7b/tokenizer_config.json`,
 };
 const LFM3_1_7B_MLX_INT4: LLMModel = {
-  modelPath: `${LFM3_BASE_URL}/1_7b/mlx/lfm_3_1_7b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/LFM3-ExecuTorch/${ET16_VERSION_TAG}/1_7b/mlx/lfm_3_1_7b_mlx_int4.pte`,
   tokenizerPath: `${LFM3_BASE_URL}/1_7b/tokenizer.json`,
   tokenizerConfigPath: `${LFM3_BASE_URL}/1_7b/tokenizer_config.json`,
 };
 const LFM3_1_7B_MLX_INT8: LLMModel = {
-  modelPath: `${LFM3_BASE_URL}/1_7b/mlx/lfm_3_1_7b_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/LFM3-ExecuTorch/${ET16_VERSION_TAG}/1_7b/mlx/lfm_3_1_7b_mlx_int8.pte`,
   tokenizerPath: `${LFM3_BASE_URL}/1_7b/tokenizer.json`,
   tokenizerConfigPath: `${LFM3_BASE_URL}/1_7b/tokenizer_config.json`,
 };
@@ -2453,14 +2455,14 @@ const LFM3_VL_2B_XNNPACK_8DA4W: LLMModel = {
   preprocessorConfig: LFM3_VL_PREPROCESSOR_CONFIG,
 };
 const LFM3_VL_2B_MLX_INT4: LLMModel = {
-  modelPath: `${LFM3_BASE_URL}/vl_2b/mlx/lfm_3_vl_2b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/LFM3-ExecuTorch/${ET16_VERSION_TAG}/vl_2b/mlx/lfm_3_vl_2b_mlx_int4.pte`,
   tokenizerPath: `${LFM3_BASE_URL}/vl_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM3_BASE_URL}/vl_2b/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM3_VL_PREPROCESSOR_CONFIG,
 };
 const LFM3_VL_2B_MLX_INT8: LLMModel = {
-  modelPath: `${LFM3_BASE_URL}/vl_2b/mlx/lfm_3_vl_2b_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/LFM3-ExecuTorch/${ET16_VERSION_TAG}/vl_2b/mlx/lfm_3_vl_2b_mlx_int8.pte`,
   tokenizerPath: `${LFM3_BASE_URL}/vl_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM3_BASE_URL}/vl_2b/tokenizer_config.json`,
   modalities: ['image'],
@@ -2482,14 +2484,14 @@ const LFM3_AUDIO_2B_XNNPACK_8DA4W: LLMModel = {
   preprocessorConfig: LFM3_AUDIO_PREPROCESSOR_CONFIG,
 };
 const LFM3_AUDIO_2B_MLX_INT4: LLMModel = {
-  modelPath: `${LFM3_BASE_URL}/audio_2b/mlx/lfm_3_audio_2b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/LFM3-ExecuTorch/${ET16_VERSION_TAG}/audio_2b/mlx/lfm_3_audio_2b_mlx_int4.pte`,
   tokenizerPath: `${LFM3_BASE_URL}/audio_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM3_BASE_URL}/audio_2b/tokenizer_config.json`,
   modalities: ['audio'],
   preprocessorConfig: LFM3_AUDIO_PREPROCESSOR_CONFIG,
 };
 const LFM3_AUDIO_2B_MLX_INT8: LLMModel = {
-  modelPath: `${LFM3_BASE_URL}/audio_2b/mlx/lfm_3_audio_2b_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/LFM3-ExecuTorch/${ET16_VERSION_TAG}/audio_2b/mlx/lfm_3_audio_2b_mlx_int8.pte`,
   tokenizerPath: `${LFM3_BASE_URL}/audio_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM3_BASE_URL}/audio_2b/tokenizer_config.json`,
   modalities: ['audio'],
@@ -2517,12 +2519,12 @@ const LLAMA3_2_1B_SPINQUANT: LLMModel = {
   tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
 };
 const LLAMA3_2_1B_MLX_INT4: LLMModel = {
-  modelPath: `${LLAMA3_2_BASE_URL}/1b/mlx/llama_3_2_1b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/Llama-3.2-ExecuTorch/${ET16_VERSION_TAG}/1b/mlx/llama_3_2_1b_mlx_int4.pte`,
   tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
 };
 const LLAMA3_2_3B_MLX_INT4: LLMModel = {
-  modelPath: `${LLAMA3_2_BASE_URL}/3b/mlx/llama_3_2_3b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/Llama-3.2-ExecuTorch/${ET16_VERSION_TAG}/3b/mlx/llama_3_2_3b_mlx_int4.pte`,
   tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
 };
@@ -2545,17 +2547,17 @@ const SMOLLM2_1_7B_8DA8W: LLMModel = {
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 const SMOLLM2_135M_MLX_INT8: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/135m/mlx/smollm2_135m_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/SmolLM2-ExecuTorch/${ET16_VERSION_TAG}/135m/mlx/smollm2_135m_mlx_int8.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 const SMOLLM2_360M_MLX_INT8: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/360m/mlx/smollm2_360m_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/SmolLM2-ExecuTorch/${ET16_VERSION_TAG}/360m/mlx/smollm2_360m_mlx_int8.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 const SMOLLM2_1_7B_MLX_INT8: LLMModel = {
-  modelPath: `${SMOLLM2_BASE_URL}/1_7b/mlx/smollm2_1_7b_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/SmolLM2-ExecuTorch/${ET16_VERSION_TAG}/1_7b/mlx/smollm2_1_7b_mlx_int8.pte`,
   tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
@@ -2578,17 +2580,17 @@ const HAMMER2_1_3B_XNNPACK_8DA4W: LLMModel = {
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_0_5B_MLX_INT4: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/0_5b/mlx/hammer_2_1_0_5b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/Hammer2.1-ExecuTorch/${ET16_VERSION_TAG}/0_5b/mlx/hammer_2_1_0_5b_mlx_int4.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_1_5B_MLX_INT4: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/1_5b/mlx/hammer_2_1_1_5b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/Hammer2.1-ExecuTorch/${ET16_VERSION_TAG}/1_5b/mlx/hammer_2_1_1_5b_mlx_int4.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 const HAMMER2_1_3B_MLX_INT4: LLMModel = {
-  modelPath: `${HAMMER2_1_BASE_URL}/3b/mlx/hammer_2_1_3b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/Hammer2.1-ExecuTorch/${ET16_VERSION_TAG}/3b/mlx/hammer_2_1_3b_mlx_int4.pte`,
   tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
@@ -2601,7 +2603,7 @@ const PHI4_MINI_XNNPACK_8DA4W: LLMModel = {
   tokenizerConfigPath: `${PHI4_MINI_BASE_URL}/tokenizer_config.json`,
 };
 const PHI4_MINI_MLX_INT4: LLMModel = {
-  modelPath: `${PHI4_MINI_BASE_URL}/mlx/phi_4_mini_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/Phi-4-mini-instruct-ExecuTorch/${ET16_VERSION_TAG}/mlx/phi_4_mini_mlx_int4.pte`,
   tokenizerPath: `${PHI4_MINI_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${PHI4_MINI_BASE_URL}/tokenizer_config.json`,
 };
@@ -2624,17 +2626,17 @@ const QWEN2_5_3B_XNNPACK_8DA4W: LLMModel = {
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_0_5B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/0_5b/mlx/qwen_2_5_0_5b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/Qwen2.5-ExecuTorch/${ET16_VERSION_TAG}/0_5b/mlx/qwen_2_5_0_5b_mlx_int4.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_1_5B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/1_5b/mlx/qwen_2_5_1_5b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/Qwen2.5-ExecuTorch/${ET16_VERSION_TAG}/1_5b/mlx/qwen_2_5_1_5b_mlx_int4.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN2_5_3B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN2_5_BASE_URL}/3b/mlx/qwen_2_5_3b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/Qwen2.5-ExecuTorch/${ET16_VERSION_TAG}/3b/mlx/qwen_2_5_3b_mlx_int4.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
@@ -2663,12 +2665,12 @@ const GEMMA4_E2B_XNNPACK_8DA4W: LLMModel = {
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
 };
 const GEMMA4_E2B_VULKAN_8DA4W: LLMModel = {
-  modelPath: `${GEMMA4_BASE_URL}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`,
+  modelPath: `${BASE_URL}/gemma-4-E2B-it-text-ExecuTorch/${ET16_VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
 };
 const GEMMA4_E2B_MLX_INT4: LLMModel = {
-  modelPath: `${GEMMA4_BASE_URL}/e2b/mlx/gemma_4_e2b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/gemma-4-E2B-it-text-ExecuTorch/${ET16_VERSION_TAG}/e2b/mlx/gemma_4_e2b_mlx_int4.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
 };
@@ -2680,14 +2682,14 @@ const GEMMA4_OMNI_E2B_XNNPACK_8DA4W: LLMModel = {
   preprocessorConfig: GEMMA4_OMNI_PREPROCESSOR_CONFIG,
 };
 const GEMMA4_OMNI_E2B_VULKAN_8DA4W: LLMModel = {
-  modelPath: `${BASE_URL}/gemma-4-E2B-it-ExecuTorch/${NEXT_VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`,
+  modelPath: `${BASE_URL}/gemma-4-E2B-it-ExecuTorch/${ET16_VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
   modalities: ['image', 'audio'],
   preprocessorConfig: GEMMA4_OMNI_PREPROCESSOR_CONFIG,
 };
 const GEMMA4_OMNI_E2B_MLX_INT4: LLMModel = {
-  modelPath: `${GEMMA4_OMNI_BASE_URL}/e2b/mlx/gemma_4_e2b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/gemma-4-E2B-it-ExecuTorch/${ET16_VERSION_TAG}/e2b/mlx/gemma_4_e2b_mlx_int4.pte`,
   tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
   modalities: ['image', 'audio'],
@@ -2712,17 +2714,17 @@ const QWEN3_4B_XNNPACK_8DA4W: LLMModel = {
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_0_6B_MLX_INT8: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/0_6b/mlx/qwen_3_0_6b_mlx_int8.pte`,
+  modelPath: `${BASE_URL}/Qwen3-ExecuTorch/${ET16_VERSION_TAG}/0_6b/mlx/qwen_3_0_6b_mlx_int8.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_1_7B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/1_7b/mlx/qwen_3_1_7b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/Qwen3-ExecuTorch/${ET16_VERSION_TAG}/1_7b/mlx/qwen_3_1_7b_mlx_int4.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
 const QWEN3_4B_MLX_INT4: LLMModel = {
-  modelPath: `${QWEN3_BASE_URL}/4b/mlx/qwen_3_4b_mlx_int4.pte`,
+  modelPath: `${BASE_URL}/Qwen3-ExecuTorch/${ET16_VERSION_TAG}/4b/mlx/qwen_3_4b_mlx_int4.pte`,
   tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
 };
